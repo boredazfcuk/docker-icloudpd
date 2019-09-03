@@ -22,9 +22,11 @@ TZ: Timezone is required by the exiftool
 It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it lose the cookie information each time the container is recreated.
 It will download the photos to the "/home/${USERNAME}/iCloud" photos directory. You need to create a bind mount into the container at this point.
 
-I also have a failsafe, that the launch script look for a file called .mounted in the "/home/${USERNAME}/iCloud" folder. This is so that if the disk/volume/whatever gets unmounted, sync will fail. This is to prevent it wiping iCloud if deletes are syncronised. It also prevents it from filling up the underlying root volume if the volume isn't mounted.
+I also have a failsafe built in. The launch script will look for a file called .mounted in the "/home/${USERNAME}/iCloud" folder. If this file is not present, it will not sync with iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will no occur. This is to prevent it wiping iCloud if deletes are syncronised. It also prevents it from filling up the root volume if the underlying volume isn't mounted.
 
-I create my container with the following command:
+EXAMPLE:
+
+I created my sync container with the following command:
 
 ```
 docker create \
@@ -35,7 +37,7 @@ docker create \
    --env USER=boredazfcuk \
    --env UID=1000 \
    --env GROUP=boredazfcuk \
-   --env GID=1002 \
+   --env GID=1000 \
    --env APPLEID="boredazfcuk@emailaddress.com" \
    --env APPLEPASSWORD="Thisismypassword1" \
    --env CLIOPTIONS="--folder-structure={:%Y}" \
@@ -46,7 +48,9 @@ docker create \
    --volume /this/is/the/path/to/the/host/folder:/home/boredazfcuk/iCloud \
    boredazfcuk/icloudpd
    ```
-   If you launch the container after building you will receive an error as an authentication token does not exist. To create the authentication token, just run the container with the GENERATECOOKIE variable set to "True" and point it to the same named /config volume:
+   If you launch the container after building you will receive an error as an authentication token does not exist.
+   
+   To create the authentication token, just run the container with the GENERATECOOKIE variable set to "True" and point it to the same named /config volume:
    ```
    docker run -it --rm \
    --name iCloudPD-boredazfcuk-2FA \
@@ -55,7 +59,7 @@ docker create \
    --env USER=boredazfcuk \
    --env UID=1000 \
    --env GROUP=boredazfcuk \
-   --env GID=1001 \
+   --env GID=1000 \
    --env APPLEID="boredazfcuk@emailaddress.com" \
    --env APPLEPASSWORD="Thisismypassword1" \
    --env GENERATECOOKIE="True" \
