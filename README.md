@@ -11,11 +11,11 @@ GROUP and GID: Again, these should match your group information on the host
 
 APPLEID and APPLEPASSWORD: These are needed to log in and generate an authentication token
 
-CLIOPTIONS: (Optional) This is for additional command line options you want to pass
+CLIOPTIONS: (Optional) This is for additional command line options you want to pass to the icloudpd application
 
 SETDATETIMEEXIF: (Optional) If this is true, the script will set the file's timestamp to be the same as the exif date/time (if present)
 
-INTERVAL: This is the number of seconds between syncronisations. If not set it will default to every 24hrs.
+INTERVAL: This is the number of seconds between syncronisations. If not set it will default to every 24hrs (86400 seconds)
 
 TZ: Timezone is required by the exiftool
 
@@ -66,4 +66,10 @@ docker create \
    --volume icloudpd_boredazfcuk_config:/config \
    boredazfcuk/icloudpd
    ```
-   After this, the iCloudPD-boredazfcuk container should launch and the startup script will loop after every INTERVAL
+   After this, the iCloudPD-boredazfcuk container should launch and the startup script will loop after every INTERVAL.
+   
+   It's also worth noting that I've set the launch script to remove the authentication token once it is 55 days old. This is so the script will not keep prompting attempting 2FA and the user must manually intervene.
+   
+   To do:
+      Configure Health Check
+      Configure notification script
