@@ -26,6 +26,7 @@ I also have a failsafe, that the launch script look for a file called .mounted i
 
 I create my container with the following command:
 
+```
 docker create \
    --name iCloudPD-boredazfcuk \
    --hostname icloudpd_boredafcuk \
@@ -44,9 +45,9 @@ docker create \
    --volume icloudpd_boredazfcuk_config:/config \
    --volume /this/is/the/path/to/the/host/folder:/home/boredazfcuk/iCloud \
    boredazfcuk/icloudpd
-   
+   ```
    If you launch the container after building you will receive an error as an authentication token does not exist. To create the authentication token, just run the container with the GENERATECOOKIE variable set to "True" and point it to the same named /config volume:
-   
+   ```
    docker run -it --rm \
    --name iCloudPD-boredazfcuk-2FA \
    --hostname icloudpd_boredazfcuk_2fa \
@@ -60,5 +61,5 @@ docker create \
    --env GENERATECOOKIE="True" \
    --volume icloudpd_boredazfcuk_config:/config \
    boredazfcuk/icloudpd
-   
-   After this, the 
+   ```
+   After this, the iCloudPD-boredazfcuk container should launch and the startup script will loop after every INTERVAL
