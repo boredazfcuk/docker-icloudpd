@@ -22,7 +22,7 @@ TZ: Timezone is required by the exiftool
 It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it lose the cookie information each time the container is recreated.
 It will download the photos to the "/home/${USERNAME}/iCloud" photos directory. You need to create a bind mount into the container at this point.
 
-I also have a failsafe built in. The launch script will look for a file called .mounted in the "/home/${USERNAME}/iCloud" folder. If this file is not present, it will not sync with iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will no occur. This is to prevent it wiping iCloud if deletes are syncronised. It also prevents it from filling up the root volume if the underlying volume isn't mounted.
+I also have a failsafe built in. The launch script will look for a file called .mounted in the "/home/${USERNAME}/iCloud" folder. If this file is not present, it will not sync with iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will no occur. This is to prevent it wiping iCloud if deletes are syncronised. It also prevents it from filling up the root volume if the underlying volume isn't mounted. This file MUST be created manually and sync will not start without it.
 
 EXAMPLE:
 
