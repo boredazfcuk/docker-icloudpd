@@ -3,7 +3,7 @@ An Alpine Linux Docker container for ndbroadbent's icloud_photos_downloader
 
 This dockerfile work slightly different to the official dockerfile.
 
-**MANDATORY ENVIRONMENT VARIABLES**
+## MANDATORY ENVIRONMENT VARIABLES
 
 USER: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files.
 
@@ -19,22 +19,22 @@ APPLEPASSWORD: This is the password for the Apple ID account named above. This i
 
 TZ: This is the local timezone and is required by the exiftool to calculate local time from the timestamps.
 
-**OPTIONAL ENVIRONMENT VARIABLES**
+## OPTIONAL ENVIRONMENT VARIABLES
 
-CLIOPTIONS: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd is here: https://github.com/ndbroadbent/icloud_photos_downloader#usage
+CLIOPTIONS: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage)
 
 SETDATETIMEEXIF: This option sets the downloaded file's time stamp to be the same as the time stored within the file's exif data.
 
 INTERVAL: This is the number of seconds between syncronisations. Common intervals would be: 3hrs - 10800, 4hrs - 14400, 6hrs - 21600 & 12hrs - 43200. If variable is not set it will default to every 24hrs (86400 seconds).
 
-**VOLUME CONFIGURATION**
+## VOLUME CONFIGURATION
 
 It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it lose the cookie information each time the container is recreated.
 It will download the photos to the "/home/${USERNAME}/iCloud" photos directory. You need to create a bind mount into the container at this point.
 
 I also have a failsafe built in. The launch script will look for a file called .mounted in the "/home/${USERNAME}/iCloud" folder. If this file is not present, it will not sync with iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will no occur. This is to prevent it wiping iCloud if deletes are syncronised. It also prevents it from filling up the root volume if the underlying volume isn't mounted. This file MUST be created manually and sync will not start without it.
 
-**CREATING A CONTAINER**
+## CREATING A CONTAINER
 
 To create a container, run the following command from a shell on the host, filling in the details as per your requirements:
 
@@ -83,6 +83,8 @@ docker create \
    ```
    
 After creating the container. It will need to be initialised with an authentication token. This must be done by running a second container momentarily from a shell prompt on the host. The second container will log in to your Apple ID account and generate an authentication cookie. This will be stored in the /config folder in the container and will expire after two months. After it has expired, you will need to re-initialise the container again. If you have 2FA authentication enabled on your Apple account, you will be prompted on your iDevice to allow or deny the login. You will need to allow the login and then you will be presented with a 6 digit code. Enter this code into the shell prompt when required. After this containter has run, it will automatically remove itself.
+
+## CREATING AN AUTHENTICATION TOKEN
    
 To create the authentication token, just run the container with the GENERATECOOKIE variable set to "True" and point it to the same named /config volume:
    ```
@@ -118,7 +120,7 @@ After this, the iCloudPD-boredazfcuk container should launch and the startup scr
    
 It's also worth noting that I've set the launch script to remove the authentication token once it is 55 days old. This is so the script will not keep prompting attempting 2FA and the user must manually intervene.
    
-**To do**:
+# TO DO
       Enable display of cookie expiration date and use this as basis for cookie removal
       Configure Health Check
       Configure notifications
