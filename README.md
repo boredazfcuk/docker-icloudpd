@@ -118,9 +118,7 @@ docker run -it --rm \
 
 After this, my iCloudPD-boredazfcuk container launchs and the startup script loops after every interval.
    
-It's also worth noting that I've set the launch script to remove the authentication token once it is 55 days old. This is so the script will not keep prompting attempting 2FA and the you must manually intervene.
+Dockerfile now has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within 7 days.
    
 # TO DO
-      Enable display of cookie expiration date and use this as basis for cookie removal
-      Configure Health Check
       Configure notifications
