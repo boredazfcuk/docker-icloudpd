@@ -8,7 +8,7 @@ ENV CONFIGDIR="/config" \
    REPO="ndbroadbent/icloud_photos_downloader" \
    INTERVAL="86400"
 
-ADD sync-icloud.sh /usr/local/bin/sync-icloud.sh
+COPY sync-icloud.sh /usr/local/bin/sync-icloud.sh
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install build dependencies" && \
    apk add --no-cache --no-progress --virtual=build-deps ${BUILDDEPENDENCIES} && \
@@ -20,12 +20,15 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install Python dependencies" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install ${REPO1}" && \
    TEMP=$(mktemp -d) && \
    git clone -b master "https://github.com/${REPO}.git" "${TEMP}" && \
-   cd ${TEMP} && \
+   cd "${TEMP}" && \
    python3 setup.py install && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Set permissions on startup script, clean up and exit" && \
    chmod +x /usr/local/bin/sync-icloud.sh && \
    apk del --no-progress --purge build-deps
 
-VOLUME ${CONFIGDIR}
+HEALTHCHECK --start-period=10s --interval=1m --timeout=10s \
+   CMD (if [ "${DAYSREMAINING}" -lt 7 ]; then exit 1; fi)
+
+VOLUME "${CONFIGDIR}"
 
 CMD /usr/local/bin/sync-icloud.sh
