@@ -127,4 +127,4 @@ After this, my iCloudPD-boredazfcuk container launchs and the startup script loo
 Dockerfile now has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within 7 days.
    
 # TO DO
-      Configure notifications
+      Configure SMTP notifications
