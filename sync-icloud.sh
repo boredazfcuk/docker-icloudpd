@@ -110,6 +110,23 @@ SetDateTimeFromExif(){
    exiftool -d "%Y:%m:%d %H:%M:%S" '-FileModifyDate<createdate' '-FileModifyDate<creationdate' '-filemodifydate<datetimeoriginal' -if '(($datetimeoriginal and ($datetimeoriginal ne $filemodifydate)) or ($creationdate and ($creationdate ne $filemodifydate)))' -r -q "/home/${USER}/iCloud"
 }
 
+Notify(){
+   if [ "${NOTIFICATIONTYPE}" = "PROWL" ]; then
+      if [ ! -z "${PROWLAPIKEY}" ]; then
+         curl https://api.prowlapp.com/publicapi/add \
+            -F apikey="${PROWLAPIKEY}" \
+            -F application="$(date)" \
+            -F event="iCloud Photo Downloader" \
+            -F priority="${1}" \
+            -F description="${2}" \
+            >/dev/null 2>&1 &
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Prowl notification sent - ${2}"
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    API key not set, notification failed"
+      fi
+   fi
+}
+
 ##### Script #####
 GetCookieName
 CheckVariables
@@ -138,6 +155,7 @@ while :; do
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie expires: ${EXPIRE2FA/ / @ }"
       if [ "${DAYSREMAINING}" -lt 7 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Only ${DAYSREMAINING} days until two factor authentication cookie expires - Please reinitialise"
+         Notify "1" "Only ${DAYSREMAINING} days until two factor authentication cookie expires - Please reinitialise"
       fi
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation complete for ${USER}"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next syncronisation at $(date +%H:%M -d "${INTERVAL} seconds")"
