@@ -131,7 +131,7 @@ NotifyProwl(){
 ##### Script #####
 GetCookieName
 CheckVariables
-CheckCookie
+if [ -z "${GENERATECOOKIE}" ]; then CheckCookie; fi
 CheckMount
 CreateGroup
 CreateUser
