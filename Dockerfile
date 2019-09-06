@@ -5,8 +5,7 @@ ENV CONFIGDIR="/config" \
    REQUIREMENTS="python3 py-pip exiftool coreutils tzdata" \
    BUILDDEPENDENCIES="git gcc python3-dev musl-dev libffi-dev openssl-dev" \
    PYTHONDEPENDENCIES="docopt piexif click certifi pytz tzlocal six chardet idna urllib3 requests future keyrings.alt keyring pyicloud-ipd tqdm schema python-dateutil" \
-   REPO="ndbroadbent/icloud_photos_downloader" \
-   INTERVAL="86400"
+   REPO="ndbroadbent/icloud_photos_downloader"
 
 COPY sync-icloud.sh /usr/local/bin/sync-icloud.sh
 
