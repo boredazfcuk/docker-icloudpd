@@ -39,7 +39,7 @@ APIKEY: If the NOTIFICATIONTYPE is set to 'Prowl' or 'Pushbullet' then APIKEY mu
 
 ## VOLUME CONFIGURATION
 
-It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it lose the cookie information each time the container is recreated.
+It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it will lose the cookie information each time the container is recreated.
 It will download the photos to the "/home/${USERNAME}/iCloud" photos directory. You need to create a bind mount into the container at this point.
 
 I also have a failsafe built in. The launch script will look for a file called .mounted in the "/home/${USERNAME}/iCloud" folder. If this file is not present, it will not sync with iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will not occur. This prevents the script from filling up the root volume if the underlying volume isn't mounted for whatever reason. This file **MUST** be created manually and sync will not start without it.
