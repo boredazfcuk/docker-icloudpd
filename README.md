@@ -1,6 +1,8 @@
 # docker-icloud_photos_downloader
 An Alpine Linux Docker container for ndbroadbent's icloud_photos_downloader
 
+Now on Docker Hub: https://hub.docker.com/r/boredazfcuk/icloudpd
+
 This dockerfile work slightly different to the official dockerfile.
 
 ## MANDATORY ENVIRONMENT VARIABLES
