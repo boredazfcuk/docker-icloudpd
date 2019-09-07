@@ -90,9 +90,9 @@ docker create \
    
 After creating the container. It will need to be initialised with an authentication token. This must be done by running a second container momentarily from a shell prompt on the host. The second container will log in to your Apple ID account and generate an authentication cookie. This will be stored in the /config folder in the container and will expire after two months. After it has expired, you will need to re-initialise the container again. If you have 2FA authentication enabled on your Apple account, you will be prompted on your iDevice to allow or deny the login. You will need to allow the login and then you will be presented with a 6 digit code. Enter this code into the shell prompt when required. After this containter has run, it will automatically remove itself.
 
-## CREATING AN AUTHENTICATION TOKEN
+## CREATING A TWO FACTOR AUTHENTICATION ENABLED COOKIE
    
-To create the authentication token, just run the container with the GENERATECOOKIE variable set to "True" and point it to the same named /config volume:
+To create a two factor authentication enabled cookie, just run the container in an interactive session (with: docker run -it --rm) and point it to the same named /config volume:
    ```
    docker run -it --rm \
    --network <Same as the previously created contrainer> \
@@ -102,7 +102,6 @@ To create the authentication token, just run the container with the GENERATECOOK
    --env GID=<Same as the previously created contrainer> \
    --env APPLEID="<Same as the previously created contrainer>" \
    --env APPLEPASSWORD="<Same as the previously created contrainer>" \
-   --env GENERATECOOKIE="True" \
    --volume <Same named volume as the previously created contrainer> \
    <Name of the image you created>
    ```
@@ -117,7 +116,6 @@ docker run -it --rm \
    --env GID=1010 \
    --env APPLEID="thisisnotmy@email.com" \
    --env APPLEPASSWORD="neitheristhismypassword" \
-   --env GENERATECOOKIE="True" \
    --volume icloudpd_james_config:/config \
    boredazfcuk/icloudpd
 ```
