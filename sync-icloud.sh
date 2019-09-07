@@ -25,11 +25,19 @@ CheckVariables(){
    if [ -z "${NOTIFICATIONDAYS}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Notification period not set, defaulting to 7 days"; NOTIFICATIONPERIOD="7"; fi
    if [ -z "${TZ}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Time zone not set, defaulting to Coordinated Universal Time 'UTC'"; export TZ="UTC"; fi
    if [ -z "${AUTHTYPE}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Authentication type not set, defaulting to two factor authentication"; AUTHTYPE="2FA"; fi
-   if [ "${NOTIFICATIONTYPE}" = "Prowl" ] && [ -z "${PROWLAPIKEY}" ]; then
+   if [ "${NOTIFICATIONTYPE}" = "Prowl" ] && [ -z "${APIKEY}" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Prowl notifications enabled, but Prowl API key not set - disabling notifications"
       unset "${NOTIFICATIONTYPE}"
-   elif [ "${NOTIFICATIONTYPE}" = "Prowl" ] && [ ! -z "${PROWLAPIKEY}" ]; then
-         NEXTNOTIFICATION="$(date +%s)"
+   elif [ "${NOTIFICATIONTYPE}" = "Prowl" ] && [ ! -z "${APIKEY}" ]; then
+      NOTIFICATIONURL="https://api.prowlapp.com/publicapi/add"
+      NEXTNOTIFICATION="$(date +%s)"
+   fi
+   if [ "${NOTIFICATIONTYPE}" = "Pushbullet" ] && [ -z "${APIKEY}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Pushbullet notifications enabled, but Pushbullet API key not set - disabling notifications"
+      unset "${NOTIFICATIONTYPE}"
+   elif [ "${NOTIFICATIONTYPE}" = "Pushbullet" ] && [ ! -z "${APIKEY}" ]; then
+      NOTIFICATIONURL="https://Pushbullet.weks.net/publicapi/add"
+      NEXTNOTIFICATION="$(date +%s)"
    fi
    if [ -z "${APPLEPASSWORD}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID Password not set - exiting"; exit 1; fi
    if [ -z "${APPLEID}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; exit 1; fi
@@ -116,22 +124,22 @@ Display2FAExpiry(){
          if [ "${SYNCTIME}" -gt "${NEXTNOTIFICATION}" ]; then
             if [ "${DAYSREMAINING}" -eq 1 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Final day before two factor authentication cookie expires - Please reinitialise now"
-               if [ "${NOTIFICATIONTYPE}" = "Prowl" ]; then
-                  NotifyProwl "2" "Final day before two factor authentication cookie expires - Please reinitialise now"
+               if [ "${NOTIFICATIONTYPE}" = "Prowl" ] || [ "${NOTIFICATIONTYPE}" = "Pushbullet" ]; then
+                  Notify "2" "Final day before two factor authentication cookie expires - Please reinitialise now"
                fi
             else
                echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Only ${DAYSREMAINING} days until two factor authentication cookie expires - Please reinitialise"
-               if [ "${NOTIFICATIONTYPE}" = "Prowl" ]; then
-                  NotifyProwl "1" "Only ${DAYSREMAINING} days until two factor authentication cookie expires - Please reinitialise"
+               if [ "${NOTIFICATIONTYPE}" = "Prowl" ] || [ "${NOTIFICATIONTYPE}" = "Pushbullet" ]; then
+                  Notify "1" "Only ${DAYSREMAINING} days until two factor authentication cookie expires - Please reinitialise"
                fi
             fi
          fi
       fi
 }
 
-NotifyProwl(){
-   curl https://api.prowlapp.com/publicapi/add \
-      -F apikey="${PROWLAPIKEY}" \
+Notify(){
+   curl "${NOTIFICATIONURL}"  \
+      -F apikey="${APIKEY}" \
       -F application="$(date)" \
       -F event="iCloud Photo Downloader" \
       -F priority="${1}" \
