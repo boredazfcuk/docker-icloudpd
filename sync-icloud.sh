@@ -1,7 +1,15 @@
 #!/bin/ash
 
 ##### Functions #####
-GetCookieName(){
+CheckTerminal(){
+   if [ -t 0 ]; then
+      INTERACTIVE=True
+   else
+      INTERACTIVE=False
+   fi
+}
+
+CookieName(){
    COOKIE="${APPLEID//_/}"
    COOKIE="${COOKIE// /_}"
    COOKIE="${COOKIE//[^a-zA-Z0-9_]/}"
@@ -9,35 +17,31 @@ GetCookieName(){
 }
 
 CheckCookie(){
-   if [ -f "${CONFIGDIR}/${COOKIE}" ]; then
-      if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${CONFIGDIR}/${COOKIE}")" -eq 1 ]; then
-         EXPIRE2FA="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${CONFIGDIR}/${COOKIE}" | sed -e 's#.*expires="\(.*\)"; HttpOnly.*#\1#')"
-         EXPIREWEB="$(grep "X_APPLE_WEB_KB" "${CONFIGDIR}/${COOKIE}" | sed -e 's#.*expires="\(.*\)"; HttpOnly.*#\1#')"
-         EXPIREWEB="${EXPIREWEB::-1}"
-         EXPIRE2FA="${EXPIRE2FA::-1}"
-         EXPIRE2FASECS="$(date -d "${EXPIRE2FA}" '+%s')"
-         DAYSREMAINING="$(($((EXPIRE2FASECS - $(date '+%s'))) / 86400))"
-      else
-         while [ ! "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${CONFIGDIR}/${COOKIE}")" -eq 1 ]; do
-            echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie has expired. Container must be run interactively to generate an authentication cookie - retry in 5 minutes"
-            sleep 300
-         done
-      fi
+   if [ $(grep -c -e "X-APPLE-WEBAUTH-HSA-TRUST" "${CONFIGDIR}/${COOKIE}") -eq 1 ]; then
+      AUTHTYPE="2FA"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication type not set, but two factor authentication cookie exists. Changing to 2FA"
+   else
+      AUTHTYPE="Web"
    fi
-   while [ ! -f "${CONFIGDIR}/${COOKIE}" ]; do
-      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie does not exist. Container must be run interactively to generate an authentication cookie - retry in 5 minutes"
+}
+
+Check2FAExpiration(){
+   EXPIRE2FA="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${CONFIGDIR}/${COOKIE}" | sed -e 's#.*expires="\(.*\)"; HttpOnly.*#\1#')"
+   EXPIRE2FA="${EXPIRE2FA::-1}"
+   EXPIRE2FASECS="$(date -d "${EXPIRE2FA}" '+%s')"
+   DAYSREMAINING="$(($((EXPIRE2FASECS - $(date '+%s'))) / 86400))"
+   while [ "${DAYSREMAINING}" -lt 1 ]; do
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie has expired. Container must be run interactively to generate an authentication cookie - retry in 5 minutes"
       sleep 300
    done
 }
 
-GenerateCookie(){
+Generate2FACookie(){
    if [ -f "${CONFIGDIR}/${COOKIE}" ]; then
       rm "${CONFIGDIR}/${COOKIE}"
    fi
-   CreateGroup
-   CreateUser
    su "${USER}" -c "/usr/bin/icloudpd --username \"${APPLEID}\" --password \"${APPLEPASSWORD}\" --cookie-directory \"${CONFIGDIR}\""
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie generated. Sync should now be successful"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful"
    exit 0
 }
 
@@ -66,23 +70,24 @@ CheckVariables(){
    if [ -z "${UID}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  User ID not set, defaulting to '1000'"; UID="1000"; fi
    if [ -z "${GROUP}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Group name not set, defaulting to 'group'"; GROUP="group"; fi
    if [ -z "${GID}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Group ID not set, defaulting to '1000'"; GID="1000"; fi
-   if [ -z "${TZ}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Time zone not set, defaulting to Coordinated Universal Time 'UTC'"; export TZ="UTC"; fi
    if [ -z "${INTERVAL}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Syncronisation interval not set, defaulting to 1 day"; INTERVAL="86400"; fi
-   if [ -z "${APPLEID}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; exit 1; fi
-   if [ -z "${APPLEPASSWORD}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID Password not set - exiting"; exit 1; fi
-   if [ "${NOTIFICATIONTYPE}" = "Prowl" ] &&  [ -z "${PROWLAPIKEY}" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Prowl notifications enabled, but Prowl API key not set - disabling notifications"
+   if [ -z "${TZ}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Time zone not set, defaulting to Coordinated Universal Time 'UTC'"; export TZ="UTC"; fi
+   if [ -z "${AUTHTYPE}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Authentication type not set, defaulting to two factor authentication"; AUTHTYPE="2FA"; fi
+   if [ "${NOTIFICATIONTYPE}" = "Prowl" ] && [ -z "${PROWLAPIKEY}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Prowl notifications enabled, but Prowl API key not set - disabling notifications"
       unset "${NOTIFICATIONTYPE}"
-   elif [ "${NOTIFICATIONTYPE}" = "Prowl" ] &&  [ ! -z "${PROWLAPIKEY}" ]; then
+   elif [ "${NOTIFICATIONTYPE}" = "Prowl" ] && [ ! -z "${PROWLAPIKEY}" ]; then
          NEXTNOTIFICATION="$(date +%s)"
    fi
+   if [ -z "${APPLEPASSWORD}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID Password not set - exiting"; exit 1; fi
+   if [ -z "${APPLEID}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; exit 1; fi
 }
 
 CheckMount(){
-   if [ ! -f "/home/${USER}/iCloud/.mounted" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    iCloud folder not mounted - exiting"
-      exit 1
-   fi
+   while [ ! -f "/home/${USER}/iCloud/.mounted" ]; do
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Destination volume not mounted - retry in 5 minutes"
+      sleep 300
+   done
 }
 
 DisplayVariables(){
@@ -129,31 +134,41 @@ NotifyProwl(){
 }
 
 ##### Script #####
-GetCookieName
+CheckTerminal
+CookieName
 CheckVariables
-if [ -z "${GENERATECOOKIE}" ]; then CheckCookie; fi
-if [ -z "${GENERATECOOKIE}" ]; then CheckMount; fi
 CreateGroup
 CreateUser
-if [ "${GENERATECOOKIE}" = "True" ]; then GenerateCookie; fi
+if [ -z "${AUTHTYPE}" ] && [ -f "${CONFIGDIR}/${COOKIE}" ]; then CheckCookie; fi
 DisplayVariables
+if [ "${AUTHTYPE}" = "2FA" ] && [ ! -f "${CONFIGDIR}/${COOKIE}" ] && [ "${INTERACTIVE}" = "False" ]; then
+   echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Two factor authentication enabled, but cookie does not exist"
+   while [ ! -f "${CONFIGDIR}/${COOKIE}" ]; do
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Please generate cookie using an interactive session - retry in 5 minutes"
+      sleep 300
+   done
+elif [ "${AUTHTYPE}" = "2FA" ] && [ ! -f "${CONFIGDIR}/${COOKIE}" ] && [ "${INTERACTIVE}" = "True" ]; then
+   Generate2FACookie
+fi
+if [ "${AUTHTYPE}" = "2FA" ]; then Check2FAExpiration; fi
+CheckMount
 SetOwnerAndGroup
 
 while :; do
-   CheckCookie
+   if [ "${AUTHTYPE}" = "2FA" ]; then Check2FAExpiration; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation started for ${USER}"
    SYNCTIME="$(date +%s -d '+15 minutes')"
-   if [ -f "/home/${USER}/iCloud/.mounted" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sync ${USER} iCloud..."
-      su -s /bin/ash "${USER}" -c "/usr/bin/icloudpd --directory /home/${USER}/iCloud --cookie-directory \"${CONFIGDIR}\" --username \"${APPLEID}\" --password \"${APPLEPASSWORD}\" \""${CLIOPTIONS}"\""
-      if [ $? -ne 0 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Exit code non-zero - Error: $?"
-      fi
-      if [ "${SETDATETIMEEXIF}" = "True" ]; then
-         SetDateTimeFromExif
-      fi
-      SetOwnerAndGroup
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Web page cookie expires: ${EXPIREWEB/ / @ }"
+   CheckMount
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sync ${USER} iCloud..."
+   su -s /bin/ash "${USER}" -c "/usr/bin/icloudpd --directory /home/${USER}/iCloud --cookie-directory \"${CONFIGDIR}\" --username \"${APPLEID}\" --password \"${APPLEPASSWORD}\" \""${CLIOPTIONS}"\""
+   if [ $? -ne 0 ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Exit code non-zero - Error: $?"
+   fi
+   if [ "${SETDATETIMEEXIF}" = "True" ]; then
+      SetDateTimeFromExif
+   fi
+   SetOwnerAndGroup
+   if [ "${AUTHTYPE}" = "2FA" ]; then 
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie expires: ${EXPIRE2FA/ / @ }"
       if [ "${DAYSREMAINING}" -lt 7 ]; then
          if [ "${SYNCTIME}" -gt "${NEXTNOTIFICATION}" ]; then
@@ -170,11 +185,8 @@ while :; do
             fi
          fi
       fi
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation complete for ${USER}"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next syncronisation at $(date +%H:%M -d "${INTERVAL} seconds")"
-      sleep "${INTERVAL}"
-   else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Underlying volume is not mounted. Waiting a minute before retrying"
-      sleep 60
    fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation complete for ${USER}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next syncronisation at $(date +%H:%M -d "${INTERVAL} seconds")"
+   sleep "${INTERVAL}"
 done
