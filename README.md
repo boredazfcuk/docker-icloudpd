@@ -23,6 +23,10 @@ TZ: This is the local timezone and is required by the exiftool to calculate loca
 
 INTERVAL: This is the number of seconds between syncronisations. Common intervals would be: 3hrs - 10800, 4hrs - 14400, 6hrs - 21600 & 12hrs - 43200. If variable is not set it will default to every 24hrs (86400 seconds).
 
+NOTIFCATIONPERIOD: This is number of days until cookie expiration for which to generate notifications. This will default to 7 days if not specified so you will receive a single notification in the 7 days running up to cookie expiration.
+
+AUTHTYPE: This is the type of authentication that is enabled on your iCloud account. Valid values are '2FA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. If this variable is not set, it will default to '2FA'
+
 ## OPTIONAL ENVIRONMENT VARIABLES
 
 CLIOPTIONS: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage)
@@ -56,7 +60,7 @@ docker create \
    --env GID=<Group ID> \
    --env APPLEID="<Apple ID e-mail address>" \
    --env APPLEPASSWORD="Apple ID password" \
-   --env CLIOPTIONS="<Any additional commands you wish to pass to icloudpd" \
+   --env CLIOPTIONS="<Any additional commands you wish to pass to icloudpd>" \
    --env SETDATETIMEEXIF=<If required set to "True", otherwise omit this option> \
    --env INTERVAL=<Include this if you wish to override the default interval of 24hrs> \
    --env TZ=<The local time zone> \
@@ -77,9 +81,11 @@ docker create \
    --env UID=1000 \
    --env GROUP=admins \
    --env GID=1010 \
-   --env APPLEID="thisisnotmy@email.com" \
+   --env APPLEID=thisisnotmy@email.com \
    --env APPLEPASSWORD="neitheristhismypassword" \
-   --env CLIOPTIONS="--folder-structure={:%Y} --recent 50" \
+   --env AUTHTYPE=2FA \
+   --env NOTIFICATIONPERIOD=14 \
+   --env CLIOPTIONS="--folder-structure={:%Y} --recent 50 --auto-delete" \
    --env SETDATETIMEEXIF=True \
    --env INTERVAL=21600 \
    --env TZ=Europe/London \
@@ -88,11 +94,13 @@ docker create \
    boredazfcuk/icloudpd
    ```
    
-After creating the container. It will need to be initialised with an authentication token. This must be done by running a second container momentarily from a shell prompt on the host. The second container will log in to your Apple ID account and generate an authentication cookie. This will be stored in the /config folder in the container and will expire after two months. After it has expired, you will need to re-initialise the container again. If you have 2FA authentication enabled on your Apple account, you will be prompted on your iDevice to allow or deny the login. You will need to allow the login and then you will be presented with a 6 digit code. Enter this code into the shell prompt when required. After this containter has run, it will automatically remove itself.
+## TWO FACTOR AUTHENTICATION
 
-## CREATING A TWO FACTOR AUTHENTICATION ENABLED COOKIE
+If your Apple ID account has two factor authentication enabled and you immediately launch the container after creating it, you will see that the container waits for a two factor authentication cookie to be created. Without this cookie, syncronisation cannot be started.
+
+To generate a two factor authentication cookie the container must be run interactively. This can be done by running a second container momentarily from a shell prompt on the host. The second container will log in to your Apple ID account and your iDevice should then ask you if you want to allow or deny the login. When you allow the login, you will be sent a 6-digit approval code. Enter the approval code into the shell prompt by selecting the corresponding option (0 or 1) and then entering the approval code. This will then place a two factor authentication cookie into the /config folder of the container. This cookie will expire after three months. After it has expired, you will need to re-initialise the container again.
    
-To create a two factor authentication enabled cookie, just run the container in an interactive session (with: docker run -it --rm) and point it to the same named /config volume:
+To create a two factor authentication enabled cookie, run the container in an interactive session (with: docker run -it --rm) and point it to the same named /config volume like this:
    ```
    docker run -it --rm \
    --network <Same as the previously created contrainer> \
@@ -120,9 +128,9 @@ docker run -it --rm \
    boredazfcuk/icloudpd
 ```
 
-After this, my iCloudPD-boredazfcuk container launchs and the startup script loops after every interval.
+After this, my iCloudPD-boredazfcuk container launchs and the startup script loops after the set interval time.
    
-Dockerfile now has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within 7 days.
+Dockerfile has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within a set number of days (NOTIFICATIONPERIOD). 
    
 # TO DO
       Configure SMTP notifications
