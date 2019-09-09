@@ -125,12 +125,12 @@ Display2FAExpiry(){
             if [ "${DAYSREMAINING}" -eq 1 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Final day before two factor authentication cookie expires - Please reinitialise now"
                if [ "${NOTIFICATIONTYPE}" = "Prowl" ] || [ "${NOTIFICATIONTYPE}" = "Pushbullet" ]; then
-                  Notify "2" "Final day before two factor authentication cookie expires - Please reinitialise now"
+                  Notify "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires - Please reinitialise now"
                fi
             else
                echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Only ${DAYSREMAINING} days until two factor authentication cookie expires - Please reinitialise"
                if [ "${NOTIFICATIONTYPE}" = "Prowl" ] || [ "${NOTIFICATIONTYPE}" = "Pushbullet" ]; then
-                  Notify "1" "Only ${DAYSREMAINING} days until two factor authentication cookie expires - Please reinitialise"
+                  Notify "2FA Cookie Expiration" "1" "Only ${DAYSREMAINING} days until two factor authentication cookie expires - Please reinitialise"
                fi
             fi
          fi
@@ -140,12 +140,12 @@ Display2FAExpiry(){
 Notify(){
    curl "${NOTIFICATIONURL}"  \
       -F apikey="${APIKEY}" \
-      -F application="$(date)" \
-      -F event="iCloud Photo Downloader" \
-      -F priority="${1}" \
-      -F description="${2}" \
+      -F application="iCloud Photo Downloader" \
+      -F event="${1}" \
+      -F priority="${2}" \
+      -F description="${3}" \
       >/dev/null 2>&1 &
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Prowl notification sent - ${2}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${NOTIFICATIONTYPE} notification sent - ${2}"
    NEXTNOTIFICATION=$(date +%s -d "+24 hour")
 }
 
