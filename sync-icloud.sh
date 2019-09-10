@@ -9,26 +9,19 @@ CheckTerminal(){
    fi
 }
 
-CookieName(){
-   COOKIE="${APPLEID//_/}"
-   COOKIE="${COOKIE// /_}"
-   COOKIE="${COOKIE//[^a-zA-Z0-9_]/}"
-   COOKIE="$(echo -n "${COOKIE}" | tr A-Z a-z)"
-}
-
 CheckVariables(){
    if [ -z "${USER}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  User name not set, defaulting to 'user'"; USER="user"; fi
    if [ -z "${UID}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  User ID not set, defaulting to '1000'"; UID="1000"; fi
    if [ -z "${GROUP}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Group name not set, defaulting to 'group'"; GROUP="group"; fi
    if [ -z "${GID}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Group ID not set, defaulting to '1000'"; GID="1000"; fi
    if [ -z "${INTERVAL}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Syncronisation interval not set, defaulting to 86400 seconds (1 day) "; INTERVAL="86400"; fi
-   if [ -z "${NOTIFICATIONDAYS}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Notification period not set, defaulting to 7 days"; NOTIFICATIONPERIOD="7"; fi
    if [ -z "${TZ}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Time zone not set, defaulting to Coordinated Universal Time 'UTC'"; export TZ="UTC"; fi
    if [ -z "${AUTHTYPE}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Authentication type not set, defaulting to two factor authentication"; AUTHTYPE="2FA"; fi
    if [ "${NOTIFICATIONTYPE}" = "Prowl" ] && [ -z "${APIKEY}" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Prowl notifications enabled, but Prowl API key not set - disabling notifications"
       unset "${NOTIFICATIONTYPE}"
    elif [ "${NOTIFICATIONTYPE}" = "Prowl" ] && [ ! -z "${APIKEY}" ]; then
+      if [ -z "${NOTIFICATIONDAYS}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Notification period not set, defaulting to 7 days"; NOTIFICATIONDAYS="7"; fi
       NOTIFICATIONURL="https://api.prowlapp.com/publicapi/add"
       NEXTNOTIFICATION="$(date +%s)"
    fi
@@ -36,6 +29,7 @@ CheckVariables(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Pushbullet notifications enabled, but Pushbullet API key not set - disabling notifications"
       unset "${NOTIFICATIONTYPE}"
    elif [ "${NOTIFICATIONTYPE}" = "Pushbullet" ] && [ ! -z "${APIKEY}" ]; then
+      if [ -z "${NOTIFICATIONDAYS}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Notification period not set, defaulting to 7 days"; NOTIFICATIONDAYS="7"; fi
       NOTIFICATIONURL="https://Pushbullet.weks.net/publicapi/add"
       NEXTNOTIFICATION="$(date +%s)"
    fi
@@ -45,7 +39,7 @@ CheckVariables(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${GROUP}:${GID}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID: ${APPLEID}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID Password: ${APPLEPASSWORD}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie directory: ${CONFIGDIR}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: ${CONFIGDIR}/${COOKIE}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     iCloud directory: /home/${USER}/iCloud"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line options: ${CLIOPTIONS}"
 }
@@ -87,22 +81,22 @@ CheckMount(){
 }
 
 SetOwnerAndGroup(){
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set group and permissions of downloaded files..."
-   find "/home/${USER}/iCloud" ! -user "${USER}" -exec chown "${USER}" {} \;
-   find "/home/${USER}/iCloud" ! -group "${GROUP}" -exec chgrp "${GROUP}" {} \;
-   find "/home/${USER}/iCloud" -type d ! -perm 770 -exec chmod 770 {} +
-   find "/home/${USER}/iCloud" -type f ! -perm 660 -exec chmod 660 {} +
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set group and permissions of downloaded files..."
+   find "/home/${USER}/iCloud" ! -user "${USER}" -exec chown "${USER}" {} \; 2>/dev/null
+   find "/home/${USER}/iCloud" ! -group "${GROUP}" -exec chgrp "${GROUP}" {} \; 2>/dev/null
+   find "/home/${USER}/iCloud" -type d ! -perm 775 -exec chmod 775 {} + 2>/dev/null
+   find "/home/${USER}/iCloud" -type f ! -perm 664 -exec chmod 664 {} + 2>/dev/null
 }
 
 Check2FACookie(){
    if [ -f "${CONFIGDIR}/${COOKIE}" ]; then
       if [ $(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${CONFIGDIR}/${COOKIE}") -eq 1 ]; then
-         EXPIRE2FA="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${CONFIGDIR}/${COOKIE}" | sed -e 's#.*expires="\(.*\)"; HttpOnly.*#\1#')"
-         EXPIRE2FA="${EXPIRE2FA::-1}"
+         EXPIRE2FA="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${CONFIGDIR}/${COOKIE}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
          EXPIRE2FASECS="$(date -d "${EXPIRE2FA}" '+%s')"
          DAYSREMAINING="$(($((EXPIRE2FASECS - $(date '+%s'))) / 86400))"
+         echo "${DAYSREMAINING}" > "${CONFIGDIR}/DAYS_REMAINING"
          if [ "${DAYSREMAINING}" -gt 0 ]; then COOKIE2FAVALID="True"; fi
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Valid two factor authentication cookie found"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Valid two factor authentication cookie found. Days until expiration: ${DAYSREMAINING}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie is not 2FA capable, authentication type may have changed. Please run container interactively to generate - Retry in 5 minutes"
          sleep 300
@@ -120,7 +114,7 @@ SetDateTimeFromExif(){
 
 Display2FAExpiry(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie expires: ${EXPIRE2FA/ / @ }"
-      if [ "${DAYSREMAINING}" -lt "${NOTIFICATIONPERIOD}" ]; then
+      if [ "${DAYSREMAINING}" -lt "${NOTIFICATIONDAYS}" ]; then
          if [ "${SYNCTIME}" -gt "${NEXTNOTIFICATION}" ]; then
             if [ "${DAYSREMAINING}" -eq 1 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Final day before two factor authentication cookie expires - Please reinitialise now"
@@ -155,12 +149,16 @@ SyncUser(){
          COOKIE2FAVALID=False
          while [ "${COOKIE2FAVALID}" = "False" ]; do Check2FACookie; done
       fi
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation started for ${USER}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download started for ${USER}"
       SYNCTIME="$(date +%s -d '+15 minutes')"
       CheckMount
-      su -s /bin/ash "${USER}" -c "/usr/bin/icloudpd --directory /home/${USER}/iCloud --cookie-directory ${CONFIGDIR} --username ${APPLEID} --password \"${APPLEPASSWORD}\" ${CLIOPTIONS}"
-      if [ $? -ne 0 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Exit code non-zero - Error: $?"
+      su "${USER}" -c '/usr/bin/icloudpd --directory /home/'"${USER}"'/iCloud --cookie-directory '"${CONFIGDIR}"' --username '"${APPLEID}"' --password '"${APPLEPASSWORD}"' '"${CLIOPTIONS}"''
+      EXITCODE=$?
+      echo "${EXITCODE}" > /tmp/EXIT_CODE
+      if [ "${EXITCODE}" -ne 0 ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${EXITCODE}"
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download successful"
       fi
       if [ "${SETDATETIMEEXIF}" = "True" ]; then SetDateTimeFromExif; fi
       SetOwnerAndGroup
@@ -173,8 +171,8 @@ SyncUser(){
 
 ##### Script #####
 echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** iCoud_photo_downloader container started *****"
+COOKIE="$(echo -n ${APPLEID//[^a-zA-Z0-9]/} | tr '[:upper:]' '[:lower:]')"
 CheckTerminal
-CookieName
 CheckVariables
 CreateGroup
 CreateUser
