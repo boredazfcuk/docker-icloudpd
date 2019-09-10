@@ -28,6 +28,7 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Set permissions on startup script, clean 
 
 HEALTHCHECK --start-period=10s --interval=1m --timeout=10s \
   CMD /usr/local/bin/healthcheck.sh
+  
 VOLUME "${CONFIGDIR}"
 
 CMD /usr/local/bin/sync-icloud.sh
