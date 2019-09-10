@@ -71,7 +71,7 @@ docker create \
    --env TZ=<The local time zone> \
    --volume <Named volume which is mapped to /config> \
    --volume <Bind mount to the destination folder on the host> \
-   <image name>
+   boredazfcuk/icloudpd
    ```
    
    This is an example of the command I run to create a container on my own machine:
@@ -117,7 +117,7 @@ To create a two factor authentication enabled cookie, run the container in an in
    --env APPLEID="<Same as the previously created contrainer>" \
    --env APPLEPASSWORD="<Same as the previously created contrainer>" \
    --volume <Same named volume as the previously created contrainer> \
-   <Name of the image you created>
+   boredazfcuk/icloudpd
    ```
    
 This is an example of the command I run to create the authentication token on my own machine:
