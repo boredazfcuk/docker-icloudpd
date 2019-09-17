@@ -68,7 +68,7 @@ Generate2FACookie(){
    if [ -f "${CONFIGDIR}/${COOKIE}" ]; then
       rm "${CONFIGDIR}/${COOKIE}"
    fi
-   su "${USER}" -c "/usr/bin/icloudpd --username \"${APPLEID}\" --password \"${APPLEPASSWORD}\" --cookie-directory \"${CONFIGDIR}\""
+   su "${USER}" -c "/usr/bin/icloudpd --username \"${APPLEID}\" --password \"${APPLEPASSWORD}\" --cookie-directory \"${CONFIGDIR}\" 2>/dev/null"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful"
    exit 0
 }

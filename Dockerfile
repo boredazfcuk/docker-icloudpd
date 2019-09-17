@@ -4,7 +4,7 @@ MAINTAINER boredazfcuk
 ENV CONFIGDIR="/config" \
    REQUIREMENTS="python3 py-pip exiftool coreutils tzdata curl" \
    BUILDDEPENDENCIES="git gcc python3-dev musl-dev libffi-dev openssl-dev" \
-   PYTHONDEPENDENCIES="docopt piexif click certifi pytz tzlocal six chardet idna urllib3 requests future keyrings.alt keyring pyicloud-ipd tqdm schema python-dateutil" \
+   PYTHONDEPENDENCIES="docopt piexif click==6.0 certifi pytz tzlocal six chardet idna urllib3 requests future keyrings.alt==1.0 keyring==8.0 pyicloud-ipd tqdm schema python-dateutil" \
    REPO="ndbroadbent/icloud_photos_downloader"
 
 COPY sync-icloud.sh /usr/local/bin/sync-icloud.sh
@@ -17,7 +17,7 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install requirements" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install Python dependencies" && \
    pip3 install --upgrade pip  && \
    pip3 install ${PYTHONDEPENDENCIES} && \
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install ${REPO1}" && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install ${REPO}" && \
    TEMP=$(mktemp -d) && \
    git clone -b master "https://github.com/${REPO}.git" "${TEMP}" && \
    cd "${TEMP}" && \
