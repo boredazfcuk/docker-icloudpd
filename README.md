@@ -20,18 +20,9 @@ AUTHTYPE: This is the type of authentication that is enabled on your iCloud acco
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
-CLIOPTIONS: This is for additional command line options you want to pass to the icloudpd application.
+CLIOPTIONS: This is for additional commandline options you want to pass to the icloudpd application.
 
-Example:
---auto-delete
-
---smtp-host smtp.gmail.com
---smtp-port 587
---smtp-username your@gmail.com
---smtp-password secret
---notification-email me@example.com"
-
-SETDATETIMEEXIF: This option sets the downloaded file's time stamp to be the same as the time stored within the file's exif data.
+SETDATETIMEEXIF: Sets the downloaded file's time stamp to be the same as the time stored within the file's exif data.
 
 ## VOLUME CONFIGURATION
 
