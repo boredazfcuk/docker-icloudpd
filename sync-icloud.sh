@@ -159,9 +159,9 @@ SyncUser(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${EXITCODE}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download successful"
+         if [ "${SETDATETIMEEXIF}" = "True" ]; then SetDateTimeFromExif; fi
+         SetOwnerAndGroup
       fi
-      if [ "${SETDATETIMEEXIF}" = "True" ]; then SetDateTimeFromExif; fi
-      SetOwnerAndGroup
       if [ "${AUTHTYPE}" = "2FA" ]; then Display2FAExpiry; fi
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation complete for ${USER}"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next syncronisation at $(date +%H:%M -d "${INTERVAL} seconds")"
