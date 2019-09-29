@@ -1,11 +1,10 @@
 FROM alpine:latest
-MAINTAINER boredazfcuk
+MAINTAINER maarten@bitprocessor.be
 
-ENV CONFIGDIR="/config" \
-   REQUIREMENTS="python3 py-pip exiftool coreutils tzdata curl" \
-   BUILDDEPENDENCIES="git gcc python3-dev musl-dev libffi-dev openssl-dev" \
-   PYTHONDEPENDENCIES="docopt piexif click==6.0 certifi pytz tzlocal six chardet idna urllib3 requests future keyrings.alt==1.0 keyring==8.0 pyicloud-ipd tqdm schema python-dateutil" \
-   REPO="ndbroadbent/icloud_photos_downloader"
+ENV REQUIREMENTS="python3 py-pip exiftool coreutils tzdata curl" \
+    BUILDDEPENDENCIES="git gcc python3-dev musl-dev libffi-dev openssl-dev" \
+    PYTHONDEPENDENCIES="docopt piexif click==6.0 certifi pytz tzlocal six chardet idna urllib3 requests future keyrings.alt==1.0 keyring==8.0 pyicloud-ipd tqdm schema python-dateutil" \
+    REPO="ndbroadbent/icloud_photos_downloader"
 
 COPY sync-icloud.sh /usr/local/bin/sync-icloud.sh
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh
@@ -29,7 +28,5 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Set permissions on startup script, clean 
 
 HEALTHCHECK --start-period=10s --interval=1m --timeout=10s \
   CMD /usr/local/bin/healthcheck.sh
-  
-VOLUME "${CONFIGDIR}"
 
 CMD /usr/local/bin/sync-icloud.sh

@@ -1,7 +1,7 @@
 #!/bin/ash
 
 ##### Base Command ####
-ICLOUDPD="/usr/bin/icloudpd --username=${APPLEID} --password=${APPLEPASSWORD} --cookie-directory=/config --directory=/data --no-progress-bar ${CLIOPTIONS}"
+ICLOUDPD="/usr/bin/icloudpd --username=${APPLEID} --password=${APPLEPASSWORD} --cookie-directory=/cookie --directory=/data --no-progress-bar ${CLIOPTIONS}"
 
 ##### Functions #####
 CheckTerminal(){
@@ -21,13 +21,13 @@ CheckVariables(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Running as: $(id)"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID: ${APPLEID}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID Password: ${APPLEPASSWORD}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: /config/${COOKIE}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: /cookie/${COOKIE}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line options: ${CLIOPTIONS}"
 }
 
 Generate2FACookie(){
-   if [ -f "/config/${COOKIE}" ]; then
-      rm "/config/${COOKIE}"
+   if [ -f "/cookie/${COOKIE}" ]; then
+      rm "/cookie/${COOKIE}"
    fi
    echo "${ICLOUDPD}"
    ${ICLOUDPD}
@@ -36,12 +36,12 @@ Generate2FACookie(){
 }
 
 Check2FACookie(){
-   if [ -f "/config/${COOKIE}" ]; then
-      if [ $(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${COOKIE}") -eq 1 ]; then
-         EXPIRE2FA="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${COOKIE}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   if [ -f "/cookie/${COOKIE}" ]; then
+      if [ $(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/cookie/${COOKIE}") -eq 1 ]; then
+         EXPIRE2FA="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "/cookie/${COOKIE}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
          EXPIRE2FASECS="$(date -d "${EXPIRE2FA}" '+%s')"
          DAYSREMAINING="$(($((EXPIRE2FASECS - $(date '+%s'))) / 86400))"
-         echo "${DAYSREMAINING}" > "/config/DAYS_REMAINING"
+         echo "${DAYSREMAINING}" > "/cookie/DAYS_REMAINING"
          if [ "${DAYSREMAINING}" -gt 0 ]; then COOKIE2FAVALID="True"; fi
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Valid two factor authentication cookie found. Days until expiration: ${DAYSREMAINING}"
       else
