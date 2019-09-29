@@ -14,7 +14,7 @@ docker run -d \
    --env APPLEID="email@example.com" \
    --env APPLEPASSWORD="secret" \
    --env SETDATETIMEEXIF="True" \
-   --env CLIOPTIONS="$CLIOPTIONS" \
+   --env CLIOPTIONS="${CLIOPTIONS}" \
    --volume ${VOL_COOKIE}:/cookie \
    --volume ${VOL_DATA}:/data \
    bitprocessor/icloudpd:latest
