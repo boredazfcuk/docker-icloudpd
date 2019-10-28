@@ -82,10 +82,21 @@ CheckMount(){
 
 SetOwnerAndGroup(){
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set group and permissions of downloaded files..."
+   find "${CONFIGDIR}" ! -user "${USER}" -exec chown "${USER}" {} \;
+   find "${CONFIGDIR}" ! -group "${GROUP}" -exec chgrp "${GROUP}" {} \;
    find "/home/${USER}/iCloud" ! -user "${USER}" -exec chown "${USER}" {} \; 2>/dev/null
    find "/home/${USER}/iCloud" ! -group "${GROUP}" -exec chgrp "${GROUP}" {} \; 2>/dev/null
    find "/home/${USER}/iCloud" -type d ! -perm 775 -exec chmod 775 {} + 2>/dev/null
    find "/home/${USER}/iCloud" -type f ! -perm 664 -exec chmod 664 {} + 2>/dev/null
+}
+
+CheckWebCookie(){
+   if [ -f "${CONFIGDIR}/${COOKIE}" ]; then
+         EXPIREWEB="$(grep "X_APPLE_WEB_KB" "${CONFIGDIR}/${COOKIE}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+    else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie does not exist. Please run container interactively to generate - Retry in 5 minutes"
+      sleep 300
+   fi
 }
 
 Check2FACookie(){
@@ -101,9 +112,6 @@ Check2FACookie(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie is not 2FA capable, authentication type may have changed. Please run container interactively to generate - Retry in 5 minutes"
          sleep 300
       fi
-   else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie does not exist. Please run container interactively to generate - Retry in 5 minutes"
-      sleep 300
    fi
 }
 
@@ -162,6 +170,8 @@ SyncUser(){
          if [ "${SETDATETIMEEXIF}" = "True" ]; then SetDateTimeFromExif; fi
          SetOwnerAndGroup
       fi
+      CheckWebCookie
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Web cookie expires: ${EXPIREWEB/ / @ }"
       if [ "${AUTHTYPE}" = "2FA" ]; then Display2FAExpiry; fi
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation complete for ${USER}"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next syncronisation at $(date +%H:%M -d "${INTERVAL} seconds")"
