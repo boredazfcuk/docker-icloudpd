@@ -10,6 +10,8 @@ CheckTerminal(){
 }
 
 CheckVariables(){
+   echo -e "\n"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** iCoud_photo_downloader container started *****"
    if [ -z "${USER}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  User name not set, defaulting to 'user'"; USER="user"; fi
    if [ -z "${UID}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  User ID not set, defaulting to '1000'"; UID="1000"; fi
    if [ -z "${GROUP}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Group name not set, defaulting to 'group'"; GROUP="group"; fi
@@ -81,13 +83,18 @@ CheckMount(){
 }
 
 SetOwnerAndGroup(){
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set group and permissions of downloaded files..."
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set owner on config directory..."
    find "${CONFIGDIR}" ! -user "${USER}" -exec chown "${USER}" {} \;
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set group on config directory..."
    find "${CONFIGDIR}" ! -group "${GROUP}" -exec chgrp "${GROUP}" {} \;
-   find "/home/${USER}/iCloud" ! -user "${USER}" -exec chown "${USER}" {} \; 2>/dev/null
-   find "/home/${USER}/iCloud" ! -group "${GROUP}" -exec chgrp "${GROUP}" {} \; 2>/dev/null
-   find "/home/${USER}/iCloud" -type d ! -perm 775 -exec chmod 775 {} + 2>/dev/null
-   find "/home/${USER}/iCloud" -type f ! -perm 664 -exec chmod 664 {} + 2>/dev/null
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set owner on iCloud directory..."
+   find "/home/${USER}/iCloud" ! -user "${USER}" -exec chown "${USER}" {} \;
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set group on iCloud directory..."
+   find "/home/${USER}/iCloud" ! -group "${GROUP}" -exec chgrp "${GROUP}" {} \;
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set 775 permissions on iCloud directories..."
+   find "/home/${USER}/iCloud" -type d ! -perm 775 -exec chmod 775 {} +
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set 664 permissions on iCloud files..."
+   find "/home/${USER}/iCloud" -type f ! -perm 664 -exec chmod 664 {} +
 }
 
 CheckWebCookie(){
@@ -101,6 +108,7 @@ CheckWebCookie(){
 
 Check2FACookie(){
    if [ -f "${CONFIGDIR}/${COOKIE}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie exists, check expiry date"
       if [ $(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${CONFIGDIR}/${COOKIE}") -eq 1 ]; then
          EXPIRE2FA="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${CONFIGDIR}/${COOKIE}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
          EXPIRE2FASECS="$(date -d "${EXPIRE2FA}" '+%s')"
@@ -152,8 +160,10 @@ Notify(){
 }
 
 SyncUser(){
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sync user ${USER}"
    while :; do
       if [ "${AUTHTYPE}" = "2FA" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check 2FA Cookie"
          COOKIE2FAVALID=False
          while [ "${COOKIE2FAVALID}" = "False" ]; do Check2FACookie; done
       fi
@@ -180,7 +190,6 @@ SyncUser(){
 }
 
 ##### Script #####
-echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** iCoud_photo_downloader container started *****"
 COOKIE="$(echo -n ${APPLEID//[^a-zA-Z0-9]/} | tr '[:upper:]' '[:lower:]')"
 CheckTerminal
 CheckVariables
