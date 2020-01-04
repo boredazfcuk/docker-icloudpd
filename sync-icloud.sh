@@ -195,6 +195,7 @@ CheckTerminal
 CheckVariables
 CreateGroup
 CreateUser
+SetOwnerAndGroup
 if [ "${INTERACTIVE}" = "True" ]; then Generate2FACookie; fi
 CheckMount
 SetOwnerAndGroup
