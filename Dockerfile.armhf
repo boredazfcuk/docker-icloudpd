@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM arm32v7/alpine:latest
 MAINTAINER boredazfcuk
 ARG REQUIREMENTS="python3 py-pip exiftool coreutils tzdata curl"
 ARG BUILDDEPENDENCIES="git gcc python3-dev musl-dev libffi-dev openssl-dev"
