@@ -19,20 +19,34 @@ CheckVariables(){
    if [ -z "${INTERVAL}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Syncronisation interval not set, defaulting to 86400 seconds (1 day) "; INTERVAL="86400"; fi
    if [ -z "${TZ}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Time zone not set, defaulting to Coordinated Universal Time 'UTC'"; export TZ="UTC"; fi
    if [ -z "${AUTHTYPE}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Authentication type not set, defaulting to two factor authentication"; AUTHTYPE="2FA"; fi
-   if [ "${NOTIFICATIONTYPE}" = "Prowl" ] && [ -z "${APIKEY}" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Prowl notifications enabled, but Prowl API key not set - disabling notifications"
-      unset "${NOTIFICATIONTYPE}"
-   elif [ "${NOTIFICATIONTYPE}" = "Prowl" ] && [ ! -z "${APIKEY}" ]; then
-      if [ -z "${NOTIFICATIONDAYS}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Notification period not set, defaulting to 7 days"; NOTIFICATIONDAYS="7"; fi
-      NOTIFICATIONURL="https://api.prowlapp.com/publicapi/add"
-      NEXTNOTIFICATION="$(date +%s)"
-   fi
-   if [ "${NOTIFICATIONTYPE}" = "Pushbullet" ] && [ -z "${APIKEY}" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Pushbullet notifications enabled, but Pushbullet API key not set - disabling notifications"
-      unset "${NOTIFICATIONTYPE}"
-   elif [ "${NOTIFICATIONTYPE}" = "Pushbullet" ] && [ ! -z "${APIKEY}" ]; then
-      if [ -z "${NOTIFICATIONDAYS}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Notification period not set, defaulting to 7 days"; NOTIFICATIONDAYS="7"; fi
-      NOTIFICATIONURL="https://Pushbullet.weks.net/publicapi/add"
+   if [ ! -z "${NOTIFICATIONTYPE}" ] && [ -z "${APIKEY}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${NOTIFICATIONTYPE} notifications enabled, but ${NOTIFICATIONTYPE} API key not set - disabling notifications"
+      unset NOTIFICATIONTYPE
+   elif [ ! -z "${NOTIFICATIONTYPE}" ] && [ ! -z "${APIKEY}" ]; then
+      if [ "${NOTIFICATIONTYPE}" = "Prowl" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${NOTIFICATIONTYPE} notifications enabled"
+         NOTIFICATIONURL="https://api.prowlapp.com/publicapi/add" 
+         Notify "Container Starting" "0" "iCloud_Photos_Downloader container now starting"
+      elif  [ "${NOTIFICATIONTYPE}" = "Pushbullet" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${NOTIFICATIONTYPE} notifications enabled"
+         NOTIFICATIONURL="https://Pushbullet.weks.net/publicapi/add"
+         Notify "Container Starting" "0" "iCloud_Photos_Downloader container now starting"
+      elif [ "${NOTIFICATIONTYPE}" = "Telegram" ]; then
+         if [ -z "${TELEGRAMCHATID}" ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${NOTIFICATIONTYPE} notifications enabled, but Telegram chat ID not set - disabling notifications"
+            unset NOTIFICATIONTYPE APIKEY 
+         else
+            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${NOTIFICATIONTYPE} notifications enabled"
+            NOTIFICATIONURL="https://api.telegram.org/bot${APIKEY}/sendMessage"
+            Notify "Starting container for iCloud_Photos_Downloader"
+         fi
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING Notification type not recognised. Must be either Prowl, Pushbullet or Telegram - disabling notifications"
+         unset "${NOTIFICATIONTYPE}" "${APIKEY}" 
+      fi
+      if [ ! -z "${NOTIFICATIONTYPE}" ] && [ -z "${NOTIFICATIONDAYS}" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Notifications enabled but notification period not set, defaulting to 7 days"; NOTIFICATIONDAYS="7"
+      fi
       NEXTNOTIFICATION="$(date +%s)"
    fi
    if [ -z "${APPLEPASSWORD}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID Password not set - exiting"; exit 1; fi
@@ -136,11 +150,13 @@ Display2FAExpiry(){
                echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Final day before two factor authentication cookie expires - Please reinitialise now"
                if [ "${NOTIFICATIONTYPE}" = "Prowl" ] || [ "${NOTIFICATIONTYPE}" = "Pushbullet" ]; then
                   Notify "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires - Please reinitialise now"
+                  NEXTNOTIFICATION=$(date +%s -d "+24 hour")
                fi
             else
                echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Only ${DAYSREMAINING} days until two factor authentication cookie expires - Please reinitialise"
                if [ "${NOTIFICATIONTYPE}" = "Prowl" ] || [ "${NOTIFICATIONTYPE}" = "Pushbullet" ]; then
                   Notify "2FA Cookie Expiration" "1" "Only ${DAYSREMAINING} days until two factor authentication cookie expires - Please reinitialise"
+                  NEXTNOTIFICATION=$(date +%s -d "+24 hour")
                fi
             fi
          fi
@@ -148,15 +164,23 @@ Display2FAExpiry(){
 }
 
 Notify(){
-   curl "${NOTIFICATIONURL}"  \
-      -F apikey="${APIKEY}" \
-      -F application="iCloud Photo Downloader" \
-      -F event="${1}" \
-      -F priority="${2}" \
-      -F description="${3}" \
-      >/dev/null 2>&1 &
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${NOTIFICATIONTYPE} notification sent - ${2}"
-   NEXTNOTIFICATION=$(date +%s -d "+24 hour")
+   if [ "${NOTIFICATIONTYPE}" = "Prowl" ] || [ "${NOTIFICATIONTYPE}" = "Pushbullet" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${NOTIFICATIONTYPE} notification"
+      curl "${NOTIFICATIONURL}"  \
+         -F apikey="${APIKEY}" \
+         -F application="iCloud Photo Downloader" \
+         -F event="${1}" \
+         -F priority="${2}" \
+         -F description="${3}" \
+         >/dev/null 2>&1 &
+   elif [ "${NOTIFICATIONTYPE}" = "Telegram" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${NOTIFICATIONTYPE} notification"
+      curl -s -X POST "${NOTIFICATIONURL}" \
+         -d chat_id="${TELEGRAMCHATID}" \
+         -d text="iCloudPD:%0A${1}" \
+         >/dev/null 2>&1 &
+   fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${NOTIFICATIONTYPE} notification sent: \"Event: ${1}\" \"Priority ${2}\" \"Message ${3}\""
 }
 
 SyncUser(){
