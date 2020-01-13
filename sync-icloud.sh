@@ -173,14 +173,15 @@ Notify(){
          -F priority="${2}" \
          -F description="${3}" \
          >/dev/null 2>&1 &
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${NOTIFICATIONTYPE} notification sent: \"Event: ${1}\" \"Priority ${2}\" \"Message ${3}\""
    elif [ "${NOTIFICATIONTYPE}" = "Telegram" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${NOTIFICATIONTYPE} notification"
       curl -s -X POST "${NOTIFICATIONURL}" \
          -d chat_id="${TELEGRAMCHATID}" \
          -d text="iCloudPD:%0A${1}" \
          >/dev/null 2>&1 &
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${NOTIFICATIONTYPE} notification sent: ${1}"
    fi
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${NOTIFICATIONTYPE} notification sent: \"Event: ${1}\" \"Priority ${2}\" \"Message ${3}\""
 }
 
 SyncUser(){
