@@ -1,52 +1,61 @@
-# docker-icloud_photos_downloader
+# docker-icloudpd
 An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader
 
 Now on Docker Hub: https://hub.docker.com/r/boredazfcuk/icloudpd
 
-This dockerfile work slightly different to the official dockerfile.
-
 ## MANDATORY ENVIRONMENT VARIABLES
 
-APPLEID: This is the Apple ID for the account you want to download files for.
+apple_id: This is the Apple ID for the account you want to download files for.
 
-APPLEPASSWORD: This is the password for the Apple ID account named above. This is needed to generate an authentication token.
+apple_password: This is the password for the Apple ID account named above. This is needed to generate an authentication token.
 
 ## DEFAULT ENVIRONMENT VARIABLES
 
-USER: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. If this variable is not set, it will default to 'user'
+user: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. If this variable is not set, it will default to 'user'
 
-UID: This is the User ID number of the above user account. This can be any number that isn't already in use. Ideally, you should set this to be the same ID number as the USER's ID on the host system. This will avoid permissions issues if syncing to your host's home directory. If this variable is not set, it will default to '1000'
+user_id: This is the User ID number of the above user account. This can be any number that isn't already in use. Ideally, you should set this to be the same ID number as the user's ID on the host system. This will avoid permissions issues if syncing to your host's home directory. If this variable is not set, it will default to '1000'
 
-GROUP: This is name of the group account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user's primary group on the host system. This This group will be set as the group for all downloaded files. If this variable is not set, it will default to 'group'
+group: This is name of the group account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user's primary group on the host system. This This group will be set as the group for all downloaded files. If this variable is not set, it will default to 'group'
 
-GID: This is the Group ID number of the above group. This can be any number that isn't already in use. Ideally, you should set this to be the same Group ID number as the user's primary group on the host system. If this variable is not set, it will default to '1000'
+group_id: This is the Group ID number of the above group. This can be any number that isn't already in use. Ideally, you should set this to be the same Group ID number as the user's primary group on the host system. If this variable is not set, it will default to '1000'
 
-TZ: This is the local timezone and is required by the exiftool to calculate local time from the timestamps. If this variable is not set, it will default to Coordinated Universal Time 'Etc/UTC'
+TZ: This is the local timezone and is required to calculate timestamps. If this variable is not set, it will default to Coordinated Universal Time 'UTC'
 
-INTERVAL: This is the number of seconds between syncronisations. Common intervals would be: 3hrs - 10800, 4hrs - 14400, 6hrs - 21600 & 12hrs - 43200. If variable is not set it will default to every 24hrs (86400 seconds).
+synchronisation_interval: This is the number of seconds between syncronisations. Common intervals would be: 3hrs - 10800, 4hrs - 14400, 6hrs - 21600 & 12hrs - 43200. If variable is not set it will default to every 24hrs (86400 seconds).
 
-NOTIFICATIONDAYS: This is number of days until cookie expiration for which to generate notifications. This will default to 7 days if not specified so you will receive a single notification in the 7 days running up to cookie expiration.
+notification_days: This is number of days until cookie expiration for which to generate notifications. This will default to 7 days if not specified so you will receive a single notification in the 7 days running up to cookie expiration.
 
-AUTHTYPE: This is the type of authentication that is enabled on your iCloud account. Valid values are '2FA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. If this variable is not set, it will default to '2FA'
+authentication_type: This is the type of authentication that is enabled on your iCloud account. Valid values are '2FA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. If this variable is not set, it will default to '2FA'
+
+directory_permissions: This specifies the permissions to set on the directories in your download destination. If this variable is not set, it will default to 750
+
+file_permissions: This specifies the permissions to set on the files in your download destination. If this variable is not set, it will default to 640
+
+folder_structure: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default.
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
-CLIOPTIONS: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage)
+command_line_options: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage)
 
-SETDATETIMEEXIF: This option sets the downloaded file's time stamp to be the same as the time stored within the file's exif data.
+~~set_datetime_from_exif:~~ Removed. This only applies to photos that are not taken with the internal cameras (saved to photostream), these are few and far between and most of the time, having accurate file stamps is unimportant. Removed this now as it applies to a very small amount of unimportant files.
 
-NOTIFICATIONTYPE: This specifies the method that is used to send notifications. Currently, there are three options available 'Prowl', 'Pushbullet' and 'Telegram'. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon syncronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
+notification_type: This specifies the method that is used to send notifications. Currently, there are three options available 'Prowl', 'Pushbullet' and 'Telegram'. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon syncronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
 
-APIKEY: If the NOTIFICATIONTYPE is set to 'Prowl', 'Pushbullet' or 'Telegram' then APIKEY must also be set. This is the API key for your account as generated by the Prowl or Pushbullet websites or the token generated by the Telegram
+prowl_api_key: If the notification_type is set to 'Prowl' this is mandatory. This is the API key for your account as generated by the Prowl website
 
-TELEGRAMCHATID: If the NOTIFICATIONTYPE is set to 'Telegram' then this is the chat_id for your Telegram bot.
+pushbullet_api_key: If the notification_type is set to 'Pushbullet' this is mandatory. This is the API key for your account as generated by the Pushbullet website
+
+telegram_token: If the notification_type is set to 'Telegram' this is mandatory. This is the token that was assigned to your account by The Botfather
+
+telegram_chat_id: If the notification_type is set to 'Telegram' then this is the chat_id for your Telegram bot.
+
 
 ## VOLUME CONFIGURATION
 
 It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it will lose the cookie information each time the container is recreated.
-It will download the photos to the "/home/${USERNAME}/iCloud" photos directory. You need to create a bind mount into the container at this point.
+It will download the photos to the "/home/${user}/iCloud" photos directory. You need to create a bind mount into the container at this point.
 
-I also have a failsafe built in. The launch script will look for a file called .mounted in the "/home/${USERNAME}/iCloud" folder. If this file is not present, it will not sync with iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will not occur. This prevents the script from filling up the root volume if the underlying volume isn't mounted for whatever reason. This file **MUST** be created manually and sync will not start without it.
+I also have a failsafe built in. The launch script will look for a file called .mounted in the "/home/${user}/iCloud" folder. If this file is not present, it will not sync with iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will not occur. This prevents the script from filling up the root volume if the underlying volume isn't mounted for whatever reason. This file **MUST** be created manually and sync will not start without it.
 
 ## CREATING A CONTAINER
 
@@ -58,18 +67,17 @@ docker create \
    --hostname <Hostname of container> \
    --network <Name of Docker network to connect to> \
    --restart=always \
-   --env USER=<User Name> \
-   --env UID=<User ID> \
-   --env GROUP=<Group Name> \
-   --env GID=<Group ID> \
-   --env APPLEID="<Apple ID e-mail address>" \
-   --env APPLEPASSWORD="Apple ID password" \
-   --env AUTHTYPE=<2FA or Web> \
-   --env CLIOPTIONS="<Any additional commands you wish to pass to icloudpd>" \
-   --env SETDATETIMEEXIF=<If required set to "True", otherwise omit this option> \
-   --env INTERVAL=<Include this if you wish to override the default interval of 24hrs> \
-   --env NOTIFICATIONTYPE=<Choice of Prowl or Pushbullet> \
-   --env NOTIFICATIONDAYS=<Number of days for which to send cookie expiry notifications> \
+   --env user=<User Name> \
+   --env user_id=<User ID> \
+   --env group=<Group Name> \
+   --env group_id=<Group ID> \
+   --env apple_id="<Apple ID e-mail address>" \
+   --env apple_password="Apple ID password" \
+   --env authentication_type=<2FA or Web> \
+   --env command_line_options="<Any additional commands you wish to pass to icloudpd>" \
+   --env synchronisation_interval=<Include this if you wish to override the default interval of 24hrs> \
+   --env notification_type=<Choice of Prowl or Pushbullet> \
+   --env notification_days=<Number of days for which to send cookie expiry notifications> \
    --env TZ=<The local time zone> \
    --volume <Named volume which is mapped to /config> \
    --volume <Bind mount to the destination folder on the host> \
@@ -84,18 +92,17 @@ docker create \
    --hostname icloudpd_boredazfcuk \
    --network containers \
    --restart=always \
-   --env USER=boredazfcuk \
-   --env UID=1000 \
-   --env GROUP=admins \
-   --env GID=1010 \
-   --env APPLEID=thisisnotmy@email.com \
-   --env APPLEPASSWORD="neitheristhismypassword" \
-   --env AUTHTYPE=2FA \
-   --env NOTIFICATIONTYPE=Prowl \
-   --env NOTIFICATIONDAYS=14 \
-   --env CLIOPTIONS="--folder-structure={:%Y} --recent 50 --auto-delete" \
-   --env SETDATETIMEEXIF=True \
-   --env INTERVAL=21600 \
+   --env user=boredazfcuk \
+   --env user_id=1000 \
+   --env group=admins \
+   --env group_id=1010 \
+   --env apple_id=thisisnotmy@email.com \
+   --env apple_password="neitheristhismypassword" \
+   --env authentication_type=2FA \
+   --env notification_type=Prowl \
+   --env notification_days=14 \
+   --env command_line_options="--folder-structure={:%Y} --recent 50 --auto-delete" \
+   --env synchronisation_interval=21600 \
    --env TZ=Europe/London \
    --volume icloudpd_boredazfcuk_config:/config \
    --volume /home/boredazfcuk/iCloud:/home/boredazfcuk/iCloud \
@@ -112,12 +119,12 @@ To create a two factor authentication enabled cookie, run the container in an in
    ```
    docker run -it --rm \
    --network <Same as the previously created contrainer> \
-   --env USER=<Same as the previously created contrainer> \
-   --env UID=<Same as the previously created contrainer> \
-   --env GROUP=<Same as the previously created contrainer> \
-   --env GID=<Same as the previously created contrainer> \
-   --env APPLEID="<Same as the previously created contrainer>" \
-   --env APPLEPASSWORD="<Same as the previously created contrainer>" \
+   --env user=<Same as the previously created contrainer> \
+   --env user_id=<Same as the previously created contrainer> \
+   --env group=<Same as the previously created contrainer> \
+   --env group_id=<Same as the previously created contrainer> \
+   --env apple_id="<Same as the previously created contrainer>" \
+   --env apple_password="<Same as the previously created contrainer>" \
    --volume <Same named volume as the previously created contrainer> \
    boredazfcuk/icloudpd
    ```
@@ -126,20 +133,23 @@ This is an example of the command I run to create the authentication token on my
 ```
 docker run -it --rm \
    --network containers \
-   --env USER=boredazfcuk \
-   --env UID=1000 \
-   --env GROUP=admins \
-   --env GID=1010 \
-   --env APPLEID="thisisnotmy@email.com" \
-   --env APPLEPASSWORD="neitheristhismypassword" \
-   --volume icloudpd_james_config:/config \
+   --env user=boredazfcuk \
+   --env user_id=1000 \
+   --env group=admins \
+   --env group_id=1010 \
+   --env apple_id="thisisnotmy@email.com" \
+   --env apple_password="neitheristhismypassword" \
+   --volume icloudpd_boredazfcuk_config:/config \
    boredazfcuk/icloudpd
 ```
 
 After this, my iCloudPD-boredazfcuk container launchs and the startup script loops after the set interval time.
    
-Dockerfile has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within a set number of days (NOTIFICATIONPERIOD). 
+Dockerfile has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within a set number of days (notification_days) and also if the download fails. 
    
 # TO DO
 
-   Configure SMTP notifications
+   HEIC/HEIF conversion
+   ~~Configure SMTP notifications~~ Scrapping this as it seems a lot of work for little value, due to having three push notification options instead.
+
+BTC: 1E8kUsm3qouXdVYvLMjLbw7rXNmN2jZesL

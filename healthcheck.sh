@@ -1,27 +1,38 @@
 #!/bin/ash
-ICLOUDPD=$(cat /tmp/EXIT_CODE)
-if [ "${ICLOUDPD}" != 0 ]; then
-   echo "iCloud Photos Downloader Error: ${ICLOUDPD}"
-   exit 1
+
+if [ -f "/tmp/check_exit_code}" ] || [ -f "/tmp/download_exit_code}" ]; then
+   if [ -f "/tmp/download_exit_code}" ]; then
+      download_exit_code="$(cat /tmp/download_exit_code)"
+      if [ "${download_exit_code}" != 0 ]; then
+         echo "File download error: ${download_exit_code}"
+         exit 1
+      fi
+   elif [ -f "/tmp/check_exit_code}" ]; then
+      check_exit_code="$(cat /tmp/check_exit_code)"
+      if [ "${check_exit_code}" != 0 ]; then
+         echo "File check error: ${check_exit_code}"
+         exit 1
+      fi
+   fi
 fi
-COOKIE="$(echo -n ${APPLEID//[^a-zA-Z0-9]/} | tr '[:upper:]' '[:lower:]')"
-if [ ! -f "${CONFIGDIR}/${COOKIE}" ]; then
+cookie="$(echo -n "${apple_id//[^a-zA-Z0-9]/}" | tr '[:upper:]' '[:lower:]')"
+if [ ! -f "${config_dir}/${cookie}" ]; then
 	echo "Error: Cookie does not exist. Please generate new cookie"
 	exit 1
 fi
-if [ ! -z "${AUTHTYPE}" ] && [ "${AUTHTYPE}" = "2FA" ]; then
-   EXPIRE2FA="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${CONFIGDIR}/${COOKIE}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
-   EXPIRE2FASECS="$(date -d "${EXPIRE2FA}" '+%s')"
-   DAYSREMAINING="$(($((EXPIRE2FASECS - $(date '+%s'))) / 86400))"
-   if [ -z "${NOTIFICATIONDAYS}" ]; then NOTIFICATIONDAYS=7; fi
-   if [ "${DAYSREMAINING}" -lt "${NOTIFICATIONDAYS}" ]; then
+if [ ! -z "${authentication_type}" ] && [ "${authentication_type}" = "2FA" ]; then
+   twofa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   twofa_expire_seconds="$(date -d "${twofa_expire_date}" '+%s')"
+   days_remaining="$(($((twofa_expire_seconds - $(date '+%s'))) / 86400))"
+   if [ -z "${notification_days}" ]; then notification_days=7; fi
+   if [ "${days_remaining}" -lt "${notification_days}" ]; then
       echo "Error: Two-factor authentication cookie has expired"
       exit 1
    fi
-elif [ ! -z "${AUTHTYPE}" ] && [ "${AUTHTYPE}" = "Web" ]; then
-   EXPIREWEB="$(grep "X_APPLE_WEB_KB" "${CONFIGDIR}/${COOKIE}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
-   EXPIREWEBSECS="$(date -d "${EXPIREWEB}" '+%s')"
-   DAYSREMAINING="$(($((EXPIREWEBSECS - $(date '+%s'))) / 86400))"
+elif [ ! -z "${authentication_type}" ] && [ "${authentication_type}" = "Web" ]; then
+   web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   web_cookie_expire_seconds="$(date -d "${web_cookie_expire_date}" '+%s')"
+   days_remaining="$(($((web_cookie_expire_seconds - $(date '+%s'))) / 86400))"
 fi
-echo "iCloud Photos Downloader successful and ${AUTHTYPE} cookie valid for ${DAYSREMAINING} day(s)"
+echo "iCloud Photos Downloader successful and ${authentication_type} cookie valid for ${days_remaining} day(s)"
 exit 0
