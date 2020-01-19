@@ -6,6 +6,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
    cookie="$(echo -n "${apple_id//[^a-zA-Z0-9]/}" | tr '[:upper:]' '[:lower:]')"
    if [ -t 0 ]; then interactive_session="True"; fi
+   if [ ! -d "/tmp/icloudpd" ]; then mkdir -p "/tmp/icloudpd"; fi
    if [ -z "${apple_password}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID Password not set - exiting"; sleep 120; exit 1; fi
    if [ -z "${apple_id}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; sleep 120; exit 1; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local user: ${user:=user}:${user_id:=1000}"
@@ -18,7 +19,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Directory permissions: ${directory_permissions}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     File permissions: ${file_permissions}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation interval: ${syncronisation_interval:=86400}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation interval: ${synchronisation_interval:=43200}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Time zone: ${TZ:=UTC}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Additional command line options: ${command_line_options}"
    if [ "${notification_type}" ]; then
@@ -93,10 +94,14 @@ CheckMount(){
 }
 
 PrepareDownloadDirectory(){
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set owner on iCloud directory, if required"
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set owner, ${user}, on iCloud directory, if required"
    find "/home/${user}/iCloud" ! -user "${user}" -exec chown "${user}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set group on iCloud directory, if required"
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set group, ${group}, on iCloud directory, if required"
    find "/home/${user}/iCloud" ! -group "${group}" -exec chgrp "${group}" {} +
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on icloudpd temp directory, if required"
+   find "/tmp/icloudpd" ! -user "${user}" -exec chown "${user}" {} +
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on icloudpd temp directory, if required"
+   find "/tmp/icloudpd" ! -group "${group}" -exec chgrp "${group}" {} +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set ${directory_permissions:=755} permissions on iCloud directories, if required"
    find "/home/${user}/iCloud" -type d ! -perm "${directory_permissions}" -exec chmod "${directory_permissions}" '{}' +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set ${file_permissions:=640} permissions on iCloud files, if required"
@@ -178,8 +183,8 @@ Notify(){
          --form priority="${2}" \
          --form description="${3}" \
          >/dev/null 2>&1 &
-         curl_exit_code="${?}"
-      if [ "${curl_exit_code}" = 0 ]; then 
+         curl_exit_code=$?
+      if [ "${curl_exit_code}" -eq 0 ]; then 
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully: \"Event: ${1}\" \"Priority ${2}\" \"Message ${3}\""
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed"
@@ -192,8 +197,8 @@ Notify(){
          --data chat_id="${telegram_chat_id}" \
          --data text="${1}" \
          >/dev/null 2>&1 &
-         curl_exit_code="${?}"
-      if [ "${curl_exit_code}" = 0 ]; then 
+         curl_exit_code=$?
+      if [ "${curl_exit_code}" -eq 0 ]; then 
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed"
@@ -214,30 +219,43 @@ SyncUser(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check download directory mounted correctly"
       CheckMount
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files..."
-      new_files="$(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 2>/dev/null; echo $? >/tmp/check_exit_code)"
-      check_exit_code="$(cat /tmp/check_exit_code)"
-      if [ "${check_exit_code}" -ne 0 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${check_exit_code}"
+      new_files="$(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 2>/dev/null)"
+      check_exit_code=$?
+      echo "${check_exit_code}" >/tmp/icloudpd/check_exit_code
+      new_files="$(echo -n "${new_files}")"
+      if [ "${check_exit_code}" -gt 0 ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during new file check - exit code: ${check_exit_code}"
       else
-         new_files="$(echo -n "${new_files}")"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New file check successful"
          if [ "${new_files}" ]; then
-            new_files_count="$(echo -n "${new_files}" | wc -l)"
+            new_files_count="$(echo "${new_files}" | wc -l)"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New files detected: ${new_files_count}"
             if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
                Notify "New files detected" "0" "Files to download: ${new_files_count}"
             elif [ "${notification_type}" = "Telegram" ]; then
-               new_files_preview="$(echo -n "${new_files}" | sed "s%/home/${user}/iCloud/%%g" | tail -5 )"
-               telegram_text="$(echo -e "iCloudPD:\nNew files detected: ${new_files_count}\nLast 5 file names:\n${new_files_preview}")"
-               URLEncode "${telegram_text}"
+               new_files_preview="$(echo "${new_files}" | sed "s%/home/${user}/iCloud/%%g" | tail -10 )"
+               new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
+               telegram_new_files_text="$(echo -e "iCloudPD:\nNew files detected: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview}")"
+               URLEncode "${telegram_new_files_text}"
                Notify "${encoded_string}"
             fi
-            if [ "${new_files_count:=0}" != 0 ]; then 
+            if [ "${new_files_count:=0}" -gt 0 ]; then 
                echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of ${new_files_count} new files for user: ${user}"
                syncronisation_time="$(date +%s -d '+15 minutes')"
-               su "${user}" -c "/usr/bin/icloudpd --directory /home/${user}/iCloud --cookie-directory ${config_dir} --username ${apple_id} --password ${apple_password} --folder-structure ${folder_structure} ${command_line_options} 2>&1; echo $? >/tmp/download_exit_code | tee -a /tmp/icloudpd_sync.log"
-               download_exit_code="$(cat /tmp/download_exit_code)"
-               if [ "${download_exit_code}" -ne 0 ]; then
+               su "${user}" -c "(/usr/bin/icloudpd --directory /home/${user}/iCloud --cookie-directory ${config_dir} --username ${apple_id} --password ${apple_password} --folder-structure ${folder_structure} ${command_line_options} 2>&1; echo $? >/tmp/icloudpd/download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
+               download_exit_code="$(cat /tmp/icloudpd/download_exit_code)"
+               if [ "${download_exit_code}" -gt 0 ]; then
                   echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
+               else
+                  deleted_files="$(grep -v "Deleting any files found in 'Recently Deleted'" /tmp/icloudpd/icloudpd_sync.log | grep "Deleting")"
+                  deleted_files_count="$(echo "${deleted_files}" | wc -l)"
+                  if [ "${deleted_files_count:=0}" -gt 0 ]; then
+                     deleted_files_preview="$(echo "${deleted_files}" | grep "Deleting /" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" -e "s%!%%g" | tail -10)"
+                     deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
+                     telegram_deleted_files_text="$(echo -e "iCloudPD:\nDeleted files detected: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview}")"
+                     URLEncode "${telegram_deleted_files_text}"
+                     Notify "${encoded_string}"
+                  fi
                fi
             fi
          else
@@ -248,8 +266,13 @@ SyncUser(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Web cookie expires: ${web_cookie_expire_date/ / @ }"
       if [ "${authentication_type}" = "2FA" ]; then Display2FAExpiry; fi
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation complete for ${user}"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next syncronisation at $(date +%H:%M -d "${syncronisation_interval} seconds")"
-      sleep "${syncronisation_interval}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next syncronisation at $(date +%H:%M -d "${synchronisation_interval} seconds")"
+      unset check_exit_code download_exit_code
+      unset new_files deleted_files
+      unset new_files_count deleted_files_count
+      unset new_files_preview deleted_files_preview
+      unset telegram_new_files_text telegram_deleted_files_text
+      sleep "${synchronisation_interval}"
    done
 }
 

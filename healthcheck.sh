@@ -20,7 +20,7 @@ if [ ! -f "${config_dir}/${cookie}" ]; then
 	echo "Error: Cookie does not exist. Please generate new cookie"
 	exit 1
 fi
-if [ ! -z "${authentication_type}" ] && [ "${authentication_type}" = "2FA" ]; then
+if [ "${authentication_type}" ] && [ "${authentication_type}" = "2FA" ]; then
    twofa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    twofa_expire_seconds="$(date -d "${twofa_expire_date}" '+%s')"
    days_remaining="$(($((twofa_expire_seconds - $(date '+%s'))) / 86400))"
@@ -29,7 +29,7 @@ if [ ! -z "${authentication_type}" ] && [ "${authentication_type}" = "2FA" ]; th
       echo "Error: Two-factor authentication cookie has expired"
       exit 1
    fi
-elif [ ! -z "${authentication_type}" ] && [ "${authentication_type}" = "Web" ]; then
+elif [ "${authentication_type}" ] && [ "${authentication_type}" = "Web" ]; then
    web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    web_cookie_expire_seconds="$(date -d "${web_cookie_expire_date}" '+%s')"
    days_remaining="$(($((web_cookie_expire_seconds - $(date '+%s'))) / 86400))"
