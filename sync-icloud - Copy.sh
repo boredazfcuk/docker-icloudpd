@@ -173,52 +173,6 @@ URLEncode(){
    encoded_string="${encoded}"
 }
 
-CheckFiles(){
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files..."
-   check_files="$(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/dev/null)"
-   check_exit_code=$?
-   echo "${check_exit_code}" >/tmp/icloudpd/check_exit_code
-   check_files="$(echo -n "${check_files}")"
-   check_files_count="$(grep -c ^ /tmp/icloudpd/icloudpd_check.log)"
-   if [ "${check_files_count}" -gt 0 ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New files detected: ${check_files_count}"
-   else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New files detected: ${check_files_count}"
-   fi
-}
-
-DownloadedFiles(){
-   new_files="$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
-   new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
-   if [ "${new_files_count:=0}" -gt 0 ]; then
-      if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
-         Notify "New files detected" "0" "Files downloaded: ${new_files_count}"
-      elif [ "${notification_type}" = "Telegram" ]; then
-         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" | tail -10)"
-         new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
-         telegram_new_files_text="$(echo -e "iCloudPD:\nNew files detected: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview}")"
-         URLEncode "${telegram_new_files_text}"
-         Notify "${encoded_string}"
-      fi
-   fi
-}
-
-DeletedFiles(){
-   deleted_files="$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
-   deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
-   if [ "${deleted_files_count:=0}" -gt 0 ]; then
-      if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
-         Notify "Recently deleted files detected" "0" "Files deleted: ${deleted_files_count}"
-      elif [ "${notification_type}" = "Telegram" ]; then
-         deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" -e "s%!$%%g" | tail -10)"
-         deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
-         telegram_deleted_files_text="$(echo -e "iCloudPD:\nDeleted files detected: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview}")"
-         URLEncode "${telegram_deleted_files_text}"
-         Notify "${encoded_string}"
-      fi
-   fi
-}
-
 Notify(){
    if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} notification"
@@ -264,20 +218,45 @@ SyncUser(){
       fi
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check download directory mounted correctly"
       CheckMount
-      CheckFiles
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files..."
+      new_files="$(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 2>/dev/null)"
+      check_exit_code=$?
+      echo "${check_exit_code}" >/tmp/icloudpd/check_exit_code
+      new_files="$(echo -n "${new_files}")"
       if [ "${check_exit_code}" -gt 0 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during new file check - exit code: ${check_exit_code}"
       else
-         if [ "${check_files_count}" -gt 0 ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of ${check_files_count} new files for user: ${user}"
-            syncronisation_time="$(date +%s -d '+15 minutes')"
-            su "${user}" -c "(/usr/bin/icloudpd --directory /home/${user}/iCloud --cookie-directory ${config_dir} --username ${apple_id} --password ${apple_password} --folder-structure ${folder_structure} ${command_line_options} 2>&1; echo $? >/tmp/icloudpd/download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
-            download_exit_code="$(cat /tmp/icloudpd/download_exit_code)"
-            if [ "${download_exit_code}" -gt 0 ]; then
-               echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
-            else
-               DownloadedFiles
-               DeletedFiles
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New file check successful"
+         if [ "${new_files}" ]; then
+            new_files_count="$(echo "${new_files}" | wc -l)"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New files detected: ${new_files_count}"
+            if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
+               Notify "New files detected" "0" "Files to download: ${new_files_count}"
+            elif [ "${notification_type}" = "Telegram" ]; then
+               new_files_preview="$(echo "${new_files}" | sed "s%/home/${user}/iCloud/%%g" | tail -10 )"
+               new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
+               telegram_new_files_text="$(echo -e "iCloudPD:\nNew files detected: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview}")"
+               URLEncode "${telegram_new_files_text}"
+               Notify "${encoded_string}"
+            fi
+            if [ "${new_files_count:=0}" -gt 0 ]; then 
+               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of ${new_files_count} new files for user: ${user}"
+               syncronisation_time="$(date +%s -d '+15 minutes')"
+               su "${user}" -c "(/usr/bin/icloudpd --directory /home/${user}/iCloud --cookie-directory ${config_dir} --username ${apple_id} --password ${apple_password} --folder-structure ${folder_structure} ${command_line_options} 2>&1; echo $? >/tmp/icloudpd/download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
+               download_exit_code="$(cat /tmp/icloudpd/download_exit_code)"
+               if [ "${download_exit_code}" -gt 0 ]; then
+                  echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
+               else
+                  deleted_files="$(grep -v "Deleting any files found in 'Recently Deleted'" /tmp/icloudpd/icloudpd_sync.log | grep "Deleting")"
+                  deleted_files_count="$(echo "${deleted_files}" | wc -l)"
+                  if [ "${deleted_files_count:=0}" -gt 0 ]; then
+                     deleted_files_preview="$(echo "${deleted_files}" | grep "Deleting /" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" -e "s%!%%g" | tail -10)"
+                     deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
+                     telegram_deleted_files_text="$(echo -e "iCloudPD:\nDeleted files detected: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview}")"
+                     URLEncode "${telegram_deleted_files_text}"
+                     Notify "${encoded_string}"
+                  fi
+               fi
             fi
          else
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     No new files detected. Nothing to download"
@@ -289,8 +268,8 @@ SyncUser(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation complete for ${user}"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next syncronisation at $(date +%H:%M -d "${synchronisation_interval} seconds")"
       unset check_exit_code download_exit_code
-      unset check_files new_files deleted_files
-      unset check_files_count new_files_count deleted_files_count
+      unset new_files deleted_files
+      unset new_files_count deleted_files_count
       unset new_files_preview deleted_files_preview
       unset telegram_new_files_text telegram_deleted_files_text
       sleep "${synchronisation_interval}"

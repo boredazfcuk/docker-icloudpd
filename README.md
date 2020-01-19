@@ -3,6 +3,21 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader
 
 Now on Docker Hub: https://hub.docker.com/r/boredazfcuk/icloudpd
 
+## Major changes this version. All variable names have changed so you'll need to re-create your container. Sorry, I'm new to this.
+
+New features include:
+ - Pre-download check for new files so a download run will only occur if new files exist
+ - Telegram notifications
+ - Synchronisation summary. Number of new files downloaded. Number of deleted files (if --auto-delete enabled).
+ - Telegram notifications only: List of downloaded filenames (10 max). List of deleted files (10 max)
+ - Startup notification
+ - Configurable permissions on the download destination directory
+ - Logic re-writes for simplicity and optimisation
+ - Additional logging
+ - Code clean-ups
+ - Healthcheck update
+
+
 ## MANDATORY ENVIRONMENT VARIABLES
 
 apple_id: This is the Apple ID for the account you want to download files for.
