@@ -221,14 +221,15 @@ DeletedFiles(){
 }
 
 ConvertHEIC2JPEG(){
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting HEIC to JPEG"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC to JPEG..."
    for heic_file in $(echo "${new_files}" | grep ".HEIC" | awk '{print $5}'); do
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file/%.HEIC/.JPG})"
       heif-convert "${heic_file}" "${heic_file/%.HEIC/.JPG}"
    done
 }
 
 DeleteHEICJPEGS(){
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Removing JPEGs of deleted HEIC files"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Remove JPEGs of deleted HEIC files..."
    for deleted_heic_file in $(echo "${deleted_files}" | grep ".HEIC" | awk '{print $5}' | sed -e "s%!$%%g"); do
       if [ -f "${deleted_heic_file}" ]; then 
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Removing $(rm -v "${deleted_heic_file/%.HEIC/.JPG}")"
