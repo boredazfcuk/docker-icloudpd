@@ -22,6 +22,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation interval: ${synchronisation_interval:=43200}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Time zone: ${TZ:=UTC}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Additional command line options: ${command_line_options}"
+
    if [ "${notification_type}" ]; then
       if [ -z "${prowl_api_key}" ] && [ -z "${pushbullet_api_key}" ] && [ -z "${telegram_token}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  ${notification_type} notifications enabled, but API key/token not set - disabling notifications"
@@ -31,12 +32,12 @@ Initialise(){
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
             notification_url="https://api.prowlapp.com/publicapi/add" 
-            Notify "iCloudPD container started" "0" "iCloud_Photos_Downloader container now starting"
+            Notify "startup" "iCloudPD container started" "0" "iCloud_Photos_Downloader container now starting"
          elif  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
             notification_url="https://pushbullet.weks.net/publicapi/add"
-            Notify "iCloudPD container started" "0" "iCloud_Photos_Downloader container now starting"
+            Notify "startup" "iCloudPD container started" "0" "iCloud_Photos_Downloader container now starting"
          elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${telegram_token}"
@@ -44,7 +45,7 @@ Initialise(){
             notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
             telegram_text="$(echo -e "iCloudPD:\nContainer started for iCloud_Photos_Downloader")"
             URLEncode "${telegram_text}"
-            Notify "${encoded_string}"
+            Notify "startup" "${encoded_string}"
          else
             echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
             unset notification_type prowl_api_key pushbullet_api_key telegram_token telegram_chat_id
@@ -141,13 +142,13 @@ Display2FAExpiry(){
             if [ "${days_remaining}" -eq 1 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Final day before two factor authentication cookie expires - Please reinitialise now"
                if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
-                  Notify "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires - Please reinitialise now"
+                  Notify "cookie expiration" "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires - Please reinitialise now"
                   next_notification_time="$(date +%s -d "+24 hour")"
                fi
             else
                echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Only ${days_remaining} days until two factor authentication cookie expires - Please reinitialise"
                if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
-                  Notify "2FA Cookie Expiration" "1" "Only ${days_remaining} days until two factor authentication cookie expires - Please reinitialise"
+                  Notify "cookie expiration" "2FA Cookie Expiration" "1" "Only ${days_remaining} days until two factor authentication cookie expires - Please reinitialise"
                   next_notification_time="$(date +%s -d "+24 hour")"
                fi
             fi
@@ -175,7 +176,7 @@ URLEncode(){
 
 CheckFiles(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files..."
-   check_files="$(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/dev/null)"
+   check_files="$(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/tmp/icloudpd/icloudpd_check_error.log)"
    check_exit_code=$?
    echo "${check_exit_code}" >/tmp/icloudpd/check_exit_code
    check_files="$(echo -n "${check_files}")"
@@ -192,13 +193,13 @@ DownloadedFiles(){
    new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${new_files_count:=0}" -gt 0 ]; then
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
-         Notify "New files detected" "0" "Files downloaded: ${new_files_count}"
+         Notify "downloaded files" "New files detected" "0" "Files downloaded: ${new_files_count}"
       elif [ "${notification_type}" = "Telegram" ]; then
          new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" | tail -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          telegram_new_files_text="$(echo -e "iCloudPD:\nNew files detected: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview}")"
          URLEncode "${telegram_new_files_text}"
-         Notify "${encoded_string}"
+         Notify "downloaded files" "${encoded_string}"
       fi
    fi
 }
@@ -208,26 +209,42 @@ DeletedFiles(){
    deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${deleted_files_count:=0}" -gt 0 ]; then
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
-         Notify "Recently deleted files detected" "0" "Files deleted: ${deleted_files_count}"
+         Notify "deleted files" "Recently deleted files detected" "0" "Files deleted: ${deleted_files_count}"
       elif [ "${notification_type}" = "Telegram" ]; then
          deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" -e "s%!$%%g" | tail -10)"
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          telegram_deleted_files_text="$(echo -e "iCloudPD:\nDeleted files detected: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview}")"
          URLEncode "${telegram_deleted_files_text}"
-         Notify "${encoded_string}"
+         Notify "deleted files" "${encoded_string}"
       fi
    fi
 }
 
+ConvertHEIC2JPEG(){
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting HEIC to JPEG"
+   for heic_file in $(echo "${new_files}" | grep ".HEIC" | awk '{print $5}'); do
+      heif-convert "${heic_file}" "${heic_file/%.HEIC/.JPG}"
+   done
+}
+
+DeleteHEICJPEGS(){
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Removing JPEGs of deleted HEIC files"
+   for deleted_heic_file in $(echo "${deleted_files}" | grep ".HEIC" | awk '{print $5}' | sed -e "s%!$%%g"); do
+      if [ -f "${deleted_heic_file}" ]; then 
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Removing $(rm -v "${deleted_heic_file/%.HEIC/.JPG}")"
+      fi
+   done
+}
+
 Notify(){
    if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} notification"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent "${notification_url}"  \
          --form apikey="${notification_api_key}" \
          --form application="iCloud Photo Downloader" \
-         --form event="${1}" \
-         --form priority="${2}" \
-         --form description="${3}" \
+         --form event="${2}" \
+         --form priority="${3}" \
+         --form description="${4}" \
          >/dev/null 2>&1 &
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then 
@@ -241,7 +258,7 @@ Notify(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} notification"
       curl --silent --request POST "${notification_url}" \
          --data chat_id="${telegram_chat_id}" \
-         --data text="${1}" \
+         --data text="${2}" \
          >/dev/null 2>&1 &
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then 
@@ -277,7 +294,14 @@ SyncUser(){
                echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
             else
                DownloadedFiles
+               if [ "${convert_heic_to_jpeg}" ]; then
+                  echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC files to JPEG"
+                  ConvertHEIC2JPEG
+               fi
                DeletedFiles
+               if [ "${delete_heic_jpegs}" ]; then
+                  DeleteHEICJPEGS
+               fi
             fi
          else
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     No new files detected. Nothing to download"

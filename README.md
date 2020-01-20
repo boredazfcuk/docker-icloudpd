@@ -3,7 +3,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader
 
 Now on Docker Hub: https://hub.docker.com/r/boredazfcuk/icloudpd
 
-## Major changes this version. All variable names have changed so you'll need to re-create your container. Sorry, I'm new to this.
+## Major changes this version. All variable names have changed so you'll need to re-create your container... Sorry, I'm new to this
 
 New features include:
  - Pre-download check for new files so a download run will only occur if new files exist
@@ -20,9 +20,9 @@ New features include:
 
 ## MANDATORY ENVIRONMENT VARIABLES
 
-apple_id: This is the Apple ID for the account you want to download files for.
+apple_id: This is the Apple ID for the account you want to download files for
 
-apple_password: This is the password for the Apple ID account named above. This is needed to generate an authentication token.
+apple_password: This is the password for the Apple ID account named above. This is needed to generate an authentication token
 
 ## DEFAULT ENVIRONMENT VARIABLES
 
@@ -36,9 +36,9 @@ group_id: This is the Group ID number of the above group. This can be any number
 
 TZ: This is the local timezone and is required to calculate timestamps. If this variable is not set, it will default to Coordinated Universal Time 'UTC'
 
-synchronisation_interval: This is the number of seconds between syncronisations. Common intervals would be: 3hrs - 10800, 4hrs - 14400, 6hrs - 21600 & 12hrs - 43200. If variable is not set it will default to every 12hrs (43200 seconds).
+synchronisation_interval: This is the number of seconds between syncronisations. Common intervals would be: 3hrs - 10800, 4hrs - 14400, 6hrs - 21600 & 12hrs - 43200. If variable is not set it will default to every 12hrs (43200 seconds)
 
-notification_days: This is number of days until cookie expiration for which to generate notifications. This will default to 7 days if not specified so you will receive a single notification in the 7 days running up to cookie expiration.
+notification_days: This is number of days until cookie expiration for which to generate notifications. This will default to 7 days if not specified so you will receive a single notification in the 7 days running up to cookie expiration
 
 authentication_type: This is the type of authentication that is enabled on your iCloud account. Valid values are '2FA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. If this variable is not set, it will default to '2FA'
 
@@ -46,15 +46,15 @@ directory_permissions: This specifies the permissions to set on the directories 
 
 file_permissions: This specifies the permissions to set on the files in your download destination. If this variable is not set, it will default to 640
 
-folder_structure: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default.
+folder_structure: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
 command_line_options: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage)
 
-~~set_datetime_from_exif:~~ Removed. This only applies to photos that are not taken with the internal cameras (saved to photostream), these are few and far between and most of the time, having accurate file stamps is unimportant. Removed this now as it applies to a very small amount of unimportant files.
+~~set_datetime_from_exif:~~ Removed. This only applies to photos that are not taken with the internal cameras (saved to photostream), these are few and far between and most of the time, having accurate file stamps is unimportant. Removed this now as it applies to a very small amount of unimportant files
 
-notification_type: This specifies the method that is used to send notifications. Currently, there are three options available 'Prowl', 'Pushbullet' and 'Telegram'. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon syncronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
+notification_type: This specifies the method that is used to send notifications. Currently, there are three options available 'Prowl', 'Pushbullet' and 'Telegram'. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon syncronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started
 
 prowl_api_key: If the notification_type is set to 'Prowl' this is mandatory. This is the API key for your account as generated by the Prowl website
 
@@ -62,15 +62,19 @@ pushbullet_api_key: If the notification_type is set to 'Pushbullet' this is mand
 
 telegram_token: If the notification_type is set to 'Telegram' this is mandatory. This is the token that was assigned to your account by The Botfather
 
-telegram_chat_id: If the notification_type is set to 'Telegram' then this is the chat_id for your Telegram bot.
+telegram_chat_id: If the notification_type is set to 'Telegram' then this is the chat_id for your Telegram bot
+
+convert_heic_to_jpeg: This tells the container that it should convert any HEIC files it downloads to JPEG
+
+delete_heic_jpegs: This tells the container that when a HEIC file is removed, it should remove the associated JPEG file, if one exists
 
 
 ## VOLUME CONFIGURATION
 
 It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it will lose the cookie information each time the container is recreated.
-It will download the photos to the "/home/${user}/iCloud" photos directory. You need to create a bind mount into the container at this point.
+It will download the photos to the "/home/${user}/iCloud" photos directory. You need to create a bind mount into the container at this point
 
-I also have a failsafe built in. The launch script will look for a file called .mounted in the "/home/${user}/iCloud" folder. If this file is not present, it will not sync with iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will not occur. This prevents the script from filling up the root volume if the underlying volume isn't mounted for whatever reason. This file **MUST** be created manually and sync will not start without it.
+I also have a failsafe built in. The launch script will look for a file called .mounted in the "/home/${user}/iCloud" folder. If this file is not present, it will not sync with iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will not occur. This prevents the script from filling up the root volume if the underlying volume isn't mounted for whatever reason. This file **MUST** be created manually and sync will not start without it
 
 ## CREATING A CONTAINER
 
@@ -164,7 +168,7 @@ Dockerfile has a health check which will change the status of the container to '
    
 # TO DO
 
-   HEIC/HEIF conversion
-   ~~Configure SMTP notifications~~ Scrapping this as it seems a lot of work for little value, due to having three push notification options instead.
+~~Configure SMTP notifications~~
+Scrapping this as it seems a lot of work for little value, due to having three push notification options instead.
 
 BTC: 1E8kUsm3qouXdVYvLMjLbw7rXNmN2jZesL
