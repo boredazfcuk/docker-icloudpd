@@ -1,15 +1,16 @@
 #!/bin/ash
 
-if [ -f "/tmp/check_exit_code}" ] || [ -f "/tmp/download_exit_code}" ]; then
-   if [ -f "/tmp/download_exit_code}" ]; then
-      download_exit_code="$(cat /tmp/download_exit_code)"
-      if [ "${download_exit_code}" != 0 ]; then
+if [ -f "/tmp/icloudpd/check_exit_code}" ] || [ -f "/tmp/icloudpd/download_exit_code}" ]; then
+   if [ -f "/tmp/icloudpd/download_exit_code}" ]; then
+      download_exit_code="$(cat /tmp/icloudpd/download_exit_code)"
+      if [ "${download_exit_code}" -ne 0 ]; then
          echo "File download error: ${download_exit_code}"
          exit 1
       fi
-   elif [ -f "/tmp/check_exit_code}" ]; then
-      check_exit_code="$(cat /tmp/check_exit_code)"
-      if [ "${check_exit_code}" != 0 ]; then
+   fi
+   if [ -f "/tmp/icloudpd/check_exit_code}" ]; then
+      check_exit_code="$(cat /tmp/icloudpd/check_exit_code)"
+      if [ "${check_exit_code}" -ne0 ]; then
          echo "File check error: ${check_exit_code}"
          exit 1
       fi

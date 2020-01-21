@@ -22,8 +22,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation interval: ${synchronisation_interval:=43200}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Time zone: ${TZ:=UTC}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Additional command line options: ${command_line_options}"
-
-   if [ "${notification_type}" ]; then
+   if [ "${notification_type}" ] && [ -z "${interactive_session}" ]; then
       if [ -z "${prowl_api_key}" ] && [ -z "${pushbullet_api_key}" ] && [ -z "${telegram_token}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  ${notification_type} notifications enabled, but API key/token not set - disabling notifications"
          unset notification_type
@@ -94,7 +93,7 @@ CheckMount(){
    done
 }
 
-PrepareDownloadDirectory(){
+SetOwnerAndPermissions(){
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set owner, ${user}, on iCloud directory, if required"
    find "/home/${user}/iCloud" ! -user "${user}" -exec chown "${user}" {} +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set group, ${group}, on iCloud directory, if required"
@@ -179,12 +178,36 @@ CheckFiles(){
    check_files="$(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/tmp/icloudpd/icloudpd_check_error.log)"
    check_exit_code=$?
    echo "${check_exit_code}" >/tmp/icloudpd/check_exit_code
-   check_files="$(echo -n "${check_files}")"
-   check_files_count="$(grep -c ^ /tmp/icloudpd/icloudpd_check.log)"
-   if [ "${check_files_count}" -gt 0 ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New files detected: ${check_files_count}"
+   if [ "${check_exit_code}" -ne 0 ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Check failed - Exit code: ${check_exit_code}"
+      if  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
+         Notify "failure" "iCloudPD container failure" "-2" "iCloud_Photos_Downloader failed to download new files - Exit code ${check_exit_code}"
+      elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
+         telegram_text="$(echo -e "iCloudPD:\niCloud_Photos_Downloader failed to download new files - Exit code ${check_exit_code}")"
+         URLEncode "${telegram_text}"
+         Notify "startup" "${encoded_string}"
+      fi
    else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New files detected: ${check_files_count}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check successful"
+      check_files="$(echo -n "${check_files}")"
+      check_files_count="$(grep -c ^ /tmp/icloudpd/icloudpd_check.log)"
+      if [ "${check_files_count}" -gt 0 ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check detected ${check_files_count} files requiring download. Verifying list accuracy"
+         local counter=0
+         for double_check_file in $(cat /tmp/icloudpd/icloudpd_check.log); do
+            if [ -f "${double_check_file}" ]; then
+               sed -i "/${double_check_file//\//\\/}/d" /tmp/icloudpd/icloudpd_check.log
+               counter=$((counter + 1))
+            fi
+         done
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Ignoring ${counter} files which have already been downloaded"
+         check_files_count="$(grep -c ^ /tmp/icloudpd/icloudpd_check.log)"
+      fi
+      if [ "${check_files_count}" -gt 0 ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New files detected: ${check_files_count}"
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     No new files detected. Nothing to download"
+      fi
    fi
 }
 
@@ -256,7 +279,7 @@ Notify(){
          exit 1
       fi
    elif [ "${notification_type}" = "Telegram" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} notification"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent --request POST "${notification_url}" \
          --data chat_id="${telegram_chat_id}" \
          --data text="${2}" \
@@ -283,16 +306,21 @@ SyncUser(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check download directory mounted correctly"
       CheckMount
       CheckFiles
-      if [ "${check_exit_code}" -gt 0 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during new file check - exit code: ${check_exit_code}"
-      else
+      if [ "${check_exit_code}" -eq 0 ]; then
          if [ "${check_files_count}" -gt 0 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of ${check_files_count} new files for user: ${user}"
             syncronisation_time="$(date +%s -d '+15 minutes')"
-            su "${user}" -c "(/usr/bin/icloudpd --directory /home/${user}/iCloud --cookie-directory ${config_dir} --username ${apple_id} --password ${apple_password} --folder-structure ${folder_structure} ${command_line_options} 2>&1; echo $? >/tmp/icloudpd/download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
+            su "${user}" -c "(/usr/bin/icloudpd --directory /home/${user}/iCloud --cookie-directory ${config_dir} --username ${apple_id} --password ${apple_password} --folder-structure ${folder_structure} ${command_line_options} 2>/tmp/icloudpd/icloudpd_sync_error.log; echo $? >/tmp/icloudpd/download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
             download_exit_code="$(cat /tmp/icloudpd/download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
+               if  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
+                  Notify "failure" "iCloudPD container failure" "-2" "iCloud_Photos_Downloader failed to download new files - Exit code ${download_exit_code}"
+               elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
+                  telegram_text="$(echo -e "iCloudPD:\niCloud_Photos_Downloader failed to download new files - Exit code ${download_exit_code}")"
+                  URLEncode "${telegram_text}"
+                  Notify "startup" "${encoded_string}"
+               fi
             else
                DownloadedFiles
                if [ "${convert_heic_to_jpeg}" ]; then
@@ -304,8 +332,6 @@ SyncUser(){
                   DeleteHEICJPEGS
                fi
             fi
-         else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     No new files detected. Nothing to download"
          fi
       fi
       CheckWebCookie
@@ -328,5 +354,5 @@ CreateGroup
 CreateUser
 if [ "${interactive_session:=False}" = "True" ]; then Generate2FACookie; fi
 CheckMount
-PrepareDownloadDirectory
+SetOwnerAndPermissions
 SyncUser
