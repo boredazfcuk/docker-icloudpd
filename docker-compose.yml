@@ -1,0 +1,28 @@
+version: "2.4"
+
+volumes:
+   config:
+      name: icloudpd_config
+
+services:
+   icloudpd:
+      hostname: icloudpd
+      env_file:
+         - example.env
+      environment:
+         - TZ=Europe/London
+      image: boredazfcuk/icloudpd
+      networks:
+         containers:
+            aliases:
+               - icloudpd
+      healthcheck:
+         test: /usr/local/bin/healthcheck.sh
+         interval: 1m
+         timeout: 10s
+         retries: 3
+         start_period: 40s
+      restart: always
+      volumes:
+         - config:/config
+         - /path/to/your/icloud/directory/:/home/${user}/iCloud/
