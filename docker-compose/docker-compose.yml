@@ -26,3 +26,15 @@ services:
       volumes:
          - config:/config
          - /path/to/your/icloud/directory/:/home/${user}/iCloud/
+networks:
+   icloudpd:
+      name: icloudpd
+      driver: bridge
+      enable_ipv6: no
+      ipam:
+         driver: default
+         config:
+            - subnet: 192.168.2.0/24
+              gateway: 192.168.2.254
+      driver_opts:
+         com.docker.network.bridge.name: icloudpd0
