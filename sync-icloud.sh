@@ -13,8 +13,9 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${group:=group}:${group_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID: ${apple_id}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID Password: ${apple_password}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication_type: ${authentication_type:=2FA}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication Type: ${authentication_type:=2FA}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: ${config_dir}/${cookie}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie expiry notification period: ${notification_days:=7}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     iCloud directory: /home/${user}/iCloud"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Directory permissions: ${directory_permissions:=750}"
@@ -269,7 +270,7 @@ Notify(){
          --form event="${2}" \
          --form priority="${3}" \
          --form description="${4}" \
-         >/dev/null 2>&1 &
+         >/dev/null 2>&1
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then 
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully: \"Event: ${1}\" \"Priority ${2}\" \"Message ${3}\""
@@ -283,7 +284,7 @@ Notify(){
       curl --silent --request POST "${notification_url}" \
          --data chat_id="${telegram_chat_id}" \
          --data text="${2}" \
-         >/dev/null 2>&1 &
+         >/dev/null 2>&1
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then 
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully"
