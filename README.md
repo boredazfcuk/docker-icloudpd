@@ -15,6 +15,7 @@ Now on Docker Hub: https://hub.docker.com/r/boredazfcuk/icloudpd
  - JPEG removal if original HEIC removed (experimental, backup your files!)
  - Apple ID displayed on notifications
  - Code changes for readability and simplicity
+ -  Added example docker-compose.yaml
 
 2020/01/18ish - Changes:
  - Variable name changes for readability and naming accuracy
