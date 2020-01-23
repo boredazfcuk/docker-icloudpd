@@ -3,9 +3,20 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader
 
 Now on Docker Hub: https://hub.docker.com/r/boredazfcuk/icloudpd
 
-## Major changes this version. All variable names have changed so you'll need to re-create your container... Sorry, I'm new to this
+## Major changes this version. All variable names have changed so you'll need to re-create your container... Sorry, it's grown so large i needed something a little more descriptive
 
-New features include:
+2020/01/23 - Changes:
+ - Apple ID displayed on push notifications
+ - Updated ARM images
+
+2020/01/22 - Changes:
+ - HEIC to JPEG conversion
+ - JPEG removal if original HEIC removed (experimental, backup your files!)
+ - Apple ID displayed on notifications
+ - Code changes for readability and simplicity
+
+2020/01/18ish - Changes:
+ - Variable name changes for readability and naming accuracy
  - Pre-download check for new files so a download run will only occur if new files exist
  - Telegram notifications
  - Synchronisation summary. Number of new files downloaded. Number of deleted files (if --auto-delete enabled).
