@@ -32,18 +32,18 @@ Initialise(){
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
             notification_url="https://api.prowlapp.com/publicapi/add" 
-            Notify "startup" "iCloudPD container started" "0" "iCloud_Photos_Downloader container now starting"
+            Notify "startup" "iCloudPD container started" "0" "iCloud_Photos_Downloader container now starting for Apple ID ${apple_id}"
          elif  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
             notification_url="https://pushbullet.weks.net/publicapi/add"
-            Notify "startup" "iCloudPD container started" "0" "iCloud_Photos_Downloader container now starting"
+            Notify "startup" "iCloudPD container started" "0" "iCloud_Photos_Downloader container now starting for Apple ID ${apple_id}"
          elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${telegram_token}"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} chat id ${telegram_chat_id}"
             notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
-            telegram_text="$(echo -e "iCloudPD:\nContainer started for iCloud_Photos_Downloader")"
+            telegram_text="$(echo -e "iCloudPD:\nContainer started for iCloud_Photos_Downloader using Apple ID ${apple_id}")"
             URLEncode "${telegram_text}"
             Notify "startup" "${encoded_string}"
          else
@@ -67,7 +67,7 @@ CreateGroup(){
 CreateUser(){
    if [ -z "$(getent passwd "${user}" | cut -d: -f3)" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     User ID available, creating user"
-      adduser -s /bin/ash -D -G "${group}" -u "${user_id}" "${user}" -h "/home/$user"
+      adduser -s /bin/ash -D -G "${group}" -u "${user_id}" "${user}" -h "/home/${user}"
    elif [ ! "$(getent passwd "${user}" | cut -d: -f3)" = "${user_id}" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    User ID already in use - exiting"
       exit 1
@@ -142,13 +142,13 @@ Display2FAExpiry(){
             if [ "${days_remaining}" -eq 1 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Final day before two factor authentication cookie expires - Please reinitialise now"
                if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
-                  Notify "cookie expiration" "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires - Please reinitialise now"
+                  Notify "cookie expiration" "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now"
                   next_notification_time="$(date +%s -d "+24 hour")"
                fi
             else
                echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Only ${days_remaining} days until two factor authentication cookie expires - Please reinitialise"
                if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
-                  Notify "cookie expiration" "2FA Cookie Expiration" "1" "Only ${days_remaining} days until two factor authentication cookie expires - Please reinitialise"
+                  Notify "cookie expiration" "2FA Cookie Expiration" "1" "Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
                   next_notification_time="$(date +%s -d "+24 hour")"
                fi
             fi
@@ -182,9 +182,9 @@ CheckFiles(){
    if [ "${check_exit_code}" -ne 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Check failed - Exit code: ${check_exit_code}"
       if  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
-         Notify "failure" "iCloudPD container failure" "-2" "iCloud_Photos_Downloader failed to download new files - Exit code ${check_exit_code}"
+         Notify "failure" "iCloudPD container failure" "-2" "iCloud_Photos_Downloader failed to download new files for Apple ID: ${apple_id} - Exit code ${check_exit_code}"
       elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
-         telegram_text="$(echo -e "iCloudPD:\niCloud_Photos_Downloader failed to download new files - Exit code ${check_exit_code}")"
+         telegram_text="$(echo -e "iCloudPD:\niCloud_Photos_Downloader failed to download new files - for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
          URLEncode "${telegram_text}"
          Notify "startup" "${encoded_string}"
       fi
@@ -217,11 +217,11 @@ DownloadedFiles(){
    new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${new_files_count:=0}" -gt 0 ]; then
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
-         Notify "downloaded files" "New files detected" "0" "Files downloaded: ${new_files_count}"
+         Notify "downloaded files" "New files detected" "0" "Files downloaded for Apple ID ${apple_id} : ${new_files_count}"
       elif [ "${notification_type}" = "Telegram" ]; then
          new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" | tail -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
-         telegram_new_files_text="$(echo -e "iCloudPD:\nNew files detected: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview}")"
+         telegram_new_files_text="$(echo -e "iCloudPD:\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview}")"
          URLEncode "${telegram_new_files_text}"
          Notify "downloaded files" "${encoded_string}"
       fi
@@ -233,11 +233,11 @@ DeletedFiles(){
    deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${deleted_files_count:=0}" -gt 0 ]; then
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
-         Notify "deleted files" "Recently deleted files detected" "0" "Files deleted: ${deleted_files_count}"
+         Notify "deleted files" "Recently deleted files detected" "0" "Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
       elif [ "${notification_type}" = "Telegram" ]; then
          deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" -e "s%!$%%g" | tail -10)"
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
-         telegram_deleted_files_text="$(echo -e "iCloudPD:\nDeleted files detected: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview}")"
+         telegram_deleted_files_text="$(echo -e "iCloudPD:\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview}")"
          URLEncode "${telegram_deleted_files_text}"
          Notify "deleted files" "${encoded_string}"
       fi
@@ -273,9 +273,9 @@ Notify(){
          >/dev/null 2>&1
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then 
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully: \"Event: ${1}\" \"Priority ${2}\" \"Message ${3}\""
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Event: ${1}\" \"Priority ${2}\" \"Message ${3}\""
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed for Apple ID ${apple_id}"
          sleep 120
          exit 1
       fi
@@ -316,9 +316,9 @@ SyncUser(){
             if [ "${download_exit_code}" -gt 0 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
                if  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
-                  Notify "failure" "iCloudPD container failure" "-2" "iCloud_Photos_Downloader failed to download new files - Exit code ${download_exit_code}"
+                  Notify "failure" "iCloudPD container failure" "-2" "iCloud_Photos_Downloader failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}"
                elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
-                  telegram_text="$(echo -e "iCloudPD:\niCloud_Photos_Downloader failed to download new files - Exit code ${download_exit_code}")"
+                  telegram_text="$(echo -e "iCloudPD:\niCloud_Photos_Downloader failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
                   URLEncode "${telegram_text}"
                   Notify "startup" "${encoded_string}"
                fi
