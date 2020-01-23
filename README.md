@@ -6,6 +6,7 @@ Now on Docker Hub: https://hub.docker.com/r/boredazfcuk/icloudpd
 ## Major changes this version. All variable names have changed so you'll need to re-create your container... Sorry, it's grown so large i needed something a little more descriptive
 
 2020/01/23 - Changes:
+ - Now based on Alpine Linux 3.11
  - Apple ID displayed on push notifications
  - Updated ARM images
 
