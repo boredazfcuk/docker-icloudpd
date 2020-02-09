@@ -1,0 +1,31 @@
+20200209
+
+ - Change: Odd issue where owner on config directoy changed to root. Added chown at start of sync to fix this, and also to Owner/Permissions setting function
+ - Change: Fancy pants Telegram notifications with emojis
+ - Removal: Telegram URL Encoding function. Now sending markdown text and UTF-8 for special characters
+ - Change: Renamed $syncronisation_interval variable to $synchronisation_interval
+
+2020/01/23
+
+ - Change: Now based on Alpine Linux 3.11
+ - Change: Apple ID displayed on push notifications
+ - Update: ARM images rebuilt to latest version
+
+2020/01/22 - Changes:
+ - New: HEIC to JPEG conversion
+ - New: JPEG removal if original HEIC  removed (experimental, backup your files!)
+ - Change: Code changes for readability and simplicity
+ - New: Added example docker-compose.yaml
+
+20200118
+ - Change: Variable name changes for readability and naming accuracy
+ - New: Pre-download check for new files so a download run will only occur if new files exist
+ - New: Telegram notifications
+ - New: Synchronisation summary. Number of new files downloaded. Number of deleted files (if --auto-delete enabled).
+ - New: Telegram notifications only: List of downloaded filenames (10 max). List of deleted files (10 max)
+ - New: Startup notification
+ - New: Configurable permissions on the download destination directory
+ - Change: Logic re-writes for simplicity and optimisation
+ - Change: Additional logging
+ - Change: Code clean-ups
+ - Change: Healthcheck update
