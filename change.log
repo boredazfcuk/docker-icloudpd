@@ -1,3 +1,7 @@
+20200217
+
+ - Change: Running the sync client with "--only-print-filenames" actually creates folders too. File check now run as user account instead of root to avoid ownership issues.
+
 20200211
 
  - Change: Fancy Telegream notifications caused te underscore characters in the file previews to be displayed in italics. Should be correctly escaped now.

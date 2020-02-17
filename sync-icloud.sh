@@ -170,7 +170,6 @@ Display2FAExpiry(){
 CheckFiles(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files..."
    check_files="$(su "${user}" -c "(/usr/bin/icloudpd --directory /home/${user}/iCloud --cookie-directory ${config_dir} --username ${apple_id} --password ${apple_password} --folder-structure ${folder_structure} --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/tmp/icloudpd/icloudpd_check_error.log)")"
-   # check_files="$(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/tmp/icloudpd/icloudpd_check_error.log)"
    check_exit_code=$?
    echo "${check_exit_code}" >/tmp/icloudpd/check_exit_code
    if [ "${check_exit_code}" -ne 0 ]; then
