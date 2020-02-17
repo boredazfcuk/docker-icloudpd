@@ -169,7 +169,8 @@ Display2FAExpiry(){
 
 CheckFiles(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files..."
-   check_files="$(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/tmp/icloudpd/icloudpd_check_error.log)"
+   check_files="$(su "${user}" -c "(/usr/bin/icloudpd --directory /home/${user}/iCloud --cookie-directory ${config_dir} --username ${apple_id} --password ${apple_password} --folder-structure ${folder_structure} --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/tmp/icloudpd/icloudpd_check_error.log)")"
+   # check_files="$(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/tmp/icloudpd/icloudpd_check_error.log)"
    check_exit_code=$?
    echo "${check_exit_code}" >/tmp/icloudpd/check_exit_code
    if [ "${check_exit_code}" -ne 0 ]; then
@@ -213,7 +214,7 @@ DownloadedFiles(){
       elif [ "${notification_type}" = "Telegram" ]; then
          new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" | tail -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
-         telegram_new_files_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview}")"
+         telegram_new_files_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
          Notify "downloaded files" "${telegram_new_files_text}"
       fi
    fi
@@ -228,7 +229,7 @@ DeletedFiles(){
       elif [ "${notification_type}" = "Telegram" ]; then
          deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" -e "s%!$%%g" | tail -10)"
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
-         telegram_deleted_files_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview}")"
+         telegram_deleted_files_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview//_/\\_}")"
          Notify "deleted files" "${telegram_deleted_files_text}"
       fi
    fi

@@ -1,3 +1,7 @@
+20200211
+
+ - Change: Fancy Telegream notifications caused te underscore characters in the file previews to be displayed in italics. Should be correctly escaped now.
+
 20200209
 
  - Change: Odd issue where owner on config directoy changed to root. Added chown at start of sync to fix this, and also to Owner/Permissions setting function
