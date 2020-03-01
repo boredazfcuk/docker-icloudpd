@@ -1,12 +1,6 @@
 # docker-icloudpd
 An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader
 
-Now on Docker Hub: https://hub.docker.com/r/boredazfcuk/icloudpd
-
-## Major changes this version. All variable names have changed so you'll need to re-create your container... Sorry, it's grown so large i needed something a little more descriptive
-
-## Change log now added to keep track of updates
-
 ## MANDATORY ENVIRONMENT VARIABLES
 
 apple_id: This is the Apple ID for the account you want to download files for
