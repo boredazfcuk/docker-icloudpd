@@ -24,31 +24,35 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Time zone: ${TZ:=UTC}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Additional command line options: ${command_line_options}"
    if [ "${notification_type}" ] && [ -z "${interactive_session}" ]; then
-      if [ -z "${prowl_api_key}" ] && [ -z "${pushbullet_api_key}" ] && [ -z "${telegram_token}" ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  ${notification_type} notifications enabled, but API key/token not set - disabling notifications"
-         unset notification_type
+      ConfigureNotifications
+   fi
+}
+
+ConfigureNotifications(){
+   if [ -z "${prowl_api_key}" ] && [ -z "${pushbullet_api_key}" ] && [ -z "${telegram_token}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  ${notification_type} notifications enabled, but API key/token not set - disabling notifications"
+      unset notification_type
+   else
+      if [ "${notification_type}" = "Prowl" ] && [ "${prowl_api_key}" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
+         notification_url="https://api.prowlapp.com/publicapi/add" 
+         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
+      elif  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
+         notification_url="https://pushbullet.weks.net/publicapi/add"
+         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
+      elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${telegram_token}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} chat id ${telegram_chat_id}"
+         notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
+         telegram_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\niCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
+         Notify "startup" "${telegram_text}"
       else
-         if [ "${notification_type}" = "Prowl" ] && [ "${prowl_api_key}" ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
-            notification_url="https://api.prowlapp.com/publicapi/add" 
-            Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
-         elif  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
-            notification_url="https://pushbullet.weks.net/publicapi/add"
-            Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
-         elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${telegram_token}"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} chat id ${telegram_chat_id}"
-            notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
-            telegram_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\niCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
-            Notify "startup" "${telegram_text}"
-         else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
-            unset notification_type prowl_api_key pushbullet_api_key telegram_token telegram_chat_id
-         fi
+         echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
+         unset notification_type prowl_api_key pushbullet_api_key telegram_token telegram_chat_id
       fi
    fi
 }
@@ -237,16 +241,17 @@ DeletedFiles(){
 ConvertHEIC2JPEG(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC to JPEG..."
    for heic_file in $(echo "${new_files}" | grep ".HEIC" | awk '{print $5}'); do
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file/%.HEIC/.JPG})"
-      heif-convert "${heic_file}" "${heic_file/%.HEIC/.JPG}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
+      heif-convert "${heic_file}" "${heic_file%.HEIC}.JPG"
    done
 }
 
-DeleteHEICJPEGS(){
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Remove JPEGs of deleted HEIC files... Experimental - use at your own risk"
-   for deleted_heic_file in $(echo "${deleted_files}" | grep ".HEIC" | awk '{print $5}' | sed -e "s%!$%%g"); do
-      if [ -f "${deleted_heic_file}" ]; then 
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Removing $(rm -v "${deleted_heic_file/%.HEIC/.JPG}")"
+ConvertAllHEICs(){
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert all HEICs to JPEG, if required..."
+   for heic_file in $(find "/home/${user}/iCloud" -type f -name *.HEIC 2>/dev/null); do
+      if [ ! -f "${heic_file%.HEIC}.JPG" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
+         heif-convert "${heic_file}" "${heic_file%.HEIC}.JPG"
       fi
    done
 }
@@ -320,9 +325,6 @@ SyncUser(){
                   ConvertHEIC2JPEG
                fi
                DeletedFiles
-               if [ "${delete_heic_jpegs}" ]; then
-                  DeleteHEICJPEGS
-               fi
             fi
          fi
       fi
@@ -344,7 +346,15 @@ SyncUser(){
 Initialise
 CreateGroup
 CreateUser
-if [ "${interactive_session:=False}" = "True" ]; then Generate2FACookie; fi
+if [ "${interactive_session:=False}" = "True" ]; then 
+   if [ "$1" = "--ConvertAllHEICs" ]; then
+      ConvertAllHEICs
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC to JPG conversion complete"
+      exit 0
+   elif [ -z "$1" ]; then
+      Generate2FACookie
+   fi
+fi
 CheckMount
 SetOwnerAndPermissions
 SyncUser

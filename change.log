@@ -1,3 +1,9 @@
+20200309
+
+ - Change: Removed feature to delete JPG file if the HEIC has been removed. Floored logic in that all files exist in a single location, which doesn't match their original location. Also, JPG files received by WhatsApp would be removed as would JPG files saved from Safari. Can't work in practice.
+ - Change: Script now has a command line parameter that can be run from an interactive session. --ConvertAllHEICs will scan all HEIC files and convert them to JPG, provided the JPG doesn't exist already.
+ - Change: Convert HEIC to JPEG not working correctly. 
+
 20200217
 
  - Change: Running the sync client with "--only-print-filenames" actually creates folders too. File check now run as user account instead of root to avoid ownership issues.
