@@ -1,3 +1,7 @@
+20200313
+
+ - Change: Log now displays OS version
+
 20200309
 
  - Change: Removed feature to delete JPG file if the HEIC has been removed. Floored logic in that all files exist in a single location, which doesn't match their original location. Also, JPG files received by WhatsApp would be removed as would JPG files saved from Safari. Can't work in practice.
