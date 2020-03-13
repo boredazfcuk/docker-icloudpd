@@ -4,6 +4,7 @@
 Initialise(){
    echo -e "\n"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/"//g')"
    cookie="$(echo -n "${apple_id//[^a-zA-Z0-9]/}" | tr '[:upper:]' '[:lower:]')"
    if [ -t 0 ]; then interactive_session="True"; fi
    if [ ! -d "/tmp/icloudpd" ]; then mkdir -p "/tmp/icloudpd"; fi
