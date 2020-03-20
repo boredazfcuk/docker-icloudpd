@@ -2,7 +2,7 @@
 
 ##### Functions #####
 Initialise(){
-   echo -e "\n"
+   echo
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/"//g')"
    cookie="$(echo -n "${apple_id//[^a-zA-Z0-9]/}" | tr '[:upper:]' '[:lower:]')"
