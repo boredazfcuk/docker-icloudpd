@@ -33,6 +33,8 @@ folder_structure: This specifies the folder structure to use in your download de
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
+interactive_only: Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
+
 command_line_options: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage)
 
 ~~set_datetime_from_exif:~~ Removed. This only applies to photos that are not taken with the internal cameras (saved to photostream), these are few and far between and most of the time, having accurate file stamps is unimportant. Removed this now as it applies to a very small amount of files

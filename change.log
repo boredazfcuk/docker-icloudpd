@@ -1,5 +1,9 @@
 20200313
 
+ - Change: Added interactive_only variable. Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
+
+20200313
+
  - Change: Log now displays OS version
 
 20200309

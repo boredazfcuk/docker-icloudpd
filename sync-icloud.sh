@@ -7,6 +7,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/"//g')"
    cookie="$(echo -n "${apple_id//[^a-zA-Z0-9]/}" | tr '[:upper:]' '[:lower:]')"
    if [ -t 0 ]; then interactive_session="True"; fi
+   if [ "${interactive_only}" ]; then unset interactive_session; fi
    if [ ! -d "/tmp/icloudpd" ]; then mkdir -p "/tmp/icloudpd"; fi
    if [ -z "${apple_password}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID Password not set - exiting"; sleep 120; exit 1; fi
    if [ -z "${apple_id}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; sleep 120; exit 1; fi
@@ -24,6 +25,9 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation interval: ${synchronisation_interval:=43200}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Time zone: ${TZ:=UTC}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Additional command line options: ${command_line_options}"
+   if [ "${interactive_only}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set, bypassing 2FA cookie generation"
+   fi
    if [ "${notification_type}" ] && [ -z "${interactive_session}" ]; then
       ConfigureNotifications
    fi
