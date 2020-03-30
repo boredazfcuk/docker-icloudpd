@@ -1,5 +1,5 @@
 # docker-icloudpd
-An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader
+An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I use it for syncing the photo streams of all the iDevices in my house back to my server because it's the only way of backing up multiple devices to a single location. 
 
 ## MANDATORY ENVIRONMENT VARIABLES
 
@@ -36,8 +36,6 @@ folder_structure: This specifies the folder structure to use in your download de
 interactive_only: Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
 
 command_line_options: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage)
-
-~~set_datetime_from_exif:~~ Removed. This only applies to photos that are not taken with the internal cameras (saved to photostream), these are few and far between and most of the time, having accurate file stamps is unimportant. Removed this now as it applies to a very small amount of files
 
 notification_type: This specifies the method that is used to send notifications. Currently, there are three options available 'Prowl', 'Pushbullet' and 'Telegram'. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon syncronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started
 

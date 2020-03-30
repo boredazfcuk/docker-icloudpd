@@ -1,15 +1,15 @@
 20200313
 
- - Change: Added interactive_only variable. Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
+ - New: Added interactive_only variable. Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
 
 20200313
 
- - Change: Log now displays OS version
+ - New: Log now displays OS version
 
 20200309
 
- - Change: Removed feature to delete JPG file if the HEIC has been removed. Floored logic in that all files exist in a single location, which doesn't match their original location. Also, JPG files received by WhatsApp would be removed as would JPG files saved from Safari. Can't work in practice.
- - Change: Script now has a command line parameter that can be run from an interactive session. --ConvertAllHEICs will scan all HEIC files and convert them to JPG, provided the JPG doesn't exist already.
+ - Removal: Removed feature to delete JPG file if the HEIC has been removed. Floored logic in that all files exist in a single location, which doesn't match their original location. Also, JPG files received by WhatsApp would be removed as would JPG files saved from Safari. Can't work in practice.
+ - New: Script now has a command line parameter that can be run from an interactive session. --ConvertAllHEICs will scan all HEIC files and convert them to JPG, provided the JPG doesn't exist already.
  - Change: Convert HEIC to JPEG not working correctly. 
 
 20200217
@@ -18,22 +18,22 @@
 
 20200211
 
- - Change: Fancy Telegream notifications caused te underscore characters in the file previews to be displayed in italics. Should be correctly escaped now.
+ - Change: Fancy Telegram notifications caused the underscore characters in the file previews to be displayed in italics. Should be correctly escaped now.
 
 20200209
 
  - Change: Odd issue where owner on config directoy changed to root. Added chown at start of sync to fix this, and also to Owner/Permissions setting function
- - Change: Fancy pants Telegram notifications with emojis
+ - New: Fancy pants Telegram notifications with emojis
  - Removal: Telegram URL Encoding function. Now sending markdown text and UTF-8 for special characters
  - Change: Renamed $syncronisation_interval variable to $synchronisation_interval
 
-2020/01/23
+20200123
 
- - Change: Now based on Alpine Linux 3.11
- - Change: Apple ID displayed on push notifications
+ - Update: Now based on Alpine Linux 3.11
+ - New: Apple ID displayed on push notifications
  - Update: ARM images rebuilt to latest version
 
-2020/01/22 - Changes:
+20200122 - Changes:
  - New: HEIC to JPEG conversion
  - New: JPEG removal if original HEIC  removed (experimental, backup your files!)
  - Change: Code changes for readability and simplicity
