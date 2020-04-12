@@ -1,5 +1,6 @@
 20200412
 
+ - New: Added PR 132: "Multi-threaded downloads and caching" from https://github.com/ndbroadbent/icloud_photos_downloader/pull/132
  - New: Added quotes to variables to prevent globbing in download check and photo download functions
 
 20200313
