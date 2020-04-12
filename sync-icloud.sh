@@ -178,7 +178,7 @@ Display2FAExpiry(){
 
 CheckFiles(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files..."
-   check_files="$(su "${user}" -c "(/usr/bin/icloudpd --directory /home/${user}/iCloud --cookie-directory ${config_dir} --username ${apple_id} --password ${apple_password} --folder-structure ${folder_structure} --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/tmp/icloudpd/icloudpd_check_error.log)")"
+   check_files="$(su "${user}" -c "(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/tmp/icloudpd/icloudpd_check_error.log)")"
    check_exit_code=$?
    echo "${check_exit_code}" >/tmp/icloudpd/check_exit_code
    if [ "${check_exit_code}" -ne 0 ]; then
@@ -313,7 +313,7 @@ SyncUser(){
          if [ "${check_files_count}" -gt 0 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of ${check_files_count} new files for user: ${user}"
             syncronisation_time="$(date +%s -d '+15 minutes')"
-            su "${user}" -c "(/usr/bin/icloudpd --directory /home/${user}/iCloud --cookie-directory ${config_dir} --username ${apple_id} --password ${apple_password} --folder-structure ${folder_structure} ${command_line_options} 2>/tmp/icloudpd/icloudpd_sync_error.log; echo $? >/tmp/icloudpd/download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
+            su "${user}" -c "(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" ${command_line_options} 2>/tmp/icloudpd/icloudpd_sync_error.log; echo $? >/tmp/icloudpd/download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
             download_exit_code="$(cat /tmp/icloudpd/download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"

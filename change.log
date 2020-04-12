@@ -1,3 +1,7 @@
+20200412
+
+ - New: Added quotes to variables to prevent globbing in download check and photo download functions
+
 20200313
 
  - New: Added interactive_only variable. Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
