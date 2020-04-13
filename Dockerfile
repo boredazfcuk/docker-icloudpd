@@ -17,12 +17,6 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install ${app_repo}" && \
    temp_dir=$(mktemp -d) && \
    git clone -b master "https://github.com/${app_repo}.git" "${temp_dir}" && \
    cd "${temp_dir}" && \
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Download pull request 132: Multi-threaded downloads and caching" && \
-   wget -O "${temp_dir}/132.patch" "https://github.com/${app_repo}/pull/132.patch" && \
-   cd icloudpd && \
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Merge pull request 132" && \
-   git apply "../132.patch" --verbose && \
-   cd - && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install ${app_repo}" && \
    python3 setup.py install && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \

@@ -1,3 +1,7 @@
+20200413
+
+ - Remove: Removed PR 132. PR 132 was based off PR 110, which was raised in 2018. Neither had been merged. Obviously, after I spent an hour or so chainging my Dockerfile to incorporate the patch, it was merged upstream!
+
 20200412
 
  - New: Added PR 132: "Multi-threaded downloads and caching" from https://github.com/ndbroadbent/icloud_photos_downloader/pull/132
