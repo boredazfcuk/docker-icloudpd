@@ -1,3 +1,11 @@
+20200508
+
+ - Change: My list of downloaded/deleted files seemed to be getting longer without me actively using my phone's camera. Guessing some variable isn't being cleared, so have localised a fair few variables to the functions they run in
+
+20200430
+
+ - Change: Added $debug_logging variable, which outputs errors to the screen instead of hiding them.
+
 20200413
 
  - Remove: Removed PR 132. PR 132 was based off PR 110, which was raised in 2018. Neither had been merged. Obviously, after I spent an hour or so chainging my Dockerfile to incorporate the patch, it was merged upstream!

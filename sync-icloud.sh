@@ -5,6 +5,7 @@ Initialise(){
    echo
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/"//g')"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Debug logging: ${debug_logging:=False}"
    cookie="$(echo -n "${apple_id//[^a-zA-Z0-9]/}" | tr '[:upper:]' '[:lower:]')"
    if [ -t 0 ]; then interactive_session="True"; fi
    if [ "${interactive_only}" ]; then unset interactive_session; fi
@@ -90,7 +91,11 @@ Generate2FACookie(){
    if [ -f "${config_dir}/${cookie}" ]; then
       rm "${config_dir}/${cookie}"
    fi
-   su "${user}" -c "/usr/bin/icloudpd --username \"${apple_id}\" --password \"${apple_password}\" --cookie-directory \"${config_dir}\" 2>/dev/null"
+   if [ "${debug_logging}" ]; then
+      su "${user}" -c "/usr/bin/icloudpd --username \"${apple_id}\" --password \"${apple_password}\" --cookie-directory \"${config_dir}\""
+   else
+      su "${user}" -c "/usr/bin/icloudpd --username \"${apple_id}\" --password \"${apple_password}\" --cookie-directory \"${config_dir}\" 2>/dev/null"
+   fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful"
    exit 0
 }
@@ -178,7 +183,12 @@ Display2FAExpiry(){
 
 CheckFiles(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files..."
-   check_files="$(su "${user}" -c "(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/tmp/icloudpd/icloudpd_check_error.log)")"
+   local check_files
+   if [ "${debug_logging}" ]; then
+      check_files="$(su "${user}" -c "(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log)")"
+   else
+      check_files="$(su "${user}" -c "(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 1>/tmp/icloudpd/icloudpd_check.log 2>/tmp/icloudpd/icloudpd_check_error.log)")"
+   fi
    check_exit_code=$?
    echo "${check_exit_code}" >/tmp/icloudpd/check_exit_code
    if [ "${check_exit_code}" -ne 0 ]; then
@@ -211,9 +221,11 @@ CheckFiles(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     No new files detected. Nothing to download"
       fi
    fi
+   >/tmp/icloudpd/icloudpd_check.log
 }
 
 DownloadedFiles(){
+   local new_files_count new_files_preview telegram_new_files_text
    new_files="$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${new_files_count:=0}" -gt 0 ]; then
@@ -229,6 +241,7 @@ DownloadedFiles(){
 }
 
 DeletedFiles(){
+   local deleted_files deleted_files_count deleted_files_preview telegram_deleted_files_text
    deleted_files="$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
    deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${deleted_files_count:=0}" -gt 0 ]; then
@@ -313,7 +326,11 @@ SyncUser(){
          if [ "${check_files_count}" -gt 0 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of ${check_files_count} new files for user: ${user}"
             syncronisation_time="$(date +%s -d '+15 minutes')"
-            su "${user}" -c "(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" ${command_line_options} 2>/tmp/icloudpd/icloudpd_sync_error.log; echo $? >/tmp/icloudpd/download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
+            if [ "${debug_logging}" ]; then
+               su "${user}" -c "(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" ${command_line_options}; echo $? >/tmp/icloudpd/download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
+            else
+               su "${user}" -c "(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" ${command_line_options} 2>/tmp/icloudpd/icloudpd_sync_error.log; echo $? >/tmp/icloudpd/download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
+            fi
             download_exit_code="$(cat /tmp/icloudpd/download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
@@ -338,11 +355,8 @@ SyncUser(){
       if [ "${authentication_type}" = "2FA" ]; then Display2FAExpiry; fi
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation complete for ${user}"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next syncronisation at $(date +%H:%M -d "${synchronisation_interval} seconds")"
-      unset check_exit_code download_exit_code
-      unset check_files new_files deleted_files
-      unset check_files_count new_files_count deleted_files_count
-      unset new_files_preview deleted_files_preview
-      unset telegram_new_files_text telegram_deleted_files_text
+      unset check_exit_code check_files_count download_exit_code
+      unset new_files
       sleep "${synchronisation_interval}"
    done
 }
