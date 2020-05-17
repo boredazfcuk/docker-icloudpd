@@ -1,3 +1,7 @@
+20200517
+
+ - Change: Amended the failsafe error message so that the name and path of the file it is looking for is visible. Makes it easier for people to spot the capitalisation in iCloud.
+
 20200514
 
  - Change: Previous change didn't work. This actually fixes the issue that the list of files is no longer growing. However, it's only highlighted a different issue. A number of files are exhibiting weird behaviour. 5 files are being listed as downloaded, but only 3 filenames are unique. These files are then also being listed as having been deleted from the system. They are all stil in my photostream on iCloud.com and not in recently deleted. Coincidentally, they all start with camphoto_ but that may not be indicitive of anything.

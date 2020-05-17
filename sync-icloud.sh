@@ -102,7 +102,7 @@ Generate2FACookie(){
 
 CheckMount(){
    while [ ! -f "/home/${user}/iCloud/.mounted" ]; do
-      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Destination volume not mounted - retry in 5 minutes"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Failsafe file /home/${user}/iCloud/.mounted file is not present. Plese check the host's target volume is mounted - retry in 5 minutes"
       sleep 300
    done
 }
