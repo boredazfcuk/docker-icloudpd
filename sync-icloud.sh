@@ -2,6 +2,8 @@
 
 ##### Functions #####
 Initialise(){
+   if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_check_exit_code"; fi
+   if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_download_exit_code"; fi
    echo
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/"//g')"
@@ -19,7 +21,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication Type: ${authentication_type:=2FA}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: ${config_dir}/${cookie}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie expiry notification period: ${notification_days:=7}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     iCloud directory: /home/${user}/iCloud"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download destination directory: /home/${user}/iCloud"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Directory permissions: ${directory_permissions:=750}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     File permissions: ${file_permissions:=640}"
@@ -92,11 +94,12 @@ Generate2FACookie(){
       rm "${config_dir}/${cookie}"
    fi
    if [ "${debug_logging}" ]; then
-      su "${user}" -c "/usr/bin/icloudpd --username \"${apple_id}\" --password \"${apple_password}\" --cookie-directory \"${config_dir}\""
+      su "${user}" -c '(/usr/bin/icloudpd --username "${apple_id}" --password "${apple_password}" --cookie-directory "${config_dir}")'
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Please ignore the 'expected str, bytes or os.PathLike object, not NoneType' error. This is a fault with the underlying icloud_photos_downloader Python application"
    else
-      su "${user}" -c "/usr/bin/icloudpd --username \"${apple_id}\" --password \"${apple_password}\" --cookie-directory \"${config_dir}\" 2>/dev/null"
+      su "${user}" -c '(/usr/bin/icloudpd --username "${apple_id}" --password "${apple_password}" --cookie-directory "${config_dir}" 2>/dev/null)'
    fi
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful."
    exit 0
 }
 
@@ -184,25 +187,18 @@ Display2FAExpiry(){
 CheckFiles(){
    if [ -f "/tmp/icloudpd/icloudpd_check.log" ]; then rm "/tmp/icloudpd/icloudpd_check.log"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files..."
-   local check_files
-   if [ "${debug_logging}" ]; then
-      check_files="$(su "${user}" -c "(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames | tee /tmp/icloudpd/icloudpd_check.log)")"
-   else
-      check_files="$(su "${user}" -c "(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames | tee /tmp/icloudpd/icloudpd_check.log 2>/tmp/icloudpd/icloudpd_check_error.log)")"
-   fi
-   check_exit_code=$?
-   echo "${check_exit_code}" >/tmp/icloudpd/check_exit_code
+   su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log'
+   check_exit_code="$(cat /tmp/icloudpd/icloud_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Check failed - Exit code: ${check_exit_code}"
       if  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
          Notify "failure" "iCloudPD container failure" "-2" "iCloudPD failed to download new files for Apple ID: ${apple_id} - Exit code ${check_exit_code}"
       elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
          telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD*\niCloudPD failed to download new files - for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
-         Notify "startup" "${telegram_text}"
+         Notify "failure" "${telegram_text}"
       fi
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check successful"
-      check_files="$(echo -n "${check_files}")"
       check_files_count="$(grep -c ^ /tmp/icloudpd/icloudpd_check.log)"
       if [ "${check_files_count}" -gt 0 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check detected ${check_files_count} files requiring download. Verifying list accuracy"
@@ -224,7 +220,7 @@ CheckFiles(){
    fi
 }
 
-DownloadedFiles(){
+DownloadedFilesNotification(){
    local new_files_count new_files_preview telegram_new_files_text
    new_files="$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
@@ -241,7 +237,7 @@ DownloadedFiles(){
    fi
 }
 
-DeletedFiles(){
+DeletedFilesNotification(){
    local deleted_files deleted_files_count deleted_files_preview telegram_deleted_files_text
    deleted_files="$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
    deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
@@ -258,7 +254,7 @@ DeletedFiles(){
    fi
 }
 
-ConvertHEIC2JPEG(){
+ConvertDownloadedHEIC2JPEG(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC to JPEG..."
    for heic_file in $(echo "${new_files}" | grep ".HEIC" | awk '{print $5}'); do
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
@@ -328,12 +324,8 @@ SyncUser(){
          if [ "${check_files_count}" -gt 0 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of ${check_files_count} new files for user: ${user}"
             syncronisation_time="$(date +%s -d '+15 minutes')"
-            if [ "${debug_logging}" ]; then
-               su "${user}" -c "(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" ${command_line_options}; echo $? >/tmp/icloudpd/download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
-            else
-               su "${user}" -c "(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" ${command_line_options} 2>/tmp/icloudpd/icloudpd_sync_error.log; echo $? >/tmp/icloudpd/download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
-            fi
-            download_exit_code="$(cat /tmp/icloudpd/download_exit_code)"
+            su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" ${command_line_options} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log'
+            download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
                if  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
@@ -343,19 +335,19 @@ SyncUser(){
                   Notify "failure" "${telegram_text}"
                fi
             else
-               DownloadedFiles
+               DownloadedFilesNotification
                if [ "${convert_heic_to_jpeg}" ]; then
                   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC files to JPEG"
-                  ConvertHEIC2JPEG
+                  ConvertDownloadedHEIC2JPEG
                fi
-               DeletedFiles
+               DeletedFilesNotification
+               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation complete for ${user}"
             fi
          fi
       fi
       CheckWebCookie
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Web cookie expires: ${web_cookie_expire_date/ / @ }"
       if [ "${authentication_type}" = "2FA" ]; then Display2FAExpiry; fi
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation complete for ${user}"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next syncronisation at $(date +%H:%M -d "${synchronisation_interval} seconds")"
       unset check_exit_code check_files_count download_exit_code
       unset new_files

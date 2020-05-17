@@ -49,7 +49,7 @@ telegram_chat_id: If the notification_type is set to 'Telegram' then this is the
 
 convert_heic_to_jpeg: This tells the container that it should convert any HEIC files it downloads to JPEG
 
-delete_heic_jpegs: This tells the container that when a HEIC file is removed, it should remove the associated JPEG file, if one exists
+~delete_heic_jpegs~: The logic around this was floored. It would delete JPEGs for files without matching HEICs. This is a bad idea if you save photos from Safari/Telegram/WhatsApp etc, so I removed it.
 
 
 ## VOLUME CONFIGURATION
@@ -57,11 +57,23 @@ delete_heic_jpegs: This tells the container that when a HEIC file is removed, it
 It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it will lose the cookie information each time the container is recreated.
 It will download the photos to the "/home/${user}/iCloud" photos directory. You need to create a bind mount into the container at this point
 
-I also have a failsafe built in. The launch script will look for a file called .mounted in the "/home/${user}/iCloud" folder. If this file is not present, it will not sync with iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will not occur. This prevents the script from filling up the root volume if the underlying volume isn't mounted for whatever reason. This file **MUST** be created manually and sync will not start without it
+I also have a failsafe built in. The launch script will look for a file called "/home/${user}/iCloud/.mounted" (please note the capitalisation) in the destination folder inside the container. If this file is not present, it will not download anything from iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will not occur. This prevents the script from filling up the root volume if the underlying volume isn't mounted for whatever reason. This file **MUST** be created manually and sync will not start without it
 
 ## CREATING A CONTAINER
 
-To create a container, run the following command from a shell on the host, filling in the details as per your requirements:
+Creating a container can be as simple as running:
+```
+docker create \
+   --network <Name of Docker network to connect to> \
+   --env apple_id="<Apple ID e-mail address>" \
+   --env apple_password="Apple ID password" \
+   --volume <Bind mount to the destination folder on the host> \
+   boredazfcuk/icloudpd
+```
+
+But you probably want to customise it a little more than that, espcially if you have multiple instances of the container running and connecting to different iCloud acocunts.
+
+I'd recommend creating your container with a little more info than that. Something along the lines of:
 
 ```
 docker create \
@@ -101,7 +113,10 @@ docker create \
    --env apple_id=thisisnotmy@email.com \
    --env apple_password="neitheristhismypassword" \
    --env authentication_type=2FA \
-   --env notification_type=Prowl \
+   --env notification_type=Telegram \
+   --env telegram_token=123654 \
+   --env telegram_chat_id=456321 \
+
    --env notification_days=14 \
    --env command_line_options="--folder-structure={:%Y} --recent 50 --auto-delete" \
    --env synchronisation_interval=21600 \

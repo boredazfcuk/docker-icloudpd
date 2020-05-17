@@ -1,6 +1,10 @@
 20200517
 
+ - Change: Moved some of the logging commands so they triggered in more appropriate places.
+ - Change: File download check error notification incorrectly labelled as a startup notification.
+ - Change: Script wasn't properly handling passwords with special characters. Should be OK now.
  - Change: Amended the failsafe error message so that the name and path of the file it is looking for is visible. Makes it easier for people to spot the capitalisation in iCloud.
+ - Change: File check exit code grabbing logic was flawed. Was actually grabbing the exit code of su, which was always 0.
 
 20200514
 
@@ -8,7 +12,7 @@
 
 20200508
 
- - Change: My list of downloaded/deleted files seemed to be getting longer without me actively using my phone's camera. Guessing some variable isn't being cleared, so have localised a fair few variables to the functions they run in
+ - Change: My list of downloaded/deleted files seemed to be getting longer without me actively using my phone's camera. Guessing some variable isn't being cleared, so have localised a fair few variables to the functions they run in.
 
 20200430
 
@@ -20,8 +24,8 @@
 
 20200412
 
- - New: Added PR 132: "Multi-threaded downloads and caching" from https://github.com/ndbroadbent/icloud_photos_downloader/pull/132
- - New: Added quotes to variables to prevent globbing in download check and photo download functions
+ - New: Added PR 132: "Multi-threaded downloads and caching" from https://github.com/ndbroadbent/icloud_photos_downloader/pull/132.
+ - New: Added quotes to variables to prevent globbing in download check and photo download functions.
 
 20200313
 
@@ -29,13 +33,13 @@
 
 20200313
 
- - New: Log now displays OS version
+ - New: Log now displays OS version.
 
 20200309
 
  - Removal: Removed feature to delete JPG file if the HEIC has been removed. Floored logic in that all files exist in a single location, which doesn't match their original location. Also, JPG files received by WhatsApp would be removed as would JPG files saved from Safari. Can't work in practice.
  - New: Script now has a command line parameter that can be run from an interactive session. --ConvertAllHEICs will scan all HEIC files and convert them to JPG, provided the JPG doesn't exist already.
- - Change: Convert HEIC to JPEG not working correctly. 
+ - Change: Convert HEIC to JPEG not working correctly.
 
 20200217
 
@@ -47,32 +51,34 @@
 
 20200209
 
- - Change: Odd issue where owner on config directoy changed to root. Added chown at start of sync to fix this, and also to Owner/Permissions setting function
- - New: Fancy pants Telegram notifications with emojis
- - Removal: Telegram URL Encoding function. Now sending markdown text and UTF-8 for special characters
- - Change: Renamed $syncronisation_interval variable to $synchronisation_interval
+ - Change: Odd issue where owner on config directoy changed to root. Added chown at start of sync to fix this, and also to Owner/Permissions setting function.
+ - New: Fancy pants Telegram notifications with emojis.
+ - Removal: Telegram URL Encoding function. Now sending markdown text and UTF-8 for special characters.
+ - Change: Renamed $syncronisation_interval variable to $synchronisation_interval.
 
 20200123
 
- - Update: Now based on Alpine Linux 3.11
- - New: Apple ID displayed on push notifications
- - Update: ARM images rebuilt to latest version
+ - Update: Now based on Alpine Linux 3.11.
+ - New: Apple ID displayed on push notifications.
+ - Update: ARM images rebuilt to latest version.
 
 20200122 - Changes:
- - New: HEIC to JPEG conversion
- - New: JPEG removal if original HEIC  removed (experimental, backup your files!)
- - Change: Code changes for readability and simplicity
- - New: Added example docker-compose.yaml
+
+ - New: HEIC to JPEG conversion.
+ - New: JPEG removal if original HEIC  removed (experimental, backup your files!).
+ - Change: Code changes for readability and simplicity.
+ - New: Added example docker-compose.yaml.
 
 20200118
- - Change: Variable name changes for readability and naming accuracy
- - New: Pre-download check for new files so a download run will only occur if new files exist
- - New: Telegram notifications
+
+ - Change: Variable name changes for readability and naming accuracy.
+ - New: Pre-download check for new files so a download run will only occur if new files exist.
+ - New: Telegram notifications.
  - New: Synchronisation summary. Number of new files downloaded. Number of deleted files (if --auto-delete enabled).
- - New: Telegram notifications only: List of downloaded filenames (10 max). List of deleted files (10 max)
- - New: Startup notification
- - New: Configurable permissions on the download destination directory
- - Change: Logic re-writes for simplicity and optimisation
- - Change: Additional logging
- - Change: Code clean-ups
- - Change: Healthcheck update
+ - New: Telegram notifications only: List of downloaded filenames (10 max). List of deleted files (10 max).
+ - New: Startup notification.
+ - New: Configurable permissions on the download destination directory.
+ - Change: Logic re-writes for simplicity and optimisation.
+ - Change: Additional logging.
+ - Change: Code clean-ups.
+ - Change: Healthcheck update.
