@@ -66,22 +66,13 @@ Creating a container can be as simple as running:
 docker create \
    --network <Name of Docker network to connect to> \
    --env apple_id="<Apple ID e-mail address>" \
-   --env apple_password="Apple ID password" \
    --volume <Bind mount to the destination folder on the host> \
    boredazfcuk/icloudpd
 ```
 
-Once the container has been created, it will have saved the Apple ID password to a text file in it's /config volume (in plain text, so beware).
-Once the password file has been created, the apple_password variable no longer needs to be passed to the container and can be created like this:
-```
-docker create \
-   --network <Name of Docker network to connect to> \
-   --env apple_id="<Apple ID e-mail address>" \
-   --volume <Bind mount to the destination folder on the host> \
-   boredazfcuk/icloudpd
-```
+Once the container has been created, you should connect to it and run the /usr/local/bin/sync-icloud.sh script manually. This will then take you through the process of adding your password to the container's keyring. It will also take you through generating a cookie that will allow the container to download the photos...
 
-But you probably want to customise it a little more than that, espcially if you have multiple instances of the container running and connecting to different iCloud acocunts.
+But you probably want to customise your container a little more than that though, espcially if you have multiple instances of the container running and connecting to different iCloud acocunts.
 
 I'd recommend creating your container with a little more info than that. Something along the lines of:
 
