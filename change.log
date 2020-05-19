@@ -1,3 +1,16 @@
+20200519
+
+ - New: Keyring password saving. Previously, the Apple ID user's password could be seen in the Docker logs, the variables (docker inspect) and disturbingly, if any user did `ps -ef | grep password", it would be seen in the command line of any running connection to iCloud. Script now heavily pushes users towards saving credentials into the secure encrypted keyring.
+ - Removal: Saving password to text file has been removed (never made it to a release, but is doumented in the change log). 
+ - Change: su doesn't pass variables to the account it uses. This meant that some variables that I thought were optional (user, config_dir, folder_structure) were actually mandatory. Command now built with $0 $1 $2 etc and variables passed via command line ( -- $bunch $of $options).
+ - Removal: Debug logging variable removed. Always logging errors to screen.
+ - Change: Telegram notification success/failure messages now confirm message type (startup, download, delete, failure).
+ - Change: Cookie checking function would hang system without error if 2FA cookie does not exist.
+
+20200518
+
+ - Change: Container now saves the Apple ID password to a file located in the /config volume. Once this has been done, the apple_password variable not longer needs to be passed to the container and should be removed.
+
 20200517
 
  - Change: Moved some of the logging commands so they triggered in more appropriate places.

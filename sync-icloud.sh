@@ -2,22 +2,21 @@
 
 ##### Functions #####
 Initialise(){
+   if [ ! -d "/tmp/icloudpd" ]; then mkdir --parents "/tmp/icloudpd"; fi
    if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_check_exit_code"; fi
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_download_exit_code"; fi
    echo
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/"//g')"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Debug logging: ${debug_logging:=False}"
    cookie="$(echo -n "${apple_id//[^a-zA-Z0-9]/}" | tr '[:upper:]' '[:lower:]')"
    if [ -t 0 ]; then interactive_session="True"; fi
    if [ "${interactive_only}" ]; then unset interactive_session; fi
-   if [ ! -d "/tmp/icloudpd" ]; then mkdir -p "/tmp/icloudpd"; fi
-   if [ -z "${apple_password}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID Password not set - exiting"; sleep 120; exit 1; fi
    if [ -z "${apple_id}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; sleep 120; exit 1; fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive session: ${interactive_session:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local user: ${user:=user}:${user_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${group:=group}:${group_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID: ${apple_id}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID Password: ${apple_password}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID password: ${apple_password:=usekeyring}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication Type: ${authentication_type:=2FA}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: ${config_dir}/${cookie}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie expiry notification period: ${notification_days:=7}"
@@ -31,9 +30,12 @@ Initialise(){
    if [ "${interactive_only}" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set, bypassing 2FA cookie generation"
    fi
-   if [ "${notification_type}" ] && [ -z "${interactive_session}" ]; then
+   if [ "${notification_type}" ] && [ "${interactive_session}" = "False" ]; then
       ConfigureNotifications
    fi
+   if [ ! -d "/home/${user}/.local/share/" ]; then mkdir --parents "/home/${user}/.local/share/"; fi
+   if [ ! -d "${config_dir}/python_keyring/" ]; then mkdir --parents "${config_dir}/python_keyring/"; fi
+   if [ ! -L "/home/${user}/.local/share/python_keyring" ]; then ln --symbolic "${config_dir}/python_keyring/" "/home/${user}/.local/share/"; fi
 }
 
 ConfigureNotifications(){
@@ -52,10 +54,11 @@ ConfigureNotifications(){
          notification_url="https://pushbullet.weks.net/publicapi/add"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
+         notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${telegram_token}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} chat id ${telegram_chat_id}"
-         notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
          telegram_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\niCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
          Notify "startup" "${telegram_text}"
       else
@@ -85,6 +88,31 @@ CreateUser(){
    fi
 }
 
+ConfigurePassword(){
+   if [ "${apple_password}" = "usekeyring" ] && [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
+      if [ "${interactive_session}" = "True" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Adding password to keyring..."
+         su "${user}" -c '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID password set to 'usekeyring' but keyring file does not exist. Container must be run interactively to add a password to the system keyring - Restart in 5mins"
+         sleep 300
+         exit 1
+      fi
+   fi
+   if [ "${apple_password}" ]; then
+      if [ "${apple_password}" = "usekeyring" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Using password stored in keyring"
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Using Apple ID password from variable. This password will be visible in the process list of the host. Please add your password to the system keyring instead"
+         sleep 60
+      fi
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID password not set - exiting"
+      sleep 120
+      exit 1
+   fi
+}
+
 Generate2FACookie(){
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
@@ -93,11 +121,15 @@ Generate2FACookie(){
    if [ -f "${config_dir}/${cookie}" ]; then
       rm "${config_dir}/${cookie}"
    fi
-   if [ "${debug_logging}" ]; then
-      su "${user}" -c '(/usr/bin/icloudpd --username "${apple_id}" --password "${apple_password}" --cookie-directory "${config_dir}")'
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Please ignore the 'expected str, bytes or os.PathLike object, not NoneType' error. This is a fault with the underlying icloud_photos_downloader Python application"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Generate 2FA cookie with password: ${apple_password}"
+   if [ "${apple_password}" = "usekeyring" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring..."
+      su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --only-print-filenames --recent 1' -- "${apple_id}" "${config_dir}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Please ignore the 'expected str, bytes or os.PathLike object, not NoneType' error. This is a fault with the underlying application Python application"
    else
-      su "${user}" -c '(/usr/bin/icloudpd --username "${apple_id}" --password "${apple_password}" --cookie-directory "${config_dir}" 2>/dev/null)'
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Checking for new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
+      su "${user}" -c '/usr/bin/icloudpd --username "${0}" --password "${1}" --cookie-directory "${2}" --only-print-filenames --recent 1' -- "${apple_id}" "${apple_password}" "${config_dir}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Please ignore the 'expected str, bytes or os.PathLike object, not NoneType' error. This is a fault with the underlying application Python application"
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful."
    exit 0
@@ -123,6 +155,10 @@ SetOwnerAndPermissions(){
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on keyring directory, if required"
+   find "/home/${user}/.local" ! -user "${user}" -exec chown "${user}" {} +
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on keyring directory, if required"
+   find "/home/${user}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set ${directory_permissions:=755} permissions on iCloud directories, if required"
    find "/home/${user}/iCloud" -type d ! -perm "${directory_permissions}" -exec chmod "${directory_permissions}" '{}' +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set ${file_permissions:=640} permissions on iCloud files, if required"
@@ -131,8 +167,8 @@ SetOwnerAndPermissions(){
 
 CheckWebCookie(){
    if [ -f "${config_dir}/${cookie}" ]; then
-         web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
-    else
+      web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   else
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie does not exist. Please run container interactively to generate - Retry in 5 minutes"
       sleep 300
    fi
@@ -152,42 +188,50 @@ Check2FACookie(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie is not 2FA capable, authentication type may have changed. Please run container interactively to generate - Retry in 5 minutes"
          sleep 300
       fi
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie does not exist. Please run container interactively to generate - Retry in 5 minutes"
+      sleep 300
    fi
 }
 
 Display2FAExpiry(){
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie expires: ${twofa_expire_date/ / @ }"
-      if [ "${days_remaining}" -lt "${notification_days}" ]; then
-         if [ "${syncronisation_time}" -gt "${next_notification_time:=$(date +%s)}" ]; then
-            if [ "${days_remaining}" -eq 1 ]; then
-               echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Final day before two factor authentication cookie expires - Please reinitialise now. This is your last reminder"
-               if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
-                  Notify "cookie expiration" "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
-                  next_notification_time="$(date +%s -d "+24 hour")"
-               elif [ "${notification_type}" = "Telegram" ]; then
-                  telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD\nFinal day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
-                  Notify "cookie expiration" "${telegram_text}"
-                  next_notification_time="$(date +%s -d "+24 hour")"
-               fi
-            else
-               echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Only ${days_remaining} days until two factor authentication cookie expires - Please reinitialise"
-               if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
-                  Notify "cookie expiration" "2FA Cookie Expiration" "1" "Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
-                  next_notification_time="$(date +%s -d "+24 hour")"
-               elif [ "${notification_type}" = "Telegram" ]; then
-                  telegram_text="$(echo -e "\xE2\x9A\xA0 *boredazfcuk/iCloudPD\nOnly ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
-                  Notify "cookie expiration" "${telegram_text}"
-                  next_notification_time="$(date +%s -d "+24 hour")"
-               fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie expires: ${twofa_expire_date/ / @ }"
+   if [ "${days_remaining}" -lt "${notification_days}" ]; then
+      if [ "${syncronisation_time}" -gt "${next_notification_time:=$(date +%s)}" ]; then
+         if [ "${days_remaining}" -eq 1 ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Final day before two factor authentication cookie expires - Please reinitialise now. This is your last reminder"
+            if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
+               Notify "cookie expiration" "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
+               next_notification_time="$(date +%s -d "+24 hour")"
+            elif [ "${notification_type}" = "Telegram" ]; then
+               telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD\nFinal day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
+               Notify "cookie expiration" "${telegram_text}"
+               next_notification_time="$(date +%s -d "+24 hour")"
+            fi
+         else
+            echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Only ${days_remaining} days until two factor authentication cookie expires - Please reinitialise"
+            if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
+               Notify "cookie expiration" "2FA Cookie Expiration" "1" "Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
+               next_notification_time="$(date +%s -d "+24 hour")"
+            elif [ "${notification_type}" = "Telegram" ]; then
+               telegram_text="$(echo -e "\xE2\x9A\xA0 *boredazfcuk/iCloudPD\nOnly ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
+               Notify "cookie expiration" "${telegram_text}"
+               next_notification_time="$(date +%s -d "+24 hour")"
             fi
          fi
       fi
+   fi
 }
 
 CheckFiles(){
    if [ -f "/tmp/icloudpd/icloudpd_check.log" ]; then rm "/tmp/icloudpd/icloudpd_check.log"; fi
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files..."
-   su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log'
+   if [ "${apple_password}" = "usekeyring" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring..."
+      su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${0}/iCloud" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${user}" "${config_dir}" "${apple_id}" "${folder_structure}" 
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Checking for new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
+      su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${0}/iCloud" --cookie-directory "${1}" --username "${2}" --password "${3}" --folder-structure "${4}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${user}" "${config_dir}" "${apple_id}" "${apple_password}" "${folder_structure}" 
+   fi
    check_exit_code="$(cat /tmp/icloudpd/icloud_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Check failed - Exit code: ${check_exit_code}"
@@ -299,9 +343,9 @@ Notify(){
          >/dev/null 2>&1
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then 
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed"
          sleep 120
          exit 1
       fi
@@ -324,7 +368,13 @@ SyncUser(){
          if [ "${check_files_count}" -gt 0 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of ${check_files_count} new files for user: ${user}"
             syncronisation_time="$(date +%s -d '+15 minutes')"
-            su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${user}/iCloud" --cookie-directory "${config_dir}" --username "${apple_id}" --password "${apple_password}" --folder-structure "${folder_structure}" ${command_line_options} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log'
+            if [ "${apple_password}" = "usekeyring" ]; then
+               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
+               su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${0}/iCloud" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" ${4} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${user}" "${config_dir}" "${apple_id}" "${folder_structure}" "${command_line_options}"
+            else
+               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using password stored in keyring..."
+               su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${0}/iCloud" --cookie-directory "${1}" --username "${2}" --password "${3}" --folder-structure "${4}" ${5} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${user}" "${config_dir}" "${apple_id}" "${apple_password}" "${folder_structure}" "${command_line_options}"
+            fi
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
@@ -359,7 +409,8 @@ SyncUser(){
 Initialise
 CreateGroup
 CreateUser
-if [ "${interactive_session:=False}" = "True" ]; then 
+ConfigurePassword
+if [ "${interactive_session}" = "True" ]; then
    if [ "$1" = "--ConvertAllHEICs" ]; then
       ConvertAllHEICs
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC to JPG conversion complete"

@@ -3,9 +3,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 ## MANDATORY ENVIRONMENT VARIABLES
 
-apple_id: This is the Apple ID for the account you want to download files for
-
-apple_password: This is the password for the Apple ID account named above. This is needed to generate an authentication token
+apple_id: This is the Apple ID that wil lbe used when downloading files
 
 ## DEFAULT ENVIRONMENT VARIABLES
 
@@ -32,6 +30,8 @@ file_permissions: This specifies the permissions to set on the files in your dow
 folder_structure: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default
 
 ## OPTIONAL ENVIRONMENT VARIABLES
+
+apple_password: This is the password for the Apple ID account named above. This is needed to generate an authentication token. If this variable exists it will use it as the password when downloading files, but you will be prompted with a delayed warning that you should switch to a keyring based authentication. To use keyring based authentication, set the password to **usekeyring** or simply omit it entirely as it's now the default. When keyring based authentication is enabled, the script will check for the presence of the keyring file. If it is not there, the script will pause with a warning for 5mins before exiting. Please connect to the container and run the /usr/local/bin/sync-icloud.sh command manually to start the process of saving your password to the keyring. This will invoke 2FA and Apple will text a confirmation code which needs to be entered. You may also be asked to generate a new 2FA cookie afterwards.
 
 interactive_only: Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
 
@@ -67,6 +67,16 @@ docker create \
    --network <Name of Docker network to connect to> \
    --env apple_id="<Apple ID e-mail address>" \
    --env apple_password="Apple ID password" \
+   --volume <Bind mount to the destination folder on the host> \
+   boredazfcuk/icloudpd
+```
+
+Once the container has been created, it will have saved the Apple ID password to a text file in it's /config volume (in plain text, so beware).
+Once the password file has been created, the apple_password variable no longer needs to be passed to the container and can be created like this:
+```
+docker create \
+   --network <Name of Docker network to connect to> \
+   --env apple_id="<Apple ID e-mail address>" \
    --volume <Bind mount to the destination folder on the host> \
    boredazfcuk/icloudpd
 ```
