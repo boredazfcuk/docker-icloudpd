@@ -382,7 +382,8 @@ Notify(){
    elif [ "${notification_type}" = "Webhook" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent --request POST "${notification_url}" \
-         --data "${2}" \
+         --header 'content-type: application/json' \
+         --data "{ \"data\" : \"${2}\" }" \
          >/dev/null 2>&1
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then 
