@@ -1,5 +1,10 @@
+20200526
+
+ - Alpha: Webhook notifications implemented for Home Assistant. Based on Telegram notifications, but implemented without testing. Using them will probably break things as I'm unsure as to the format of the webhook payload.
+
 20200519
 
+ - Change: Prefixed some of the files stored in /tmp/icloudpd with icloudpd_, just for consistency. Plus it's easier to remove them all with `rm icloudpd*` instead of multiple arguments to rm.
  - New: Keyring password saving. Previously, the Apple ID user's password could be seen in the Docker logs, the variables (docker inspect) and disturbingly, if any user did `ps -ef | grep password", it would be seen in the command line of any running connection to iCloud. Script now heavily pushes users towards saving credentials into the secure encrypted keyring.
  - Removal: Saving password to text file has been removed (never made it to a release, but is doumented in the change log). 
  - Change: su doesn't pass variables to the account it uses. This meant that some variables that I thought were optional (user, config_dir, folder_structure) were actually mandatory. Command now built with $0 $1 $2 etc and variables passed via command line ( -- $bunch $of $options).
