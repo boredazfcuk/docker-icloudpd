@@ -53,7 +53,9 @@ telegram_token: If the notification_type is set to 'Telegram' this is mandatory.
 
 telegram_chat_id: If the notification_type is set to 'Telegram' then this is the chat_id for your Telegram bot
 
-host_ip_address: If the notification_type is set to 'Webhook' then this is the IP address of the Webhook host's IP address
+webhook_server: If the notification_type is set to 'Webhook' then this is the name of the server to connect to when sending webhook notifications
+
+webhook_port: If the notification_type is set to 'Webhook' then this is the port number to use when connecting to the webhook server. If this is not set, it will default to 8123
 
 webhook_id: If the notification_type is set to 'Webhook' then this is the Webhook ID to use
 
@@ -61,7 +63,7 @@ webhook_https: If this is set to 'True then the Webhoot notification URL will us
 
 ## VOLUME CONFIGURATION
 
-It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it will lose the cookie information each time the container is recreated.
+It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it will lose the cookie information each time the container is recreated
 It will download the photos to the "/home/${user}/iCloud" photos directory. You need to create a bind mount into the container at this point
 
 I also have a failsafe built in. The launch script will look for a file called "/home/${user}/iCloud/.mounted" (please note the capitalisation) in the destination folder inside the container. If this file is not present, it will not download anything from iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will not occur. This prevents the script from filling up the root volume if the underlying volume isn't mounted for whatever reason. This file **MUST** be created manually and sync will not start without it

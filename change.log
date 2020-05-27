@@ -1,3 +1,7 @@
+20200527
+
+ - Alpha change: Webhook host_ip_address variable changed to webhook_server. Added webhook_port so a non-default port can be added
+
 20200526
 
  - Alpha: Webhook notifications implemented for Home Assistant. Based on Telegram notifications, but implemented without testing. Using them will probably break things as I'm unsure as to the format of the webhook payload.

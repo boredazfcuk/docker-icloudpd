@@ -61,18 +61,19 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
          telegram_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\niCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
          Notify "startup" "${telegram_text}"
-      elif [ "${notification_type}" = "Webhook" ] && [ "${host_ip_address}" ] && [ "${webhook_id}" ]; then
+      elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
          if [ "${webhook_https}" = "True" ]; then webhook_scheme="https"; else webhook_scheme="http"; fi
-         notification_url="${webhook_scheme}://${host_ip_address}:8123/api/webhook/${webhook_id}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} host IP address: ${host_ip_address}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} server: ${webhook_server}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} port: ${webhook_port:=8123}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ID: ${webhook_id}"
+         notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}/api/webhook/${webhook_id}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
          webhook_payload="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\niCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
          Notify "startup" "${webhook_payload}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
-         unset notification_type prowl_api_key pushbullet_api_key telegram_token telegram_chat_id host_ip_address webhook_id
+         unset notification_type prowl_api_key pushbullet_api_key telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id
       fi
    fi
 }
@@ -216,7 +217,7 @@ Display2FAExpiry(){
                telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD\nFinal day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
                Notify "cookie expiration" "${telegram_text}"
                next_notification_time="$(date +%s -d "+24 hour")"
-            elif [ "${notification_type}" = "Webhook" ] && [ "${host_ip_address}" ] && [ "${webhook_id}" ]; then
+            elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
                webhook_payload="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD\nFinal day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
                Notify "failure" "${webhook_payload}"
                next_notification_time="$(date +%s -d "+24 hour")"
@@ -230,7 +231,7 @@ Display2FAExpiry(){
                telegram_text="$(echo -e "\xE2\x9A\xA0 *boredazfcuk/iCloudPD\nOnly ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
                Notify "cookie expiration" "${telegram_text}"
                next_notification_time="$(date +%s -d "+24 hour")"
-            elif [ "${notification_type}" = "Webhook" ] && [ "${host_ip_address}" ] && [ "${webhook_id}" ]; then
+            elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
                webhook_payload="$(echo -e "\xE2\x9A\xA0 *boredazfcuk/iCloudPD\nOnly ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
                Notify "failure" "${webhook_payload}"
                next_notification_time="$(date +%s -d "+24 hour")"
@@ -257,7 +258,7 @@ CheckFiles(){
       elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
          telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD*\niCloudPD failed to download new files - for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
          Notify "failure" "${telegram_text}"
-      elif [ "${notification_type}" = "Webhook" ] && [ "${host_ip_address}" ] && [ "${webhook_id}" ]; then
+      elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
          webhook_payload="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD*\niCloudPD failed to download new files - for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
          Notify "failure" "${webhook_payload}"
       fi
@@ -297,7 +298,7 @@ DownloadedFilesNotification(){
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          telegram_new_files_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
          Notify "downloaded files" "${telegram_new_files_text}"
-      elif [ "${notification_type}" = "Webhook" ] && [ "${host_ip_address}" ] && [ "${webhook_id}" ]; then
+      elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
          new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" | tail -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          webhook_payload="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
@@ -319,7 +320,7 @@ DeletedFilesNotification(){
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          telegram_deleted_files_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview//_/\\_}")"
          Notify "deleted files" "${telegram_deleted_files_text}"
-      elif [ "${notification_type}" = "Webhook" ] && [ "${host_ip_address}" ] && [ "${webhook_id}" ]; then
+      elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
          deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" -e "s%!$%%g" | tail -10)"
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          webhook_payload="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview//_/\\_}")"
@@ -427,7 +428,7 @@ SyncUser(){
                elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
                   telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD*\niCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
                   Notify "failure" "${telegram_text}"
-               elif [ "${notification_type}" = "Webhook" ] && [ "${host_ip_address}" ] && [ "${webhook_id}" ]; then
+               elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
                   webhook_payload="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD*\niCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
                   Notify "failure" "${webhook_payload}"
                fi
