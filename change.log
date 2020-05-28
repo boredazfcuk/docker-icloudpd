@@ -1,6 +1,10 @@
+20200528
+
+ - Alpha change: Forgot to add webhook_id to the check which validates that the API keys have been set.
+
 20200527
 
- - Alpha change: Webhook host_ip_address variable changed to webhook_server. Added webhook_port so a non-default port can be added
+ - Alpha change: Webhook host_ip_address variable changed to webhook_server. Added webhook_port so a non-default port can be added.
 
 20200526
 
