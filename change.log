@@ -1,5 +1,6 @@
 20200528
 
+ - Alpha change: Changed Webhook notification messages
  - Alpha change: Forgot to add webhook_id to the check which validates that the API keys have been set.
 
 20200527
