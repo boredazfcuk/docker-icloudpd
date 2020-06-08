@@ -1,4 +1,4 @@
-docker pull alpine:latest
+docker pull alpine:3.12
 
 # aarch=arm64v8
 docker build . -f Dockerfile.aarch -t boredazfcuk/icloudpd:arm64v8

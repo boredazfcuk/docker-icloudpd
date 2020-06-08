@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.12
 MAINTAINER boredazfcuk
 
 ARG app_dependencies="python3 py-pip exiftool coreutils tzdata curl libheif-tools"

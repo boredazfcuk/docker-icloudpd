@@ -1,3 +1,7 @@
+20200608
+
+ - Change: Rebased to Alpine 3.12
+
 20200528
 
  - Alpha change: Changed Webhook notification messages
