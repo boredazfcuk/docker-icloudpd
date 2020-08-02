@@ -1,6 +1,11 @@
+20200802
+
+ - Change: Found that the --directory option is required. I wasn't including it when doing the 2FA authentication cookie generation which lead to an error.
+
 20200608
 
  - Change: Rebased to Alpine 3.12
+ - Change: Display IP Address in log
 
 20200528
 

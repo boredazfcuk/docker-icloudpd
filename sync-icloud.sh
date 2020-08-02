@@ -136,12 +136,10 @@ Generate2FACookie(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Generate 2FA cookie with password: ${apple_password}"
    if [ "${apple_password}" = "usekeyring" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring..."
-      su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --only-print-filenames --recent 1' -- "${apple_id}" "${config_dir}"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Please ignore the 'expected str, bytes or os.PathLike object, not NoneType' error. This is a fault with the underlying application Python application"
+      su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Checking for new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
-      su "${user}" -c '/usr/bin/icloudpd --username "${0}" --password "${1}" --cookie-directory "${2}" --only-print-filenames --recent 1' -- "${apple_id}" "${apple_password}" "${config_dir}"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Please ignore the 'expected str, bytes or os.PathLike object, not NoneType' error. This is a fault with the underlying application Python application"
+      su "${user}" -c '/usr/bin/icloudpd --username "${0}" --password "${1}" --cookie-directory "${2}" --directory "${3}" --only-print-filenames --recent 0' -- "${apple_id}" "${apple_password}" "${config_dir}" "/dev/null"
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful."
    exit 0
