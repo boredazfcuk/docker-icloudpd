@@ -1,3 +1,8 @@
+20200803
+
+ - Change: When using keyring it was claiming plaintext password was in use and vice versa
+ - Change: Added a version number in Dockerfile to display when script first starts up
+
 20200802
 
  - Change: Found that the --directory option is required. I wasn't including it when doing the 2FA authentication cookie generation which lead to an error.

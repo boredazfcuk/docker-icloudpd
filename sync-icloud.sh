@@ -7,7 +7,7 @@ Initialise(){
    if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_check_exit_code"; fi
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_download_exit_code"; fi
    echo
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd ${container_version} container for icloud_photo_downloader started *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/"//g')"
    cookie="$(echo -n "${apple_id//[^a-zA-Z0-9]/}" | tr '[:upper:]' '[:lower:]')"
    if [ -t 0 ]; then interactive_session="True"; fi
@@ -131,7 +131,7 @@ Generate2FACookie(){
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
    if [ -f "${config_dir}/${cookie}" ]; then
-      rm "${config_dir}/${cookie}"
+      mv "${config_dir}/${cookie}" "${config_dir}/${cookie}.bak"
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Generate 2FA cookie with password: ${apple_password}"
    if [ "${apple_password}" = "usekeyring" ]; then
@@ -414,10 +414,10 @@ SyncUser(){
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of ${check_files_count} new files for user: ${user}"
             syncronisation_time="$(date +%s -d '+15 minutes')"
             if [ "${apple_password}" = "usekeyring" ]; then
-               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
+               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using password stored in keyring..."
                su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${0}/iCloud" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" ${4} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${user}" "${config_dir}" "${apple_id}" "${folder_structure}" "${command_line_options}"
             else
-               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using password stored in keyring..."
+               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
                su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${0}/iCloud" --cookie-directory "${1}" --username "${2}" --password "${3}" --folder-structure "${4}" ${5} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${user}" "${config_dir}" "${apple_id}" "${apple_password}" "${folder_structure}" "${command_line_options}"
             fi
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"

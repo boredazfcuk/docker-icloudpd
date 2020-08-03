@@ -3,63 +3,63 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 ## MANDATORY ENVIRONMENT VARIABLES
 
-apple_id: This is the Apple ID that wil lbe used when downloading files
+**apple_id**: This is the Apple ID that wil lbe used when downloading files
 
 ## DEFAULT ENVIRONMENT VARIABLES
 
-apple_password: This is the password for the Apple ID account named above. This is needed to generate an authentication token. If this variable exists it will be used as the password when downloading files, but you will be prompted with a delayed warning that you should switch to a keyring based authentication. To use keyring based authentication, set the variable to **usekeyring** or omit it entirely.. When keyring based authentication is enabled, the script will check for the presence of the keyring file. If it is not there, the script will pause with a warning for 5mins before exiting. Please connect to the container and run the /usr/local/bin/sync-icloud.sh command manually to start the process of saving your password to the keyring. This will invoke 2FA and Apple will text a confirmation code which needs to be entered. You may also be asked to generate a new 2FA cookie afterwards. If this variable is not set, it will default to 'usekeyring'.
+**apple_password**: This is the password for the Apple ID account named above. This is needed to generate an authentication token. If this variable exists it will be used as the password when downloading files, but you will be prompted with a delayed warning that you should switch to a keyring based authentication. To use keyring based authentication, set the variable to **usekeyring** or omit it entirely.. When keyring based authentication is enabled, the script will check for the presence of the keyring file. If it is not there, the script will pause with a warning for 5mins before exiting. Please connect to the container and run the /usr/local/bin/sync-icloud.sh command manually to start the process of saving your password to the keyring. This will invoke 2FA and Apple will text a confirmation code which needs to be entered. You may also be asked to generate a new 2FA cookie afterwards. If this variable is not set, it will default to 'usekeyring'.
 
-user: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. If this variable is not set, it will default to 'user'
+**user**: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. If this variable is not set, it will default to 'user'
 
-user_id: This is the User ID number of the above user account. This can be any number that isn't already in use. Ideally, you should set this to be the same ID number as the user's ID on the host system. This will avoid permissions issues if syncing to your host's home directory. If this variable is not set, it will default to '1000'
+**user_id**: This is the User ID number of the above user account. This can be any number that isn't already in use. Ideally, you should set this to be the same ID number as the user's ID on the host system. This will avoid permissions issues if syncing to your host's home directory. If this variable is not set, it will default to '1000'
 
-group: This is name of the group account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user's primary group on the host system. This This group will be set as the group for all downloaded files. If this variable is not set, it will default to 'group'
+**group**: This is name of the group account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user's primary group on the host system. This This group will be set as the group for all downloaded files. If this variable is not set, it will default to 'group'
 
-group_id: This is the Group ID number of the above group. This can be any number that isn't already in use. Ideally, you should set this to be the same Group ID number as the user's primary group on the host system. If this variable is not set, it will default to '1000'
+**group_id**: This is the Group ID number of the above group. This can be any number that isn't already in use. Ideally, you should set this to be the same Group ID number as the user's primary group on the host system. If this variable is not set, it will default to '1000'
 
-TZ: This is the local timezone and is required to calculate timestamps. If this variable is not set, it will default to Coordinated Universal Time 'UTC'
+**TZ**: This is the local timezone and is required to calculate timestamps. If this variable is not set, it will default to Coordinated Universal Time 'UTC'
 
-synchronisation_interval: This is the number of seconds between syncronisations. Common intervals would be: 3hrs - 10800, 4hrs - 14400, 6hrs - 21600 & 12hrs - 43200. If variable is not set it will default to every 12hrs (43200 seconds)
+**synchronisation_interval**: This is the number of seconds between syncronisations. Common intervals would be: 3hrs - 10800, 4hrs - 14400, 6hrs - 21600 & 12hrs - 43200. If variable is not set it will default to every 12hrs (43200 seconds)
 
-notification_days: This is number of days until cookie expiration for which to generate notifications. This will default to 7 days if not specified so you will receive a single notification in the 7 days running up to cookie expiration
+**notification_days**: This is number of days until cookie expiration for which to generate notifications. This will default to 7 days if not specified so you will receive a single notification in the 7 days running up to cookie expiration
 
-authentication_type: This is the type of authentication that is enabled on your iCloud account. Valid values are '2FA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. If this variable is not set, it will default to '2FA'
+**authentication_type**: This is the type of authentication that is enabled on your iCloud account. Valid values are '2FA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. If this variable is not set, it will default to '2FA'
 
-directory_permissions: This specifies the permissions to set on the directories in your download destination. If this variable is not set, it will default to 750
+**directory_permissions**: This specifies the permissions to set on the directories in your download destination. If this variable is not set, it will default to 750
 
-file_permissions: This specifies the permissions to set on the files in your download destination. If this variable is not set, it will default to 640
+**file_permissions**: This specifies the permissions to set on the files in your download destination. If this variable is not set, it will default to 640
 
-folder_structure: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default
+**folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
-interactive_only: Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
+**interactive_only**: Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
 
-command_line_options: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage)
+**command_line_options**: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage)
 
-convert_heic_to_jpeg: This tells the container that it should convert any HEIC files it downloads to JPEG
+**convert_heic_to_jpeg**: This tells the container that it should convert any HEIC files it downloads to JPEG
 
 ~delete_heic_jpegs~: The logic around this was floored. It would delete JPEGs for files without matching HEICs. This is a bad idea if you save photos from Safari/Telegram/WhatsApp etc, so I removed it.
 
 ## NOTIFICATION CONFIGURATION VARIABLES
 
-notification_type: This specifies the method that is used to send notifications. Currently, there are three options available 'Prowl', 'Pushbullet', 'Telegram' and "Webhook". When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon syncronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started
+**notification_type**: This specifies the method that is used to send notifications. Currently, there are three options available 'Prowl', 'Pushbullet', 'Telegram' and "Webhook". When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon syncronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started
 
-prowl_api_key: If the notification_type is set to 'Prowl' this is mandatory. This is the API key for your account as generated by the Prowl website
+**prowl_api_key**: If the notification_type is set to 'Prowl' this is mandatory. This is the API key for your account as generated by the Prowl website
 
-pushbullet_api_key: If the notification_type is set to 'Pushbullet' this is mandatory. This is the API key for your account as generated by the Pushbullet website
+**pushbullet_api_key**: If the notification_type is set to 'Pushbullet' this is mandatory. This is the API key for your account as generated by the Pushbullet website
 
-telegram_token: If the notification_type is set to 'Telegram' this is mandatory. This is the token that was assigned to your account by The Botfather
+**telegram_token**: If the notification_type is set to 'Telegram' this is mandatory. This is the token that was assigned to your account by The Botfather
 
-telegram_chat_id: If the notification_type is set to 'Telegram' then this is the chat_id for your Telegram bot
+**telegram_chat_id**: If the notification_type is set to 'Telegram' then this is the chat_id for your Telegram bot
 
-webhook_server: If the notification_type is set to 'Webhook' then this is the name of the server to connect to when sending webhook notifications
+**webhook_server**: If the notification_type is set to 'Webhook' then this is the name of the server to connect to when sending webhook notifications
 
-webhook_port: If the notification_type is set to 'Webhook' then this is the port number to use when connecting to the webhook server. If this is not set, it will default to 8123
+**webhook_port**: If the notification_type is set to 'Webhook' then this is the port number to use when connecting to the webhook server. If this is not set, it will default to 8123
 
-webhook_id: If the notification_type is set to 'Webhook' then this is the Webhook ID to use
+**webhook_id**: If the notification_type is set to 'Webhook' then this is the Webhook ID to use
 
-webhook_https: If this is set to 'True then the Webhoot notification URL will use HTTPS, otherwise it will default to HTTP
+**webhook_https**: If this is set to 'True then the Webhoot notification URL will use HTTPS, otherwise it will default to HTTP
 
 ## VOLUME CONFIGURATION
 
