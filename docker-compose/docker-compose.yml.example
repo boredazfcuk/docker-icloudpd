@@ -1,4 +1,4 @@
-version: "2.4"
+version: "3.8"
 
 volumes:
    config:
@@ -12,29 +12,10 @@ services:
       environment:
          - TZ=Europe/London
       image: boredazfcuk/icloudpd
-      networks:
-         containers:
-            aliases:
-               - icloudpd
       healthcheck:
          test: /usr/local/bin/healthcheck.sh
-         interval: 1m
-         timeout: 10s
-         retries: 3
-         start_period: 40s
+         start_period: 30s
       restart: always
       volumes:
          - config:/config
-         - /path/to/your/icloud/directory/:/home/${user}/iCloud/
-networks:
-   icloudpd:
-      name: icloudpd
-      driver: bridge
-      enable_ipv6: no
-      ipam:
-         driver: default
-         config:
-            - subnet: 192.168.2.0/24
-              gateway: 192.168.2.254
-      driver_opts:
-         com.docker.network.bridge.name: icloudpd0
+         - ./iCloud/:/home/${user}/iCloud/

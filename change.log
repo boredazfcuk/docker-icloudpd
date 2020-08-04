@@ -1,5 +1,9 @@
 20200803
 
+ - Change: Converted docker-compose.yml file to be 3.8 compatible. Removed networking configuration.
+
+20200803
+
  - Change: When using keyring it was claiming plaintext password was in use and vice versa
  - Change: Added a version number in Dockerfile to display when script first starts up
 
