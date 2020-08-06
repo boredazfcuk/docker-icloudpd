@@ -1,8 +1,7 @@
 FROM alpine:3.12
 MAINTAINER boredazfcuk
 
-ENV container_version="1.0.1" \
-   config_dir="/config"
+ENV config_dir="/config"
 ARG app_dependencies="python3 py-pip exiftool coreutils tzdata curl libheif-tools"
 ARG build_dependencies="git gcc python3-dev musl-dev libffi-dev openssl-dev"
 ARG python_dependencies="docopt piexif click==6.0 certifi pytz tzlocal six chardet idna urllib3 requests future keyrings.alt==1.0 keyring==8.0 pyicloud-ipd tqdm schema python-dateutil"
