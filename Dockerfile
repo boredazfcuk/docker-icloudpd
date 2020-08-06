@@ -1,7 +1,7 @@
 FROM alpine:3.12
 MAINTAINER boredazfcuk
 
-ENV container_version="1.0.0" \
+ENV container_version="1.0.1" \
    config_dir="/config"
 ARG app_dependencies="python3 py-pip exiftool coreutils tzdata curl libheif-tools"
 ARG build_dependencies="git gcc python3-dev musl-dev libffi-dev openssl-dev"

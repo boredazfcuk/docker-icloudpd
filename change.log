@@ -1,11 +1,15 @@
+20200806
+
+ - Change: Added owner change to /config dir at start of ConfigurePassword function so password is successfully stored first time around.
+
 20200803
 
  - Change: Converted docker-compose.yml file to be 3.8 compatible. Removed networking configuration.
 
 20200803
 
- - Change: When using keyring it was claiming plaintext password was in use and vice versa
- - Change: Added a version number in Dockerfile to display when script first starts up
+ - Change: When using keyring it was claiming plaintext password was in use and vice versa.
+ - Change: Added a version number in Dockerfile to display when script first starts up.
 
 20200802
 
@@ -13,12 +17,12 @@
 
 20200608
 
- - Change: Rebased to Alpine 3.12
- - Change: Display IP Address in log
+ - Change: Rebased to Alpine 3.12.
+ - Change: Display IP Address in log.
 
 20200528
 
- - Alpha change: Changed Webhook notification messages
+ - Alpha change: Changed Webhook notification messages.
  - Alpha change: Forgot to add webhook_id to the check which validates that the API keys have been set.
 
 20200527

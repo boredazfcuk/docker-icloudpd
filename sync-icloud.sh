@@ -101,6 +101,10 @@ CreateUser(){
 }
 
 ConfigurePassword(){
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
+   find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
+   find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
    if [ "${apple_password}" = "usekeyring" ] && [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${interactive_session}" = "True" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Adding password to keyring..."
