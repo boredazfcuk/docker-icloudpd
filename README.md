@@ -138,39 +138,70 @@ docker create \
    
 ## TWO FACTOR AUTHENTICATION
 
-If your Apple ID account has two factor authentication enabled and you immediately launch the container after creating it, you will see that the container waits for a two factor authentication cookie to be created. Without this cookie, syncronisation cannot be started.
-
-To generate a two factor authentication cookie the container must be run interactively. This can be done by running a second container momentarily from a shell prompt on the host. The second container will log in to your Apple ID account and your iDevice should then ask you if you want to allow or deny the login. When you allow the login, you will be sent a 6-digit approval code. Enter the approval code into the shell prompt by selecting the corresponding option (0 or 1) and then entering the approval code. This will then place a two factor authentication cookie into the /config folder of the container. This cookie will expire after three months. After it has expired, you will need to re-initialise the container again.
-   
-To create a two factor authentication enabled cookie, run the container in an interactive session (with: docker run -it --rm) and point it to the same named /config volume like this:
-   ```
-   docker run -it --rm \
-   --network <Same as the previously created contrainer> \
-   --env user=<Same as the previously created contrainer> \
-   --env user_id=<Same as the previously created contrainer> \
-   --env group=<Same as the previously created contrainer> \
-   --env group_id=<Same as the previously created contrainer> \
-   --env apple_id="<Same as the previously created contrainer>" \
-   --env apple_password="<Same as the previously created contrainer>" \
-   --volume <Same named volume as the previously created contrainer> \
-   boredazfcuk/icloudpd
-   ```
-   
-This is an example of the command I run to create the authentication token on my own machine:
+If your Apple ID account has two factor authentication enabled and you immediately launch the container after creating it, you will see that the container waits for a two factor authentication cookie to be created:
 ```
-docker run -it --rm \
-   --network containers \
-   --env user=boredazfcuk \
-   --env user_id=1000 \
-   --env group=admins \
-   --env group_id=1010 \
-   --env apple_id="thisisnotmy@email.com" \
-   --env apple_password="neitheristhismypassword" \
-   --volume icloudpd_boredazfcuk_config:/config \
-   boredazfcuk/icloudpd
+ERROR    Apple ID password set to 'usekeyring' but keyring file does not exist. Container must be run interactively to add a password to the system keyring - Restart in 5mins
+```
+or
+```
+ERROR    Cookie does not exist. Please run container interactively to generate - Retry in 5 minutes
+```
+Without this cookie, syncronisation cannot be started.
+
+To generate a two factor authentication cookie the container must be run interactively. This can be done by connecting to the running container and launching a second instance of the sync-icloud.sh script. Presuming your container is called icloudpd, connect to it by running the command:
+```
+docker exec -it icloudpd /usr/local/bin/sync-icloud.sh
 ```
 
-After this, my iCloudPD-boredazfcuk container launchs and the startup script loops after the set interval time.
+If you are using keyring authentication, you will be prompted to enter your password and confirm your device with a 2FA code sent via SMS. Once that is confirmed, the password will be added to the keyring.
+
+After that, the script will log into the icloud.com website and save the 2FA cookie. Your iDevice will ask you if you want to allow or deny the login. When you allow the login, you will be give a 6-digit approval code. Enter the approval code when prompted.
+
+The process should look similar to this:
+
+```
+2020-08-06 16:45:58 INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****
+2020-08-06 16:45:58 INFO     Alpine Linux v3.12
+2020-08-06 16:45:58 INFO     Interactive session: True
+2020-08-06 16:45:58 INFO     Local user: user:1000
+2020-08-06 16:45:58 INFO     Local group: group:1000
+2020-08-06 16:45:58 INFO     LAN IP Address: 192.168.20.1
+2020-08-06 16:45:58 INFO     Apple ID: email@address.com
+2020-08-06 16:45:58 INFO     Apple ID password: usekeyring
+2020-08-06 16:45:58 INFO     Authentication Type: 2FA
+2020-08-06 16:45:58 INFO     Cookie path: /config/emailaddresscom
+2020-08-06 16:45:58 INFO     Cookie expiry notification period: 7
+2020-08-06 16:45:58 INFO     Download destination directory: /home/user/iCloud
+2020-08-06 16:45:58 INFO     Folder structure: {:%Y}
+2020-08-06 16:45:58 INFO     Directory permissions: 750
+2020-08-06 16:45:58 INFO     File permissions: 640
+2020-08-06 16:45:58 INFO     Syncronisation interval: 43200
+2020-08-06 16:45:58 INFO     Time zone: Europe/London
+2020-08-06 16:45:58 INFO     Additional command line options: --auto-delete --set-exif-datetime
+2020-08-06 16:45:58 INFO     Correct owner on config directory, if required
+2020-08-06 16:45:58 INFO     Correct group on config directory, if required
+2020-08-06 16:45:58 INFO     Adding password to keyring...
+Enter iCloud password for email@address.com:
+Save password in keyring?  [y/N]: y
+Two-step authentication required. Your trusted devices are:
+  0: SMS to 07********
+Which device would you like to use? [0]: 0
+Please enter validation code: 123456
+2020-08-06 16:47:04 INFO     Using password stored in keyring
+2020-08-06 16:47:04 INFO     Correct owner on config directory, if required
+2020-08-06 16:47:04 INFO     Correct group on config directory, if required
+2020-08-06 16:47:04 INFO     Generate 2FA cookie with password: usekeyring
+2020-08-06 16:47:04 INFO     Check for new files using password stored in keyring...
+  0: SMS to 07********
+  1: Enter two-factor authentication code
+Please choose an option: [0]: 1
+Please enter two-factor authentication code: 123456
+2020-08-06 16:47:30 INFO     Two factor authentication cookie generated. Sync should now be successful.
+```
+
+This will then place a two factor authentication cookie into the /config folder of the container. This cookie will expire after three months. After it has expired, you will need to re-initialise the container again.
+   
+After this, the container should start downloading your photos.
    
 Dockerfile has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within a set number of days (notification_days) and also if the download fails. 
    
