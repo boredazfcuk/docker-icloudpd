@@ -1,3 +1,8 @@
+20200807
+
+ - Change: Updated READ.ME
+ - Change: Apply diff patch to fix album naming issue raised here: https://github.com/ndbroadbent/icloud_photos_downloader/issues/150
+
 20200806
 
  - Change: Removed manual versioning in Dockerfile in favour of MD5 script hash. Means I don't need to track version numbers, or remember to increment them, but latest version can be confirmed quite easily from the log
