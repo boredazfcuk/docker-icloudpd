@@ -2,6 +2,9 @@ FROM alpine:3.12
 MAINTAINER boredazfcuk
 
 ENV config_dir="/config"
+
+# Container version serves no real purpose. Increment to force a container rebuild.
+ARG container_version="1.0.2"
 ARG app_dependencies="python3 py-pip exiftool coreutils tzdata curl libheif-tools"
 ARG build_dependencies="git gcc python3-dev musl-dev libffi-dev openssl-dev patch"
 ARG python_dependencies="docopt piexif click==6.0 certifi pytz tzlocal six chardet idna urllib3 requests future keyrings.alt==1.0 keyring==8.0 pyicloud-ipd tqdm schema python-dateutil"
@@ -20,7 +23,6 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install ${app_repo}" && \
    temp_dir=$(mktemp -d) && \
    git clone -b master "https://github.com/${app_repo}.git" "${temp_dir}" && \
    cd "${temp_dir}" && \
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install ${app_repo}" && \
    python3 setup.py install && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Patch photos.py to handle odd album names" && \
    python_major_version="$(python3 --version | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}')" && \
