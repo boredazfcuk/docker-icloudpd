@@ -155,6 +155,34 @@ docker exec -it icloudpd /usr/local/bin/sync-icloud.sh
 
 If you are using keyring authentication, you will be prompted to enter your password and confirm your device with a 2FA code sent via SMS. Once that is confirmed, the password will be added to the keyring.
 
+Alternatively, you can create a second instance of the container, using the same configuration options to create your 2FA cookie. To do this, run the second container in an interactive session (with: docker run -it --rm) and point it to the same named /config volume like this:
+
+```
+docker run -it --rm \
+--network <Same as the previously created contrainer> \
+--env user=<Same as the previously created contrainer> \
+--env user_id=<Same as the previously created contrainer> \
+--env group=<Same as the previously created contrainer> \
+--env group_id=<Same as the previously created contrainer> \
+--env apple_id="<Same as the previously created contrainer>" \
+--env apple_password="<Same as the previously created contrainer>" \
+--volume <Same named volume as the previously created contrainer> \
+boredazfcuk/icloudpd
+```
+This is an example of the command I run to create the authentication token on my own machine:
+```
+docker run -it --rm \
+   --network containers \
+   --env user=boredazfcuk \
+   --env user_id=1000 \
+   --env group=admins \
+   --env group_id=1010 \
+   --env apple_id="thisisnotmy@email.com" \
+   --env apple_password=usekeyring \
+   --volume icloudpd_boredazfcuk_config:/config \
+   boredazfcuk/icloudpd
+```
+
 After that, the script will log into the icloud.com website and save the 2FA cookie. Your iDevice will ask you if you want to allow or deny the login. When you allow the login, you will be give a 6-digit approval code. Enter the approval code when prompted.
 
 The process should look similar to this:
