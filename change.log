@@ -1,3 +1,11 @@
+20200815
+
+ - Change: Amended the interactive terminal check to see if /dev/stdin is a pipe. Odd issue seen on some systems.
+
+20200808
+
+ - Change: Updated READ.ME
+
 20200807
 
  - Change: Updated READ.ME

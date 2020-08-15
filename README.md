@@ -1,5 +1,5 @@
 # docker-icloudpd
-An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I use it for syncing the photo streams of all the iDevices in my house back to my server because it's the only way of backing up multiple devices to a single location. 
+An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I use it for syncing the photo streams of all the iDevices in my house back to my server because it's the only way of backing up multiple devices to a single location. It uses the system keyring to securely store credentials, has HEIC to JPG conversion capability, and supports Telegram, Prowl, PushBullet and WebHook notifications.
 
 ## MANDATORY ENVIRONMENT VARIABLES
 
