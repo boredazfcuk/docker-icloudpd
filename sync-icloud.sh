@@ -11,7 +11,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** $(realpath "${0}") script version: $(md5sum $(realpath "${0}") | awk '{print $1}') *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/"//g')"
    cookie="$(echo -n "${apple_id//[^a-zA-Z0-9]/}" | tr '[:upper:]' '[:lower:]')"
-   if [ -t 0 || -p /dev/stdin ]; then interactive_session="True"; fi
+   if [ -t 0 ] || [ -p /dev/stdin ]; then interactive_session="True"; fi
    if [ "${interactive_only}" ]; then unset interactive_session; fi
    if [ -z "${apple_id}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; sleep 120; exit 1; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive session: ${interactive_session:=False}"
