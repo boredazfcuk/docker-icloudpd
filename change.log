@@ -1,3 +1,7 @@
+20200822
+
+ - Change: Rewrote the functions to create the user/group as it would fails if a system reseved group id is chosen
+
 20200815
 
  - Change: Amended the interactive terminal check to see if /dev/stdin is a pipe. Odd issue seen on some systems.
