@@ -8,7 +8,7 @@ Initialise(){
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_download_exit_code"; fi
    echo
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** $(realpath "${0}") script version: $(md5sum $(realpath "${0}") | awk '{print $1}') *****"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** $(realpath "${0}") script version: $(date -r  $(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/"//g')"
    cookie="$(echo -n "${apple_id//[^a-zA-Z0-9]/}" | tr '[:upper:]' '[:lower:]')"
    if [ -t 0 ] || [ -p /dev/stdin ]; then interactive_session="True"; fi
@@ -17,6 +17,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive session: ${interactive_session:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local user: ${user:=user}:${user_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${group:=group}:${group_id:=1000}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Force GID: ${force_gid:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     LAN IP Address: ${lan_ip}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID: ${apple_id}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID password: ${apple_password:=usekeyring}"
@@ -89,10 +90,15 @@ CreateGroup(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Group name, ${group}, already in use - exiting"
          sleep 120
          exit 1
-      elif [ "$(grep -c ":${group_id}:$" "/etc/group")" -eq 1 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Group id, ${group_id}, already in use - exiting"
-         sleep 120
-         exit 1
+      elif [ "$(grep -c ":x:${group_id}:" "/etc/group")" -eq 1 ]; then
+         if [ "${force_gid}" = "True" ]; then
+            group="$(grep ":x:${group_id}:" /etc/group | awk -F: '{print $1}')"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Group id, ${group_id}, already exists - continuing as force_gid variable has been set. Group name to use: ${group}"
+         else
+            echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Group id, ${group_id}, already in use - exiting"
+            sleep 120
+            exit 1
+         fi
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Creating group ${group}:${group_id}"
          addgroup -g "${group_id}" "${group}"

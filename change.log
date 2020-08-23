@@ -1,5 +1,10 @@
+20200823
+
+ - Change: Version is now date and time of last modification of the sync-icloud.sh script
+
 20200822
 
+ - Change: Added force_gid variable so that user can be added to system groups to maintain consistency with host OS
  - Change: Rewrote the functions to create the user/group as it would fails if a system reseved group id is chosen
 
 20200815
