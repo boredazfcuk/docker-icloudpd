@@ -1,3 +1,7 @@
+20200825
+
+ - Change: Removed the Powershell script to build separate images for ARM architectures as I'm now producing a single multi-arch image without using Windows.
+
 20200823
 
  - Change: Version is now date and time of last modification of the sync-icloud.sh script
