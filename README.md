@@ -235,9 +235,5 @@ After this, the container should start downloading your photos.
    
 Dockerfile has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within a set number of days (notification_days) and also if the download fails. 
    
-# TO DO
-
-~~Configure SMTP notifications~~
-Scrapping this as it seems a lot of work for little value, due to having three push notification options instead.
 
 BTC: 1E8kUsm3qouXdVYvLMjLbw7rXNmN2jZesL
