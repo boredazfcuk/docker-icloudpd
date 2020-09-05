@@ -1,3 +1,7 @@
+20200905
+
+ - Change: Made the webhook path configurable
+
 20200825
 
  - Change: Removed the Powershell script to build separate images for ARM architectures as I'm now producing a single multi-arch image without using Windows.
