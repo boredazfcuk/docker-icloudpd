@@ -12,7 +12,8 @@ ARG app_repo="ndbroadbent/icloud_photos_downloader"
 
 COPY photos.py.diff /tmp/photos.py.diff
 
-RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install build dependencies" && \
+RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** BUILD STARTED FOR ICLOUDPD ${container_version} *****" && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install build dependencies" && \
    apk add --no-cache --no-progress --virtual=build-deps ${build_dependencies} && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install requirements" && \
    apk add --no-progress --no-cache ${app_dependencies} && \
