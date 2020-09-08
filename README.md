@@ -59,7 +59,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **webhook_port**: If the notification_type is set to 'Webhook' then this is the port number to use when connecting to the webhook server. If this is not set, it will default to 8123
 
-**ebhook_path**: If the notification_type is set to 'Webhook' then this is the path to use when connectiong to the webhook server. The path must start and end with a forward slash character. If this is not set, it will default to /api/webhook/
+**webhook_path**: If the notification_type is set to 'Webhook' then this is the path to use when connectiong to the webhook server. The path must start and end with a forward slash character. If this is not set, it will default to /api/webhook/
 
 **webhook_id**: If the notification_type is set to 'Webhook' then this is the Webhook ID to use
 
