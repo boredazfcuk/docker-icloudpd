@@ -1,3 +1,7 @@
+
+20200909
+
+ - Change: Undersocres now being used in cookie file name. Amended to reflect change.
 20200905
 
  - Change: Made the webhook path configurable

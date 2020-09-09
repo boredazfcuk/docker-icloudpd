@@ -16,7 +16,7 @@ if [ -f "/tmp/icloudpd/icloud_check_exit_code}" ] || [ -f "/tmp/icloudpd/icloud_
       fi
    fi
 fi
-cookie="$(echo -n "${apple_id//[^a-zA-Z0-9]}" | tr '[:upper:]' '[:lower:]')"
+cookie="$(echo -n "${apple_id//[^a-zA-Z0-9_]}" | tr '[:upper:]' '[:lower:]')"
 if [ ! -f "${config_dir}/${cookie}" ]; then
 	echo "Error: Cookie does not exist. Please generate new cookie"
 	exit 1
