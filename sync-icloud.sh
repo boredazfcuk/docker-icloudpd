@@ -8,8 +8,11 @@ Initialise(){
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_download_exit_code"; fi
    echo
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** $(realpath "${0}") script version: $(date -r  $(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** $(realpath "${0}") script version: $(date --reference=$(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/"//g')"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Python version: $(python3 --version | awk '{print $2}')"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
    cookie="$(echo -n "${apple_id//[^a-zA-Z0-9_]/}" | tr '[:upper:]' '[:lower:]')"
    if [ -t 0 ] || [ -p /dev/stdin ]; then interactive_session="True"; fi
    if [ "${interactive_only}" ]; then unset interactive_session; fi
@@ -78,6 +81,18 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
          unset notification_type prowl_api_key pushbullet_api_key telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id
       fi
+      if [ "${download_notifications:=True}" = "True" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download notifications: Enabled"
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download notifications: Disabled"
+         unset download_notifications
+      fi
+      if [ "${delete_notifications:=True}" = "True" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Delete notifications: Enabled"
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Delete notifications: Disabled"
+         unset delete_notifications
+      fi
    fi
 }
 
@@ -144,7 +159,7 @@ ConfigurePassword(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Using password stored in keyring"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Using Apple ID password from variable. This password will be visible in the process list of the host. Please add your password to the system keyring instead"
-         sleep 60
+         sleep 15
       fi
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID password not set - exiting"
@@ -166,7 +181,7 @@ Generate2FACookie(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring..."
       su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
    else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Checking for new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Checking for new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
       su "${user}" -c '/usr/bin/icloudpd --username "${0}" --password "${1}" --cookie-directory "${2}" --directory "${3}" --only-print-filenames --recent 0' -- "${apple_id}" "${apple_password}" "${config_dir}" "/dev/null"
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful."
@@ -461,12 +476,12 @@ SyncUser(){
                   Notify "failure" "${webhook_payload}"
                fi
             else
-               DownloadedFilesNotification
+               if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
                if [ "${convert_heic_to_jpeg}" ]; then
                   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC files to JPEG"
                   ConvertDownloadedHEIC2JPEG
                fi
-               DeletedFilesNotification
+               if [ "${delete_notifications}" ]; then DeletedFilesNotification; fi
                echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation complete for ${user}"
             fi
          fi

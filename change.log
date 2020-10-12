@@ -1,10 +1,20 @@
+20201012
+
+ - Change: Lowered 60 second delay for warning about password not being stored in keyring to 15 seconds as 60's a bit long.
+ - Change: Removed the check for files that have been downloaded already, as new icloudpd version uses photo fingerprinting to allow downloading of different pictures with identical names.
+ - Change: Added two variables, download_notifications and delete_notifications. If they are not set, they will default to True. To disable, set to False.
+ - Change: Dockerfile now installs pip dependencies using requirements.txt instead of having them specified in the dockerfile.
+ - Change: sync-icloud.sh script now shows the version of Python, icloudpd and pyicloud-ipd that are being used.
+ - Change: Noted that folder structure can now be set to 'none' to download to flat file structure.
+ - Remove: diff file that applies the patch to skip incorrectly named files. Pull request has now been merged.
 
 20200909
 
  - Change: Undersocres now being used in cookie file name. Amended to reflect change.
+
 20200905
 
- - Change: Made the webhook path configurable
+ - Change: Made the webhook path configurable.
 
 20200825
 
@@ -12,12 +22,12 @@
 
 20200823
 
- - Change: Version is now date and time of last modification of the sync-icloud.sh script
+ - Change: Version is now date and time of last modification of the sync-icloud.sh script.
 
 20200822
 
- - Change: Added force_gid variable so that user can be added to system groups to maintain consistency with host OS
- - Change: Rewrote the functions to create the user/group as it would fails if a system reseved group id is chosen
+ - Change: Added force_gid variable so that user can be added to system groups to maintain consistency with host OS.
+ - Change: Rewrote the functions to create the user/group as it would fails if a system reseved group id is chosen.
 
 20200815
 
@@ -25,16 +35,16 @@
 
 20200808
 
- - Change: Updated READ.ME
+ - Change: Updated READ.ME.
 
 20200807
 
- - Change: Updated READ.ME
- - Change: Apply diff patch to fix album naming issue raised here: https://github.com/ndbroadbent/icloud_photos_downloader/issues/150
+ - Change: Updated READ.ME.
+ - Change: Apply diff patch to fix album naming issue raised here: https://github.com/ndbroadbent/icloud_photos_downloader/issues/150.
 
 20200806
 
- - Change: Removed manual versioning in Dockerfile in favour of MD5 script hash. Means I don't need to track version numbers, or remember to increment them, but latest version can be confirmed quite easily from the log
+ - Change: Removed manual versioning in Dockerfile in favour of MD5 script hash. Means I don't need to track version numbers, or remember to increment them, but latest version can be confirmed quite easily from the log.
  - Change: Added owner change to /config dir at start of ConfigurePassword function so password is successfully stored first time around.
 
 20200803
