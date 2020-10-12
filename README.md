@@ -33,9 +33,9 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. use **none** to download to a flat file structure
 
-**download_notifications**: This variable specifies whether notifications with a short summary should be sent for file downloads
+**download_notifications**: This variable specifies whether notifications with a short summary should be sent for file downloads. It will default to **True**
 
-**delete_notifications**: This variable specifies whether notifications with a short summary should be sent for file deletions
+**delete_notifications**: This variable specifies whether notifications with a short summary should be sent for file deletions. It will default to **True**
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
