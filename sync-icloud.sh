@@ -52,11 +52,13 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          notification_url="https://api.prowlapp.com/publicapi/add" 
+         notification_api_key=${prowl_api_key}
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          notification_url="https://pushbullet.weks.net/publicapi/add"
+         notification_api_key=${pushbullet_api_key}
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
          notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
