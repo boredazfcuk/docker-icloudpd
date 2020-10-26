@@ -1,3 +1,13 @@
+20201024
+
+ - Change: Added new variables: set_exif_datetime, auto_delete, photo_size, skip_live_photos, live_photo_size & skip_videos. Eventually command_line_options variable will be removed.
+ - Change: Added a new "CommandLineBuilder" function to create the command line options list to be passed to the download command.
+
+20201022
+
+ - Change: Added a speed test mode which ignores the requirement for a mounted filesystem. It limits the download to last 500 files. 
+ - Change: Multi-threaded mode can now be enabled by setting the multi_thread variable. This will set the thread count to the number of available processors, multipled by five. If the variable is not configured, it will default to single threaded node. Please note: Multithreaded mode has known issues withe files that have duplicate file names. Use with caution.
+
 20201012
 
  - Change: Lowered 60 second delay for warning about password not being stored in keyring to 15 seconds as 60's a bit long.

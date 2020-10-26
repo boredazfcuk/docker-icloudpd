@@ -2,11 +2,18 @@
 
 ##### Functions #####
 Initialise(){
+   echo
+   if [ "${speed_test}" ]; then
+      speed_test="Enabled"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Speed test mode: ${speed_test:=Disabled}"
+      start_time="$(date +%s)"
+   else
+      speed_test="Disabled"
+   fi
    lan_ip="$(hostname -i)"
    if [ ! -d "/tmp/icloudpd" ]; then mkdir --parents "/tmp/icloudpd"; fi
    if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_check_exit_code"; fi
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_download_exit_code"; fi
-   echo
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** $(realpath "${0}") script version: $(date --reference=$(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "PRETTY_NAME" | sed 's/PRETTY_NAME=//g' | sed 's/"//g')"
@@ -15,11 +22,20 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
    cookie="$(echo -n "${apple_id//[^a-zA-Z0-9_]/}" | tr '[:upper:]' '[:lower:]')"
    if [ -t 0 ] || [ -p /dev/stdin ]; then interactive_session="True"; fi
-   if [ "${interactive_only}" ]; then unset interactive_session; fi
+   if [ "${interactive_only}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set. Skipping 2FA Cookie creation."
+      unset interactive_session
+   fi
    if [ -z "${apple_id}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; sleep 120; exit 1; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive session: ${interactive_session:=False}"
    if [ "${interactive_only}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set, bypassing 2FA cookie generation"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local user: ${user:=user}:${user_id:=1000}"
+   if [ "${speed_test}" = "Enabled" ]; then
+      download_temp_path="$(mktemp --directory)"
+      download_path="${download_temp_path}"
+   else
+      download_path="/home/${user}/iCloud"
+   fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${group:=group}:${group_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Force GID: ${force_gid:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     LAN IP Address: ${lan_ip}"
@@ -28,13 +44,31 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication Type: ${authentication_type:=2FA}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: ${config_dir}/${cookie}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie expiry notification period: ${notification_days:=7}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download destination directory: /home/${user}/iCloud"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download destination directory: ${download_path}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Directory permissions: ${directory_permissions:=750}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     File permissions: ${file_permissions:=640}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation interval: ${synchronisation_interval:=43200}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Time zone: ${TZ:=UTC}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Additional command line options: ${command_line_options}"
+   if [ "${multi_thread}" ]; then
+      thread_count="$(($(($(cat /proc/cpuinfo | grep processor | tail -1 | awk '{print $3}') + 1)) *5))"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Thread count: ${thread_count}"
+   else
+      thread_count=1
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Thread count: ${thread_count}"
+   fi
+   if [ "${speed_test}" = "Enabled" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Speed testing enabled. Downloading a maximum of 500 files"
+      command_line_options="--recent 500"
+   fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set EXIF date/time: ${set_exif_datetime:=False}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Auto delete: ${auto_delete:=False}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Photo size: ${photo_size:=original}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip live photos: ${skip_live_photos:=False}"
+   if [ "${skip_live_photos}" = "False" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Live photo size: ${live_photo_size:=original}"; fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip videos ${skip_videos:=False}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Additional command line options is depreceated. Please specify all options using the dedicated variables: ${command_line_options}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC to JPEG: ${convert_heic_to_jpeg:=False}"
    if [ "${notification_type}" ] && [ "${interactive_session}" = "False" ]; then
       ConfigureNotifications
    fi
@@ -52,11 +86,13 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          notification_url="https://api.prowlapp.com/publicapi/add" 
+         notification_api_key="${prowl_api_key}"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          notification_url="https://pushbullet.weks.net/publicapi/add"
+         notification_api_key="${pushbullet_api_key}"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
          notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
@@ -159,7 +195,9 @@ ConfigurePassword(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Using password stored in keyring"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Using Apple ID password from variable. This password will be visible in the process list of the host. Please add your password to the system keyring instead"
-         sleep 15
+         if [ "${speed_test}" = "Disabled" ]; then
+            sleep 15
+         fi
       fi
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID password not set - exiting"
@@ -189,33 +227,37 @@ Generate2FACookie(){
 }
 
 CheckMount(){
-   while [ ! -f "/home/${user}/iCloud/.mounted" ]; do
-      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Failsafe file /home/${user}/iCloud/.mounted file is not present. Plese check the host's target volume is mounted - retry in 5 minutes"
-      sleep 300
-   done
+   if [ "${speed_test}" = "Enabled" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Speed testing mode enabled, not checking for mounted filesystem"
+   else
+      while [ ! -f "${download_path}/.mounted" ]; do
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Failsafe file ${download_path}/.mounted file is not present. Plese check the host's target volume is mounted - retry in 5 minutes"
+         sleep 300
+      done
+   fi
 }
 
 SetOwnerAndPermissions(){
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set owner, ${user}, on iCloud directory, if required"
-   find "/home/${user}/iCloud" ! -user "${user}" -exec chown "${user}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set group, ${group}, on iCloud directory, if required"
-   find "/home/${user}/iCloud" ! -group "${group}" -exec chgrp "${group}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on icloudpd temp directory, if required"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set owner, ${user}, on iCloud directory, if required"
+   find "${download_path}" ! -user "${user}" -exec chown "${user}" {} +
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set group, ${group}, on iCloud directory, if required"
+   find "${download_path}" ! -group "${group}" -exec chgrp "${group}" {} +
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on icloudpd temp directory, if required"
    find "/tmp/icloudpd" ! -user "${user}" -exec chown "${user}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on icloudpd temp directory, if required"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on icloudpd temp directory, if required"
    find "/tmp/icloudpd" ! -group "${group}" -exec chgrp "${group}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on keyring directory, if required"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on keyring directory, if required"
    find "/home/${user}/.local" ! -user "${user}" -exec chown "${user}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on keyring directory, if required"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on keyring directory, if required"
    find "/home/${user}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set ${directory_permissions:=755} permissions on iCloud directories, if required"
-   find "/home/${user}/iCloud" -type d ! -perm "${directory_permissions}" -exec chmod "${directory_permissions}" '{}' +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set ${file_permissions:=640} permissions on iCloud files, if required"
-   find "/home/${user}/iCloud" -type f ! -perm "${file_permissions}" -exec chmod "${file_permissions}" '{}' +
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set ${directory_permissions:=755} permissions on iCloud directories, if required"
+   find "${download_path}" -type d ! -perm "${directory_permissions}" -exec chmod "${directory_permissions}" '{}' +
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set ${file_permissions:=640} permissions on iCloud files, if required"
+   find "${download_path}" -type f ! -perm "${file_permissions}" -exec chmod "${file_permissions}" '{}' +
 }
 
 CheckWebCookie(){
@@ -288,10 +330,10 @@ CheckFiles(){
    if [ -f "/tmp/icloudpd/icloudpd_check.log" ]; then rm "/tmp/icloudpd/icloudpd_check.log"; fi
    if [ "${apple_password}" = "usekeyring" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring..."
-      su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${0}/iCloud" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${user}" "${config_dir}" "${apple_id}" "${folder_structure}" 
+      su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" 
    else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Checking for new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
-      su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${0}/iCloud" --cookie-directory "${1}" --username "${2}" --password "${3}" --folder-structure "${4}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${user}" "${config_dir}" "${apple_id}" "${apple_password}" "${folder_structure}" 
+      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Checking for new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
+      su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --password "${3}" --folder-structure "${4}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${apple_password}" "${folder_structure}" 
    fi
    check_exit_code="$(cat /tmp/icloudpd/icloud_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
@@ -337,12 +379,12 @@ DownloadedFilesNotification(){
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
          Notify "downloaded files" "New files detected" "0" "Files downloaded for Apple ID ${apple_id} : ${new_files_count}"
       elif [ "${notification_type}" = "Telegram" ]; then
-         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" | tail -10)"
+         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | tail -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          telegram_new_files_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
          Notify "downloaded files" "${telegram_new_files_text}"
       elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
-         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" | tail -10)"
+         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | tail -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          webhook_payload="$(echo -e "boredazfcuk/iCloudPD - New files detected for Apple ID ${apple_id}: ${new_files_count} Last ${new_files_preview_count} file names: ${new_files_preview//_/\\_}")"
          Notify "failure" "${webhook_payload}"
@@ -359,12 +401,12 @@ DeletedFilesNotification(){
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
          Notify "deleted files" "Recently deleted files detected" "0" "Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
       elif [ "${notification_type}" = "Telegram" ]; then
-         deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" -e "s%!$%%g" | tail -10)"
+         deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          telegram_deleted_files_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview//_/\\_}")"
          Notify "deleted files" "${telegram_deleted_files_text}"
       elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
-         deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%/home/${user}/iCloud/%%g" -e "s%!$%%g" | tail -10)"
+         deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          webhook_payload="$(echo -e "boredazfcuk/iCloudPD - Deleted files detected for Apple ID: ${apple_id}: ${deleted_files_count} Last ${deleted_files_preview_count} file names: ${deleted_files_preview//_/\\_}")"
          Notify "failure" "${webhook_payload}"
@@ -382,7 +424,7 @@ ConvertDownloadedHEIC2JPEG(){
 
 ConvertAllHEICs(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert all HEICs to JPEG, if required..."
-   for heic_file in $(find "/home/${user}/iCloud" -type f -name *.HEIC 2>/dev/null); do
+   for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
       if [ ! -f "${heic_file%.HEIC}.JPG" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
          heif-convert "${heic_file}" "${heic_file%.HEIC}.JPG"
@@ -440,6 +482,35 @@ Notify(){
    fi
 }
 
+CommandLineBuilder(){
+   command_line="--directory ${download_path} --cookie-directory ${config_dir} --folder-structure ${folder_structure} --threads-num ${thread_count} --username ${apple_id}"
+   if [ "${photo_size}" != "original"  ]; then
+      command_line="${command_line} --photo-size ${photo_size}"
+   fi
+   if [ "${set_exif_datetime}" != "False" ]; then
+      command_line="${command_line} --set-exif-datetime"
+   fi
+   if [ "${auto_delete}" != "False" ]; then
+      command_line="${command_line} --auto-delete"
+   fi
+   if [ "${skip_live_photos}" = "False" ]; then
+      if [ "${live_photo_size}" != "original" ]; then
+         command_line="${command_line} --live-photo-size ${live_photo_size}"
+      fi
+   else
+      command_line="${command_line} --skip-live-photos"
+   fi
+   if [ "${skip_videos}" != "False" ]; then
+      command_line="${command_line} --skip-videos"
+   fi
+   if [ "${apple_password}" != "usekeyring" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line options: ${command_line} --password ******"
+      command_line="${command_line} --password ${apple_password}"
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line options: ${command_line}"
+   fi
+}
+
 SyncUser(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sync user ${user}"
    while :; do
@@ -454,15 +525,14 @@ SyncUser(){
       CheckFiles
       if [ "${check_exit_code}" -eq 0 ]; then
          if [ "${check_files_count}" -gt 0 ]; then
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of ${check_files_count} new files for user: ${user}"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of new files for user: ${user}"
             syncronisation_time="$(date +%s -d '+15 minutes')"
             if [ "${apple_password}" = "usekeyring" ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using password stored in keyring..."
-               su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${0}/iCloud" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" ${4} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${user}" "${config_dir}" "${apple_id}" "${folder_structure}" "${command_line_options}"
             else
                echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
-               su "${user}" -c '(/usr/bin/icloudpd --directory "/home/${0}/iCloud" --cookie-directory "${1}" --username "${2}" --password "${3}" --folder-structure "${4}" ${5} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${user}" "${config_dir}" "${apple_id}" "${apple_password}" "${folder_structure}" "${command_line_options}"
             fi
+            su "${user}" -c '(/usr/bin/icloudpd ${0} ${1} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${command_line_options}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
@@ -477,7 +547,7 @@ SyncUser(){
                fi
             else
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
-               if [ "${convert_heic_to_jpeg}" ]; then
+               if [ "${convert_heic_to_jpeg}" != "False" ]; then
                   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC files to JPEG"
                   ConvertDownloadedHEIC2JPEG
                fi
@@ -492,7 +562,15 @@ SyncUser(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next syncronisation at $(date +%H:%M -d "${synchronisation_interval} seconds")"
       unset check_exit_code check_files_count download_exit_code
       unset new_files
-      sleep "${synchronisation_interval}"
+      if [ "${speed_test}" = "Enabled" ]; then
+         rm -r "${download_temp_path}"
+         end_time="$(date +%s)"
+         total_time=$((end_time - start_time))
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Speed test complete in $(date -d@${total_time} -u '+%Hh %Mm %Ss')"
+         break
+      else
+         sleep "${synchronisation_interval}"
+      fi
    done
 }
 
@@ -512,4 +590,5 @@ if [ "${interactive_session}" = "True" ]; then
 fi
 CheckMount
 SetOwnerAndPermissions
+CommandLineBuilder
 SyncUser

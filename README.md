@@ -37,6 +37,18 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **delete_notifications**: This variable specifies whether notifications with a short summary should be sent for file deletions. It will default to **True**
 
+**set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date, if it doesn't exist. It will default to **False**
+
+**auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). It will default to **False**
+
+**photo_size**: Image size to download. Can be set to original, medium or thumb. It will default to **original**
+
+**skip_live_photos**: If this is set, it will skip downloading liver photos. It will default to **False**
+
+**live_photo_size**: Live photo file size to download. Can be set to original, medium or thumb. If skip_live_photos is set, this setting is redundant. It will default to **original**
+
+**skip_videos**: If this is set, it will skip downloading videos. It will default to **False**
+
 ## OPTIONAL ENVIRONMENT VARIABLES
 
 **interactive_only**: Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
@@ -45,7 +57,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **convert_heic_to_jpeg**: This tells the container that it should convert any HEIC files it downloads to JPEG
 
-~delete_heic_jpegs~: The logic around this was floored. It would delete JPEGs for files without matching HEICs. This is a bad idea if you save photos from Safari/Telegram/WhatsApp etc, so I removed it.
+**multi_thread**: This tells the container to enable multi-threaded mode. It will configure the number of threads to be the number of cores available, multiplied by five.  Otherwise the container will default to a single thread.  Please note: Multithreaded mode has known issues surrounding files with identical names.
 
 ## NOTIFICATION CONFIGURATION VARIABLES
 
