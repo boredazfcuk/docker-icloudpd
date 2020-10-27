@@ -1,4 +1,4 @@
-FROM alpine:3.12.1
+FROM alpine:3.12
 MAINTAINER boredazfcuk
 
 ENV config_dir="/config"
@@ -7,7 +7,8 @@ ENV config_dir="/config"
 ARG container_version="1.0.6"
 ARG app_dependencies="python3 py-pip exiftool coreutils tzdata curl libheif-tools"
 ARG build_dependencies="git gcc python3-dev musl-dev libffi-dev openssl-dev patch"
-ARG python_dependencies="pytz tzlocal future keyrings.alt==1.0 keyring==8.0"
+#ARG python_dependencies="pytz tzlocal future keyrings.alt==1.0 keyring==8.0"
+ARG python_dependencies="pytz tzlocal keyrings.alt keyring"
 ARG app_repo="ndbroadbent/icloud_photos_downloader"
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** BUILD STARTED FOR ICLOUDPD ${container_version} *****" && \

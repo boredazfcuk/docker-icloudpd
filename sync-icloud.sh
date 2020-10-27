@@ -67,7 +67,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip live photos: ${skip_live_photos:=False}"
    if [ "${skip_live_photos}" = "False" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Live photo size: ${live_photo_size:=original}"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip videos ${skip_videos:=False}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Additional command line options is depreceated. Please specify all options using the dedicated variables: ${command_line_options}"
+   if [ "${command_line_options}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Additional command line options is depreceated. Please specify all options using the dedicated variables: ${command_line_options}"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC to JPEG: ${convert_heic_to_jpeg:=False}"
    if [ "${notification_type}" ] && [ "${interactive_session}" = "False" ]; then
       ConfigureNotifications
