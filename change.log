@@ -1,3 +1,7 @@
+20201027
+
+ - Change: Bugfix relating to Prowl & Pushbullet notifications
+
 20201024
 
  - Change: Added new variables: set_exif_datetime, auto_delete, photo_size, skip_live_photos, live_photo_size & skip_videos. Eventually command_line_options variable will be removed.

@@ -88,7 +88,7 @@ ConfigureNotifications(){
          notification_url="https://api.prowlapp.com/publicapi/add" 
          notification_api_key="${prowl_api_key}"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
-      elif  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
+      elif [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          notification_url="https://pushbullet.weks.net/publicapi/add"
@@ -302,7 +302,7 @@ Display2FAExpiry(){
                telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD\nFinal day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
                Notify "cookie expiration" "${telegram_text}"
                next_notification_time="$(date +%s -d "+24 hour")"
-            elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
+            elif [ "${notification_type}" = "Webhook" ]; then
                webhook_payload="$(echo -e "boredazfcuk/iCloudPD - Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
                Notify "failure" "${webhook_payload}"
                next_notification_time="$(date +%s -d "+24 hour")"
@@ -316,7 +316,7 @@ Display2FAExpiry(){
                telegram_text="$(echo -e "\xE2\x9A\xA0 *boredazfcuk/iCloudPD* Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
                Notify "cookie expiration" "${telegram_text}"
                next_notification_time="$(date +%s -d "+24 hour")"
-            elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
+            elif [ "${notification_type}" = "Webhook" ]; then
                webhook_payload="$(echo -e "boredazfcuk/iCloudPD - Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
                Notify "failure" "${webhook_payload}"
                next_notification_time="$(date +%s -d "+24 hour")"
@@ -338,12 +338,12 @@ CheckFiles(){
    check_exit_code="$(cat /tmp/icloudpd/icloud_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Check failed - Exit code: ${check_exit_code}"
-      if  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
+      if  [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
          Notify "failure" "iCloudPD container failure" "-2" "iCloudPD failed to download new files for Apple ID: ${apple_id} - Exit code ${check_exit_code}"
-      elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
+      elif [ "${notification_type}" = "Telegram" ]; then
          telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD*\niCloudPD failed to download new files - for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
          Notify "failure" "${telegram_text}"
-      elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
+      elif [ "${notification_type}" = "Webhook" ]; then
          webhook_payload="$(echo -e "boredazfcuk/iCloudPD - iCloudPD failed to download new files for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
          Notify "failure" "${webhook_payload}"
       fi
@@ -383,7 +383,7 @@ DownloadedFilesNotification(){
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          telegram_new_files_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
          Notify "downloaded files" "${telegram_new_files_text}"
-      elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
+      elif [ "${notification_type}" = "Webhook" ]; then
          new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | tail -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          webhook_payload="$(echo -e "boredazfcuk/iCloudPD - New files detected for Apple ID ${apple_id}: ${new_files_count} Last ${new_files_preview_count} file names: ${new_files_preview//_/\\_}")"
@@ -405,7 +405,7 @@ DeletedFilesNotification(){
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          telegram_deleted_files_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview//_/\\_}")"
          Notify "deleted files" "${telegram_deleted_files_text}"
-      elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
+      elif [ "${notification_type}" = "Webhook" ]; then
          deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          webhook_payload="$(echo -e "boredazfcuk/iCloudPD - Deleted files detected for Apple ID: ${apple_id}: ${deleted_files_count} Last ${deleted_files_preview_count} file names: ${deleted_files_preview//_/\\_}")"
@@ -536,12 +536,12 @@ SyncUser(){
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
-               if  [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
+               if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
                   Notify "failure" "iCloudPD container failure" "-2" "iCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}"
-               elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
+               elif [ "${notification_type}" = "Telegram" ]; then
                   telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD*\niCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
                   Notify "failure" "${telegram_text}"
-               elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
+               elif [ "${notification_type}" = "Webhook" ]; then
                   webhook_payload="$(echo -e "boredazfcuk/iCloudPD - iCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
                   Notify "failure" "${webhook_payload}"
                fi

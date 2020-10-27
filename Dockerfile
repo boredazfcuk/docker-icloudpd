@@ -1,10 +1,10 @@
-FROM alpine:3.12
+FROM alpine:3.12.1
 MAINTAINER boredazfcuk
 
 ENV config_dir="/config"
 
 # Container version serves no real purpose. Increment to force a container rebuild.
-ARG container_version="1.0.5"
+ARG container_version="1.0.6"
 ARG app_dependencies="python3 py-pip exiftool coreutils tzdata curl libheif-tools"
 ARG build_dependencies="git gcc python3-dev musl-dev libffi-dev openssl-dev patch"
 ARG python_dependencies="pytz tzlocal future keyrings.alt==1.0 keyring==8.0"
