@@ -34,7 +34,7 @@ Initialise(){
       download_temp_path="$(mktemp --directory)"
       download_path="${download_temp_path}"
    else
-      download_path="/home/${user}/iCloud"
+      ${download_path:="/home/${user}/iCloud"}
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${group:=group}:${group_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Force GID: ${force_gid:=False}"
