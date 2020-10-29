@@ -1,5 +1,6 @@
 20201029
 
+ - Change: Default to downloading new files only by checking what files exist vs what needs downloading
  - Change: Typo for Synchronisation Interval variable. This change will break users configurations that set the old variable name, so default to 24hr sync period for these users.
 
 20201027
