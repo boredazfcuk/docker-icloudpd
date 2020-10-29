@@ -21,7 +21,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **TZ**: This is the local timezone and is required to calculate timestamps. If this variable is not set, it will default to Coordinated Universal Time 'UTC'
 
-**download_path**: This is the directory to which files will be downloaded from iCloud. It defaults to "/home/${user}/iCloud"
+**download_path**: This is the directory to which files will be downloaded from iCloud. If this variable is not set, it will default to "/home/${user}/iCloud"
 
 **synchronisation_interval**: This is the number of seconds between syncronisations. Common intervals would be: 3hrs - 10800, 4hrs - 14400, 6hrs - 21600 & 12hrs - 43200. If variable is not set it will default to every 12hrs (43200 seconds)
 
@@ -35,21 +35,23 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. use **none** to download to a flat file structure
 
-**download_notifications**: This variable specifies whether notifications with a short summary should be sent for file downloads. It will default to **True**
+**download_notifications**: This variable specifies whether notifications with a short summary should be sent for file downloads. If this variable is not set, it will default to **True**
 
-**delete_notifications**: This variable specifies whether notifications with a short summary should be sent for file deletions. It will default to **True**
+**delete_notifications**: This variable specifies whether notifications with a short summary should be sent for file deletions. If this variable is not set, it will default to **True**
 
-**set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date, if it doesn't exist. It will default to **False**
+**set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date. If this variable is not set, it will default to **False**
 
-**auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). It will default to **False**
+**auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). If this variable is not set, it will default to **False**
 
-**photo_size**: Image size to download. Can be set to original, medium or thumb. It will default to **original**
+**photo_size**: Image size to download. Can be set to original, medium or thumb. If this variable is not set, it will default to **original**
 
-**skip_live_photos**: If this is set, it will skip downloading liver photos. It will default to **False**
+**skip_live_photos**: If this is set, it will skip downloading liver photos. If this variable is not set, it will default to **False**
 
-**live_photo_size**: Live photo file size to download. Can be set to original, medium or thumb. If skip_live_photos is set, this setting is redundant. It will default to **original**
+**live_photo_size**: Live photo file size to download. Can be set to original, medium or thumb. If skip_live_photos is set, this setting is redundant. If this variable is not set, it will default to **original**
 
-**skip_videos**: If this is set, it will skip downloading videos. It will default to **False**
+**skip_videos**: If this is set, it will skip downloading videos. If this variable is not set, it will default to **False**
+
+**recent_only**: If this is set to True, it will only download the files that do not already exist in the download destination directory. Set it to **False** to disable. If this variable is not set, it will default to **True**
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
