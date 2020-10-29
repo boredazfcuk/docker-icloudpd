@@ -419,6 +419,10 @@ ConvertDownloadedHEIC2JPEG(){
    for heic_file in $(echo "${new_files}" | grep ".HEIC" | awk '{print $5}'); do
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
       heif-convert "${heic_file}" "${heic_file%.HEIC}.JPG"
+      heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
+      touch -t "${heic_date}" "${heic_file%.HEIC}.JPG"       
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"  
    done
 }
 
@@ -428,6 +432,27 @@ ConvertAllHEICs(){
       if [ ! -f "${heic_file%.HEIC}.JPG" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
          heif-convert "${heic_file}" "${heic_file%.HEIC}.JPG"
+         heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
+         touch -t "${heic_date}" "${heic_file%.HEIC}.JPG"       
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"  
+      fi
+   done
+}
+
+CorrectJPEGTimestamps(){
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check and correct converted HEIC timestamps"
+   for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
+      heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
+      if [ -f "${heic_file%.HEIC}.JPG" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG file found: ${heic_file%.HEIC}.JPG"
+         jpeg_date="$(date -r "${heic_file%.HEIC}.JPG" +"%a %b %e %T %Y")"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of JPEG file: ${jpeg_date}"
+         if [ "${heic_date}" != "${jpeg_date}" ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
+            touch -t "${heic_date}" "${heic_file%.HEIC}.JPG"       
+         fi
       fi
    done
 }
@@ -587,6 +612,10 @@ if [ "${interactive_session}" = "True" ]; then
    if [ "$1" = "--ConvertAllHEICs" ]; then
       ConvertAllHEICs
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC to JPG conversion complete"
+      exit 0
+   elif [ "$1" = "--CorrectJPEGTimestamps" ]; then
+      CorrectJPEGTimestamps
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG timestamp correction complete"
       exit 0
    elif [ -z "$1" ]; then
       Generate2FACookie
