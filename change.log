@@ -1,5 +1,7 @@
 20201029
 
+ - Change: Added --CorrectJPEGTimestamps command line option to correct timestamps of JPEG files
+ - Change: Convert HEIC to JPEG functions don't preserve timestamps. Filestamp of JPEG now taken from HEIC file.
  - Change: Default to downloading new files only by checking what files exist vs what needs downloading. This prevents it attempting to download all files upon every synchronisation.
  - Change: Typo for Synchronisation Interval variable. This change will break users configurations that set the old variable name, so default to 24hr sync period for these users.
 

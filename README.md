@@ -256,6 +256,26 @@ This will then place a two factor authentication cookie into the /config folder 
 After this, the container should start downloading your photos.
    
 Dockerfile has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within a set number of days (notification_days) and also if the download fails. 
-   
+
+## COMMAND LINE OPTIONS
+
+**--ConvertAllHEICs**
+The --ConvertAllHEICs command line will check for HEIC files that do not have an accompanying JPEG file. If it finds a HEIC that does not have an accompaying JPEG file, it will create it. This can be used to add JPEGs for previously downloaded libraries. The easiest way to run this is to connect to the running container and executing the script.
+Connect to the container like this:
+```
+docker exec -it icloudpd /bin/ash
+```
+This will give you a command prompt inside the container. Once there, run `sync-icloud.sh --ConvertAllHEICs`
+
+**--CorrectJPEGTimestamps**
+The --CorrectJPEGTimestamps command line will correct the timestamps of JPEG files that do not match their accompanying HEIC files. Due to an omission, previous versions of my script never set the time stamp. This command line option will correct this issue.
+
+Connect to the container like this:
+```
+docker exec -it icloudpd /bin/ash
+```
+This will give you a command prompt inside the container. Once there, run `sync-icloud.sh --CorrectJPEGTimestamps`
+
+
 
 BTC: 1E8kUsm3qouXdVYvLMjLbw7rXNmN2jZesL
