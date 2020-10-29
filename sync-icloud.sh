@@ -614,6 +614,7 @@ if [ "${interactive_session}" = "True" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC to JPG conversion complete"
       exit 0
    elif [ "$1" = "--CorrectJPEGTimestamps" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correcting timestamps for JPEG files in ${download_path}"
       CorrectJPEGTimestamps
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG timestamp correction complete"
       exit 0
