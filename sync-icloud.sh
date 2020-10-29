@@ -64,7 +64,6 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Auto delete: ${auto_delete:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Photo size: ${photo_size:=original}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip live photos: ${skip_live_photos:=False}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download recent photos only: ${recent_only:=True}"
    if [ "${skip_live_photos}" = "False" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Live photo size: ${live_photo_size:=original}"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip videos ${skip_videos:=False}"
    if [ "${command_line_options}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Additional command line options is depreceated. Please specify all options using the dedicated variables: ${command_line_options}"; fi
@@ -558,10 +557,6 @@ SyncUser(){
                echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using password stored in keyring..."
             else
                echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
-            fi
-            if [ "${recent_only}" = "True" ]; then
-               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading ${check_files_count} recent files"
-               command_line="${command_line} --recent ${check_files_count}"
             fi
             su "${user}" -c '(/usr/bin/icloudpd ${0} ${1} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${command_line_options}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"

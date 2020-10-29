@@ -1,5 +1,6 @@
 20201029
 
+ - Removed: Recently files only doesn't work as expected. Removed.
  - Change: Added --CorrectJPEGTimestamps command line option to correct timestamps of JPEG files
  - Change: Convert HEIC to JPEG functions don't preserve timestamps. Filestamp of JPEG now taken from HEIC file.
  - Change: Default to downloading new files only by checking what files exist vs what needs downloading. This prevents it attempting to download all files upon every synchronisation.
