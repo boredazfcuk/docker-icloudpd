@@ -30,10 +30,6 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive session: ${interactive_session:=False}"
    if [ "${interactive_only}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set, bypassing 2FA cookie generation"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local user: ${user:=user}:${user_id:=1000}"
-   if [ "${speed_test}" = "Enabled" ]; then
-      download_temp_path="$(mktemp --directory)"
-      download_path="${download_temp_path}"
-   fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${group:=group}:${group_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Force GID: ${force_gid:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     LAN IP Address: ${lan_ip}"
@@ -42,6 +38,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication Type: ${authentication_type:=2FA}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: ${config_dir}/${cookie}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie expiry notification period: ${notification_days:=7}"
+   if [ "${speed_test}" = "Enabled" ]; then download_path="$(mktemp --directory)"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download destination directory: ${download_path:=/home/${user}/iCloud}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Directory permissions: ${directory_permissions:=750}"
