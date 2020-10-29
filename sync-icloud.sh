@@ -34,7 +34,7 @@ Initialise(){
       download_temp_path="$(mktemp --directory)"
       download_path="${download_temp_path}"
    else
-      download_path="/home/${user}/iCloud"
+      ${download_path:="/home/${user}/iCloud"}
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${group:=group}:${group_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Force GID: ${force_gid:=False}"
@@ -48,7 +48,11 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Directory permissions: ${directory_permissions:=750}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     File permissions: ${file_permissions:=640}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation interval: ${synchronisation_interval:=43200}"
+   if [ "${syncronisation_interval}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  The syncronisation_interval variable contained a typo. This has now been corrected to synchronisation_interval. Please update your container. Defaulting to one sync per 24 hour period"
+      synchronisation_interval="86400"
+   fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation interval: ${synchronisation_interval:=43200}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Time zone: ${TZ:=UTC}"
    if [ "${multi_thread}" ]; then
       thread_count="$(($(($(cat /proc/cpuinfo | grep processor | tail -1 | awk '{print $3}') + 1)) *5))"
@@ -292,7 +296,7 @@ Check2FACookie(){
 Display2FAExpiry(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie expires: ${twofa_expire_date/ / @ }"
    if [ "${days_remaining}" -lt "${notification_days}" ]; then
-      if [ "${syncronisation_time}" -gt "${next_notification_time:=$(date +%s)}" ]; then
+      if [ "${synchronisation_time}" -gt "${next_notification_time:=$(date +%s)}" ]; then
          if [ "${days_remaining}" -eq 1 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Final day before two factor authentication cookie expires - Please reinitialise now. This is your last reminder"
             if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
@@ -526,7 +530,7 @@ SyncUser(){
       if [ "${check_exit_code}" -eq 0 ]; then
          if [ "${check_files_count}" -gt 0 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of new files for user: ${user}"
-            syncronisation_time="$(date +%s -d '+15 minutes')"
+            synchronisation_time="$(date +%s -d '+15 minutes')"
             if [ "${apple_password}" = "usekeyring" ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using password stored in keyring..."
             else
@@ -552,14 +556,14 @@ SyncUser(){
                   ConvertDownloadedHEIC2JPEG
                fi
                if [ "${delete_notifications}" ]; then DeletedFilesNotification; fi
-               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Syncronisation complete for ${user}"
+               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation complete for ${user}"
             fi
          fi
       fi
       CheckWebCookie
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Web cookie expires: ${web_cookie_expire_date/ / @ }"
       if [ "${authentication_type}" = "2FA" ]; then Display2FAExpiry; fi
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next syncronisation at $(date +%H:%M -d "${synchronisation_interval} seconds")"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next synchronisation at $(date +%H:%M -d "${synchronisation_interval} seconds")"
       unset check_exit_code check_files_count download_exit_code
       unset new_files
       if [ "${speed_test}" = "Enabled" ]; then

@@ -1,3 +1,7 @@
+20201029
+
+ - Change: Typo for Synchronisation Interval variable. This change will break users configurations that set the old variable name, so default to 24hr sync period for these users.
+
 20201027
 
  - Change: Silence warning about depreceated command_line_options varaible if it's actually blank to begin with
