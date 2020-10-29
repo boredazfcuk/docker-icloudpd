@@ -1,17 +1,17 @@
 20201029
 
- - Change: Default to downloading new files only by checking what files exist vs what needs downloading
+ - Change: Default to downloading new files only by checking what files exist vs what needs downloading. This prevents it attempting to download all files upon every synchronisation.
  - Change: Typo for Synchronisation Interval variable. This change will break users configurations that set the old variable name, so default to 24hr sync period for these users.
 
 20201027
 
- - Change: Silence warning about depreceated command_line_options varaible if it's actually blank to begin with
- - Change: Remove Python package Future. This is for Python 2 to Python 3 compatibility, however, upstream application now fully Python 3 compatible
+ - Change: Silence warning about depreceated command_line_options varaible if it's actually blank to begin with.
+ - Change: Remove Python package Future. This is for Python 2 to Python 3 compatibility, however, upstream application now fully Python 3 compatible.
  - Change: Python keyring and keyrings.alt no longer version restricted. Upstream application is now compatible with newer Python versions than before so these older packages no longer need to be installed.
 
 20201027
 
- - Change: Bugfix relating to Prowl & Pushbullet notifications
+ - Change: Bugfix relating to Prowl & Pushbullet notifications.
 
 20201024
 
