@@ -4,7 +4,7 @@ MAINTAINER boredazfcuk
 ENV config_dir="/config"
 
 # Container version serves no real purpose. Increment to force a container rebuild.
-ARG container_version="1.0.6"
+ARG container_version="1.0.7"
 ARG app_dependencies="python3 py-pip exiftool coreutils tzdata curl libheif-tools"
 ARG build_dependencies="git gcc python3-dev musl-dev libffi-dev openssl-dev patch"
 ARG python_dependencies="pytz tzlocal keyrings.alt keyring"
@@ -20,7 +20,7 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clone ${app_repo}" && \
    git clone -b master "https://github.com/${app_repo}.git" "${temp_dir}" && \
    cd "${temp_dir}" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install Python dependencies" && \
-   pip3 install --upgrade pip --no-cache-dir wheel && \
+   pip3 install --no-cache-dir --upgrade pip wheel && \
    pip3 install --no-cache-dir ${python_dependencies} && \
    pip3 install --no-cache-dir -r requirements.txt && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install ${app_repo}" && \
@@ -28,6 +28,7 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install ${app_repo}" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
    cd / && \
    rm -r "${temp_dir}" && \
+   rm -r "/root/.cache" && \
    apk del --no-progress --purge build-deps
 
 COPY sync-icloud.sh /usr/local/bin/sync-icloud.sh
