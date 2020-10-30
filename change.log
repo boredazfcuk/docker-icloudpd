@@ -1,3 +1,7 @@
+20201030
+
+ - Change: Bugfix. Convert HEIC to JPEG function failing to set correct timestamp.
+
 20201029
 
  - Change: Remove pip cache folder /root/.cache during container build.
