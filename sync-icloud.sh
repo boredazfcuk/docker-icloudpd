@@ -420,7 +420,7 @@ ConvertDownloadedHEIC2JPEG(){
       heif-convert "${heic_file}" "${heic_file%.HEIC}.JPG"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
-      touch -t "${heic_date}" "${heic_file%.HEIC}.JPG"       
+      touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"       
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"  
    done
 }
