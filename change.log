@@ -1,5 +1,7 @@
 20201101
 
+ - Removed: Multi-thread capability has been removed from upstream so removed capability to specify number of threads
+ - Removed: Speed test capability. Was put in to test speed differences between mutli-thread and single-thread download options. No longer possible due to previous change.
  - Change: Bugfix. Convert HEIC to JPEG function - missed a bit.
 
 20201030

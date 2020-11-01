@@ -61,8 +61,6 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **convert_heic_to_jpeg**: This tells the container that it should convert any HEIC files it downloads to JPEG
 
-**multi_thread**: This tells the container to enable multi-threaded mode. It will configure the number of threads to be the number of cores available, multiplied by five.  Otherwise the container will default to a single thread.  Please note: Multithreaded mode has known issues surrounding files with identical names.
-
 ## NOTIFICATION CONFIGURATION VARIABLES
 
 **notification_type**: This specifies the method that is used to send notifications. Currently, there are three options available 'Prowl', 'Pushbullet', 'Telegram' and "Webhook". When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon syncronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started
