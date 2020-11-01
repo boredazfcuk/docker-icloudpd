@@ -3,13 +3,6 @@
 ##### Functions #####
 Initialise(){
    echo
-   if [ "${speed_test}" ]; then
-      speed_test="Enabled"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Speed test mode: ${speed_test:=Disabled}"
-      start_time="$(date +%s)"
-   else
-      speed_test="Disabled"
-   fi
    lan_ip="$(hostname -i)"
    if [ ! -d "/tmp/icloudpd" ]; then mkdir --parents "/tmp/icloudpd"; fi
    if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_check_exit_code"; fi
@@ -38,7 +31,6 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication Type: ${authentication_type:=2FA}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: ${config_dir}/${cookie}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie expiry notification period: ${notification_days:=7}"
-   if [ "${speed_test}" = "Enabled" ]; then download_path="$(mktemp --directory)"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download destination directory: ${download_path:=/home/${user}/iCloud}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Directory permissions: ${directory_permissions:=750}"
@@ -49,17 +41,6 @@ Initialise(){
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation interval: ${synchronisation_interval:=43200}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Time zone: ${TZ:=UTC}"
-   if [ "${multi_thread}" ]; then
-      thread_count="$(($(($(cat /proc/cpuinfo | grep processor | tail -1 | awk '{print $3}') + 1)) *5))"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Thread count: ${thread_count}"
-   else
-      thread_count=1
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Thread count: ${thread_count}"
-   fi
-   if [ "${speed_test}" = "Enabled" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Speed testing enabled. Downloading a maximum of 500 files"
-      command_line_options="--recent 500"
-   fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set EXIF date/time: ${set_exif_datetime:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Auto delete: ${auto_delete:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Photo size: ${photo_size:=original}"
@@ -194,9 +175,7 @@ ConfigurePassword(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Using password stored in keyring"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Using Apple ID password from variable. This password will be visible in the process list of the host. Please add your password to the system keyring instead"
-         if [ "${speed_test}" = "Disabled" ]; then
-            sleep 15
-         fi
+         sleep 15
       fi
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID password not set - exiting"
@@ -226,14 +205,10 @@ Generate2FACookie(){
 }
 
 CheckMount(){
-   if [ "${speed_test}" = "Enabled" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Speed testing mode enabled, not checking for mounted filesystem"
-   else
-      while [ ! -f "${download_path}/.mounted" ]; do
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Failsafe file ${download_path}/.mounted file is not present. Plese check the host's target volume is mounted - retry in 5 minutes"
-         sleep 300
-      done
-   fi
+   while [ ! -f "${download_path}/.mounted" ]; do
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Failsafe file ${download_path}/.mounted file is not present. Plese check the host's target volume is mounted - retry in 5 minutes"
+      sleep 300
+   done
 }
 
 SetOwnerAndPermissions(){
@@ -509,7 +484,7 @@ Notify(){
 }
 
 CommandLineBuilder(){
-   command_line="--directory ${download_path} --cookie-directory ${config_dir} --folder-structure ${folder_structure} --threads-num ${thread_count} --username ${apple_id}"
+   command_line="--directory ${download_path} --cookie-directory ${config_dir} --folder-structure ${folder_structure} --username ${apple_id}"
    if [ "${photo_size}" != "original"  ]; then
       command_line="${command_line} --photo-size ${photo_size}"
    fi
@@ -588,15 +563,7 @@ SyncUser(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next synchronisation at $(date +%H:%M -d "${synchronisation_interval} seconds")"
       unset check_exit_code check_files_count download_exit_code
       unset new_files
-      if [ "${speed_test}" = "Enabled" ]; then
-         rm -r "${download_temp_path}"
-         end_time="$(date +%s)"
-         total_time=$((end_time - start_time))
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Speed test complete in $(date -d@${total_time} -u '+%Hh %Mm %Ss')"
-         break
-      else
-         sleep "${synchronisation_interval}"
-      fi
+      sleep "${synchronisation_interval}"
    done
 }
 
