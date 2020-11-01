@@ -1,3 +1,7 @@
+20201101
+
+ - Change: Bugfix. Convert HEIC to JPEG function - missed a bit.
+
 20201030
 
  - Change: Bugfix. Convert HEIC to JPEG function failing to set correct timestamp.
