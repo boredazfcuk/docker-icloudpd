@@ -1,3 +1,7 @@
+20200411
+
+ - Change: Bugfix on healthcheck not detecting non-zero exit code.
+
 20201101
 
  - Removed: Multi-thread capability has been removed from upstream so removed capability to specify number of threads
