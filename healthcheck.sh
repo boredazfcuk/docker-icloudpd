@@ -1,6 +1,6 @@
 #!/bin/ash
 
-if [ -f "/tmp/icloudpd/icloud_check_exit_code}" ] || [ -f "/tmp/icloudpd/icloud_download_exit_code}" ]; then
+if [ -f "/tmp/icloudpd/icloud_check_exit_code" ] || [ -f "/tmp/icloudpd/icloud_download_exit_code}" ]; then
    if [ -f "/tmp/icloudpd/icloud_download_exit_code}" ]; then
       download_exit_code="$(cat /tmp/icloudpd/icloud_download_exit_code)"
       if [ "${download_exit_code}" -ne 0 ]; then
@@ -8,7 +8,7 @@ if [ -f "/tmp/icloudpd/icloud_check_exit_code}" ] || [ -f "/tmp/icloudpd/icloud_
          exit 1
       fi
    fi
-   if [ -f "/tmp/icloudpd/icloud_check_exit_code}" ]; then
+   if [ -f "/tmp/icloudpd/icloud_check_exit_code" ]; then
       check_exit_code="$(cat /tmp/icloudpd/icloud_check_exit_code)"
       if [ "${check_exit_code}" -ne 0 ]; then
          echo "File check error: ${check_exit_code}"
