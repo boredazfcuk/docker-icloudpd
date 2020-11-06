@@ -4,7 +4,7 @@ MAINTAINER boredazfcuk
 ENV config_dir="/config"
 
 # Container version serves no real purpose. Increment to force a container rebuild.
-ARG container_version="1.0.9"
+ARG container_version="1.0.10"
 ARG app_dependencies="python3 py-pip exiftool coreutils tzdata curl libheif-tools"
 ARG build_dependencies="git gcc python3-dev musl-dev libffi-dev openssl-dev patch"
 ARG python_dependencies="pytz tzlocal keyrings.alt keyring"
