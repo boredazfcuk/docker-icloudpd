@@ -210,6 +210,7 @@ Generate2FACookie(){
 }
 
 CheckMount(){
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check download directory mounted correctly"
    while [ ! -f "${download_path}/.mounted" ]; do
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Failsafe file ${download_path}/.mounted file is not present. Plese check the host's target volume is mounted - retry in 5 minutes"
       sleep 300
@@ -530,7 +531,6 @@ SyncUser(){
          valid_twofa_cookie=False
          while [ "${valid_twofa_cookie}" = "False" ]; do Check2FACookie; done
       fi
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check download directory mounted correctly"
       CheckMount
       CheckFiles
       if [ "${check_exit_code}" -eq 0 ]; then
