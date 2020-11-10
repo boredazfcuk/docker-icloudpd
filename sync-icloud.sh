@@ -214,6 +214,7 @@ CheckMount(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Failsafe file ${download_path}/.mounted file is not present. Plese check the host's target volume is mounted - retry in 5 minutes"
       sleep 300
    done
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Failsafe file ${download_path}/.mounted exists"
 }
 
 SetOwnerAndPermissions(){
