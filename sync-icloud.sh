@@ -465,7 +465,7 @@ Notify(){
          sleep 120
          exit 1
       fi
-   if [ "${notification_type}" = "Pushbullet" ]; then
+   elif [ "${notification_type}" = "Pushbullet" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent "${notification_url}"  \
          --form apikey="${pushbullet_api_key}" \
