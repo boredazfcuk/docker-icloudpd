@@ -1,3 +1,7 @@
+20201110
+
+ - Change: Added variable for the --until-found option as must have missed this on the 20201024 update.
+
 20200411
 
  - Change: Bugfix on healthcheck not detecting non-zero exit code.

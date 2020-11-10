@@ -45,6 +45,11 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Auto delete: ${auto_delete:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Photo size: ${photo_size:=original}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip live photos: ${skip_live_photos:=False}"
+   if [ "${until_found}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Number of most recently added photos to download: ${until_found}"
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Number of most recently added photos to download: Download All Photos"
+   fi
    if [ "${skip_live_photos}" = "False" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Live photo size: ${live_photo_size:=original}"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip videos ${skip_videos:=False}"
    if [ "${command_line_options}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Additional command line options is depreceated. Please specify all options using the dedicated variables: ${command_line_options}"; fi
@@ -503,6 +508,9 @@ CommandLineBuilder(){
    fi
    if [ "${skip_videos}" != "False" ]; then
       command_line="${command_line} --skip-videos"
+   fi
+   if [ "${until_found}" ]; then
+      command_line="${command_line} --until-found ${until_found}"
    fi
    if [ "${apple_password}" != "usekeyring" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line options: ${command_line} --password ******"
