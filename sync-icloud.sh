@@ -532,7 +532,7 @@ SyncUser(){
       fi
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check download directory mounted correctly"
       CheckMount
-      # CheckFiles
+      CheckFiles
       if [ "${check_exit_code}" -eq 0 ]; then
          if [ "${check_files_count}" -gt 0 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of new files for user: ${user}"
