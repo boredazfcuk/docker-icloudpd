@@ -364,7 +364,7 @@ DownloadedFilesNotification(){
    new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${new_files_count:=0}" -gt 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New files downloaded: ${new_files_count}"
-      if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
+      if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ] || [ "${notification_type}" = "Pushover" ]; then
          Notify "downloaded files" "New files detected" "0" "Files downloaded for Apple ID ${apple_id} : ${new_files_count}"
       elif [ "${notification_type}" = "Telegram" ]; then
          new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | tail -10)"
@@ -386,7 +386,7 @@ DeletedFilesNotification(){
    deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${deleted_files_count:=0}" -gt 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Number of files deleted: ${deleted_files_count}"
-      if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
+      if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ] || [ "${notification_type}" = "Pushover" ]; then
          Notify "deleted files" "Recently deleted files detected" "0" "Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
       elif [ "${notification_type}" = "Telegram" ]; then
          deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
@@ -587,7 +587,7 @@ SyncUser(){
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
-               if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet}" ]; then
+               if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ] || [ "${notification_type}" = "Pushover" ]; then
                   Notify "failure" "iCloudPD container failure" "-2" "iCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}"
                elif [ "${notification_type}" = "Telegram" ]; then
                   telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD*\niCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
