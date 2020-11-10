@@ -329,18 +329,18 @@ CheckFiles(){
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check successful"
       check_files_count="$(grep -c ^ /tmp/icloudpd/icloudpd_check.log)"
-      if [ "${check_files_count}" -gt 0 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check detected ${check_files_count} files requiring download. Verifying list accuracy"
-         local counter=0
-         for double_check_file in $(cat /tmp/icloudpd/icloudpd_check.log); do
-            if [ -f "${double_check_file}" ]; then
-               sed -i "/${double_check_file//\//\\/}/d" /tmp/icloudpd/icloudpd_check.log
-               counter=$((counter + 1))
-            fi
-         done
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Ignoring ${counter} files which have already been downloaded"
-         check_files_count="$(grep -c ^ /tmp/icloudpd/icloudpd_check.log)"
-      fi
+      # if [ "${check_files_count}" -gt 0 ]; then
+         # echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check detected ${check_files_count} files requiring download. Verifying list accuracy"
+         # local counter=0
+         # for double_check_file in $(cat /tmp/icloudpd/icloudpd_check.log); do
+            # if [ -f "${double_check_file}" ]; then
+               # sed -i "/${double_check_file//\//\\/}/d" /tmp/icloudpd/icloudpd_check.log
+               # counter=$((counter + 1))
+            # fi
+         # done
+         # echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Ignoring ${counter} files which have already been downloaded"
+         # check_files_count="$(grep -c ^ /tmp/icloudpd/icloudpd_check.log)"
+      # fi
       if [ "${check_files_count}" -gt 0 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New files detected: ${check_files_count}"
       else
@@ -531,7 +531,7 @@ SyncUser(){
       fi
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check download directory mounted correctly"
       CheckMount
-      CheckFiles
+      # CheckFiles
       if [ "${check_exit_code}" -eq 0 ]; then
          if [ "${check_files_count}" -gt 0 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of new files for user: ${user}"
