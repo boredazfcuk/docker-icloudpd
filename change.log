@@ -1,5 +1,6 @@
 20201110
 
+ - Change: Added Pushover notifications
  - Change: Failsafe file mount checking changed slightly regarding logging
  - Change: Added variable for the --until-found option as must have missed this on the 20201024 update.
  - Removed: Checking downloaded files list against files stored on the server is no longer required. Issue has been fixed upstream.

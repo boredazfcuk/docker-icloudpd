@@ -63,21 +63,28 @@ Initialise(){
 }
 
 ConfigureNotifications(){
-   if [ -z "${prowl_api_key}" ] && [ -z "${pushbullet_api_key}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ]; then
+   if [ -z "${prowl_api_key}" ] && [ -z "${pushbullet_api_key}" ]  && [ -z "${pushover_api_key}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  ${notification_type} notifications enabled, but API key/token not set - disabling notifications"
       unset notification_type
    else
       if [ "${notification_type}" = "Prowl" ] && [ "${prowl_api_key}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} api key ${prowl_api_key}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          notification_url="https://api.prowlapp.com/publicapi/add" 
-         notification_api_key="${prowl_api_key}"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "Pushbullet" ] && [ "${pushbullet_api_key}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} api key ${pushbullet_api_key}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          notification_url="https://pushbullet.weks.net/publicapi/add"
-         notification_api_key="${pushbullet_api_key}"
+         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
+      elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} user ${pushover_user}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${pushover_token}"
+         notification_url="https://api.pushover.net/1/messages.json"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
          notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
@@ -441,10 +448,10 @@ CorrectJPEGTimestamps(){
 }
 
 Notify(){
-   if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
+   if [ "${notification_type}" = "Prowl" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent "${notification_url}"  \
-         --form apikey="${notification_api_key}" \
+         --form apikey="${prowl_api_key}" \
          --form application="boredazfcuk/iCloudPD" \
          --form event="${2}" \
          --form priority="${3}" \
@@ -453,6 +460,40 @@ Notify(){
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then 
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Event: ${1}\" \"Priority ${2}\" \"Message ${3}\""
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed for Apple ID ${apple_id}"
+         sleep 120
+         exit 1
+      fi
+   if [ "${notification_type}" = "Pushbullet" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
+      curl --silent "${notification_url}"  \
+         --form apikey="${pushbullet_api_key}" \
+         --form application="boredazfcuk/iCloudPD" \
+         --form event="${2}" \
+         --form priority="${3}" \
+         --form description="${4}" \
+         >/dev/null 2>&1
+         curl_exit_code=$?
+      if [ "${curl_exit_code}" -eq 0 ]; then 
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Event: ${1}\" \"Priority ${2}\" \"Message ${3}\""
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed for Apple ID ${apple_id}"
+         sleep 120
+         exit 1
+      fi
+   elif [ "${notification_type}" = "Pushover" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
+      curl --silent "${notification_url}"  \
+         --form-string="user=${pushover_user}" \
+         --form-string="token=${pushover_token}" \
+         --form-string="title=boredazfcuk/iCloudPD" \
+         --form-string="priority=${3}" \
+         --form-string="message=${4}" \
+         >/dev/null 2>&1
+         curl_exit_code=$?
+      if [ "${curl_exit_code}" -eq 0 ]; then 
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Event: ${1}\" \"Priority ${3}\" \"Message ${4}\""
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed for Apple ID ${apple_id}"
          sleep 120
