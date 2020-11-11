@@ -107,7 +107,7 @@ ConfigureNotifications(){
          Notify "startup" "${webhook_payload}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
-         unset notification_type prowl_api_key pushbullet_api_key telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id
+         unset notification_type prowl_api_key pushbullet_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id
       fi
       if [ "${download_notifications:=True}" = "True" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download notifications: Enabled"
@@ -283,7 +283,7 @@ Display2FAExpiry(){
       if [ "${synchronisation_time}" -gt "${next_notification_time:=$(date +%s)}" ]; then
          if [ "${days_remaining}" -eq 1 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Final day before two factor authentication cookie expires - Please reinitialise now. This is your last reminder"
-            if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
+            if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ] || [ "${notification_type}" = "Pushover" ]; then
                Notify "cookie expiration" "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
                next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Telegram" ]; then
@@ -297,7 +297,7 @@ Display2FAExpiry(){
             fi
          else
             echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Only ${days_remaining} days until two factor authentication cookie expires - Please reinitialise"
-            if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
+            if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ] || [ "${notification_type}" = "Pushover" ]; then
                Notify "cookie expiration" "2FA Cookie Expiration" "1" "Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
                next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Telegram" ]; then
@@ -326,7 +326,7 @@ CheckFiles(){
    check_exit_code="$(cat /tmp/icloudpd/icloud_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Check failed - Exit code: ${check_exit_code}"
-      if  [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ]; then
+      if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ] || [ "${notification_type}" = "Pushover" ]; then
          Notify "failure" "iCloudPD container failure" "-2" "iCloudPD failed to download new files for Apple ID: ${apple_id} - Exit code ${check_exit_code}"
       elif [ "${notification_type}" = "Telegram" ]; then
          telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD*\niCloudPD failed to download new files - for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
@@ -485,11 +485,11 @@ Notify(){
    elif [ "${notification_type}" = "Pushover" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent "${notification_url}"  \
-         --form-string="user=${pushover_user}" \
-         --form-string="token=${pushover_token}" \
-         --form-string="title=boredazfcuk/iCloudPD" \
-         --form-string="priority=${3}" \
-         --form-string="message=${4}" \
+         --form-string "user=${pushover_user}" \
+         --form-string "token=${pushover_token}" \
+         --form-string "title=boredazfcuk/iCloudPD" \
+         --form-string "priority=${3}" \
+         --form-string "message=${4}" \
          >/dev/null 2>&1
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then 
