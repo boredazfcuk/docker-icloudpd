@@ -1,3 +1,7 @@
+201112
+
+ - Change: Bugfix. Convert HEIC to JPEG function would only run if download notifications were enabled.
+
 20201111
 
  - Change: Additional changes required for Pushover notifications.
