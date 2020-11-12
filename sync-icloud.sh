@@ -4,6 +4,7 @@
 Initialise(){
    echo
    lan_ip="$(hostname -i)"
+   login_counter="0"
    if [ ! -d "/tmp/icloudpd" ]; then mkdir --parents "/tmp/icloudpd"; fi
    if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_check_exit_code"; fi
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_download_exit_code"; fi
@@ -344,6 +345,7 @@ CheckFiles(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     No new files detected. Nothing to download"
       fi
    fi
+   login_counter=$((login_counter + 1))
 }
 
 DownloadedFilesNotification(){
@@ -593,11 +595,13 @@ SyncUser(){
                if [ "${delete_notifications}" ]; then DeletedFilesNotification; fi
                echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation complete for ${user}"
             fi
+            login_counter=$((login_counter + 1))
          fi
       fi
       CheckWebCookie
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Web cookie expires: ${web_cookie_expire_date/ / @ }"
       if [ "${authentication_type}" = "2FA" ]; then Display2FAExpiry; fi
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     iCloud login counter = ${login_counter}"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next synchronisation at $(date +%H:%M -d "${synchronisation_interval} seconds")"
       unset check_exit_code check_files_count download_exit_code
       unset new_files
