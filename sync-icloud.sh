@@ -52,6 +52,7 @@ Initialise(){
       synchronisation_interval="86400"
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation interval: ${synchronisation_interval}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation delay (minutes): ${synchronisation_delay}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Time zone: ${TZ:=UTC}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set EXIF date/time: ${set_exif_datetime:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Auto delete: ${auto_delete:=False}"
