@@ -23,7 +23,9 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **download_path**: This is the directory to which files will be downloaded from iCloud. If this variable is not set, it will default to "/home/${user}/iCloud"
 
-**synchronisation_interval**: This is the number of seconds between syncronisations. Common intervals would be: 3hrs - 10800, 4hrs - 14400, 6hrs - 21600 & 12hrs - 43200. If variable is not set it will default to every 12hrs (43200 seconds)
+**synchronisation_interval**: This is the number of seconds between syncronisations. It can be set to the following periods: 43200 (12hrs), 86400 (24hrs), 129600 (36hrs), 172800 (48hrs) and 604800 (7 days). If this variable is not set to one of these values, it will default to 86400 seconds. Since the release of iOS14 Apple seems to configured a maximum limit to the number of authentications per 2FA cookie to around 26. This would mean re-confirming 2FA authentication daily if the synchronisation interval was set to 1hr.
+
+**synchronisation_delay**: This is the number of minutes to delay the first synchronisation. This is so that you can stagger the synchronisations of multiple containers. If this value is not set. It will default to 0.
 
 **notification_days**: This is number of days until cookie expiration for which to generate notifications. This will default to 7 days if not specified so you will receive a single notification in the 7 days running up to cookie expiration
 

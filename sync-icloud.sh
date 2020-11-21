@@ -5,6 +5,17 @@ Initialise(){
    echo
    lan_ip="$(hostname -i)"
    login_counter="0"
+   case "${synchronisation_interval:=86400}" in 
+      43200) synchronisation_interval=43200;; #12 hours
+      86400) synchronisation_interval=86400;; # 24 hours
+      129600) synchronisation_interval=129600;; # 36 hours
+      172800) synchronisation_interval=172800;; # 48 hours
+      604800) synchronisation_interval=604800;; # 7 days
+      *) synchronisation_interval=86400;; # 24 hours
+   esac
+   if [ "${synchronisation_delay:=0}" -gt 60 ]; then
+      synchronisation_delay=60
+   fi
    if [ ! -d "/tmp/icloudpd" ]; then mkdir --parents "/tmp/icloudpd"; fi
    if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_check_exit_code"; fi
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_download_exit_code"; fi
@@ -40,7 +51,7 @@ Initialise(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  The syncronisation_interval variable contained a typo. This has now been corrected to synchronisation_interval. Please update your container. Defaulting to one sync per 24 hour period"
       synchronisation_interval="86400"
    fi
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation interval: ${synchronisation_interval:=43200}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation interval: ${synchronisation_interval}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Time zone: ${TZ:=UTC}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set EXIF date/time: ${set_exif_datetime:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Auto delete: ${auto_delete:=False}"
@@ -555,6 +566,10 @@ CommandLineBuilder(){
 
 SyncUser(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sync user ${user}"
+   if [ "${synchronisation_delay}" -ne 0 ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Delay for ${synchronisation_delay} minutes"
+      sleep "${synchronisation_delay}m"
+   fi
    while :; do
       chown -R "${user}":"${group}" "${config_dir}"
       if [ "${authentication_type}" = "2FA" ]; then
