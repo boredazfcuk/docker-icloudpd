@@ -1,3 +1,7 @@
+20201128
+
+ - Change: Added log line to show the exact command line used to invole iCloudPD
+
 20201121
 
  - Change: Due to changes in iOS14 the 2FA synchronisation interval is now limited to a maximum of once every 12 hours. It seems that 2FA authentication is now restricted to a maximum of 26 logins before re-authentication is required. Synchronisation is now restricted to specific time periods with the shortest being 12 hours.
