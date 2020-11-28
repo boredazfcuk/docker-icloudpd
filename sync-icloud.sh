@@ -587,10 +587,10 @@ SyncUser(){
             if [ "${apple_password}" = "usekeyring" ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using password stored in keyring..."
             else
-               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
+               echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Downloading new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
             fi
-            su "${user}" -c '(/usr/bin/icloudpd ${0} ${1} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${command_line_options}"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     iCloudPD launch command: /usr/bin/icloudpd ${command_line} ${command_line_options} 2>&1"
+            su "${user}" -c '(/usr/bin/icloudpd ${0} ${1} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${command_line_options}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Error during download - Exit code: ${download_exit_code}"
