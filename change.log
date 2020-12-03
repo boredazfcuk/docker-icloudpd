@@ -1,6 +1,7 @@
 20201203
 
  - Change: Upgraded pip
+ - Change: Pushover notification bugfix. Courtesy of @larstomas
 
 20201128
 
