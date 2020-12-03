@@ -305,7 +305,7 @@ Display2FAExpiry(){
                next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Webhook" ]; then
                webhook_payload="$(echo -e "boredazfcuk/iCloudPD - Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
-               Notify "failure" "${webhook_payload}"
+               Notify "cookie expiration" "${webhook_payload}"
                next_notification_time="$(date +%s -d "+24 hour")"
             fi
          else
@@ -319,7 +319,7 @@ Display2FAExpiry(){
                next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Webhook" ]; then
                webhook_payload="$(echo -e "boredazfcuk/iCloudPD - Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
-               Notify "failure" "${webhook_payload}"
+               Notify "cookie expiration" "${webhook_payload}"
                next_notification_time="$(date +%s -d "+24 hour")"
             fi
          fi
@@ -377,7 +377,7 @@ DownloadedFilesNotification(){
          new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | tail -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          webhook_payload="$(echo -e "boredazfcuk/iCloudPD - New files detected for Apple ID ${apple_id}: ${new_files_count} Last ${new_files_preview_count} file names: ${new_files_preview//_/\\_}")"
-         Notify "failure" "${webhook_payload}"
+         Notify "downloaded files" "${webhook_payload}"
       fi
    fi
 }
@@ -399,7 +399,7 @@ DeletedFilesNotification(){
          deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          webhook_payload="$(echo -e "boredazfcuk/iCloudPD - Deleted files detected for Apple ID: ${apple_id}: ${deleted_files_count} Last ${deleted_files_preview_count} file names: ${deleted_files_preview//_/\\_}")"
-         Notify "failure" "${webhook_payload}"
+         Notify "deleted files" "${webhook_payload}"
       fi
    fi
 }
