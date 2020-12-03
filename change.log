@@ -1,3 +1,7 @@
+20201203
+
+ - Change: Upgraded pip
+
 20201128
 
  - Change: Added log line to show the exact command line used to invole iCloudPD
