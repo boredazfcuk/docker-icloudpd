@@ -1,8 +1,9 @@
 20201203
 
  - Change: Upgraded pip
- - Change: Pushover notification bugfix. Courtesy of @larstomas
- - Change: Webhook notification notification standardisation. Courtesy of @larstomas again.
+ - Change: Pushover notification bugfix. PR courtesy of @larstomas
+ - Change: Webhook notification notification standardisation. PR courtesy of @larstomas again.
+ - Change: Altered failure piority for pushover notifications from -2 to 2 so they become emergency level notifications rather than silent. Change recommended by @larstomas
 
 20201128
 

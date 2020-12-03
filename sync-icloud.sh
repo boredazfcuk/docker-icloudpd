@@ -340,7 +340,7 @@ CheckFiles(){
    if [ "${check_exit_code}" -ne 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Check failed - Exit code: ${check_exit_code}"
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushbullet" ] || [ "${notification_type}" = "Pushover" ]; then
-         Notify "failure" "iCloudPD container failure" "-2" "iCloudPD failed to download new files for Apple ID: ${apple_id} - Exit code ${check_exit_code}"
+         Notify "failure" "iCloudPD container failure" "2" "iCloudPD failed to download new files for Apple ID: ${apple_id} - Exit code ${check_exit_code}"
       elif [ "${notification_type}" = "Telegram" ]; then
          telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD*\niCloudPD failed to download new files - for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
          Notify "failure" "${telegram_text}"
