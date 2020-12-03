@@ -4,6 +4,7 @@
  - Change: Pushover notification bugfix. PR courtesy of @larstomas
  - Change: Webhook notification notification standardisation. PR courtesy of @larstomas again.
  - Change: Altered failure piority for pushover notifications from -2 to 2 so they become emergency level notifications rather than silent. Change recommended by @larstomas
+ - Change: Added variable to allow skipping of the new file check. On large photo collections, this can significantly increase the time taken to download.
 
 20201128
 

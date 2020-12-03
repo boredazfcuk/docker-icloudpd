@@ -57,6 +57,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Set EXIF date/time: ${set_exif_datetime:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Auto delete: ${auto_delete:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Photo size: ${photo_size:=original}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip download check: ${skip_check:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip live photos: ${skip_live_photos:=False}"
    if [ "${until_found}" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Number of most recently added photos to download: ${until_found}"
@@ -579,7 +580,7 @@ SyncUser(){
          while [ "${valid_twofa_cookie}" = "False" ]; do Check2FACookie; done
       fi
       CheckMount
-      CheckFiles
+      if [ "${skip_check}" = "False" ]; then CheckFiles; fi
       if [ "${check_exit_code}" -eq 0 ]; then
          if [ "${check_files_count}" -gt 0 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of new files for user: ${user}"
