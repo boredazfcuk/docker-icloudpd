@@ -2,6 +2,7 @@
 
  - Change: Upgraded pip
  - Change: Pushover notification bugfix. Courtesy of @larstomas
+ - Change: Webhook notification notification standardisation. Courtesy of @larstomas again.
 
 20201128
 
