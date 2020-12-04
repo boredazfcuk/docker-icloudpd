@@ -1,3 +1,6 @@
+20201204
+
+ - Change: Removed Pushbullet notifications. The Pushbullet service has introduced version 2 of its API so notifications no longer work. Pushbullet have also removed their app from the iOS App Store, so if it's no longer supported on iOS, there's no way to realistically support it here.
 20201203
 
  - Change: Upgraded pip
