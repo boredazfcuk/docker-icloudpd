@@ -5,6 +5,8 @@ Initialise(){
    echo
    lan_ip="$(hostname -i)"
    login_counter="0"
+   apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
+   cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
    case "${synchronisation_interval:=86400}" in 
       43200) synchronisation_interval=43200;; #12 hours
       86400) synchronisation_interval=86400;; # 24 hours
@@ -25,7 +27,6 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Python version: $(python3 --version | awk '{print $2}')"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
-   cookie="$(echo -n "${apple_id//[^a-zA-Z0-9_]/}" | tr '[:upper:]' '[:lower:]')"
    if [ -t 0 ] || [ -p /dev/stdin ]; then interactive_session="True"; fi
    if [ "${interactive_only}" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set. Skipping 2FA Cookie creation."
@@ -41,7 +42,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID: ${apple_id}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID password: ${apple_password:=usekeyring}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication Type: ${authentication_type:=2FA}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: ${config_dir}/${cookie}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: ${config_dir}/${cookie_file}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie expiry notification period: ${notification_days:=7}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download destination directory: ${download_path:=/home/${user}/iCloud}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
@@ -209,8 +210,8 @@ Generate2FACookie(){
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
-   if [ -f "${config_dir}/${cookie}" ]; then
-      mv "${config_dir}/${cookie}" "${config_dir}/${cookie}.bak"
+   if [ -f "${config_dir}/${cookie_file}" ]; then
+      mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Generate 2FA cookie with password: ${apple_password}"
    if [ "${apple_password}" = "usekeyring" ]; then
@@ -257,8 +258,8 @@ SetOwnerAndPermissions(){
 }
 
 CheckWebCookie(){
-   if [ -f "${config_dir}/${cookie}" ]; then
-      web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   if [ -f "${config_dir}/${cookie_file}" ]; then
+      web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie does not exist. Please run container interactively to generate - Retry in 5 minutes"
       sleep 300
@@ -266,10 +267,10 @@ CheckWebCookie(){
 }
 
 Check2FACookie(){
-   if [ -f "${config_dir}/${cookie}" ]; then
+   if [ -f "${config_dir}/${cookie_file}" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie exists, check expiry date"
-      if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie}")" -eq 1 ]; then
-         twofa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+      if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
+         twofa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
          twofa_expire_seconds="$(date -d "${twofa_expire_date}" '+%s')"
          days_remaining="$(($((twofa_expire_seconds - $(date '+%s'))) / 86400))"
          echo "${days_remaining}" > "${config_dir}/DAYS_REMAINING"
