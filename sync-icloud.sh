@@ -69,6 +69,9 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip videos ${skip_videos:=False}"
    if [ "${command_line_options}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Additional command line options is depreceated. Please specify all options using the dedicated variables: ${command_line_options}"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC to JPEG: ${convert_heic_to_jpeg:=False}"
+   if [ "${convert_heic_to_jpeg}" != "False" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG conversion quality: ${jpeg_quality:=100}"
+   fi
    if [ "${notification_type}" ] && [ "${interactive_session}" = "False" ]; then
       ConfigureNotifications
    fi
@@ -404,7 +407,7 @@ ConvertDownloadedHEIC2JPEG(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC to JPEG..."
    for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
-      heif-convert "${heic_file}" "${heic_file%.HEIC}.JPG"
+      heif-convert -q "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
       touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"       
@@ -417,7 +420,7 @@ ConvertAllHEICs(){
    for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
       if [ ! -f "${heic_file%.HEIC}.JPG" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
-         heif-convert "${heic_file}" "${heic_file%.HEIC}.JPG"
+         heif-convert -q "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
          heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
          touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"  

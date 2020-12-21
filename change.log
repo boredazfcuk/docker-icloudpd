@@ -1,3 +1,7 @@
+20201221
+
+ - Change: Convert HEIC to JPEG functions now allow specifying the quality with and integer value from 0 to 100.
+
 20201216
 
  - Change: Sanitise apple_id variable so all letters are lower case. This prevents a case mismatch between the cookie file name that is saved, and the name that the icloudpd Python script creates the cookie file with, due to it respecting case.

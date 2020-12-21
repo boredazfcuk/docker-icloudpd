@@ -65,6 +65,8 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **convert_heic_to_jpeg**: This tells the container that it should convert any HEIC files it downloads to JPEG
 
+**jpeg_quality**: If HEIC to JPEG conversion is enabled, this variable will let you set the quality of the converted file by specifying a number from 0 (lowest quality) to 100 (highest quality) If convert_heic_to_jpeg is set, and this variable isn't, it will default to 100.
+
 ## NOTIFICATION CONFIGURATION VARIABLES
 
 **notification_type**: This specifies the method that is used to send notifications. Currently, there are four options available **Prowl**, **Pushover**, **Telegram** and **Webhook**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon syncronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started
