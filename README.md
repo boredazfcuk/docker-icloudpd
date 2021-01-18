@@ -35,7 +35,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **file_permissions**: This specifies the permissions to set on the files in your download destination. If this variable is not set, it will default to 640
 
-**folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. use **none** to download to a flat file structure
+**folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure
 
 **download_notifications**: This variable specifies whether notifications with a short summary should be sent for file downloads. If this variable is not set, it will default to **True**
 
@@ -156,9 +156,10 @@ docker create \
    --env notification_type=Telegram \
    --env telegram_token=123654 \
    --env telegram_chat_id=456321 \
-
+   --env folder_structure={:%Y}
+   --env auto_delete=True
    --env notification_days=14 \
-   --env command_line_options="--folder-structure={:%Y} --recent 50 --auto-delete" \
+   --env command_line_options="--recent 50" \
    --env synchronisation_interval=21600 \
    --env TZ=Europe/London \
    --volume icloudpd_boredazfcuk_config:/config \

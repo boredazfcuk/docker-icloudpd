@@ -60,10 +60,15 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Photo size: ${photo_size:=original}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip download check: ${skip_check:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip live photos: ${skip_live_photos:=False}"
-   if [ "${until_found}" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Number of most recently added photos to download: ${until_found}"
+   if [ "${recent_only}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Number of most recently added photos to download: ${recent_only}"
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Number of most recently added photos to download: Download All Photos"
+   fi
+   if [ "${until_found}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Stop downloading when prexisiting files count is: ${until_found}"
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Stop downloading when prexisiting files count is: Download All Photos"
    fi
    if [ "${skip_live_photos}" = "False" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Live photo size: ${live_photo_size:=original}"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip videos ${skip_videos:=False}"
@@ -538,6 +543,9 @@ CommandLineBuilder(){
    fi
    if [ "${until_found}" ]; then
       command_line="${command_line} --until-found ${until_found}"
+   fi
+   if [ "${recent_only}" ]; then
+      command_line="${command_line} --recent ${recent_only}"
    fi
    if [ "${apple_password}" != "usekeyring" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line options: ${command_line} --password ******"
