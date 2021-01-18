@@ -138,7 +138,7 @@ docker create \
    boredazfcuk/icloudpd
    ```
    
-   This is an example of the command I run to create a container on my own machine:
+   So an example of a true command would look something like this:
    
    ```
    docker create \
@@ -159,7 +159,6 @@ docker create \
    --env folder_structure={:%Y}
    --env auto_delete=True
    --env notification_days=14 \
-   --env command_line_options="--recent 50" \
    --env synchronisation_interval=21600 \
    --env TZ=Europe/London \
    --volume icloudpd_boredazfcuk_config:/config \
