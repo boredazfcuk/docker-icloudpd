@@ -55,7 +55,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **recent_only**: If this is set to True, it will only download the files that do not already exist in the download destination directory. Set it to **False** to disable. If this variable is not set, it will default to **True**
 
-**until_found**: Set this variable to an integer number to only the most recently added photos, until __n__ number of previously downloaded consecutive photos are found. If this variable is not set, it will default to downloading all photos.
+**until_found**: Set this variable to an integer number to only the most recently added photos, until *n* number of previously downloaded consecutive photos are found. If this variable is not set, it will default to downloading all photos.
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
