@@ -631,6 +631,8 @@ if [ "${interactive_session}" = "True" ]; then
       CorrectJPEGTimestamps
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG timestamp correction complete"
       exit 0
+   elif [ "$1" = "--Generate2FACookie" ]; then
+      Generate2FACookie
    elif [ -z "$1" ]; then
       Generate2FACookie
    fi

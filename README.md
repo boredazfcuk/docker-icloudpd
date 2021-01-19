@@ -265,23 +265,28 @@ Dockerfile has a health check which will change the status of the container to '
 
 ## COMMAND LINE OPTIONS
 
+There are currently a number of command line options available to use with the sync-icloud.sh script. These are:
+
 **--ConvertAllHEICs**
-The --ConvertAllHEICs command line will check for HEIC files that do not have an accompanying JPEG file. If it finds a HEIC that does not have an accompaying JPEG file, it will create it. This can be used to add JPEGs for previously downloaded libraries. The easiest way to run this is to connect to the running container and executing the script.
-Connect to the container like this:
+The --ConvertAllHEICs command line option will check for HEIC files that do not have an accompanying JPEG file. If it finds a HEIC that does not have an accompaying JPEG file, it will create it. This can be used to add JPEGs for previously downloaded libraries. The easiest way to run this is to connect to the running container and executing the script.
+To run the script inside the currently running container, issue this command:
 ```
-docker exec -it icloudpd /bin/ash
+docker exec -it icloudpd /usr/local/bin/sync-icloud.sh --ConvertAllHEICs
 ```
-This will give you a command prompt inside the container. Once there, run `sync-icloud.sh --ConvertAllHEICs`
 
 **--CorrectJPEGTimestamps**
-The --CorrectJPEGTimestamps command line will correct the timestamps of JPEG files that do not match their accompanying HEIC files. Due to an omission, previous versions of my script never set the time stamp. This command line option will correct this issue.
+The --CorrectJPEGTimestamps command line option will correct the timestamps of JPEG files that do not match their accompanying HEIC files. Due to an omission, previous versions of my script never set the time stamp. This command line option will correct this issue.
 
-Connect to the container like this:
+To run the script inside the currently running container, issue this command:
 ```
-docker exec -it icloudpd /bin/ash
+docker exec -it icloudpd /usr/local/bin/sync-icloud.sh --CorrectJPEGTimestamps
 ```
-This will give you a command prompt inside the container. Once there, run `sync-icloud.sh --CorrectJPEGTimestamps`
 
-
+**--Generate2FACookie**
+The --Generate2FACookie command line option will force the creation of a new two-factor authentication cookie. This makes life easier for people running Synology/QNAP NAS devices as it means they don't have to create a 2nd container to re-authenticate.
+To run the script inside the currently running container, issue this command:
+```
+docker exec -it icloudpd /usr/local/bin/sync-icloud.sh --Generate2FACookie
+```
 
 BTC: 1E8kUsm3qouXdVYvLMjLbw7rXNmN2jZesL
