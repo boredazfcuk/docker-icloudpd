@@ -1,3 +1,7 @@
+20210127
+
+ - Change: Modified when the script check for the the --Generate2FACookie so that it can be invoked from NAS devices such a Synology and QNAP.
+
 20210119
 
  - Change: Added the --Generate2FACookie command line option

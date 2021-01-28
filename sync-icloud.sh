@@ -27,6 +27,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Python version: $(python3 --version | awk '{print $2}')"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Terminal type: ${TERM}"
    if [ -t 0 ] || [ -p /dev/stdin ]; then interactive_session="True"; fi
    if [ "${interactive_only}" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set. Skipping 2FA Cookie creation."
