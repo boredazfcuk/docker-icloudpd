@@ -110,7 +110,7 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${telegram_token}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} chat id ${telegram_chat_id}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
-         telegram_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\niCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
+         telegram_text="$(echo -e "\xE2\x84\xB9 *iCloud Photos Downloader*\niCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
          Notify "startup" "${telegram_text}"
       elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
          if [ "${webhook_https}" = "True" ]; then webhook_scheme="https"; else webhook_scheme="http"; fi
@@ -121,7 +121,7 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ID: ${webhook_id}"
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
-         webhook_payload="$(echo -e "boredazfcuk/iCloudPD - iCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
+         webhook_payload="$(echo -e "iCloud Photos Downloader - iCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
          Notify "startup" "${webhook_payload}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
@@ -305,11 +305,11 @@ Display2FAExpiry(){
                Notify "cookie expiration" "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
                next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Telegram" ]; then
-               telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD\nFinal day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
+               telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *iCloud Photos Downloader\nFinal day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
                Notify "cookie expiration" "${telegram_text}"
                next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Webhook" ]; then
-               webhook_payload="$(echo -e "boredazfcuk/iCloudPD - Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
+               webhook_payload="$(echo -e "iCloud Photos Downloader - Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
                Notify "cookie expiration" "${webhook_payload}"
                next_notification_time="$(date +%s -d "+24 hour")"
             fi
@@ -319,11 +319,11 @@ Display2FAExpiry(){
                Notify "cookie expiration" "2FA Cookie Expiration" "1" "Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
                next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Telegram" ]; then
-               telegram_text="$(echo -e "\xE2\x9A\xA0 *boredazfcuk/iCloudPD* Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
+               telegram_text="$(echo -e "\xE2\x9A\xA0 *iCloud Photos Downloader* Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
                Notify "cookie expiration" "${telegram_text}"
                next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Webhook" ]; then
-               webhook_payload="$(echo -e "boredazfcuk/iCloudPD - Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
+               webhook_payload="$(echo -e "iCloud Photos Downloader - Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
                Notify "cookie expiration" "${webhook_payload}"
                next_notification_time="$(date +%s -d "+24 hour")"
             fi
@@ -347,10 +347,10 @@ CheckFiles(){
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ]; then
          Notify "failure" "iCloudPD container failure" "2" "iCloudPD failed to download new files for Apple ID: ${apple_id} - Exit code ${check_exit_code}"
       elif [ "${notification_type}" = "Telegram" ]; then
-         telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD*\niCloudPD failed to download new files - for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
+         telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *iCloud Photos Downloader*\niCloudPD failed to download new files - for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
          Notify "failure" "${telegram_text}"
       elif [ "${notification_type}" = "Webhook" ]; then
-         webhook_payload="$(echo -e "boredazfcuk/iCloudPD - iCloudPD failed to download new files for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
+         webhook_payload="$(echo -e "iCloud Photos Downloader - iCloudPD failed to download new files for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
          Notify "failure" "${webhook_payload}"
       fi
    else
@@ -372,16 +372,16 @@ DownloadedFilesNotification(){
    if [ "${new_files_count:=0}" -gt 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New files downloaded: ${new_files_count}"
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ]; then
-         Notify "downloaded files" "New files detected" "0" "Files downloaded for Apple ID ${apple_id} : ${new_files_count}"
+         Notify "downloaded files" "New files detected" "0" "Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
       elif [ "${notification_type}" = "Telegram" ]; then
          new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | tail -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
-         telegram_new_files_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
+         telegram_new_files_text="$(echo -e "\xE2\x84\xB9 *iCloud Photos Downloader*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
          Notify "downloaded files" "${telegram_new_files_text}"
       elif [ "${notification_type}" = "Webhook" ]; then
          new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | tail -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
-         webhook_payload="$(echo -e "boredazfcuk/iCloudPD - New files detected for Apple ID ${apple_id}: ${new_files_count} Last ${new_files_preview_count} file names: ${new_files_preview//_/\\_}")"
+         webhook_payload="$(echo -e "iCloud Photos Downloader - New files detected for Apple ID ${apple_id}: ${new_files_count} Last ${new_files_preview_count} file names: ${new_files_preview//_/\\_}")"
          Notify "downloaded files" "${webhook_payload}"
       fi
    fi
@@ -398,12 +398,12 @@ DeletedFilesNotification(){
       elif [ "${notification_type}" = "Telegram" ]; then
          deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
-         telegram_deleted_files_text="$(echo -e "\xE2\x84\xB9 *boredazfcuk/iCloudPD*\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview//_/\\_}")"
+         telegram_deleted_files_text="$(echo -e "\xE2\x84\xB9 *iCloud Photos Downloader*\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview//_/\\_}")"
          Notify "deleted files" "${telegram_deleted_files_text}"
       elif [ "${notification_type}" = "Webhook" ]; then
          deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
-         webhook_payload="$(echo -e "boredazfcuk/iCloudPD - Deleted files detected for Apple ID: ${apple_id}: ${deleted_files_count} Last ${deleted_files_preview_count} file names: ${deleted_files_preview//_/\\_}")"
+         webhook_payload="$(echo -e "iCloud Photos Downloader - Deleted files detected for Apple ID: ${apple_id}: ${deleted_files_count} Last ${deleted_files_preview_count} file names: ${deleted_files_preview//_/\\_}")"
          Notify "deleted files" "${webhook_payload}"
       fi
    fi
@@ -459,7 +459,7 @@ Notify(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent "${notification_url}"  \
          --form apikey="${prowl_api_key}" \
-         --form application="boredazfcuk/iCloudPD" \
+         --form application="iCloud Photos Downloader" \
          --form event="${2}" \
          --form priority="${3}" \
          --form description="${4}" \
@@ -477,7 +477,7 @@ Notify(){
       curl --silent "${notification_url}"  \
          --form-string "user=${pushover_user}" \
          --form-string "token=${pushover_token}" \
-         --form-string "title=boredazfcuk/iCloudPD" \
+         --form-string "title=iCloud Photos Downloader" \
          --form-string "priority=${3}" \
          --form-string "message=${4}" \
          >/dev/null 2>&1
@@ -588,10 +588,10 @@ SyncUser(){
                if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ]; then
                   Notify "failure" "iCloudPD container failure" "-2" "iCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}"
                elif [ "${notification_type}" = "Telegram" ]; then
-                  telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *boredazfcuk/iCloudPD*\niCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
+                  telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *iCloud Photos Downloader*\niCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
                   Notify "failure" "${telegram_text}"
                elif [ "${notification_type}" = "Webhook" ]; then
-                  webhook_payload="$(echo -e "boredazfcuk/iCloudPD - iCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
+                  webhook_payload="$(echo -e "iCloud Photos Downloader - iCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
                   Notify "failure" "${webhook_payload}"
                fi
             else
