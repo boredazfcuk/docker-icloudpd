@@ -3,55 +3,55 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 ## MANDATORY ENVIRONMENT VARIABLES
 
-**apple_id**: This is the Apple ID that wil lbe used when downloading files
+**apple_id**: This is the Apple ID that wil lbe used when downloading files.
 
 ## DEFAULT ENVIRONMENT VARIABLES
 
 **apple_password**: This is the password for the Apple ID account named above. This is needed to generate an authentication token. If this variable exists it will be used as the password when downloading files, but you will be prompted with a delayed warning that you should switch to a keyring based authentication. To use keyring based authentication, set the variable to **usekeyring** or omit it entirely.. When keyring based authentication is enabled, the script will check for the presence of the keyring file. If it is not there, the script will pause with a warning for 5mins before exiting. Please connect to the container and run the /usr/local/bin/sync-icloud.sh command manually to start the process of saving your password to the keyring. This will invoke 2FA and Apple will text a confirmation code which needs to be entered. You may also be asked to generate a new 2FA cookie afterwards. If this variable is not set, it will default to 'usekeyring'.
 
-**user**: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. If this variable is not set, it will default to 'user'
+**user**: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. If this variable is not set, it will default to 'user'.
 
-**user_id**: This is the User ID number of the above user account. This can be any number that isn't already in use. Ideally, you should set this to be the same ID number as the user's ID on the host system. This will avoid permissions issues if syncing to your host's home directory. If this variable is not set, it will default to '1000'
+**user_id**: This is the User ID number of the above user account. This can be any number that isn't already in use. Ideally, you should set this to be the same ID number as the user's ID on the host system. This will avoid permissions issues if syncing to your host's home directory. If this variable is not set, it will default to '1000'.
 
-**group**: This is name of the group account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user's primary group on the host system. This This group will be set as the group for all downloaded files. If this variable is not set, it will default to 'group'
+**group**: This is name of the group account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user's primary group on the host system. This This group will be set as the group for all downloaded files. If this variable is not set, it will default to 'group'.
 
-**group_id**: This is the Group ID number of the above group. This can be any number that isn't already in use. Ideally, you should set this to be the same Group ID number as the user's primary group on the host system. If this variable is not set, it will default to '1000'
+**group_id**: This is the Group ID number of the above group. This can be any number that isn't already in use. Ideally, you should set this to be the same Group ID number as the user's primary group on the host system. If this variable is not set, it will default to '1000'.
 
-**force_gid**: If this variable is set it will allow the group to be created with a pre-existing group id. This may be handy if your group id clashes with a system group insude the docker container, however, if may have undesired permissions issues. Please use with caution
+**force_gid**: If this variable is set it will allow the group to be created with a pre-existing group id. This may be handy if your group id clashes with a system group insude the docker container, however, if may have undesired permissions issues. Please use with caution.
 
-**TZ**: This is the local timezone and is required to calculate timestamps. If this variable is not set, it will default to Coordinated Universal Time 'UTC'
+**TZ**: This is the local timezone and is required to calculate timestamps. If this variable is not set, it will default to Coordinated Universal Time 'UTC'.
 
-**download_path**: This is the directory to which files will be downloaded from iCloud. If this variable is not set, it will default to "/home/${user}/iCloud"
+**download_path**: This is the directory to which files will be downloaded from iCloud. If this variable is not set, it will default to "/home/${user}/iCloud".
 
 **synchronisation_interval**: This is the number of seconds between syncronisations. It can be set to the following periods: 43200 (12hrs), 86400 (24hrs), 129600 (36hrs), 172800 (48hrs) and 604800 (7 days). If this variable is not set to one of these values, it will default to 86400 seconds. Since the release of iOS14 Apple seems to configured a maximum limit to the number of authentications per 2FA cookie to around 26. This would mean re-confirming 2FA authentication daily if the synchronisation interval was set to 1hr.
 
 **synchronisation_delay**: This is the number of minutes to delay the first synchronisation. This is so that you can stagger the synchronisations of multiple containers. If this value is not set. It will default to 0.
 
-**notification_days**: This is number of days until cookie expiration for which to generate notifications. This will default to 7 days if not specified so you will receive a single notification in the 7 days running up to cookie expiration
+**notification_days**: This is number of days until cookie expiration for which to generate notifications. This will default to 7 days if not specified so you will receive a single notification in the 7 days running up to cookie expiration.
 
-**authentication_type**: This is the type of authentication that is enabled on your iCloud account. Valid values are '2FA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. If this variable is not set, it will default to '2FA'
+**authentication_type**: This is the type of authentication that is enabled on your iCloud account. Valid values are '2FA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. If this variable is not set, it will default to '2FA'.
 
-**directory_permissions**: This specifies the permissions to set on the directories in your download destination. If this variable is not set, it will default to 750
+**directory_permissions**: This specifies the permissions to set on the directories in your download destination. If this variable is not set, it will default to 750.
 
-**file_permissions**: This specifies the permissions to set on the files in your download destination. If this variable is not set, it will default to 640
+**file_permissions**: This specifies the permissions to set on the files in your download destination. If this variable is not set, it will default to 640.
 
-**folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure
+**folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure.
 
-**download_notifications**: This variable specifies whether notifications with a short summary should be sent for file downloads. If this variable is not set, it will default to **True**
+**download_notifications**: This variable specifies whether notifications with a short summary should be sent for file downloads. If this variable is not set, it will default to **True**.
 
-**delete_notifications**: This variable specifies whether notifications with a short summary should be sent for file deletions. If this variable is not set, it will default to **True**
+**delete_notifications**: This variable specifies whether notifications with a short summary should be sent for file deletions. If this variable is not set, it will default to **True**.
 
-**set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date. If this variable is not set, it will default to **False**
+**set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date. If this variable is not set, it will default to **False**.
 
-**auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). If this variable is not set, it will default to **False**
+**auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). If this variable is not set, it will default to **False**.
 
-**photo_size**: Image size to download. Can be set to original, medium or thumb. If this variable is not set, it will default to **original**
+**photo_size**: Image size to download. Can be set to original, medium or thumb. If this variable is not set, it will default to **original**.
 
-**skip_live_photos**: If this is set, it will skip downloading liver photos. If this variable is not set, it will default to **False**
+**skip_live_photos**: If this is set, it will skip downloading liver photos. If this variable is not set, it will default to **False**.
 
-**live_photo_size**: Live photo file size to download. Can be set to original, medium or thumb. If skip_live_photos is set, this setting is redundant. If this variable is not set, it will default to **original**
+**live_photo_size**: Live photo file size to download. Can be set to original, medium or thumb. If skip_live_photos is set, this setting is redundant. If this variable is not set, it will default to **original**.
 
-**skip_videos**: If this is set, it will skip downloading videos. If this variable is not set, it will default to **False**
+**skip_videos**: If this is set, it will skip downloading videos. If this variable is not set, it will default to **False**.
 
 **recent_only**: Set this variable to an integer number to only download this many recently added photos. If this variable is not set, it will default to downloading all photos.
 
@@ -61,42 +61,44 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **interactive_only**: Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
 
-**command_line_options**: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage)
+**command_line_options**: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage).
 
-**convert_heic_to_jpeg**: This tells the container that it should convert any HEIC files it downloads to JPEG
+**convert_heic_to_jpeg**: This tells the container that it should convert any HEIC files it downloads to JPEG.
 
 **jpeg_quality**: If HEIC to JPEG conversion is enabled, this variable will let you set the quality of the converted file by specifying a number from 0 (lowest quality) to 100 (highest quality) If convert_heic_to_jpeg is set, and this variable isn't, it will default to 100.
 
 ## NOTIFICATION CONFIGURATION VARIABLES
 
-**notification_type**: This specifies the method that is used to send notifications. Currently, there are four options available **Prowl**, **Pushover**, **Telegram** and **Webhook**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon syncronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started
+**notification_type**: This specifies the method that is used to send notifications. Currently, there are four options available **Prowl**, **Pushover**, **Telegram** and **Webhook**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon syncronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
 
-**prowl_api_key**: If the notification_type is set to 'Prowl' this is mandatory. This is the API key for your account as generated by the Prowl website
+**notification_title**: This allows you to change the title which is sent on the notifications. If this variable is not set, it will default to **boredazfcuk/iCloudPD**.
 
-**pushover_user**: If the notification_type is set to 'Pushover' this is mandatory. This is the user name that was chose when creating the Pushover account
+**prowl_api_key**: If the notification_type is set to 'Prowl' this is mandatory. This is the API key for your account as generated by the Prowl website.
 
-**pushover_token**: If the notification_type is set to 'Pushover' this is mandatory. This is the access token your account as generated by the Pushover website
+**pushover_user**: If the notification_type is set to 'Pushover' this is mandatory. This is the user name that was chose when creating the Pushover account.
 
-**telegram_token**: If the notification_type is set to 'Telegram' this is mandatory. This is the token that was assigned to your account by The Botfather
+**pushover_token**: If the notification_type is set to 'Pushover' this is mandatory. This is the access token your account as generated by the Pushover website.
 
-**telegram_chat_id**: If the notification_type is set to 'Telegram' then this is the chat_id for your Telegram bot
+**telegram_token**: If the notification_type is set to 'Telegram' this is mandatory. This is the token that was assigned to your account by The Botfather.
 
-**webhook_server**: If the notification_type is set to 'Webhook' then this is the name of the server to connect to when sending webhook notifications
+**telegram_chat_id**: If the notification_type is set to 'Telegram' then this is the chat_id for your Telegram bot.
 
-**webhook_port**: If the notification_type is set to 'Webhook' then this is the port number to use when connecting to the webhook server. If this is not set, it will default to 8123
+**webhook_server**: If the notification_type is set to 'Webhook' then this is the name of the server to connect to when sending webhook notifications.
 
-**webhook_path**: If the notification_type is set to 'Webhook' then this is the path to use when connectiong to the webhook server. The path must start and end with a forward slash character. If this is not set, it will default to /api/webhook/
+**webhook_port**: If the notification_type is set to 'Webhook' then this is the port number to use when connecting to the webhook server. If this is not set, it will default to 8123.
 
-**webhook_id**: If the notification_type is set to 'Webhook' then this is the Webhook ID to use
+**webhook_path**: If the notification_type is set to 'Webhook' then this is the path to use when connectiong to the webhook server. The path must start and end with a forward slash character. If this is not set, it will default to **/api/webhook/**.
 
-**webhook_https**: If this is set to 'True then the Webhoot notification URL will use HTTPS, otherwise it will default to HTTP
+**webhook_id**: If the notification_type is set to 'Webhook' then this is the Webhook ID to use.
+
+**webhook_https**: If this is set to 'True then the Webhoot notification URL will use HTTPS, otherwise it will default to HTTP.
 
 ## VOLUME CONFIGURATION
 
 It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it will lose the cookie information each time the container is recreated
-It will download the photos to the "/home/${user}/iCloud" photos directory. You need to create a bind mount into the container at this point
+It will download the photos to the "/home/${user}/iCloud" photos directory. You need to create a bind mount into the container at this point.
 
-I also have a failsafe built in. The launch script will look for a file called "/home/${user}/iCloud/.mounted" (please note the capitalisation) in the destination folder inside the container. If this file is not present, it will not download anything from iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will not occur. This prevents the script from filling up the root volume if the underlying volume isn't mounted for whatever reason. This file **MUST** be created manually and sync will not start without it
+I also have a failsafe built in. The launch script will look for a file called "/home/${user}/iCloud/.mounted" (please note the capitalisation) in the destination folder inside the container. If this file is not present, it will not download anything from iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will not occur. This prevents the script from filling up the root volume if the underlying volume isn't mounted for whatever reason. This file **MUST** be created manually and sync will not start without it.
 
 ## CREATING A CONTAINER
 

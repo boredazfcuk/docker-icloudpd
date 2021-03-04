@@ -1,3 +1,8 @@
+20210304
+
+ - Change: Added notification_title variable.
+ - Change: Readme changes to add full stops on lines where they were missing.
+
 20210128
 
  - Change: Added logging of $TERM variable.
