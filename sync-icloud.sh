@@ -231,7 +231,11 @@ Generate2FACookie(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Checking for new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
       su "${user}" -c '/usr/bin/icloudpd --username "${0}" --password "${1}" --cookie-directory "${2}" --directory "${3}" --only-print-filenames --recent 0' -- "${apple_id}" "${apple_password}" "${config_dir}" "/dev/null"
    fi
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful."
+   if [ "${authentication_type}" = "2FA" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful."
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Web cookie generated. Sync should now be successful."
+   fi
    exit 0
 }
 

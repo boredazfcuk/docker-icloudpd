@@ -1,3 +1,8 @@
+20210322
+
+ - Change: Amended log text after cookie generation. Script no longer claims 2FA cookie generated for all cases, but states 2FA/Web based on which was actually generated.
+ - Chnage: Add Litecoin address. BTC network fees are expensive AF!
+ 
 20210304
 
  - Change: Added notification_title variable.

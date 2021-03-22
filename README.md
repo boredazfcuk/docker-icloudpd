@@ -291,4 +291,5 @@ To run the script inside the currently running container, issue this command:
 docker exec -it icloudpd /usr/local/bin/sync-icloud.sh --Generate2FACookie
 ```
 
-BTC: 1E8kUsm3qouXdVYvLMjLbw7rXNmN2jZesL
+Bitcoin: 1E8kUsm3qouXdVYvLMjLbw7rXNmN2jZesL
+Litecoin: LfmogjcqJXHnvqGLTYri5M8BofqqXQttk4
