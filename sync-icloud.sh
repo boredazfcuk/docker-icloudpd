@@ -27,7 +27,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Python version: $(python3 --version | awk '{print $2}')"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Terminal type: ${TERM}"
+   if [ "${TERM}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Terminal type: ${TERM}"; fi
    if [ -t 0 ] || [ -p /dev/stdin ]; then interactive_session="True"; fi
    if [ "${interactive_only}" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set. Skipping 2FA Cookie creation."
@@ -154,9 +154,9 @@ CreateGroup(){
       elif [ "$(grep -c ":x:${group_id}:" "/etc/group")" -eq 1 ]; then
          if [ "${force_gid}" = "True" ]; then
             group="$(grep ":x:${group_id}:" /etc/group | awk -F: '{print $1}')"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Group id, ${group_id}, already exists - continuing as force_gid variable has been set. Group name to use: ${group}"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Group id, ${group_id}, already in use by the group: ${group} - continuing as force_gid variable has been set. Group name to use: ${group}"
          else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Group id, ${group_id}, already in use - exiting"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Group id, ${group_id}, already in use by the group: ${group} - exiting. If you must to add your user to this pre-existing system group, please set the force_gid variable to True."
             sleep 120
             exit 1
          fi
@@ -191,19 +191,23 @@ ConfigurePassword(){
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
+   if [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing."
+      rm "${config_dir}/python_keyring/keyring_pass.cfg"
+   fi
    if [ "${apple_password}" = "usekeyring" ] && [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${interactive_session}" = "True" ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Adding password to keyring..."
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
          su "${user}" -c '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID password set to 'usekeyring' but keyring file does not exist. Container must be run interactively to add a password to the system keyring - Restart in 5mins"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID password set to 'usekeyring' but keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist. Container must be run interactively to add a password to the system keyring - Restart in 5mins"
          sleep 300
          exit 1
       fi
    fi
    if [ "${apple_password}" ]; then
       if [ "${apple_password}" = "usekeyring" ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Using password stored in keyring"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Using password stored in keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Using Apple ID password from variable. This password will be visible in the process list of the host. Please add your password to the system keyring instead"
          sleep 15
@@ -225,7 +229,7 @@ Generate2FACookie(){
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Generate 2FA cookie with password: ${apple_password}"
    if [ "${apple_password}" = "usekeyring" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring..."
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring file."
       su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Checking for new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
@@ -340,7 +344,7 @@ Display2FAExpiry(){
 CheckFiles(){
    if [ -f "/tmp/icloudpd/icloudpd_check.log" ]; then rm "/tmp/icloudpd/icloudpd_check.log"; fi
    if [ "${apple_password}" = "usekeyring" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring..."
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring file..."
       su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" 
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Checking for new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
@@ -581,7 +585,7 @@ SyncUser(){
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of new files for user: ${user}"
             synchronisation_time="$(date +%s -d '+15 minutes')"
             if [ "${apple_password}" = "usekeyring" ]; then
-               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using password stored in keyring..."
+               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using password stored in keyring file..."
             else
                echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Downloading new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
             fi

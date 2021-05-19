@@ -1,3 +1,15 @@
+20210519
+
+ - Change: Added code to remove keyring file if it doesn't contain credentials
+
+20210515
+
+ - Change: New download link for Boost source as location changed
+
+20210515
+
+ - Change: Amended log output for when attempting to add a user to a pre-existing system group.
+
 20210322
 
  - Change: Amended log text after cookie generation. Script no longer claims 2FA cookie generated for all cases, but states 2FA/Web based on which was actually generated.
