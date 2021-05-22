@@ -7,7 +7,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 ## DEFAULT ENVIRONMENT VARIABLES
 
-**apple_password**: This is the password for the Apple ID account named above. This is needed to generate an authentication token. If this variable exists it will be used as the password when downloading files, but you will be prompted with a delayed warning that you should switch to a keyring based authentication. To use keyring based authentication, set the variable to **usekeyring** or omit it entirely.. When keyring based authentication is enabled, the script will check for the presence of the keyring file. If it is not there, the script will pause with a warning for 5mins before exiting. Please connect to the container and run the /usr/local/bin/sync-icloud.sh command manually to start the process of saving your password to the keyring. This will invoke 2FA and Apple will text a confirmation code which needs to be entered. You may also be asked to generate a new 2FA cookie afterwards. If this variable is not set, it will default to 'usekeyring'.
+**apple_password**: This is the password for the Apple ID account named above. This is needed to generate an authentication token. If this variable exists it will be used as the password when downloading files, but you will be prompted with a delayed warning that you should switch to a keyring based authentication. To use keyring based authentication, set the variable to **usekeyring** or omit it entirely. When keyring based authentication is enabled, the script will check for the presence of the keyring file. If it is not there, the script will pause with a warning for 5mins before exiting. Please connect to the container and run the /usr/local/bin/sync-icloud.sh command manually to start the process of saving your password to the keyring. This will invoke 2FA and Apple will text a confirmation code which needs to be entered. You may also be asked to generate a new 2FA cookie afterwards. If this variable is not set, it will default to 'usekeyring'.
 
 **user**: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. If this variable is not set, it will default to 'user'.
 
@@ -23,11 +23,11 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **download_path**: This is the directory to which files will be downloaded from iCloud. If this variable is not set, it will default to "/home/${user}/iCloud".
 
-**synchronisation_interval**: This is the number of seconds between syncronisations. It can be set to the following periods: 43200 (12hrs), 86400 (24hrs), 129600 (36hrs), 172800 (48hrs) and 604800 (7 days). If this variable is not set to one of these values, it will default to 86400 seconds. Since the release of iOS14 Apple seems to configured a maximum limit to the number of authentications per 2FA cookie to around 26. This would mean re-confirming 2FA authentication daily if the synchronisation interval was set to 1hr.
+**synchronisation_interval**: This is the number of seconds between synchronisations. It can be set to the following periods: 43200 (12hrs), 86400 (24hrs), 129600 (36hrs), 172800 (48hrs) and 604800 (7 days). If this variable is not set to one of these values, it will default to 86400 seconds. Be careful if setting a short synchronisation period. Apple have a tendency to throttle connections that are hitting their server too often. I find that every 24hrs is fine. My phone will upload files to the cloud immediately, so if I lose my phone the photos I've taken that day will still be safe in the cloud, and the container will download those phots when it runs in the evening.
 
 **synchronisation_delay**: This is the number of minutes to delay the first synchronisation. This is so that you can stagger the synchronisations of multiple containers. If this value is not set. It will default to 0.
 
-**notification_days**: This is number of days until cookie expiration for which to generate notifications. This will default to 7 days if not specified so you will receive a single notification in the 7 days running up to cookie expiration.
+**notification_days**: When your cookie is nearing expiration, this is the number of days in advance it should notify you. This will default to 7 days if not specified so you will receive a single notification in the 7 days running up to cookie expiration.
 
 **authentication_type**: This is the type of authentication that is enabled on your iCloud account. Valid values are '2FA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. If this variable is not set, it will default to '2FA'.
 
@@ -45,11 +45,11 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). If this variable is not set, it will default to **False**.
 
-**photo_size**: Image size to download. Can be set to original, medium or thumb. If this variable is not set, it will default to **original**.
+**photo_size**: Image size to download. Can be set to **original**, **medium** or **thumb**. If this variable is not set, it will default to **original**.
 
-**skip_live_photos**: If this is set, it will skip downloading liver photos. If this variable is not set, it will default to **False**.
+**skip_live_photos**: If this is set, it will skip downloading live photos. If this variable is not set, it will default to **False**.
 
-**live_photo_size**: Live photo file size to download. Can be set to original, medium or thumb. If skip_live_photos is set, this setting is redundant. If this variable is not set, it will default to **original**.
+**live_photo_size**: Live photo file size to download. Can be set to **original**, **medium** or **thumb**. If skip_live_photos is set, this setting is redundant. If this variable is not set, it will default to **original**.
 
 **skip_videos**: If this is set, it will skip downloading videos. If this variable is not set, it will default to **False**.
 
@@ -69,7 +69,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 ## NOTIFICATION CONFIGURATION VARIABLES
 
-**notification_type**: This specifies the method that is used to send notifications. Currently, there are four options available **Prowl**, **Pushover**, **Telegram** and **Webhook**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon syncronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
+**notification_type**: This specifies the method that is used to send notifications. Currently, there are four options available **Prowl**, **Pushover**, **Telegram** and **Webhook**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
 
 **notification_title**: This allows you to change the title which is sent on the notifications. If this variable is not set, it will default to **boredazfcuk/iCloudPD**.
 
@@ -98,7 +98,9 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it will lose the cookie information each time the container is recreated
 It will download the photos to the "/home/${user}/iCloud" photos directory. You need to create a bind mount into the container at this point.
 
-I also have a failsafe built in. The launch script will look for a file called "/home/${user}/iCloud/.mounted" (please note the capitalisation) in the destination folder inside the container. If this file is not present, it will not download anything from iCloud. This is so that if the underlying disk/volume/whatever gets unmounted, sync will not occur. This prevents the script from filling up the root volume if the underlying volume isn't mounted for whatever reason. This file **MUST** be created manually and sync will not start without it.
+## FAILSAFE FEATURE
+
+I have added a failsafe feature to this container so that it doesn't make any changes to the filesystem unless it can verify the volume it is writing to is mounted correctly. The container will look for a file called "/home/${user}/iCloud/.mounted" (please note the capitalisation of iCloud) in the download destination directory inside the container. If this file is not present, it will not download anything from iCloud. This way, if underlying disk/volume/whatever gets unmounted, sync will not occur and this prevents the script from filling up the root volume of the host. This file **MUST** be created manually and sync will not start without it.
 
 ## CREATING A CONTAINER
 
@@ -178,7 +180,7 @@ or
 ```
 ERROR    Cookie does not exist. Please run container interactively to generate - Retry in 5 minutes
 ```
-Without this cookie, syncronisation cannot be started.
+Without this cookie, synchronisation cannot be started.
 
 To generate a two factor authentication cookie the container must be run interactively. This can be done by connecting to the running container and launching a second instance of the sync-icloud.sh script. Presuming your container is called icloudpd, connect to it by running the command:
 ```
@@ -235,7 +237,7 @@ The process should look similar to this:
 2020-08-06 16:45:58 INFO     Folder structure: {:%Y}
 2020-08-06 16:45:58 INFO     Directory permissions: 750
 2020-08-06 16:45:58 INFO     File permissions: 640
-2020-08-06 16:45:58 INFO     Syncronisation interval: 43200
+2020-08-06 16:45:58 INFO     Synchronisation interval: 43200
 2020-08-06 16:45:58 INFO     Time zone: Europe/London
 2020-08-06 16:45:58 INFO     Additional command line options: --auto-delete --set-exif-datetime
 2020-08-06 16:45:58 INFO     Correct owner on config directory, if required
@@ -290,6 +292,10 @@ To run the script inside the currently running container, issue this command:
 ```
 docker exec -it icloudpd /usr/local/bin/sync-icloud.sh --Generate2FACookie
 ```
+
+## HEALTH CHECK
+
+I have built in a health check for this container. If the script detects a download error the container will be marked as unhealthy. You can then configure this container: https://hub.docker.com/r/willfarrell/autoheal/ to monitor iCloudPD and restart the unhealthy container. Please note, if your 2FA cookie expires, the container will be marked as unhealthy, and will be restarted by the authoheal container every five minutes or so... This can lead to a lot of notifications if it happens while you're asleep!
 
 Bitcoin: 1E8kUsm3qouXdVYvLMjLbw7rXNmN2jZesL
 Litecoin: LfmogjcqJXHnvqGLTYri5M8BofqqXQttk4

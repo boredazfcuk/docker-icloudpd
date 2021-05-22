@@ -1,5 +1,11 @@
 20210522
 
+ - Change: Rebase to Alpine Linux 3.13.5
+ - Change: Now logs full version ID rather than just major/minor version.
+ - Change: Reddit user Vinnipinni made a comment that the documentation was great... so I've revisited it again to make sure it's up to date, corrected some spellings and grammar, and made a few improvements for clarity.
+
+20210522
+
  - Change: --size parameter was incorrectly set as --photo-size.
 
 20210519

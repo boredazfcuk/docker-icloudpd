@@ -1,4 +1,4 @@
-FROM alpine:3.13
+FROM alpine:3.13.5
 MAINTAINER boredazfcuk
 
 ENV config_dir="/config"
