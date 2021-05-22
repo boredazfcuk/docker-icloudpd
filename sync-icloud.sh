@@ -533,7 +533,7 @@ Notify(){
 CommandLineBuilder(){
    command_line="--directory ${download_path} --cookie-directory ${config_dir} --folder-structure ${folder_structure} --username ${apple_id}"
    if [ "${photo_size}" != "original"  ]; then
-      command_line="${command_line} --photo-size ${photo_size}"
+      command_line="${command_line} --size ${photo_size}"
    fi
    if [ "${set_exif_datetime}" != "False" ]; then
       command_line="${command_line} --set-exif-datetime"

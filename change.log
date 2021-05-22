@@ -1,3 +1,7 @@
+20210522
+
+ - Change: --size parameter was incorrectly set as --photo-size.
+
 20210519
 
  - Change: Added code to remove keyring file if it doesn't contain credentials
