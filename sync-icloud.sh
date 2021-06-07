@@ -191,7 +191,7 @@ ConfigurePassword(){
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
-   if [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
+   if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ] && [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing."
       rm "${config_dir}/python_keyring/keyring_pass.cfg"
    fi
@@ -236,7 +236,7 @@ Generate2FACookie(){
       su "${user}" -c '/usr/bin/icloudpd --username "${0}" --password "${1}" --cookie-directory "${2}" --directory "${3}" --only-print-filenames --recent 0' -- "${apple_id}" "${apple_password}" "${config_dir}" "/dev/null"
    fi
    if [ "${authentication_type}" = "2FA" ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful."
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful."
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Web cookie generated. Sync should now be successful."
    fi
