@@ -1,3 +1,10 @@
+20210614
+
+ - Change: Accurate health check output when approaching cookie expiration date.
+ - Change: Cookie expiration date checking improved.
+ - Change: Wasn't setting notification period for some of the notification options.
+ - Change: Notifications weren't firing in the notification period. Should now be fixed.
+
 20210607
 
  - Change: Code to remove empty keyring file requires logic to detect f file actually exists, otherwise brand new containers enter a file deletion loop. Logic amended.

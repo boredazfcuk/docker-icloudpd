@@ -72,7 +72,7 @@ Initialise(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Stop downloading when prexisiting files count is: Download All Photos"
    fi
    if [ "${skip_live_photos}" = "False" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Live photo size: ${live_photo_size:=original}"; fi
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip videos ${skip_videos:=False}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip videos: ${skip_videos:=False}"
    if [ "${command_line_options}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Additional command line options is depreceated. Please specify all options using the dedicated variables: ${command_line_options}"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC to JPEG: ${convert_heic_to_jpeg:=False}"
    if [ "${convert_heic_to_jpeg}" != "False" ]; then
@@ -100,9 +100,9 @@ ConfigureNotifications(){
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} user ${pushover_user}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${pushover_token}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          notification_url="https://api.pushover.net/1/messages.json"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
@@ -111,6 +111,7 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${telegram_token}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} chat id ${telegram_chat_id}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          telegram_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\niCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
          Notify "startup" "${telegram_text}"
       elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
@@ -122,6 +123,7 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ID: ${webhook_id}"
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          webhook_payload="$(echo -e "${notification_title} - iCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
          Notify "startup" "${webhook_payload}"
       elif [ "${notification_type}" = "Dingtalk" ]&& [ "${dingtalk_token}" ]; then
@@ -129,6 +131,7 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${dingtalk_token}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}" 
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
@@ -298,8 +301,13 @@ Check2FACookie(){
          twofa_expire_seconds="$(date -d "${twofa_expire_date}" '+%s')"
          days_remaining="$(($((twofa_expire_seconds - $(date '+%s'))) / 86400))"
          echo "${days_remaining}" > "${config_dir}/DAYS_REMAINING"
-         if [ "${days_remaining}" -gt 0 ]; then valid_twofa_cookie="True"; fi
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
+         if [ "${days_remaining}" -gt 0 ]; then
+            valid_twofa_cookie="True"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
+         else
+            echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie has expired. Please run container interactively to generate - Retry in 5 minutes"
+            exit 1
+         fi
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie is not 2FA capable, authentication type may have changed. Please run container interactively to generate - Retry in 5 minutes"
          sleep 300
@@ -312,8 +320,9 @@ Check2FACookie(){
 
 Display2FAExpiry(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie expires: ${twofa_expire_date/ / @ }"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Days remaining until expiration: ${days_remaining}"
    if [ "${days_remaining}" -lt "${notification_days}" ]; then
-      if [ "${synchronisation_time}" -gt "${next_notification_time:=$(date +%s)}" ]; then
+      if [ "${synchronisation_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]; then
          if [ "${days_remaining}" -eq 1 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Final day before two factor authentication cookie expires - Please reinitialise now. This is your last reminder"
             if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
@@ -651,7 +660,10 @@ Initialise
 CreateGroup
 CreateUser
 ConfigurePassword
-if [ "${interactive_session}" = "True" ]; then
+if [ "$1" = "--Generate2FACookie" ]; then
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line option --Generate2FACookie specified"
+   Generate2FACookie
+elif [ "${interactive_session}" = "True" ]; then
    if [ "$1" = "--ConvertAllHEICs" ]; then
       ConvertAllHEICs
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC to JPG conversion complete"
@@ -661,12 +673,12 @@ if [ "${interactive_session}" = "True" ]; then
       CorrectJPEGTimestamps
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG timestamp correction complete"
       exit 0
+   elif [ "$1" = "--Generate2FACookie" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line option --Generate2FACookie specified"
+      Generate2FACookie
    elif [ -z "$1" ]; then
       Generate2FACookie
    fi
-fi
-if [ "$1" = "--Generate2FACookie" ]; then
-   Generate2FACookie
 fi
 CheckMount
 SetOwnerAndPermissions
