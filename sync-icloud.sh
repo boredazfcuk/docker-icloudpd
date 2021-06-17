@@ -22,17 +22,15 @@ Initialise(){
    if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_check_exit_code"; fi
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_download_exit_code"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** $(realpath "${0}") script version: $(date --reference=$(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** $(realpath "${0}") date: $(date --reference=$(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** $(realpath "${0}") hash: $(md5sum $(realpath "${0}") | awk '{print $1}') *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Python version: $(python3 --version | awk '{print $2}')"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
    if [ "${TERM}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Terminal type: ${TERM}"; fi
    if [ -t 0 ] || [ -p /dev/stdin ]; then interactive_session="True"; fi
-   if [ "${interactive_only}" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set. Skipping 2FA Cookie creation."
-      unset interactive_session
-   fi
+   if [ "${interactive_only}" ]; then unset interactive_session; fi
    if [ -z "${apple_id}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; sleep 120; exit 1; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive session: ${interactive_session:=False}"
    if [ "${interactive_only}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set, bypassing 2FA cookie generation"; fi

@@ -1,3 +1,7 @@
+20210617
+
+ - Change: Added script hash to make sure that the sync-icloud.sh file is correct file as date stamp seems to be affected by timezone.
+
 20210614
 
  - Change: Accurate health check output when approaching cookie expiration date.
