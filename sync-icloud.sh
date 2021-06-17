@@ -33,7 +33,8 @@ Initialise(){
    if [ "${interactive_only}" ]; then unset interactive_session; fi
    if [ -z "${apple_id}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; sleep 120; exit 1; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive session: ${interactive_session:=False}"
-   if [ "${interactive_only}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set, bypassing 2FA cookie generation"; fi
+   if [ "${interactive_only}" ] && [ -z "${cookie_generation}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set, bypassing 2FA cookie generation"; fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line option --Generate2FACookie specified"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local user: ${user:=user}:${user_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${group:=group}:${group_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Force GID: ${force_gid:=False}"
@@ -203,7 +204,7 @@ ConfigurePassword(){
       rm "${config_dir}/python_keyring/keyring_pass.cfg"
    fi
    if [ "${apple_password}" = "usekeyring" ] && [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
-      if [ "${interactive_session}" = "True" ]; then
+      if [ "${interactive_session}" = "True" ] || [ "${cookie_generation}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
          su "${user}" -c '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
       else
@@ -654,12 +655,12 @@ SyncUser(){
 }
 
 ##### Script #####
+if [ "$1" = "--Generate2FACookie" ]; then cookie_generation="True"; fi
 Initialise
 CreateGroup
 CreateUser
 ConfigurePassword
-if [ "$1" = "--Generate2FACookie" ]; then
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line option --Generate2FACookie specified"
+if [ "${cookie_generation}" ]; then
    Generate2FACookie
 elif [ "${interactive_session}" = "True" ]; then
    if [ "$1" = "--ConvertAllHEICs" ]; then
