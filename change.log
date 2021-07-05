@@ -1,3 +1,7 @@
+20210705
+
+ - Change: JPEG quality mismatch in documentation and script. Default JPEG quality now referred to correctly in README.MD as 90.
+
 20210617
 
  - Change: Added script hash to make sure that the sync-icloud.sh file is correct file as date stamp seems to be affected by timezone.
