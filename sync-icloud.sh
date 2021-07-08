@@ -368,12 +368,12 @@ CheckFiles(){
    if [ "${check_exit_code}" -ne 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Check failed - Exit code: ${check_exit_code}"
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
-         Notify "failure" "iCloudPD container failure" "2" "iCloudPD failed to download new files for Apple ID: ${apple_id} - Exit code ${check_exit_code}"
+         Notify "failure" "iCloudPD container failure" "2" "iCloudPD failed download check for new files files for Apple ID: ${apple_id} - Exit code ${check_exit_code}"
       elif [ "${notification_type}" = "Telegram" ]; then
-         telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *${notification_title}*\niCloudPD failed to download new files - for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
+         telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *${notification_title}*\niCloudPD failed download check for new files files - for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
          Notify "failure" "${telegram_text}"
       elif [ "${notification_type}" = "Webhook" ]; then
-         webhook_payload="$(echo -e "${notification_title} - iCloudPD failed to download new files for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
+         webhook_payload="$(echo -e "${notification_title} - iCloudPD failed download check for new files files for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
          Notify "failure" "${webhook_payload}"
       fi
    else
