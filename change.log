@@ -1,6 +1,11 @@
+20210809
+
+ - Change: Changed JSON escaping to prevent further issues.
+
 20210708
 
  - Change: Download check and actual download functions both exit with same error message. Changed for clarity about which section is failing.
+
 20210705
 
  - Change: JPEG quality mismatch in documentation and script. Default JPEG quality now referred to correctly in README.MD as 90.
