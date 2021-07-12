@@ -1,4 +1,8 @@
-20210809
+20210712
+
+ - Change: Modify 20210709 JSON escaping and correct change.log date
+
+20210709
 
  - Change: Changed JSON escaping to prevent further issues.
 
