@@ -118,7 +118,7 @@ ConfigureNotifications(){
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
-         webhook_payload="$(echo -e "${notification_title} - iCloud\\Photos\\Downloader container started for Apple ID ${apple_id}")"
+         webhook_payload="$(echo -e "${notification_title} - iCloud\\\\\Photos\\\\\Downloader container started for Apple ID ${apple_id}")"
          Notify "startup" "${webhook_payload}"
       elif [ "${notification_type}" = "Dingtalk" ]&& [ "${dingtalk_token}" ]; then
          notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
