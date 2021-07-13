@@ -28,14 +28,19 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Python version: $(python3 --version | awk '{print $2}')"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
+   if [ "${TERM}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Terminal type: ${TERM}"; fi
+   if [ -t 0 ] || [ -p /dev/stdin ]; then interactive_session="True"; fi
+   if [ "${interactive_only}" ]; then unset interactive_session; fi
    if [ -z "${apple_id}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; sleep 120; exit 1; fi
-   if [ "${apple_password}" ] && [ "${apple_password}" != "usekeyring" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple password configured with variable which is no longer supported. Please add password to system keyring - exiting"; sleep 120; exit 1; fi
-   if [ "${apple_password}" = "usekeyring" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Apple password variable set to 'userkeyring'. This variable can now be removed as it is now the only supported option, so obsolete - continue in 2 minutes"; sleep 120; fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive session: ${interactive_session:=False}"
+   if [ "${interactive_only}" ] && [ -z "${cookie_generation}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Interactive only mode set, bypassing 2FA cookie generation"; fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line option --Generate2FACookie specified"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local user: ${user:=user}:${user_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${group:=group}:${group_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Force GID: ${force_gid:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     LAN IP Address: ${lan_ip}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID: ${apple_id}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID password: ${apple_password:=usekeyring}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication Type: ${authentication_type:=2FA}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: ${config_dir}/${cookie_file}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie expiry notification period: ${notification_days:=7}"
@@ -72,7 +77,7 @@ Initialise(){
    if [ "${convert_heic_to_jpeg}" != "False" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG conversion quality: ${jpeg_quality:=90}"
    fi
-   if [ "${notification_type}" ]; then
+   if [ "${notification_type}" ] && [ "${interactive_session}" = "False" ]; then
       ConfigureNotifications
    fi
    if [ ! -d "/home/${user}/.local/share/" ]; then mkdir --parents "/home/${user}/.local/share/"; fi
@@ -198,21 +203,27 @@ ConfigurePassword(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing."
       rm "${config_dir}/python_keyring/keyring_pass.cfg"
    fi
-   if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
-      if [ "${initialise_container}" ]; then
+   if [ "${apple_password}" = "usekeyring" ] && [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
+      if [ "${interactive_session}" = "True" ] || [ "${cookie_generation}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
          su "${user}" -c '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist."
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Please add the your password to the system keyring using the --Initialise script command line option."
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Restarting in 5 minutes..."
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID password set to 'usekeyring' but keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist. Container must be run interactively to add a password to the system keyring - Restart in 5mins"
          sleep 300
          exit 1
       fi
+   fi
+   if [ "${apple_password}" ]; then
+      if [ "${apple_password}" = "usekeyring" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Using password stored in keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Using Apple ID password from variable. This password will be visible in the process list of the host. Please add your password to the system keyring instead"
+         sleep 15
+      fi
    else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Using password stored in keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID password not set - exiting"
+      sleep 120
+      exit 1
    fi
 }
 
@@ -225,13 +236,19 @@ Generate2FACookie(){
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Generate 2FA cookie with password: ${apple_password}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring file."
-   su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
+   if [ "${apple_password}" = "usekeyring" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring file."
+      su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Checking for new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
+      su "${user}" -c '/usr/bin/icloudpd --username "${0}" --password "${1}" --cookie-directory "${2}" --directory "${3}" --only-print-filenames --recent 0' -- "${apple_id}" "${apple_password}" "${config_dir}" "/dev/null"
+   fi
    if [ "${authentication_type}" = "2FA" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful."
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Web cookie generated. Sync should now be successful."
    fi
+   exit 0
 }
 
 CheckMount(){
@@ -270,11 +287,7 @@ CheckWebCookie(){
    if [ -f "${config_dir}/${cookie_file}" ]; then
       web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie does not exist."
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Please create your cookie using the --Initialise script command line option."
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Restarting in 5 minutes..."
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie does not exist. Please run container interactively to generate - Retry in 5 minutes"
       sleep 300
    fi
 }
@@ -291,27 +304,15 @@ Check2FACookie(){
             valid_twofa_cookie="True"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
          else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie has expired."
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Please recreate your cookie using the --Initialise script command line option."
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Restarting in 5 minutes..."
+            echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie has expired. Please run container interactively to generate - Retry in 5 minutes"
             exit 1
          fi
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie is not 2FA capable, authentication type may have changed."
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Please recreate your cookie using the --Initialise script command line option."
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Restarting in 5 minutes..."
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie is not 2FA capable, authentication type may have changed. Please run container interactively to generate - Retry in 5 minutes"
          sleep 300
       fi
    else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie does not exist."
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Please create your cookie using the --Initialise script command line option."
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Restarting in 5 minutes..."
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie does not exist. Please run container interactively to generate - Retry in 5 minutes"
       sleep 300
    fi
 }
@@ -356,8 +357,13 @@ Display2FAExpiry(){
 
 CheckFiles(){
    if [ -f "/tmp/icloudpd/icloudpd_check.log" ]; then rm "/tmp/icloudpd/icloudpd_check.log"; fi
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring file..."
-   su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" 
+   if [ "${apple_password}" = "usekeyring" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring file..."
+      su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" 
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Checking for new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
+      su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --password "${3}" --folder-structure "${4}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${apple_password}" "${folder_structure}" 
+   fi
    check_exit_code="$(cat /tmp/icloudpd/icloud_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Check failed - Exit code: ${check_exit_code}"
@@ -579,6 +585,12 @@ CommandLineBuilder(){
    if [ "${recent_only}" ]; then
       command_line="${command_line} --recent ${recent_only}"
    fi
+   if [ "${apple_password}" != "usekeyring" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line options: ${command_line} --password ******"
+      command_line="${command_line} --password ${apple_password}"
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line options: ${command_line}"
+   fi
 }
 
 SyncUser(){
@@ -600,7 +612,11 @@ SyncUser(){
          if [ "${check_files_count}" -gt 0 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of new files for user: ${user}"
             synchronisation_time="$(date +%s -d '+15 minutes')"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using password stored in keyring file..."
+            if [ "${apple_password}" = "usekeyring" ]; then
+               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using password stored in keyring file..."
+            else
+               echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Downloading new files using insecure password method. Please store password in the iCloud keyring to prevent password leaks"
+            fi
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     iCloudPD launch command: /usr/bin/icloudpd ${command_line} ${command_line_options} 2>&1"
             su "${user}" -c '(/usr/bin/icloudpd ${0} ${1} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${command_line_options}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
@@ -639,24 +655,29 @@ SyncUser(){
 }
 
 ##### Script #####
-if [ "$1" = "--Initialise" ]; then initialise_container="True"; fi
+if [ "$1" = "--Generate2FACookie" ]; then cookie_generation="True"; fi
 Initialise
 CreateGroup
 CreateUser
 ConfigurePassword
-if [ "${initialise_container}" ]; then
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line option --Initialise specified"
+if [ "${cookie_generation}" ]; then
    Generate2FACookie
-   exit 0
-elif [ "$1" = "--ConvertAllHEICs" ]; then
-   ConvertAllHEICs
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC to JPG conversion complete"
-   exit 0
-elif [ "$1" = "--CorrectJPEGTimestamps" ]; then
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correcting timestamps for JPEG files in ${download_path}"
-   CorrectJPEGTimestamps
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG timestamp correction complete"
-   exit 0
+elif [ "${interactive_session}" = "True" ]; then
+   if [ "$1" = "--ConvertAllHEICs" ]; then
+      ConvertAllHEICs
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC to JPG conversion complete"
+      exit 0
+   elif [ "$1" = "--CorrectJPEGTimestamps" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correcting timestamps for JPEG files in ${download_path}"
+      CorrectJPEGTimestamps
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG timestamp correction complete"
+      exit 0
+   elif [ "$1" = "--Generate2FACookie" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line option --Generate2FACookie specified"
+      Generate2FACookie
+   elif [ -z "$1" ]; then
+      Generate2FACookie
+   fi
 fi
 CheckMount
 SetOwnerAndPermissions

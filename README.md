@@ -7,7 +7,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 ## DEFAULT ENVIRONMENT VARIABLES
 
-**apple_password**: This is the password for the Apple ID account named above. This is needed to generate an authentication token. If this variable exists it will be used as the password when downloading files, but you will be prompted with a delayed warning that you should switch to a keyring based authentication. To use keyring based authentication, set the variable to **usekeyring** or omit it entirely. When keyring based authentication is enabled, the script will check for the presence of the keyring file. If it is not there, the script will pause with a warning for 5mins before exiting. Please connect to the container and run the /usr/local/bin/sync-icloud.sh command manually to start the process of saving your password to the keyring. This will invoke 2FA and Apple will text a confirmation code which needs to be entered. You may also be asked to generate a new 2FA cookie afterwards. If this variable is not set, it will default to 'usekeyring'.
+~~**apple_password**: This is the password for the Apple ID account named above. This is needed to generate an authentication token. If this variable exists it will be used as the password when downloading files, but you will be prompted with a delayed warning that you should switch to a keyring based authentication. To use keyring based authentication, set the variable to **usekeyring** or omit it entirely. When keyring based authentication is enabled, the script will check for the presence of the keyring file. If it is not there, the script will pause with a warning for 5mins before exiting. Please connect to the container and run the /usr/local/bin/sync-icloud.sh command manually to start the process of saving your password to the keyring. This will invoke 2FA and Apple will text a confirmation code which needs to be entered. You may also be asked to generate a new 2FA cookie afterwards. If this variable is not set, it will default to 'usekeyring'.~~ This variable has now been decommissioned. Passwords can no longer be set via a variable and must be added to the keyring.
 
 **user**: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. If this variable is not set, it will default to 'user'.
 
@@ -59,7 +59,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
-**interactive_only**: Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
+~~**interactive_only**: Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.~~ The container now defaults to downloading the files, rather than creating the cookie, so this variable is now obsolete.
 
 **command_line_options**: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage).
 
@@ -115,7 +115,7 @@ docker create \
    boredazfcuk/icloudpd
 ```
 
-Once the container has been created, you should connect to it and run the /usr/local/bin/sync-icloud.sh script manually. This will then take you through the process of adding your password to the container's keyring. It will also take you through generating a cookie that will allow the container to download the photos...
+Once the container has been created, you should connect to it and run the `sync-icloud.sh` script manually. This will then take you through the process of adding your password to the container's keyring. It will also take you through generating a cookie that will allow the container to download the photos...
 
 But you probably want to customise your container a little more than that though, espcially if you have multiple instances of the container running and connecting to different iCloud acocunts.
 
@@ -132,7 +132,6 @@ docker create \
    --env group=<Group Name> \
    --env group_id=<Group ID> \
    --env apple_id="<Apple ID e-mail address>" \
-   --env apple_password="Apple ID password" \
    --env authentication_type=<2FA or Web> \
    --env command_line_options="<Any additional commands you wish to pass to icloudpd>" \
    --env synchronisation_interval=<Include this if you wish to override the default interval of 24hrs> \
@@ -171,52 +170,51 @@ docker create \
    --volume /home/boredazfcuk/iCloud:/home/boredazfcuk/iCloud \
    boredazfcuk/icloudpd
    ```
+
+## CONFIGURING A PASSWORD
+
+If you launch a container without initialising it first, you will receive an error message similar to this:
+```
+ERROR    Keyring file /config/python_keyring/keyring_pass.cfg does not exist.
+INFO      - Please add the your password to the system keyring using the --Initialise script command line option.
+INFO      - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise
+INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise
+INFO     Restarting in 5 minutes...
+```
+
+As per the error, the container needs to be initialised by using the --Initialise command line option. With the first container still running, connect to it and launch the initialisation process by running the following at the terminal prompt:
+```
+docker exec -it <container name> sync-icloud.sh --Initialise
+```
+for example:
+```
+docker exec -it icloudpd sync-icloud.sh --Initialise
+```
+
+You will then be asked to log in to icloud.com, with your current Apple ID and password, and will be prompted to enter a two factor authentication code which will be sent via SMS. Once that is confirmed, the password will be added to the keyring.
+
+If you do not have an authentication cookie, and you have two factor authentication enabled on your account, you will be taken to the cookie generation process immediately after.
    
 ## TWO FACTOR AUTHENTICATION
 
-If your Apple ID account has two factor authentication enabled and you immediately launch the container after creating it, you will see that the container waits for a two factor authentication cookie to be created:
+If your Apple ID account has two factor authentication enabled, you will see that the container waits for a two factor authentication cookie to be created:
 ```
-ERROR    Apple ID password set to 'usekeyring' but keyring file does not exist. Container must be run interactively to add a password to the system keyring - Restart in 5mins
+ERROR    Cookie does not exist."
+INFO      - Please create your cookie using the --Initialise script command line option."
+INFO      - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
+INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
+INFO     Restarting in 5 minutes..."
 ```
-or
-```
-ERROR    Cookie does not exist. Please run container interactively to generate - Retry in 5 minutes
-```
+
 Without this cookie, synchronisation cannot be started.
 
-To generate a two factor authentication cookie the container must be run interactively. This can be done by connecting to the running container and launching a second instance of the sync-icloud.sh script. Presuming your container is called icloudpd, connect to it by running the command:
+As per the error, the container needs to be initialised by using the --Initialise command line option. With the first container still running, connect to it and launch the initialisation process by running the following at the terminal prompt:
 ```
-docker exec -it icloudpd /usr/local/bin/sync-icloud.sh
+docker exec -it <container name> sync-icloud.sh --Initialise
 ```
-
-If you are using keyring authentication, you will be prompted to enter your password and confirm your device with a 2FA code sent via SMS. Once that is confirmed, the password will be added to the keyring.
-
-Alternatively, you can create a second instance of the container, using the same configuration options to create your 2FA cookie. To do this, run the second container in an interactive session (with: docker run -it --rm) and point it to the same named /config volume like this:
-
+for example:
 ```
-docker run -it --rm \
---network <Same as the previously created contrainer> \
---env user=<Same as the previously created contrainer> \
---env user_id=<Same as the previously created contrainer> \
---env group=<Same as the previously created contrainer> \
---env group_id=<Same as the previously created contrainer> \
---env apple_id="<Same as the previously created contrainer>" \
---env apple_password="<Same as the previously created contrainer>" \
---volume <Same named volume as the previously created contrainer> \
-boredazfcuk/icloudpd
-```
-This is an example of the command I run to create the authentication token on my own machine:
-```
-docker run -it --rm \
-   --network containers \
-   --env user=boredazfcuk \
-   --env user_id=1000 \
-   --env group=admins \
-   --env group_id=1010 \
-   --env apple_id="thisisnotmy@email.com" \
-   --env apple_password=usekeyring \
-   --volume icloudpd_boredazfcuk_config:/config \
-   boredazfcuk/icloudpd
+docker exec -it icloudpd sync-icloud.sh --Initialise
 ```
 
 After that, the script will log into the icloud.com website and save the 2FA cookie. Your iDevice will ask you if you want to allow or deny the login. When you allow the login, you will be give a 6-digit approval code. Enter the approval code when prompted.
@@ -231,7 +229,6 @@ The process should look similar to this:
 2020-08-06 16:45:58 INFO     Local group: group:1000
 2020-08-06 16:45:58 INFO     LAN IP Address: 192.168.20.1
 2020-08-06 16:45:58 INFO     Apple ID: email@address.com
-2020-08-06 16:45:58 INFO     Apple ID password: usekeyring
 2020-08-06 16:45:58 INFO     Authentication Type: 2FA
 2020-08-06 16:45:58 INFO     Cookie path: /config/emailaddresscom
 2020-08-06 16:45:58 INFO     Cookie expiry notification period: 7
@@ -277,7 +274,7 @@ There are currently a number of command line options available to use with the s
 The --ConvertAllHEICs command line option will check for HEIC files that do not have an accompanying JPEG file. If it finds a HEIC that does not have an accompaying JPEG file, it will create it. This can be used to add JPEGs for previously downloaded libraries. The easiest way to run this is to connect to the running container and executing the script.
 To run the script inside the currently running container, issue this command:
 ```
-docker exec -it icloudpd /usr/local/bin/sync-icloud.sh --ConvertAllHEICs
+docker exec -it icloudpd sync-icloud.sh --ConvertAllHEICs
 ```
 
 **--CorrectJPEGTimestamps**
@@ -285,14 +282,14 @@ The --CorrectJPEGTimestamps command line option will correct the timestamps of J
 
 To run the script inside the currently running container, issue this command:
 ```
-docker exec -it icloudpd /usr/local/bin/sync-icloud.sh --CorrectJPEGTimestamps
+docker exec -it icloudpd sync-icloud.sh --CorrectJPEGTimestamps
 ```
 
-**--Generate2FACookie**
-The --Generate2FACookie command line option will force the creation of a new two-factor authentication cookie. This makes life easier for people running Synology/QNAP NAS devices as it means they don't have to create a 2nd container to re-authenticate.
+**--Initialise**
+The --Initialise command line option will allow you to add your password to the system keyring. It will also force the creation of a new two-factor authentication cookie.
 To run the script inside the currently running container, issue this command:
 ```
-docker exec -it icloudpd /usr/local/bin/sync-icloud.sh --Generate2FACookie
+docker exec -it icloudpd sync-icloud.sh --Initialise
 ```
 
 ## HEALTH CHECK

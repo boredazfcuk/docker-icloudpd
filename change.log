@@ -1,3 +1,9 @@
+20210712
+
+ - Change: Removed apple_password variable. Password must now be added to the system keyring.
+ - Change: Default mode now to download, interactive_only variable removed. This process was far more complext than it needed to be for Synology/QNAP devices, so a small change to the default operation makes things easier for everyone.
+ - Change: --Generate2FACookie command line option changed to --Initialise as it is also used for saving the password to the system keyring. Not just cookie generation
+
 20210809
 
  - Change: Changed JSON escaping to prevent further issues.
