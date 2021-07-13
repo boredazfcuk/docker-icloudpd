@@ -1,10 +1,13 @@
+20210713
+  - Change: Modify 20210709 JSON escaping and fix minor change.log text
+
 20210712
 
  - Change: Removed apple_password variable. Password must now be added to the system keyring.
- - Change: Default mode now to download, interactive_only variable removed. This process was far more complext than it needed to be for Synology/QNAP devices, so a small change to the default operation makes things easier for everyone.
+ - Change: Default mode now to download, interactive_only variable removed. This process was far more complex than it needed to be for Synology/QNAP devices, so a small change to the default operation makes things easier for everyone.
  - Change: --Generate2FACookie command line option changed to --Initialise as it is also used for saving the password to the system keyring. Not just cookie generation
 
-20210809
+20210709
 
  - Change: Changed JSON escaping to prevent further issues.
 
@@ -58,7 +61,7 @@
 
  - Change: Amended log text after cookie generation. Script no longer claims 2FA cookie generated for all cases, but states 2FA/Web based on which was actually generated.
  - Chnage: Add Litecoin address. BTC network fees are expensive AF!
- 
+
 20210304
 
  - Change: Added notification_title variable.
@@ -164,7 +167,7 @@
 
 20201022
 
- - Change: Added a speed test mode which ignores the requirement for a mounted filesystem. It limits the download to last 500 files. 
+ - Change: Added a speed test mode which ignores the requirement for a mounted filesystem. It limits the download to last 500 files.
  - Change: Multi-threaded mode can now be enabled by setting the multi_thread variable. This will set the thread count to the number of available processors, multipled by five. If the variable is not configured, it will default to single threaded node. Please note: Multithreaded mode has known issues withe files that have duplicate file names. Use with caution.
 
 20201012
@@ -251,7 +254,7 @@
 
  - Change: Prefixed some of the files stored in /tmp/icloudpd with icloudpd_, just for consistency. Plus it's easier to remove them all with `rm icloudpd*` instead of multiple arguments to rm.
  - New: Keyring password saving. Previously, the Apple ID user's password could be seen in the Docker logs, the variables (docker inspect) and disturbingly, if any user did `ps -ef | grep password", it would be seen in the command line of any running connection to iCloud. Script now heavily pushes users towards saving credentials into the secure encrypted keyring.
- - Removal: Saving password to text file has been removed (never made it to a release, but is doumented in the change log). 
+ - Removal: Saving password to text file has been removed (never made it to a release, but is doumented in the change log).
  - Change: su doesn't pass variables to the account it uses. This meant that some variables that I thought were optional (user, config_dir, folder_structure) were actually mandatory. Command now built with $0 $1 $2 etc and variables passed via command line ( -- $bunch $of $options).
  - Removal: Debug logging variable removed. Always logging errors to screen.
  - Change: Telegram notification success/failure messages now confirm message type (startup, download, delete, failure).
