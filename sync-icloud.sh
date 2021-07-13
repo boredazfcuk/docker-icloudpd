@@ -596,8 +596,8 @@ SyncUser(){
       fi
       CheckMount
       if [ "${skip_check}" = "False" ]; then CheckFiles; fi
-      if [ "${check_exit_code}" -eq 0 ]; then
-         if [ "${check_files_count}" -gt 0 ]; then
+      if [ "${skip_check}" = "True" ] || [ "${check_exit_code}" -eq 0 ]; then
+         if [ "${skip_check}" = "True" ] || [ "${check_files_count}" -gt 0 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Starting download of new files for user: ${user}"
             synchronisation_time="$(date +%s -d '+15 minutes')"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading new files using password stored in keyring file..."
