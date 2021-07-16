@@ -1,5 +1,11 @@
+20210716
+
+ - Change: Sanitise notification_title variable
+ - Change: Rebase to Alpine Linux 3.14.0
+
 20210713
-  - Change: Modify 20210709 JSON escaping and fix minor change.log text
+
+ - Change: Modify 20210709 JSON escaping and fix minor change.log text
 
 20210712
 

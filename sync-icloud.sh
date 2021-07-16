@@ -85,7 +85,12 @@ ConfigureNotifications(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  ${notification_type} notifications enabled, but API key/token not set - disabling notifications"
       unset notification_type
    else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification title: ${notification_title:=boredazfcuk/iCloudPD}"
+      if [ "${notification_title}" ]; then
+         notification_title="${notification_title//[^a-zA-Z0-9_ ]/}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cleaned notification title: ${notification_title}"
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification title: ${notification_title:=boredazfcuk/iCloudPD}"
+      fi
       if [ "${notification_type}" = "Prowl" ] && [ "${prowl_api_key}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} api key ${prowl_api_key}"
