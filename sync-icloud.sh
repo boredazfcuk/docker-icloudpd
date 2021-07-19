@@ -396,14 +396,14 @@ DownloadedFilesNotification(){
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
          Notify "downloaded files" "New files detected" "0" "Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
       elif [ "${notification_type}" = "Telegram" ]; then
-         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | tail -10)"
+         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | head -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
-         telegram_new_files_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nLast ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
+         telegram_new_files_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nMost Recent ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
          Notify "downloaded files" "${telegram_new_files_text}"
       elif [ "${notification_type}" = "Webhook" ]; then
-         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | tail -10)"
+         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | head -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
-         webhook_payload="$(echo -e "${notification_title} - New files detected for Apple ID ${apple_id}: ${new_files_count} Last ${new_files_preview_count} file names: ${new_files_preview//_/\\_}")"
+         webhook_payload="$(echo -e "${notification_title} - New files detected for Apple ID ${apple_id}: ${new_files_count} Most Recent ${new_files_preview_count} file names: ${new_files_preview//$'\n'/'\\n'}")"
          Notify "downloaded files" "${webhook_payload}"
       fi
    fi
@@ -425,7 +425,7 @@ DeletedFilesNotification(){
       elif [ "${notification_type}" = "Webhook" ]; then
          deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
-         webhook_payload="$(echo -e "${notification_title} - Deleted files detected for Apple ID: ${apple_id}: ${deleted_files_count} Last ${deleted_files_preview_count} file names: ${deleted_files_preview//_/\\_}")"
+         webhook_payload="$(echo -e "${notification_title} - Deleted files detected for Apple ID: ${apple_id}: ${deleted_files_count} Last ${deleted_files_preview_count} file names: ${deleted_files_preview//$'\n'/'\\n'}")"
          Notify "deleted files" "${webhook_payload}"
       fi
    fi
