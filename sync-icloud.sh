@@ -403,7 +403,7 @@ DownloadedFilesNotification(){
       elif [ "${notification_type}" = "Webhook" ]; then
          new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | tail -10)"
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
-         webhook_payload="$(echo -e "${notification_title} - New files detected for Apple ID ${apple_id}: ${new_files_count} Last ${new_files_preview_count} file names: ${new_files_preview//_/\\_}")"
+         webhook_payload="$(echo -e "${notification_title} - New files detected for Apple ID ${apple_id}: ${new_files_count} Last ${new_files_preview_count} file names: ${new_files_preview//$'\n'/'\\n'}")"
          Notify "downloaded files" "${webhook_payload}"
       fi
    fi
@@ -425,7 +425,7 @@ DeletedFilesNotification(){
       elif [ "${notification_type}" = "Webhook" ]; then
          deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
-         webhook_payload="$(echo -e "${notification_title} - Deleted files detected for Apple ID: ${apple_id}: ${deleted_files_count} Last ${deleted_files_preview_count} file names: ${deleted_files_preview//_/\\_}")"
+         webhook_payload="$(echo -e "${notification_title} - Deleted files detected for Apple ID: ${apple_id}: ${deleted_files_count} Last ${deleted_files_preview_count} file names: ${deleted_files_preview//$'\n'/'\\n'}")"
          Notify "deleted files" "${webhook_payload}"
       fi
    fi

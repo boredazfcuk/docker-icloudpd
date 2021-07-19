@@ -1,3 +1,7 @@
+20210719
+
+ - Change: Download and Delete notification webhook payload JSON fix
+
 20210716
 
  - Change: Sanitise notification_title variable
