@@ -1,6 +1,7 @@
 20210719
 
  - Change: Download and Delete notification webhook payload JSON fix
+ - Change: Remove ambiguity in DownloadedFilesNotification
 
 20210716
 
