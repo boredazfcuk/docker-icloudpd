@@ -643,9 +643,24 @@ SyncUser(){
    done
 }
 
+SanitiseLaunchParameters(){
+   if [ "${script_launch_parameters}" ]; then
+      if [ "${script_launch_parameters}" = "--Initialise" ] || [ "${script_launch_parameters}" = "--ConvertAllHEICs" ] || [ "${script_launch_parameters}" = "--CorrectJPEGTimestamps" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Script launch parameters: ${script_launch_parameters}"
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Ignoring innvalid launch parameter specified: ${script_launch_parameters}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Please do not specify the above parameter when launching the container. Continuing in 2 minutes"
+         sleep 120
+         unset script_launch_parameters
+      fi
+   fi
+}
+
 ##### Script #####
-if [ "$1" = "--Initialise" ]; then initialise_container="True"; fi
+script_launch_parameters="${1}"
+if [ "${script_launch_parameters}" = "--Initialise" ]; then initialise_container="True"; fi
 Initialise
+SanitiseLaunchParameters
 CreateGroup
 CreateUser
 ConfigurePassword
