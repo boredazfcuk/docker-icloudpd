@@ -1,3 +1,11 @@
+20210801
+
+ - Change: Added some extra logging info
+
+20210724
+
+ - Change: Added function to sanitise command line parameters passed to script.
+
 20210719
 
  - Change: Download and Delete notification webhook payload JSON fix

@@ -67,7 +67,10 @@ Initialise(){
    fi
    if [ "${skip_live_photos}" = "False" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Live photo size: ${live_photo_size:=original}"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Skip videos: ${skip_videos:=False}"
-   if [ "${command_line_options}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Additional command line options is depreceated. Please specify all options using the dedicated variables: ${command_line_options}"; fi
+   if [ "${command_line_options}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Additional command line options supplied: ${command_line_options}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Additional command line options is depreciated. Please specify all options using the dedicated variables."
+   fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC to JPEG: ${convert_heic_to_jpeg:=False}"
    if [ "${convert_heic_to_jpeg}" != "False" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG conversion quality: ${jpeg_quality:=90}"
@@ -665,7 +668,6 @@ CreateGroup
 CreateUser
 ConfigurePassword
 if [ "${initialise_container}" ]; then
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Command line option --Initialise specified"
    Generate2FACookie
    exit 0
 elif [ "$1" = "--ConvertAllHEICs" ]; then
