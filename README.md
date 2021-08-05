@@ -162,7 +162,7 @@ docker create \
    --env telegram_token=123654 \
    --env telegram_chat_id=456321 \
    --env folder_structure={:%Y}
-   --env auto_delete=True
+   --env auto_delete=True \
    --env notification_days=14 \
    --env synchronisation_interval=21600 \
    --env TZ=Europe/London \
