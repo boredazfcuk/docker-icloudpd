@@ -7,7 +7,7 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
-   case "${synchronisation_interval:=86400}" in 
+   case "${synchronisation_interval:=86400}" in
       43200) synchronisation_interval=43200;; #12 hours
       86400) synchronisation_interval=86400;; # 24 hours
       129600) synchronisation_interval=129600;; # 36 hours
@@ -128,13 +128,13 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          webhook_payload="$(echo -e "${notification_title} - iCloud\\\\\Photos\\\\\Downloader container started for Apple ID ${apple_id}")"
          Notify "startup" "${webhook_payload}"
-      elif [ "${notification_type}" = "Dingtalk" ]&& [ "${dingtalk_token}" ]; then
+      elif [ "${notification_type}" = "Dingtalk" ] && [ "${dingtalk_token}" ]; then
          notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${dingtalk_token}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
-         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}" 
+         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
          unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token

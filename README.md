@@ -7,7 +7,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 ## DEFAULT ENVIRONMENT VARIABLES
 
-~~**apple_password**: This is the password for the Apple ID account named above. This is needed to generate an authentication token. If this variable exists it will be used as the password when downloading files, but you will be prompted with a delayed warning that you should switch to a keyring based authentication. To use keyring based authentication, set the variable to **usekeyring** or omit it entirely. When keyring based authentication is enabled, the script will check for the presence of the keyring file. If it is not there, the script will pause with a warning for 5mins before exiting. Please connect to the container and run the /usr/local/bin/sync-icloud.sh command manually to start the process of saving your password to the keyring. This will invoke 2FA and Apple will text a confirmation code which needs to be entered. You may also be asked to generate a new 2FA cookie afterwards. If this variable is not set, it will default to 'usekeyring'.~~ This variable has now been decommissioned. Passwords can no longer be set via a variable and must be added to the keyring.
+**apple_password**: ~~This is the password for the Apple ID account named above. This is needed to generate an authentication token. If this variable exists it will be used as the password when downloading files, but you will be prompted with a delayed warning that you should switch to a keyring based authentication. To use keyring based authentication, set the variable to **usekeyring** or omit it entirely. When keyring based authentication is enabled, the script will check for the presence of the keyring file. If it is not there, the script will pause with a warning for 5mins before exiting. Please connect to the container and run the /usr/local/bin/sync-icloud.sh command manually to start the process of saving your password to the keyring. This will invoke 2FA and Apple will text a confirmation code which needs to be entered. You may also be asked to generate a new 2FA cookie afterwards. If this variable is not set, it will default to 'usekeyring'.~~ This variable has now been decommissioned. Passwords can no longer be set via a variable and must be added to the keyring.
 
 **user**: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. If this variable is not set, it will default to 'user'.
 
@@ -23,7 +23,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **download_path**: This is the directory to which files will be downloaded from iCloud. If this variable is not set, it will default to "/home/${user}/iCloud".
 
-**synchronisation_interval**: This is the number of seconds between synchronisations. It can be set to the following periods: 43200 (12hrs), 86400 (24hrs), 129600 (36hrs), 172800 (48hrs) and 604800 (7 days). If this variable is not set to one of these values, it will default to 86400 seconds. Be careful if setting a short synchronisation period. Apple have a tendency to throttle connections that are hitting their server too often. I find that every 24hrs is fine. My phone will upload files to the cloud immediately, so if I lose my phone the photos I've taken that day will still be safe in the cloud, and the container will download those phots when it runs in the evening.
+**synchronisation_interval**: This is the number of seconds between synchronisations. It can be set to the following periods: 43200 (12hrs), 86400 (24hrs), 129600 (36hrs), 172800 (48hrs) and 604800 (7 days). If this variable is not set to one of these values, it will default to 86400 seconds. Be careful if setting a short synchronisation period. Apple have a tendency to throttle connections that are hitting their server too often. I find that every 24hrs is fine. My phone will upload files to the cloud immediately, so if I lose my phone the photos I've taken that day will still be safe in the cloud, and the container will download those photos when it runs in the evening.
 
 **synchronisation_delay**: This is the number of minutes to delay the first synchronisation. This is so that you can stagger the synchronisations of multiple containers. If this value is not set. It will default to 0.
 
@@ -59,7 +59,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
-~~**interactive_only**: Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.~~ The container now defaults to downloading the files, rather than creating the cookie, so this variable is now obsolete.
+**interactive_only**: ~~Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.~~ The container now defaults to downloading the files, rather than creating the cookie, so this variable is now obsolete.
 
 **command_line_options**: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage).
 
@@ -93,11 +93,11 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **webhook_https**: If this is set to 'True then the Webhoot notification URL will use HTTPS, otherwise it will default to HTTP.
 
-**dingtalk_token**: If the notification_type is set to 'Dingtalk' this is mandatory. This is the access token generated by the Dingtalk application(PC/Mac) , and the 'Security Settings' should select 'Custom Keywords' and enter the content of **notification_title**, it will default to **boredazfcuk/iCloudPD**.
+**dingtalk_token**: If the notification_type is set to 'Dingtalk' then this is the access token generated by the Dingtalk application. In the Dingtalk application, go to 'Security Settings', select 'Custom Keywords' and set to to the same value as **notification_title**.
 
 ## VOLUME CONFIGURATION
 
-It also requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it will lose the cookie information each time the container is recreated
+This container requires a named volume mapped to /config. This is where is stores the authentication cookie. Without it, it will lose the cookie information each time the container is recreated.
 It will download the photos to the "/home/${user}/iCloud" photos directory. You need to create a bind mount into the container at this point.
 
 ## FAILSAFE FEATURE
@@ -109,17 +109,12 @@ I have added a failsafe feature to this container so that it doesn't make any ch
 Creating a container can be as simple as running:
 ```
 docker create \
-   --network <Name of Docker network to connect to> \
    --env apple_id="<Apple ID e-mail address>" \
    --volume <Bind mount to the destination folder on the host> \
    boredazfcuk/icloudpd
 ```
 
-Once the container has been created, you should connect to it and run the `sync-icloud.sh` script manually. This will then take you through the process of adding your password to the container's keyring. It will also take you through generating a cookie that will allow the container to download the photos...
-
-But you probably want to customise your container a little more than that though, espcially if you have multiple instances of the container running and connecting to different iCloud acocunts.
-
-I'd recommend creating your container with a little more info than that. Something along the lines of:
+I'd recommend creating your container with a little more info than that though, espcially if you have multiple instances of the container running and downloading from different iCloud acocunts... Something along the lines of:
 
 ```
 docker create \
@@ -133,9 +128,8 @@ docker create \
    --env group_id=<Group ID> \
    --env apple_id="<Apple ID e-mail address>" \
    --env authentication_type=<2FA or Web> \
-   --env command_line_options="<Any additional commands you wish to pass to icloudpd>" \
    --env synchronisation_interval=<Include this if you wish to override the default interval of 24hrs> \
-   --env notification_type=<Choice of Prowl, Pushover, Webhook and Telegram> \
+   --env notification_type=<Choice of Prowl/Pushover/Webhook/Telegram/Dingtalk> \
    --env notification_days=<Number of days for which to send cookie expiry notifications> \
    --env TZ=<The local time zone> \
    --volume <Named volume which is mapped to /config> \
@@ -161,8 +155,8 @@ docker create \
    --env notification_type=Telegram \
    --env telegram_token=123654 \
    --env telegram_chat_id=456321 \
-   --env folder_structure={:%Y}
-   --env auto_delete=True
+   --env folder_structure={:%Y} \
+   --env auto_delete=True \
    --env notification_days=14 \
    --env synchronisation_interval=21600 \
    --env TZ=Europe/London \
@@ -172,6 +166,8 @@ docker create \
    ```
 
 ## CONFIGURING A PASSWORD
+
+Once the container has been created, you should connect to it and run `/usr/local/bin/sync-icloud.sh --Initialise`. This will then take you through the process of adding your password to the container's keyring. It will also take you through generating a cookie that will allow the container to download the photos...
 
 If you launch a container without initialising it first, you will receive an error message similar to this:
 ```
