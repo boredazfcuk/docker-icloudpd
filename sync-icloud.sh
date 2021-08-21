@@ -533,7 +533,7 @@ Notify(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent --request POST "${notification_url}" \
          --header 'content-type: application/json' \
-         --data "{ \"${webhook_body}\" : \"${2}\" }" \
+         --data "{ \"${webhook_body:=data}\" : \"${2}\" }" \
          >/dev/null 2>&1
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then 
