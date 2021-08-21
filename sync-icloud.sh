@@ -125,6 +125,7 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ID: ${webhook_id}"
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} webhook body keyword: ${webhook_body:=data}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          webhook_payload="$(echo -e "${notification_title} - iCloud\\\\\Photos\\\\\Downloader container started for Apple ID ${apple_id}")"
          Notify "startup" "${webhook_payload}"
@@ -533,7 +534,7 @@ Notify(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent --request POST "${notification_url}" \
          --header 'content-type: application/json' \
-         --data "{ \"${webhook_body:=data}\" : \"${2}\" }" \
+         --data "{ \"${webhook_body}\" : \"${2}\" }" \
          >/dev/null 2>&1
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then 
