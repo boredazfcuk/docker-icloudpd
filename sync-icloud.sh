@@ -47,6 +47,7 @@ Initialise(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  The syncronisation_interval variable contained a typo. This has now been corrected to synchronisation_interval. Please update your container. Defaulting to one sync per 24 hour period"
       synchronisation_interval="86400"
    fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation method: ${synchronisation_method:=FinishToStart}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation interval: ${synchronisation_interval}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation delay (minutes): ${synchronisation_delay}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Time zone: ${TZ:=UTC}"
@@ -596,6 +597,7 @@ SyncUser(){
       sleep "${synchronisation_delay}m"
    fi
    while :; do
+      sync_user_iteration_start=$(date +'%s')
       chown -R "${user}":"${group}" "${config_dir}"
       if [ "${authentication_type}" = "2FA" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check 2FA Cookie"
@@ -639,10 +641,17 @@ SyncUser(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Web cookie expires: ${web_cookie_expire_date/ / @ }"
       if [ "${authentication_type}" = "2FA" ]; then Display2FAExpiry; fi
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     iCloud login counter = ${login_counter}"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next synchronisation at $(date +%H:%M -d "${synchronisation_interval} seconds")"
+
+      if [ "$synchronisation_method" = "StartToStart" ]; then
+         sync_user_iteration_end=$(date +'%s')
+         timetosleep=$(expr $synchronisation_interval - $sync_user_iteration_end + $sync_user_iteration_start)
+      else
+         timetosleep=$synchronisation_interval
+      fi
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next synchronisation at $(date +%H:%M -d "${timetosleep} seconds")"
       unset check_exit_code check_files_count download_exit_code
       unset new_files
-      sleep "${synchronisation_interval}"
+      sleep "${timetosleep}"
    done
 }
 
