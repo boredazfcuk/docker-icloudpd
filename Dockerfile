@@ -1,3 +1,4 @@
+# Fix to 3.13.5 due to Python 3.9 incompatibility introduced in Alpine 3.14 and newer (AttributeError: module 'base64' has no attribute 'decodestring')
 FROM alpine:3.13.5
 MAINTAINER boredazfcuk
 
