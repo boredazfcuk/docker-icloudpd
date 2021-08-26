@@ -96,14 +96,14 @@ ConfigureNotifications(){
       fi
       if [ "${notification_type}" = "Prowl" ] && [ "${prowl_api_key}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} api key ${prowl_api_key}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} api key: ${prowl_api_key}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          notification_url="https://api.prowlapp.com/publicapi/add" 
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} user ${pushover_user}"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${pushover_token}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} user: ${pushover_user}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token: ${pushover_token}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          notification_url="https://api.pushover.net/1/messages.json"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
@@ -111,8 +111,8 @@ ConfigureNotifications(){
          telegram_chat_id="${telegram_chat_id//-}"
          notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${telegram_token}"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} chat id ${telegram_chat_id}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token: ${telegram_token}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} chat id: ${telegram_chat_id}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          telegram_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\niCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
@@ -132,7 +132,7 @@ ConfigureNotifications(){
       elif [ "${notification_type}" = "Dingtalk" ] && [ "${dingtalk_token}" ]; then
          notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${dingtalk_token}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token: ${dingtalk_token}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"

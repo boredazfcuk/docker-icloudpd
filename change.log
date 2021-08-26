@@ -1,3 +1,8 @@
+20210827
+
+ - Change: Locked version of tzlocal to 2.1 as lateat version introduces dependency which is not available in Python 3.8
+ - Change: Added variable manipulation on the Telegram chat ID to remove minus sign if it's included in the variable. It needs to be omitted when posting the data to the API.
+
 20210801
 
  - Change: Added some extra logging info
