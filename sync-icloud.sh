@@ -108,6 +108,7 @@ ConfigureNotifications(){
          notification_url="https://api.pushover.net/1/messages.json"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
+         telegram_chat_id="${telegram_chat_id//-}"
          notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token ${telegram_token}"
