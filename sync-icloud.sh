@@ -217,7 +217,7 @@ ConfigurePassword(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Please add the your password to the system keyring using the --Initialise script command line option."
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Waiting for keyring file to appear..."
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Waiting for keyring file to be created..."
          local counter
          counter="${counter:=0}"
          while [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; do
@@ -228,6 +228,7 @@ ConfigurePassword(){
                exit 1
             fi
          done
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Keyring file exists, continuing."
       fi
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Using password stored in keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
@@ -254,11 +255,20 @@ Generate2FACookie(){
 
 CheckMount(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check download directory mounted correctly"
+   if [ ! -f "${download_path}/.mounted" ]; do
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Failsafe file ${download_path}/.mounted file is not present. Waiting for failsafe file to be created..."
+      local counter
+      counter="${counter:=0}"
+   fi
    while [ ! -f "${download_path}/.mounted" ]; do
-      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Failsafe file ${download_path}/.mounted file is not present. Plese check the host's target volume is mounted - retry in 5 minutes"
-      sleep 300
+      sleep 5
+      counter=$((counter + 1))
+      if [ "${counter}" -eq 120 ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Failsafe file has not appeared within 10 minutes. Restarting container..."
+         exit 1
+      fi
    done
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Failsafe file ${download_path}/.mounted exists"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Failsafe file ${download_path}/.mounted exists, continuing."
 }
 
 SetOwnerAndPermissions(){
