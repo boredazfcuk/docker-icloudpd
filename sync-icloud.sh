@@ -598,8 +598,8 @@ SyncUser(){
    fi
    while :; do
       synchronisation_start_time="$(date +'%s')"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation starting at ${synchronisation_start_time})"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation starting at $(date +%H:%M -d "${synchronisation_start_time}")"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation starting at ${synchronisation_start_time}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation starting at $(date +%H:%M -d "${synchronisation_start_time} seconds")"
       chown -R "${user}":"${group}" "${config_dir}"
       if [ "${authentication_type}" = "2FA" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check 2FA Cookie"
