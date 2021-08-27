@@ -218,9 +218,10 @@ ConfigurePassword(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Waiting for keyring file to appear..."
+         local counter
          while [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; do
-            local counter=$(("${counter:=0}" + 1))
             sleep 5
+            counter=$(("${counter:=0}" + 1))
             if [ "${counter}" -eq 120 ]; then
                echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Keyring file has not appeared within 10 minutes. Restarting container..."
                exit 1
