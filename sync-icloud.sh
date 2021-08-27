@@ -319,11 +319,12 @@ Check2FACookie(){
             valid_twofa_cookie="True"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
          else
-            echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie has expired."
+            echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie expired at: ${twofa_expire_date}"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Please recreate your cookie using the --Initialise script command line option."
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Restarting in 5 minutes..."
+            sleep 300
             exit 1
          fi
       else
@@ -333,6 +334,7 @@ Check2FACookie(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Restarting in 5 minutes..."
          sleep 300
+         exit 1
       fi
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie does not exist."
@@ -341,6 +343,7 @@ Check2FACookie(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Restarting in 5 minutes..."
       sleep 300
+      exit 1
    fi
 }
 
