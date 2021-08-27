@@ -255,7 +255,7 @@ Generate2FACookie(){
 
 CheckMount(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check download directory mounted correctly"
-   if [ ! -f "${download_path}/.mounted" ]; do
+   if [ ! -f "${download_path}/.mounted" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Failsafe file ${download_path}/.mounted file is not present. Waiting for failsafe file to be created..."
       local counter
       counter="${counter:=0}"
