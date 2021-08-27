@@ -366,7 +366,8 @@ Display2FAExpiry(){
 
 CheckFiles(){
    if [ -f "/tmp/icloudpd/icloudpd_check.log" ]; then rm "/tmp/icloudpd/icloudpd_check.log"; fi
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring file..."
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring file."
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
    su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" 
    check_exit_code="$(cat /tmp/icloudpd/icloud_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then

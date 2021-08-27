@@ -1,6 +1,7 @@
 20210827
 
- - PR Merge: Changed how the webhook notification is handled for compatibility across more notification platforms,
+ - Change: Added logging info explaining that the download check takes a long time on large collections and that nothing is being downloaded during that phase.
+ - PR Merge: Changed how the webhook notification is handled for compatibility across more notification platforms.
  - Change: Script now records time taken per synchronisation and subtracts this from the synchronisation_interval. This means a sync with a 12 hour interval will start 12 hours later and not skew by the amount of time it takes the sync to complete.
 
 20210827
