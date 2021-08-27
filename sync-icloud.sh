@@ -223,8 +223,8 @@ ConfigurePassword(){
          while [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; do
             sleep 5
             counter=$((counter + 1))
-            if [ "${counter}" -eq 120 ]; then
-               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Keyring file has not appeared within 10 minutes. Restarting container..."
+            if [ "${counter}" -eq 360 ]; then
+               echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Keyring file has not appeared within 30 minutes. Restarting container..."
                exit 1
             fi
          done
@@ -263,8 +263,8 @@ CheckMount(){
    while [ ! -f "${download_path}/.mounted" ]; do
       sleep 5
       counter=$((counter + 1))
-      if [ "${counter}" -eq 120 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Failsafe file has not appeared within 10 minutes. Restarting container..."
+      if [ "${counter}" -eq 360 ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Failsafe file has not appeared within 30 minutes. Restarting container..."
          exit 1
       fi
    done
