@@ -646,7 +646,7 @@ SyncUser(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation ended at $(date +%H:%M -d "@${synchronisation_end_time}")"
       sleep_time="$((synchronisation_interval - synchronisation_end_time + synchronisation_start_time))"
       echo "Sleep time ${sleep_time}"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next synchronisation at $(date +%H:%M -d "@${sleep_time}")"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next synchronisation at $(date +%H:%M -d "${sleep_time} seconds")"
       unset check_exit_code check_files_count download_exit_code
       unset new_files
       sleep "${sleep_time}"
