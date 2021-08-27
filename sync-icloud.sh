@@ -598,8 +598,7 @@ SyncUser(){
    fi
    while :; do
       synchronisation_start_time="$(date +'%s')"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation starting at ${synchronisation_start_time}"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation starting at $(date +%H:%M -d "${synchronisation_start_time} seconds")"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation starting at $(date +%H:%M -d "@${synchronisation_start_time}")"
       chown -R "${user}":"${group}" "${config_dir}"
       if [ "${authentication_type}" = "2FA" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check 2FA Cookie"
@@ -644,9 +643,10 @@ SyncUser(){
       if [ "${authentication_type}" = "2FA" ]; then Display2FAExpiry; fi
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     iCloud login counter = ${login_counter}"
       synchronisation_end_time="$(date +'%s')"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation ended at $(date +%H:%M -d "@${synchronisation_end_time}")"
       sleep_time="$((synchronisation_interval - synchronisation_end_time + synchronisation_start_time))"
       echo "Sleep time ${sleep_time}"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next synchronisation at $(date +%H:%M -d "${sleep_time} seconds")"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next synchronisation at $(date +%H:%M -d "@${sleep_time}")"
       unset check_exit_code check_files_count download_exit_code
       unset new_files
       sleep "${sleep_time}"
