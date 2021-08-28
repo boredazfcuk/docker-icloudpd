@@ -667,7 +667,7 @@ SyncUser(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     iCloud login counter = ${login_counter}"
       synchronisation_end_time="$(date +'%s')"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Synchronisation ended at $(date +%H:%M:%S -d "@${synchronisation_end_time}")"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Total time taken: $(date +%H:%M:%S -d @$((synchronisation_end_time - synchronisation_start_time - 3600)))"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Total time taken: $(date +%H:%M:%S -u -d @$((synchronisation_end_time - synchronisation_start_time)))"
       sleep_time="$((synchronisation_interval - synchronisation_end_time + synchronisation_start_time))"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Next synchronisation at $(date +%H:%M:%S -d "${sleep_time} seconds")"
       unset check_exit_code check_files_count download_exit_code
