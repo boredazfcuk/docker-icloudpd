@@ -1,5 +1,6 @@
 20210827
 
+ - Change: Better way of calculating elapsed time.
  - Change: Amended the logging so it lists the expiry time of expired 2FA cookies for clarity.
  - Change: Amended the way the script waits for the keyring and failsafe files to be created. Instead of checking every 5 minutes before proceeding, script now checks every 5 seconds. This way, script is a bit more responsive when being initialised. If the script doesn't detect the file it's checking for after 30 minutes, it will exit the container, just in case there is a detection problem.
  - Change: Added logging info explaining that the download check takes a long time on large collections and that nothing is being downloaded during that phase.
