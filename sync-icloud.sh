@@ -351,9 +351,18 @@ Check2FACookie(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Please create your cookie using the --Initialise script command line option."
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Restarting in 5 minutes..."
-      sleep 300
-      exit 1
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Waiting for cookie file to be created..."
+      local counter
+      counter="${counter:=0}"
+      while [ ! -f "${config_dir}/${cookie_file}" ]; do
+         sleep 5
+         counter=$((counter + 1))
+         if [ "${counter}" -eq 360 ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie file has not appeared within 30 minutes. Restarting container..."
+            exit 1
+         fi
+      done
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie file exists, continuing."
    fi
 }
 
