@@ -1,3 +1,11 @@
+20210901
+
+ - Change: Added logging for --ConvertAllHEICs function
+
+20210830
+
+ - Change: Amended script to wait for the cookie file to be created, then continuing once it's appeared. Container will auto restart after 30mins if file does not appear, just in case something has gone wrong.
+
 20210827
 
  - Change: Better way of calculating elapsed time.

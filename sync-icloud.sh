@@ -492,6 +492,7 @@ ConvertDownloadedHEIC2JPEG(){
 ConvertAllHEICs(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert all HEICs to JPEG, if required..."
    for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC file found: ${heic_file}"
       if [ ! -f "${heic_file%.HEIC}.JPG" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
          heif-convert -q "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
