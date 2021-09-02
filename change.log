@@ -1,6 +1,7 @@
 20210902
 
  - Change: Added a log entry to show the UID of the account that is running the script. It seems some users are having permissions issues and this will help with debugging
+ - Change: Also changed the symbolic link command to force linking of python_keyring directory if something that isn't a link exists in its place.
 
 20210901
 

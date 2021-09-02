@@ -80,9 +80,18 @@ Initialise(){
    if [ "${notification_type}" ]; then
       ConfigureNotifications
    fi
-   if [ ! -d "/home/${user}/.local/share/" ]; then mkdir --parents "/home/${user}/.local/share/"; fi
-   if [ ! -d "${config_dir}/python_keyring/" ]; then mkdir --parents "${config_dir}/python_keyring/"; fi
-   if [ ! -L "/home/${user}/.local/share/python_keyring" ]; then ln --symbolic "${config_dir}/python_keyring/" "/home/${user}/.local/share/"; fi
+   if [ ! -d "/home/${user}/.local/share/" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Creating directory: /home/${user}/.local/share/"
+      mkdir --parents "/home/${user}/.local/share/"
+   fi
+   if [ ! -d "${config_dir}/python_keyring/" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Creating directory: ${config_dir}/python_keyring/"
+      mkdir --parents "${config_dir}/python_keyring/"
+   fi
+   if [ ! -L "/home/${user}/.local/share/python_keyring" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Creating symbolic link: /home/${user}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
+      ln --symbolic --force "${config_dir}/python_keyring/" "/home/${user}/.local/share/"
+   fi
 }
 
 ConfigureNotifications(){
