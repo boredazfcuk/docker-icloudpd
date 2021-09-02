@@ -1,6 +1,11 @@
+20210902
+
+ - Change: Added a log entry to show the UID of the account that is running the script. It seems some users are having permissions issues and this will help with debugging
+
 20210901
 
  - Change: Added logging for --ConvertAllHEICs function
+ - Change: Amended way script handles expired cookies
 
 20210830
 

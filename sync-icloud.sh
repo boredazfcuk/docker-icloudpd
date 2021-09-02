@@ -31,6 +31,8 @@ Initialise(){
    if [ -z "${apple_id}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; sleep 120; exit 1; fi
    if [ "${apple_password}" ] && [ "${apple_password}" != "usekeyring" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple password configured with variable which is no longer supported. Please add password to system keyring - exiting"; sleep 120; exit 1; fi
    if [ "${apple_password}" = "usekeyring" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Apple password variable set to 'userkeyring'. This variable can now be removed as it is now the only supported option, so obsolete - continue in 2 minutes"; sleep 120; fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Running user: $(id --user)"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Running group: $(id --group)"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local user: ${user:=user}:${user_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${group:=group}:${group_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Force GID: ${force_gid:=False}"
@@ -329,13 +331,24 @@ Check2FACookie(){
             valid_twofa_cookie="True"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
          else
+            rm -f "${config_dir}/${cookie_file}"
             echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie expired at: ${twofa_expire_date}"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Expired cookie file has been removed."
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Please recreate your cookie using the --Initialise script command line option."
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Restarting in 5 minutes..."
-            sleep 300
-            exit 1
+            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Waiting for cookie file to be created..."
+            local counter
+            counter="${counter:=0}"
+            while [ ! -f "${config_dir}/${cookie_file}" ]; do
+               sleep 5
+               counter=$((counter + 1))
+               if [ "${counter}" -eq 360 ]; then
+                  echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie file has not appeared within 30 minutes. Restarting container..."
+                  exit 1
+               fi
+            done
+            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie file exists, continuing."
          fi
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cookie is not 2FA capable, authentication type may have changed."
