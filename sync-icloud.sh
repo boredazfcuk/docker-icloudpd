@@ -31,8 +31,8 @@ Initialise(){
    if [ -z "${apple_id}" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple ID not set - exiting"; sleep 120; exit 1; fi
    if [ "${apple_password}" ] && [ "${apple_password}" != "usekeyring" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Apple password configured with variable which is no longer supported. Please add password to system keyring - exiting"; sleep 120; exit 1; fi
    if [ "${apple_password}" = "usekeyring" ]; then echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Apple password variable set to 'userkeyring'. This variable can now be removed as it is now the only supported option, so obsolete - continue in 2 minutes"; sleep 120; fi
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Running user: $(id --user)"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Running group: $(id --group)"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Running user id: $(id --user)"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Running group id: $(id --group)"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local user: ${user:=user}:${user_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${group:=group}:${group_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Force GID: ${force_gid:=False}"
