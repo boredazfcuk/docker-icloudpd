@@ -735,7 +735,7 @@ SyncUser(){
 
 SanitiseLaunchParameters(){
    if [ "${script_launch_parameters}" ]; then
-      if [ "${script_launch_parameters}" = "--Initialise" ] || [ "${script_launch_parameters}" = "--ConvertAllHEICs" ] || [ "${script_launch_parameters}" = "--CorrectJPEGTimestamps" ]; then
+      if [ "${script_launch_parameters}" = "--Initialise" ] || [ "${script_launch_parameters}" = "--ConvertAllHEICs" ] || [ "${script_launch_parameters}" = "--ForceConvertAllHEICs" ] || [ "${script_launch_parameters}" = "--CorrectJPEGTimestamps" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Script launch parameters: ${script_launch_parameters}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Ignoring innvalid launch parameter specified: ${script_launch_parameters}"
@@ -763,7 +763,7 @@ elif [ "$1" = "--ConvertAllHEICs" ]; then
    exit 0
 elif [ "$1" = "--ForceConvertAllHEICs" ]; then
    ForceConvertAllHEICs
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC to JPG conversion complete"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Forced HEIC to JPG conversion complete"
    exit 0
 elif [ "$1" = "--CorrectJPEGTimestamps" ]; then
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correcting timestamps for JPEG files in ${download_path}"
