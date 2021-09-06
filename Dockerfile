@@ -7,7 +7,7 @@ ENV config_dir="/config"
 # Container version serves no real purpose. Increment to force a container rebuild.
 ARG container_version="1.0.14"
 ARG app_dependencies="python3 py3-pip exiftool coreutils tzdata curl py3-certifi py3-cffi py3-cryptography py3-secretstorage py3-jeepney py3-dateutil libgcc libheif libjpeg-turbo libpng libstdc++ musl"
-ARG build_dependencies="git make automake autoconf pkgconfig x265 libde265 libjpeg bash libtool build-base jpeg-dev"
+ARG build_dependencies="git make automake autoconf pkgconfig x265 libde265 libde265-dev libjpeg bash libtool build-base jpeg-dev"
 # Fix tzlocal to 2.1 due to Python 3.8 being default in alpine 3.13.5
 ARG python_dependencies="pytz tzlocal==2.1 wheel"
 ARG app_repo="icloud-photos-downloader/icloud_photos_downloader"
