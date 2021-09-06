@@ -1,3 +1,8 @@
+20210906
+
+ - Change: HEIC to JPEG coversion utility has a bug and rotates JPEG files when it shouldn't. Replaced with ImageMagick which doesn't have this problem.
+ - Change: Added --ForceConvertAllHEICs command line option to overwrite JPEG files. This is so over-rotated files can be replaced with crorrectly oriented versions.
+
 20210902
 
  - Change: Added a log entry to show the UID of the account that is running the script. It seems some users are having permissions issues and this will help with debugging

@@ -517,12 +517,26 @@ ConvertAllHEICs(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC file found: ${heic_file}"
       if [ ! -f "${heic_file%.HEIC}.JPG" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
-         heif-convert -q "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
+         convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
          heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
          touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"  
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"  
       fi
+   done
+}
+
+ForceConvertAllHEICs(){
+   echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Force convert all HEICs to JPEG. This could result in dataloss if JPG files have been edited on disk"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do"
+   for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC file found: ${heic_file}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
+      convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
+      heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
+      touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"  
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"  
    done
 }
 

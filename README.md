@@ -275,6 +275,14 @@ To run the script inside the currently running container, issue this command:
 docker exec -it icloudpd sync-icloud.sh --ConvertAllHEICs
 ```
 
+**--ForceConvertAllHEICs**
+The --ForceConvertAllHEICs command line is the same as the above option but it will overwrite any JPEG files that are already there. This will result in data loss if the downloaded JPEG files have been edited. For this reason, there is a 2 minute delay before this option runs. This gives you time to stop the container, or cancel the script, before it runs. This option is required as the heif-tools conversion utility had a bug that over-rotates the JPEG files. This means the orientation does not match the HEIC file. The heif-tools package has now been replaced by the ImageMagick package which doesn't have this problem. This command line option can be used to re-convert all your HEIC files to JPEG, overwriting the incorrectly oriented files with correctly oriented ones.
+
+To run the script inside the currently running container, issue this command:
+```
+docker exec -it icloudpd sync-icloud.sh --ForceConvertAllHEICs
+```
+
 **--CorrectJPEGTimestamps**
 The --CorrectJPEGTimestamps command line option will correct the timestamps of JPEG files that do not match their accompanying HEIC files. Due to an omission, previous versions of my script never set the time stamp. This command line option will correct this issue.
 
