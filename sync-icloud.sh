@@ -529,6 +529,7 @@ ConvertAllHEICs(){
 ForceConvertAllHEICs(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Force convert all HEICs to JPEG. This could result in dataloss if JPG files have been edited on disk"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do"
+   sleep 120
    for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC file found: ${heic_file}"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
@@ -758,6 +759,10 @@ if [ "${initialise_container}" ]; then
    exit 0
 elif [ "$1" = "--ConvertAllHEICs" ]; then
    ConvertAllHEICs
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC to JPG conversion complete"
+   exit 0
+elif [ "$1" = "--ForceConvertAllHEICs" ]; then
+   ForceConvertAllHEICs
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC to JPG conversion complete"
    exit 0
 elif [ "$1" = "--CorrectJPEGTimestamps" ]; then
