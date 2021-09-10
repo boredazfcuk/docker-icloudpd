@@ -74,9 +74,7 @@ Initialise(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Additional command line options is depreciated. Please specify all options using the dedicated variables."
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC to JPEG: ${convert_heic_to_jpeg:=False}"
-   if [ "${convert_heic_to_jpeg}" != "False" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG conversion quality: ${jpeg_quality:=90}"
-   fi
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG conversion quality: ${jpeg_quality:=90}"
    if [ "${notification_type}" ]; then
       ConfigureNotifications
    fi
