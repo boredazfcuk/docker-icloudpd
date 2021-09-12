@@ -1,3 +1,7 @@
+20210912
+
+ - Change: Bug introduced by recent HEIC to JPEG change. Fixed.
+
 20210906
 
  - Change: HEIC to JPEG coversion utility has a bug and rotates JPEG files when it shouldn't. Replaced with ImageMagick which doesn't have this problem.
