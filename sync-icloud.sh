@@ -209,6 +209,7 @@ CreateUser(){
 }
 
 ConfigurePassword(){
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Configure password"
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
@@ -252,8 +253,7 @@ Generate2FACookie(){
    if [ -f "${config_dir}/${cookie_file}" ]; then
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Generate 2FA cookie with password: ${apple_password}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check for new files using password stored in keyring file."
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Generate 2FA cookie using password stored in keyring file."
    su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
    if [ "${authentication_type}" = "2FA" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Two factor authentication cookie generated. Sync should now be successful."
@@ -501,7 +501,7 @@ ConvertDownloadedHEIC2JPEG(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC to JPEG..."
    for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
-      heif-convert -q "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
+      convert -q "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
       touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"       
