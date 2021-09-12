@@ -2,6 +2,8 @@
 
  - Change: Bug introduced by recent HEIC to JPEG change. Fixed.
  - Change: Added set owner and permissions function to run after HEIC to JPEG conversion functions
+ - Change: Added --ForceConvertAllmntHEICs
+ - Change: Fixed bug in above new command line option as it wasn't handling spaces safely
 
 20210906
 
