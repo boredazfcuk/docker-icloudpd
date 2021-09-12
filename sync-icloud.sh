@@ -779,7 +779,7 @@ elif [ "$1" = "--ForceConvertAllHEICs" ]; then
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Forced HEIC to JPG conversion complete"
    exit 0
 elif [ "$1" = "--ForceConvertAllmntHEICs" ]; then
-   ForceConvertAllHEICs
+   ForceConvertAllmntHEICs
    SetOwnerAndPermissions
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Forced HEIC to JPG conversion complete"
    exit 0
