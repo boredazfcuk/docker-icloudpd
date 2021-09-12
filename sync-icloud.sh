@@ -550,6 +550,10 @@ ForceConvertAllmntHEICs(){
       touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"  
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"  
    done
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on /mnt directory, if required"
+   find "/mnt" ! -user "${user}" -exec chown "${user}" {} +
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on /mnt directory, if required"
+   find "/mnt" ! -group "${group}" -exec chgrp "${group}" {} +
 }
 
 CorrectJPEGTimestamps(){
