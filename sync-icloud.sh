@@ -539,7 +539,7 @@ ForceConvertAllHEICs(){
 }
 
 ForceConvertAllmntHEICs(){
-   SAVEIFS=$IFS
+   save_ifs=$IFS
    IFS=$(echo -en "\n\b")
    echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Force convert all HEICs in /mnt directory to JPEG. This could result in dataloss if JPG files have been edited on disk"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
@@ -556,7 +556,7 @@ ForceConvertAllmntHEICs(){
    find "/mnt" ! -user "${user}" -exec chown "${user}" {} +
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on /mnt directory, if required"
    find "/mnt" ! -group "${group}" -exec chgrp "${group}" {} +
-   IFS=$SAVEIFS
+   IFS=$save_ifs
 }
 
 CorrectJPEGTimestamps(){
