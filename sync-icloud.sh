@@ -501,7 +501,7 @@ ConvertDownloadedHEIC2JPEG(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Convert HEIC to JPEG..."
    for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
-      convert -q "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
+      convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
       touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"       
