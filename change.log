@@ -1,6 +1,7 @@
 20210912
 
  - Change: Bug introduced by recent HEIC to JPEG change. Fixed.
+ - Change: Added set owner and permissions function to run after HEIC to JPEG conversion functions
 
 20210906
 
