@@ -538,8 +538,10 @@ ForceConvertAllHEICs(){
    done
 }
 
-FixHEIC(){
+ForceConvertAllmntHEICs(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Force convert all HEICs in /mnt directory to JPEG. This could result in dataloss if JPG files have been edited on disk"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
+   sleep 120
    for heic_file in $(find "/mnt" -type f -name *.HEIC 2>/dev/null); do
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
       convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
@@ -744,7 +746,7 @@ SyncUser(){
 
 SanitiseLaunchParameters(){
    if [ "${script_launch_parameters}" ]; then
-      if [ "${script_launch_parameters}" = "--Initialise" ] || [ "${script_launch_parameters}" = "--ConvertAllHEICs" ] || [ "${script_launch_parameters}" = "--ForceConvertAllHEICs" ] || [ "${script_launch_parameters}" = "--CorrectJPEGTimestamps" ]; then
+      if [ "${script_launch_parameters}" = "--Initialise" ] || [ "${script_launch_parameters}" = "--ConvertAllHEICs" ] || [ "${script_launch_parameters}" = "--ForceConvertAllHEICs" ] || [ "${script_launch_parameters}" = "--ForceConvertAllmntHEICs" ] || [ "${script_launch_parameters}" = "--CorrectJPEGTimestamps" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Script launch parameters: ${script_launch_parameters}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Ignoring innvalid launch parameter specified: ${script_launch_parameters}"
@@ -772,6 +774,11 @@ elif [ "$1" = "--ConvertAllHEICs" ]; then
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC to JPG conversion complete"
    exit 0
 elif [ "$1" = "--ForceConvertAllHEICs" ]; then
+   ForceConvertAllHEICs
+   SetOwnerAndPermissions
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Forced HEIC to JPG conversion complete"
+   exit 0
+elif [ "$1" = "--ForceConvertAllmntHEICs" ]; then
    ForceConvertAllHEICs
    SetOwnerAndPermissions
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Forced HEIC to JPG conversion complete"
