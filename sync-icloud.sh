@@ -542,7 +542,7 @@ ForceConvertAllmntHEICs(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Force convert all HEICs in /mnt directory to JPEG. This could result in dataloss if JPG files have been edited on disk"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
-   for heic_file in $(find "/mnt" -type f -name *.HEIC 2>/dev/null); do
+   for heic_file in "$(find "/mnt" -type f -name *.HEIC 2>/dev/null)"; do
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
       convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
