@@ -209,14 +209,6 @@ CreateUser(){
 }
 
 ConfigurePassword(){
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
-   find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
-   find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on .local directory, if required"
-   find "/home/${user}/.local" ! -user "${user}" -exec chown "${user}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on .local directory, if required"
-   find "/home/${user}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Configure password"
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ] && [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing."
@@ -779,6 +771,7 @@ Initialise
 SanitiseLaunchParameters
 CreateGroup
 CreateUser
+SetOwnerAndPermissions
 ConfigurePassword
 if [ "${initialise_container}" ]; then
    Generate2FACookie
