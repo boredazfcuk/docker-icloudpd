@@ -107,7 +107,7 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} api key: ${prowl_api_key}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
-         notification_url="https://api.prowlapp.com/publicapi/add" 
+         notification_url="https://api.prowlapp.com/publicapi/add"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
@@ -209,11 +209,15 @@ CreateUser(){
 }
 
 ConfigurePassword(){
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Configure password"
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on .local directory, if required"
+   find "/home/${user}/.local" ! -user "${user}" -exec chown "${user}" {} +
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on .local directory, if required"
+   find "/home/${user}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
+   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Configure password"
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ] && [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing."
       rm "${config_dir}/python_keyring/keyring_pass.cfg"
@@ -504,8 +508,8 @@ ConvertDownloadedHEIC2JPEG(){
       convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
-      touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"       
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"  
+      touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
    done
 }
 
@@ -518,8 +522,8 @@ ConvertAllHEICs(){
          convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
          heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
-         touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"  
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"  
+         touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
       fi
    done
 }
@@ -536,8 +540,8 @@ ForceConvertAllHEICs(){
       convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
-      touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"  
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"  
+      touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
    done
    IFS=$save_ifs
 }
@@ -554,8 +558,8 @@ ForceConvertAllmntHEICs(){
       convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
-      touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"  
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"  
+      touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
    done
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on /mnt directory, if required"
    find "/mnt" ! -user "${user}" -exec chown "${user}" {} +
@@ -587,8 +591,8 @@ CorrectJPEGTimestamps(){
 }
 
 Notify(){
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
    if [ "${notification_type}" = "Prowl" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent "${notification_url}"  \
          --form apikey="${prowl_api_key}" \
          --form application="${notification_title}" \
@@ -597,7 +601,7 @@ Notify(){
          --form description="${4}" \
          >/dev/null 2>&1
          curl_exit_code=$?
-      if [ "${curl_exit_code}" -eq 0 ]; then 
+      if [ "${curl_exit_code}" -eq 0 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Event: ${1}\" \"Priority ${2}\" \"Message ${3}\""
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed for Apple ID ${apple_id}"
@@ -605,7 +609,6 @@ Notify(){
          exit 1
       fi
    elif [ "${notification_type}" = "Pushover" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent "${notification_url}"  \
          --form-string "user=${pushover_user}" \
          --form-string "token=${pushover_token}" \
@@ -614,7 +617,7 @@ Notify(){
          --form-string "message=${4}" \
          >/dev/null 2>&1
          curl_exit_code=$?
-      if [ "${curl_exit_code}" -eq 0 ]; then 
+      if [ "${curl_exit_code}" -eq 0 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Event: ${1}\" \"Priority ${3}\" \"Message ${4}\""
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed for Apple ID ${apple_id}"
@@ -622,14 +625,13 @@ Notify(){
          exit 1
       fi
    elif [ "${notification_type}" = "Telegram" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent --request POST "${notification_url}" \
          --data chat_id="${telegram_chat_id}" \
          --data parse_mode="markdown" \
          --data text="${2}" \
          >/dev/null 2>&1
          curl_exit_code=$?
-      if [ "${curl_exit_code}" -eq 0 ]; then 
+      if [ "${curl_exit_code}" -eq 0 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed"
@@ -637,13 +639,12 @@ Notify(){
          exit 1
       fi
    elif [ "${notification_type}" = "Webhook" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent --request POST "${notification_url}" \
          --header 'content-type: application/json' \
          --data "{ \"${webhook_body}\" : \"${2}\" }" \
          >/dev/null 2>&1
          curl_exit_code=$?
-      if [ "${curl_exit_code}" -eq 0 ]; then 
+      if [ "${curl_exit_code}" -eq 0 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed"
@@ -651,13 +652,12 @@ Notify(){
          exit 1
       fi
    elif [ "${notification_type}" = "Dingtalk" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
       curl --silent --request POST "${notification_url}" \
          --header 'Content-Type: application/json' \
          --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${4}'}}" \
          >/dev/null 2>&1
          curl_exit_code=$?
-      if [ "${curl_exit_code}" -eq 0 ]; then 
+      if [ "${curl_exit_code}" -eq 0 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed"
