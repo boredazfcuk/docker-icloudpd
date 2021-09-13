@@ -1,3 +1,8 @@
+20210913
+
+ - Change: Replicated recent whitespace changes to additional functions for completeness
+ - Change: Force convert HEICs functions now remove pre-existing JPG files as I don't think the convertion tool is overwriting pre-existing files
+
 20210912
 
  - Change: Bug introduced by recent HEIC to JPEG change. Fixed.
