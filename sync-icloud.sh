@@ -504,7 +504,7 @@ ConvertDownloadedHEIC2JPEG(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
       touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner and group of ${heic_file%.HEIC}.JPG"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner and group of ${heic_file%.HEIC}.JPG to ${user}:${group}"
       chown "${user}:${group}" "${heic_file%.HEIC}.JPG"
    done
    IFS="${save_ifs}"
