@@ -502,6 +502,8 @@ ConvertDownloadedHEIC2JPEG(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
       touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner and group of ${heic_file%.HEIC}.JPG"
+      chown "${user}:${group}" "${heic_file%.HEIC}.JPG"
    done
 }
 
@@ -516,6 +518,8 @@ ConvertAllHEICs(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
          touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner and group of ${heic_file%.HEIC}.JPG"
+         chown "${user}:${group}" "${heic_file%.HEIC}.JPG"
       fi
    done
 }
@@ -534,6 +538,8 @@ ForceConvertAllHEICs(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
       touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner and group of ${heic_file%.HEIC}.JPG"
+      chown "${user}:${group}" "${heic_file%.HEIC}.JPG"
    done
    IFS=$save_ifs
 }
@@ -552,11 +558,9 @@ ForceConvertAllmntHEICs(){
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Timestamp of HEIC file: ${heic_date}"
       touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner and group of ${heic_file%.HEIC}.JPG"
+      chown "${user}:${group}" "${heic_file%.HEIC}.JPG"
    done
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on /mnt directory, if required"
-   find "/mnt" ! -user "${user}" -exec chown "${user}" {} +
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on /mnt directory, if required"
-   find "/mnt" ! -group "${group}" -exec chgrp "${group}" {} +
    IFS=$save_ifs
 }
 
