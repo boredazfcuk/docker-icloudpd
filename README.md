@@ -81,7 +81,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **telegram_token**: If the notification_type is set to 'Telegram' this is mandatory. This is the token that was assigned to your account by The Botfather.
 
-**telegram_chat_id**: If the notification_type is set to 'Telegram' then this is the chat_id for your Telegram bot.
+**telegram_chat_id**: If the notification_type is set to 'Telegram' then this is the chat_id for your Telegram bot. If the bot is a standard user that messages you, the chat ID will be a positive integer number. If the bot is a member of a group, and sends messages to the group, the chat ID will be prefixed with a hyphen '-' character.
 
 **webhook_server**: If the notification_type is set to 'Webhook' then this is the name of the server to connect to when sending webhook notifications.
 
