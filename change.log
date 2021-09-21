@@ -1,3 +1,7 @@
+20210921
+
+ - Change: Added DNS lookup and traceroute to check network connectivity to icloud.com
+
 20210915
 
  - Change: Removed the code which removes hyphen characters from the Telegram chat ID. The hyphen character is used to denote the bot has been added to a group to send messages, rather than a standard user chat.

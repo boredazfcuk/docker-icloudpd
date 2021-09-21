@@ -8,6 +8,8 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
+   local icloud_dot_com
+   icloud_dot_com="$(nslookup icloud.com | grep Address | tail -1 | awk '{print $2}')"
    case "${synchronisation_interval:=86400}" in
       43200) synchronisation_interval=43200;; #12 hours
       86400) synchronisation_interval=86400;; # 24 hours
@@ -38,6 +40,17 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Local group: ${group:=group}:${group_id:=1000}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Force GID: ${force_gid:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     LAN IP Address: ${lan_ip}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Default gateway: $(ip route | grep default | awk '{print $3}')"
+   if [ -z "${icloud_dot_com}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cannot find icloud.com IP address. Please check your DNS settings"
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     DNS lookup for icloud.com: ${icloud_dot_com}"
+   fi
+   if [ "$(traceroute -q 1 -w 1 icloud.com >/dev/null 2>&1; echo $?)" = 1 ];
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    No route to icloud.com found. Please check your container's network settings"
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO    Route check to icloud.com successful"
+   fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID: ${apple_id}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication Type: ${authentication_type:=2FA}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Cookie path: ${config_dir}/${cookie_file}"
