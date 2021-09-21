@@ -46,7 +46,7 @@ Initialise(){
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     DNS lookup for icloud.com: ${icloud_dot_com}"
    fi
-   if [ "$(traceroute -q 1 -w 1 icloud.com >/dev/null 2>&1; echo $?)" = 1 ];
+   if [ "$(traceroute -q 1 -w 1 icloud.com >/dev/null 2>&1; echo $?)" = 1 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    No route to icloud.com found. Please check your container's network settings"
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO    Route check to icloud.com successful"
