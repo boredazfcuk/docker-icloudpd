@@ -41,6 +41,7 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Force GID: ${force_gid:=False}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     LAN IP Address: ${lan_ip}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Default gateway: $(ip route | grep default | awk '{print $3}')"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     DNS server: $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')"
    if [ -z "${icloud_dot_com}" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cannot find icloud.com IP address. Please check your DNS settings"
    else
@@ -49,7 +50,7 @@ Initialise(){
    if [ "$(traceroute -q 1 -w 1 icloud.com >/dev/null 2>&1; echo $?)" = 1 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    No route to icloud.com found. Please check your container's network settings"
    else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO    Route check to icloud.com successful"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Route check to icloud.com successful"
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID: ${apple_id}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication Type: ${authentication_type:=2FA}"
