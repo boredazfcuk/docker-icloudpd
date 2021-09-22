@@ -116,13 +116,24 @@ docker create \
    boredazfcuk/icloudpd
 ```
 
-I'd recommend creating your container with a little more info than that though, espcially if you have multiple instances of the container running and downloading from different iCloud acocunts... Something along the lines of:
+I'd recommend creating your container with a little more info than that though, espcially if you have multiple instances of the container running and downloading from different iCloud accounts...
 
+First off, create a dedicated network for your iCloudPD conter(s) as this overcomes some DNS and routing issues may occur if you use the legacy default network bridge that Docker creates. In this example, I've have told it to use the IP address subnet 192.168.115.1 - 192.168.115.254 and configured the gateway to be 192.168.115.254. You can use any subnet that :
+
+```
+docker network create \
+   --driver=bridge \
+   --subnet=192.168.115.0/24 \
+   --gateway=192.168.115.254 \
+   --opt com.docker.network.bridge.name=icloudpd_br0 \
+   icloudpd_bridge
+```
+Then create the container like this, connecting it to the new icloudpd network bridge:
 ```
 docker create \
    --name <Contrainer Name> \
    --hostname <Hostname of container> \
-   --network <Name of Docker network to connect to> \
+   --network icloudpd_bridge \
    --restart=always \
    --env user=<User Name> \
    --env user_id=<User ID> \
@@ -145,7 +156,7 @@ docker create \
    docker create \
    --name iCloudPD-boredazfcuk \
    --hostname icloudpd_boredazfcuk \
-   --network containers \
+   --network icloudpd_bridge \
    --restart=always \
    --env user=boredazfcuk \
    --env user_id=1000 \
