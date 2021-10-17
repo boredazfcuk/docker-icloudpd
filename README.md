@@ -1,5 +1,5 @@
 # docker-icloudpd
-An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I use it for syncing the photo streams of all the iDevices in my house back to my server because it's the only way of backing up multiple devices to a single location. It uses the system keyring to securely store credentials, has HEIC to JPG conversion capability, and supports Telegram, Prowl & WebHook notifications.
+An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I use it for syncing the photo streams of all the iDevices in my house back to my server because it's the only way of backing up multiple devices to a single location. It uses the system keyring to securely store credentials, has HEIC to JPG conversion capability, and supports Telegram, Prowl, Pushover, WebHook & DingTalk notifications.
 
 ## MANDATORY ENVIRONMENT VARIABLES
 
@@ -108,16 +108,6 @@ I have added a failsafe feature to this container so that it doesn't make any ch
 
 ## CREATING A CONTAINER
 
-Creating a container can be as simple as running:
-```
-docker create \
-   --env apple_id="<Apple ID e-mail address>" \
-   --volume <Bind mount to the destination folder on the host> \
-   boredazfcuk/icloudpd
-```
-
-I'd recommend creating your container with a little more info than that though, espcially if you have multiple instances of the container running and downloading from different iCloud accounts...
-
 First off, create a dedicated network for your iCloudPD conter(s) as this overcomes some DNS and routing issues may occur if you use the legacy default network bridge that Docker creates. In this example, I've have told it to use the IP address subnet 192.168.115.1 - 192.168.115.254 and configured the gateway to be 192.168.115.254. You can use any subnet that :
 
 ```
@@ -191,11 +181,7 @@ INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise
 INFO     Restarting in 5 minutes...
 ```
 
-As per the error, the container needs to be initialised by using the --Initialise command line option. With the first container still running, connect to it and launch the initialisation process by running the following at the terminal prompt:
-```
-docker exec -it <container name> sync-icloud.sh --Initialise
-```
-for example:
+As per the error, the container needs to be initialised by using the --Initialise command line option. With the first container still running, connect to it and launch the initialisation process by running the following at the terminal prompt (assuming the container name is 'icloudpd'):
 ```
 docker exec -it icloudpd sync-icloud.sh --Initialise
 ```
@@ -217,11 +203,7 @@ INFO     Restarting in 5 minutes..."
 
 Without this cookie, synchronisation cannot be started.
 
-As per the error, the container needs to be initialised by using the --Initialise command line option. With the first container still running, connect to it and launch the initialisation process by running the following at the terminal prompt:
-```
-docker exec -it <container name> sync-icloud.sh --Initialise
-```
-for example:
+As per the error, the container needs to be initialised by using the --Initialise command line option. With the first container still running, connect to it and launch the initialisation process by running the following at the terminal prompt (assuming the container name is 'icloudpd'):
 ```
 docker exec -it icloudpd sync-icloud.sh --Initialise
 ```
@@ -281,7 +263,7 @@ There are currently a number of command line options available to use with the s
 
 **--ConvertAllHEICs**
 The --ConvertAllHEICs command line option will check for HEIC files that do not have an accompanying JPEG file. If it finds a HEIC that does not have an accompaying JPEG file, it will create it. This can be used to add JPEGs for previously downloaded libraries. The easiest way to run this is to connect to the running container and executing the script.
-To run the script inside the currently running container, issue this command:
+To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 ```
 docker exec -it icloudpd sync-icloud.sh --ConvertAllHEICs
 ```
@@ -289,7 +271,7 @@ docker exec -it icloudpd sync-icloud.sh --ConvertAllHEICs
 **--ForceConvertAllHEICs**
 The --ForceConvertAllHEICs command line is the same as the above option but it will overwrite any JPEG files that are already there. This will result in data loss if the downloaded JPEG files have been edited. For this reason, there is a 2 minute delay before this option runs. This gives you time to stop the container, or cancel the script, before it runs. This option is required as the heif-tools conversion utility had a bug that over-rotates the JPEG files. This means the orientation does not match the HEIC file. The heif-tools package has now been replaced by the ImageMagick package which doesn't have this problem. This command line option can be used to re-convert all your HEIC files to JPEG, overwriting the incorrectly oriented files with correctly oriented ones.
 
-To run the script inside the currently running container, issue this command:
+To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 ```
 docker exec -it icloudpd sync-icloud.sh --ForceConvertAllHEICs
 ```
@@ -297,7 +279,7 @@ docker exec -it icloudpd sync-icloud.sh --ForceConvertAllHEICs
 **--ForceConvertAllmntHEICs**
 The --ForceConvertAllmntHEICs command line is the same as the above option but it will overwrite any JPEG files that it finds in the /mnt subdirectory. This will result in data loss if the downloaded JPEG files have been edited. For this reason, there is a 2 minute delay before this option runs. This gives you time to stop the container, or cancel the script, before it runs. This option is required as the heif-tools conversion utility had a bug that over-rotates the JPEG files. This means the orientation does not match the HEIC file. The heif-tools package has now been replaced by the ImageMagick package which doesn't have this problem. This command line option can be used to re-convert all your HEIC files to JPEG, overwriting the incorrectly oriented files with correctly oriented ones. This option can be used to correct JPG files that have been archived and removed from your iCloud photostream. Just mount the target directory (or directories) into the /mnt subdirectoy and the script with this command.
 
-To run the script inside the currently running container, issue this command:
+To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 ```
 docker exec -it icloudpd sync-icloud.sh --ForceConvertAllmntHEICs
 ```
@@ -305,14 +287,14 @@ docker exec -it icloudpd sync-icloud.sh --ForceConvertAllmntHEICs
 **--CorrectJPEGTimestamps**
 The --CorrectJPEGTimestamps command line option will correct the timestamps of JPEG files that do not match their accompanying HEIC files. Due to an omission, previous versions of my script never set the time stamp. This command line option will correct this issue.
 
-To run the script inside the currently running container, issue this command:
+To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 ```
 docker exec -it icloudpd sync-icloud.sh --CorrectJPEGTimestamps
 ```
 
 **--Initialise**
 The --Initialise command line option will allow you to add your password to the system keyring. It will also force the creation of a new two-factor authentication cookie.
-To run the script inside the currently running container, issue this command:
+To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 ```
 docker exec -it icloudpd sync-icloud.sh --Initialise
 ```
