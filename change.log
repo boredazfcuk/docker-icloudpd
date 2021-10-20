@@ -1,3 +1,7 @@
+20211020
+
+ - Change: Discord notifications added by @ibtvt
+
 20211017
 
  - Change: Added detection for when a file has been downloaded, but also exists in 'Recently Deleted', so gets removed post download. In these cases, it should get rid of the missing file errors.

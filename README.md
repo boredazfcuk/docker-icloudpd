@@ -1,13 +1,11 @@
 # docker-icloudpd
-An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I use it for syncing the photo streams of all the iDevices in my house back to my server because it's the only way of backing up multiple devices to a single location. It uses the system keyring to securely store credentials, has HEIC to JPG conversion capability, and supports Telegram, Prowl, Pushover, WebHook & DingTalk notifications.
+An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I use it for syncing the photo streams of all the iDevices in my house back to my server because it's the only way of backing up multiple devices to a single location. It uses the system keyring to securely store credentials, has HEIC to JPG conversion capability, and supports Telegram, Prowl, Pushover, WebHook DingTalk & Discord notifications.
 
 ## MANDATORY ENVIRONMENT VARIABLES
 
 **apple_id**: This is the Apple ID that wil lbe used when downloading files.
 
 ## DEFAULT ENVIRONMENT VARIABLES
-
-**apple_password**: ~~This is the password for the Apple ID account named above. This is needed to generate an authentication token. If this variable exists it will be used as the password when downloading files, but you will be prompted with a delayed warning that you should switch to a keyring based authentication. To use keyring based authentication, set the variable to **usekeyring** or omit it entirely. When keyring based authentication is enabled, the script will check for the presence of the keyring file. If it is not there, the script will pause with a warning for 5mins before exiting. Please connect to the container and run the /usr/local/bin/sync-icloud.sh command manually to start the process of saving your password to the keyring. This will invoke 2FA and Apple will text a confirmation code which needs to be entered. You may also be asked to generate a new 2FA cookie afterwards. If this variable is not set, it will default to 'usekeyring'.~~ This variable has now been decommissioned. Passwords can no longer be set via a variable and must be added to the keyring.
 
 **user**: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. If this variable is not set, it will default to 'user'.
 
