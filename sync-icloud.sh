@@ -157,6 +157,15 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          webhook_payload="$(echo -e "${notification_title} - iCloud\\\\\Photos\\\\\Downloader container started for Apple ID ${apple_id}")"
          Notify "startup" "${webhook_payload}"
+	  elif [ "${notification_type}" = "Discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} Discord ID: ${discord_id}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} Discord token: ${discord_token}"
+         notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification URL: ${notification_url}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
+         discord_payload="$(echo -e "iCloud Photos Downloader container started for Apple ID ${apple_id}")"
+		 Notify "startup" "${discord_payload}"
       elif [ "${notification_type}" = "Dingtalk" ] && [ "${dingtalk_token}" ]; then
          notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
@@ -166,7 +175,7 @@ ConfigureNotifications(){
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
-         unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token
+         unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token
       fi
       if [ "${download_notifications:=True}" = "True" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Download notifications: Enabled"
@@ -418,6 +427,10 @@ Display2FAExpiry(){
                webhook_payload="$(echo -e "${notification_title} - Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
                Notify "cookie expiration" "${webhook_payload}"
                next_notification_time="$(date +%s -d "+24 hour")"
+			elif [ "${notification_type}" = "Discord" ]; then
+               discord_payload="$(echo -e "Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
+               Notify "cookie expiration" "${discord_payload}"
+               next_notification_time="$(date +%s -d "+24 hour")"
             fi
          else
             echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Only ${days_remaining} days until two factor authentication cookie expires - Please reinitialise"
@@ -431,6 +444,10 @@ Display2FAExpiry(){
             elif [ "${notification_type}" = "Webhook" ]; then
                webhook_payload="$(echo -e "${notification_title} - Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
                Notify "cookie expiration" "${webhook_payload}"
+               next_notification_time="$(date +%s -d "+24 hour")"
+			elif [ "${notification_type}" = "Discord" ]; then
+               discord_payload="$(echo -e "Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
+               Notify "cookie expiration" "${discord_payload}"
                next_notification_time="$(date +%s -d "+24 hour")"
             fi
          fi
@@ -454,6 +471,9 @@ CheckFiles(){
       elif [ "${notification_type}" = "Webhook" ]; then
          webhook_payload="$(echo -e "${notification_title} - iCloudPD failed download check for new files files for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
          Notify "failure" "${webhook_payload}"
+	  elif [ "${notification_type}" = "Discord" ]; then
+         discord_payload="$(echo -e "iCloudPD failed download check for new files files for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
+         Notify "failure" "${discord_payload}"
       fi
    else
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Check successful"
@@ -485,6 +505,14 @@ DownloadedFilesNotification(){
          new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          webhook_payload="$(echo -e "${notification_title} - New files detected for Apple ID ${apple_id}: ${new_files_count} Most Recent ${new_files_preview_count} file names: ${new_files_preview//$'\n'/'\\n'}")"
          Notify "downloaded files" "${webhook_payload}"
+	  elif [ "${notification_type}" = "Discord" ]; then
+         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | head -10)"
+         new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
+         title="$(echo -e "New files detected for Apple ID ${apple_id}")"
+		 description="$(echo -e "${new_files_count} files downloaded")"
+		 field_name="$(echo -e "Most Recent ${new_files_preview_count} file names")"
+		 field_value="$(echo -e "${new_files_preview//$'\n'/'\\n'}")"
+         Notify "downloaded files" "${title}" "${description}" "${field_name}" "${field_value}"
       fi
    fi
 }
@@ -507,6 +535,13 @@ DeletedFilesNotification(){
          deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          webhook_payload="$(echo -e "${notification_title} - Deleted files detected for Apple ID: ${apple_id}: ${deleted_files_count} Last ${deleted_files_preview_count} file names: ${deleted_files_preview//$'\n'/'\\n'}")"
          Notify "deleted files" "${webhook_payload}"
+	  elif [ "${notification_type}" = "Discord" ]; then
+         deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
+         deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
+		 description="$(echo -e "${deleted_files_count} files deleted")"
+		 field_name="$(echo -e "Last ${deleted_files_preview_count} file names")"
+		 field_value="$(echo -e "${deleted_files_preview//$'\n'/'\\n'}")"
+         Notify "downloaded files" "${title}" "${description}" "${field_name}" "${field_value}"
       fi
    fi
 }
@@ -670,6 +705,28 @@ Notify(){
          sleep 120
          exit 1
       fi
+   elif [ "${notification_type}" = "Discord" ]; then
+	  if [ "${1}" = "downloaded files" ] || [ "${1}" = "deleted files" ]
+		then
+		curl --silent --request POST "${notification_url}" \
+         --header 'content-type: application/json' \
+         --data "{ \"username\" : \"iCloudPD\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_title}\" } , \"color\" : 2061822 , \"title\" : \"${2}\", \"description\": \"${3}\", \"fields\": [ { \"name\": \"${4}\", \"value\": \"${5}\" } ] } ] }" \
+		 >/dev/null 2>&1
+         curl_exit_code=$?
+		 else
+		 curl --silent --request POST "${notification_url}" \
+         --header 'content-type: application/json' \
+         --data "{ \"username\" : \"iCloudPD\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_title}\" } , \"color\" : 2061822 , \"title\" : \"${2}\" } ] }" \
+		 >/dev/null 2>&1
+         curl_exit_code=$?
+		 fi
+      if [ "${curl_exit_code}" -eq 0 ]; then
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
+      else
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed"
+         sleep 120
+         exit 1
+      fi	  
    elif [ "${notification_type}" = "Dingtalk" ]; then
       curl --silent --request POST "${notification_url}" \
          --header 'Content-Type: application/json' \
@@ -750,6 +807,9 @@ SyncUser(){
                elif [ "${notification_type}" = "Webhook" ]; then
                   webhook_payload="$(echo -e "${notification_title} - iCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
                   Notify "failure" "${webhook_payload}"
+			   elif [ "${notification_type}" = "Discord" ]; then
+                  discord_payload="$(echo -e "iCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
+                  Notify "failure" "${discord_payload}"	  
                fi
             else
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
