@@ -703,8 +703,7 @@ Notify(){
    elif [ "${notification_type}" = "Discord" ]; then
       curl --silent --request POST "${notification_url}" \
          --header 'content-type: application/json' \
-         --data "{ \"username\" : \"iCloudPD\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_title}\" } , \"color\" : 2061822 , \"title\" : \"${2}\" } ] }" \
-         @>/dev/null 2>&1
+         --data "{ \"username\" : \"iCloudPD\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_title}\" } , \"color\" : 2061822 , \"title\" : \"${2}\" } ] }" 
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
