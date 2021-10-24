@@ -9,7 +9,7 @@ Initialise(){
    apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
    local icloud_dot_com
-   icloud_dot_com="$(nslookup -type=a icloud.com | grep Address | tail -1 | awk '{print $2}')"
+   icloud_dot_com="$(nslookup -type=a icloud.com | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
    case "${synchronisation_interval:=86400}" in
       43200) synchronisation_interval=43200;; #12 hours
       86400) synchronisation_interval=86400;; # 24 hours
