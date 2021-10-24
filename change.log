@@ -1,3 +1,7 @@
+20211024
+
+ - Change: Set icloud.com DNS query type to 'a' records only so that it returns the IPv4 IP address and not IPv6. Also, removed the local loopback addresses, just to remove more unwanted data
+
 20211020
 
  - Change: Discord notifications added by @ibtvt
