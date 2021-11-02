@@ -2,7 +2,6 @@
 An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I use it for syncing the photo streams of all the iDevices in my house back to my server because it's the only way of backing up multiple devices to a single location. It uses the system keyring to securely store credentials, has HEIC to JPG conversion capability, and supports Telegram, Prowl, Pushover, WebHook DingTalk & Discord notifications.
 
 ## MANDATORY ENVIRONMENT VARIABLES
-
 **apple_id**: This is the Apple ID that wil lbe used when downloading files.
 
 ## DEFAULT ENVIRONMENT VARIABLES
@@ -34,6 +33,8 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 **file_permissions**: This specifies the permissions to set on the files in your download destination. If this variable is not set, it will default to 640.
 
 **folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure.
+
+**skip_check**: This variable specifies whether the download check is skipped. If this is set to **True** the script will process a download run each time it is run. If this variable is not set, it will default to **False**.
 
 **download_notifications**: This variable specifies whether notifications with a short summary should be sent for file downloads. If this variable is not set, it will default to **True**.
 
