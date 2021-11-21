@@ -841,7 +841,7 @@ SyncUser(){
 
 SanitiseLaunchParameters(){
    if [ "${script_launch_parameters}" ]; then
-      case "${script_launch_parameters,,}" in
+      case "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
          "--initialise"|"--initialize"|"--convertallheics"|"--forceconvertallheics"|"--forceconvertallmntheics"|"--correctjpegtimestamps")
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Script launch parameters: ${script_launch_parameters}"
          ;;
@@ -857,11 +857,12 @@ SanitiseLaunchParameters(){
 
 ##### Script #####
 script_launch_parameters="${1}"
-case  "${script_launch_parameters,,}" in
+case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
    "--initialise"|"--initialize")
       initialise_container="True"
-      ;;
-   *);;
+    ;;
+   *)
+   ;;
 esac
 Initialise
 SanitiseLaunchParameters
