@@ -1,4 +1,8 @@
-20211024
+20211121
+
+ - Change: Amended healthcheck so that it does not set the status to unhealthy if notification days is less than 7. This was causing my auto-heal container to automatically restart it every 5mins. This behaviour now only occurs when the cookie has actually expired.
+
+20210024
 
  - Change: Set icloud.com DNS query type to 'a' records only so that it returns the IPv4 IP address and not IPv6. Also, removed the local loopback addresses, just to remove more unwanted data
 
