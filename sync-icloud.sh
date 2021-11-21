@@ -868,7 +868,7 @@ case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
       force_convert_all_heics="True"
    ;;
    "--forceconvertallmntheics")
-      force_convert_all_mnt_heics="rue"
+      force_convert_all_mnt_heics="True"
    ;;
    "--correctjpegtimestamps")
       correct_jpeg_time_stamps="True"

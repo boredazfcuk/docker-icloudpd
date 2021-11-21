@@ -1,6 +1,7 @@
 20211121
 
  - Change: Amended healthcheck so that it does not set the status to unhealthy if notification days is less than 7. This was causing my auto-heal container to automatically restart it every 5mins. This behaviour now only occurs when the cookie has actually expired.
+ - Change: Made script launch parameters case insensitive and also allowed for non-English spelling of Initialise.
 
 20210024
 
