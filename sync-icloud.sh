@@ -844,23 +844,24 @@ SanitiseLaunchParameters(){
       case "${script_launch_parameters,,}" in
          "--initialise"|"--initialize"|"--convertallheics"|"--forceconvertallheics"|"--forceconvertallmntheics"|"--correctjpegtimestamps")
             echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Script launch parameters: ${script_launch_parameters}"
-            ;;
+         ;;
          *)
             echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Ignoring innvalid launch parameter specified: ${script_launch_parameters}"
             echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Please do not specify the above parameter when launching the container. Continuing in 2 minutes"
             sleep 120
             unset script_launch_parameters
+         ;;
       esac
    fi
 }
 
 ##### Script #####
 script_launch_parameters="${1}"
-case  "${script_launch_parameters,,}"  in
+case  "${script_launch_parameters,,}" in
    "--initialise"|"--initialize")
       initialise_container="True"
       ;;
-   *)
+   *);;
 esac
 Initialise
 SanitiseLaunchParameters
