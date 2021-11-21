@@ -841,20 +841,27 @@ SyncUser(){
 
 SanitiseLaunchParameters(){
    if [ "${script_launch_parameters}" ]; then
-      if [ "${script_launch_parameters}" = "--Initialise" ] || [ "${script_launch_parameters}" = "--ConvertAllHEICs" ] || [ "${script_launch_parameters}" = "--ForceConvertAllHEICs" ] || [ "${script_launch_parameters}" = "--ForceConvertAllmntHEICs" ] || [ "${script_launch_parameters}" = "--CorrectJPEGTimestamps" ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Script launch parameters: ${script_launch_parameters}"
-      else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Ignoring innvalid launch parameter specified: ${script_launch_parameters}"
-         echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Please do not specify the above parameter when launching the container. Continuing in 2 minutes"
-         sleep 120
-         unset script_launch_parameters
-      fi
+      case "${script_launch_parameters,,}" in
+         "--initialise"|"--initialize"|"--convertallheics"|"--forceconvertallheics"|"--forceconvertallmntheics"|"--correctjpegtimestamps")
+            echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Script launch parameters: ${script_launch_parameters}"
+            ;;
+         *)
+            echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Ignoring innvalid launch parameter specified: ${script_launch_parameters}"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Please do not specify the above parameter when launching the container. Continuing in 2 minutes"
+            sleep 120
+            unset script_launch_parameters
+      esac
    fi
 }
 
 ##### Script #####
 script_launch_parameters="${1}"
-if [ "${script_launch_parameters}" = "--Initialise" ]; then initialise_container="True"; fi
+case  "${script_launch_parameters,,}"  in
+   "--initialise"|"--initialize")
+      initialise_container="True"
+      ;;
+   *)
+esac
 Initialise
 SanitiseLaunchParameters
 CreateGroup
