@@ -861,6 +861,18 @@ case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
    "--initialise"|"--initialize")
       initialise_container="True"
     ;;
+   "--convertallheics")
+      convert_all_heics="True"
+   ;;
+   "--forceconvertallheics")
+      force_convert_all_heics="True"
+   ;;
+   "--forceconvertallmntheics")
+      force_convert_all_mnt_heics="rue"
+   ;;
+   "--correctjpegtimestamps")
+      correct_jpeg_time_stamps="True"
+   ;;
    *)
    ;;
 esac
@@ -873,22 +885,22 @@ ConfigurePassword
 if [ "${initialise_container}" ]; then
    Generate2FACookie
    exit 0
-elif [ "$1" = "--ConvertAllHEICs" ]; then
+elif [ "${convert_all_heics}" ]; then
    ConvertAllHEICs
    SetOwnerAndPermissions
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     HEIC to JPG conversion complete"
    exit 0
-elif [ "$1" = "--ForceConvertAllHEICs" ]; then
+elif [ "${force_convert_all_heics}" ]; then
    ForceConvertAllHEICs
    SetOwnerAndPermissions
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Forced HEIC to JPG conversion complete"
    exit 0
-elif [ "$1" = "--ForceConvertAllmntHEICs" ]; then
+elif [ "${force_convert_all_mnt_heics}" ]; then
    ForceConvertAllmntHEICs
    SetOwnerAndPermissions
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Forced HEIC to JPG conversion complete"
    exit 0
-elif [ "$1" = "--CorrectJPEGTimestamps" ]; then
+elif [ "${correct_jpeg_time_stamps}" ]; then
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correcting timestamps for JPEG files in ${download_path}"
    CorrectJPEGTimestamps
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     JPEG timestamp correction complete"
