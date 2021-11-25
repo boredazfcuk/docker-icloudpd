@@ -1,6 +1,7 @@
 20211125
 
  - Change: Added variable icloud_china so that photos are downloaded from icloud.com.cn instead of icloud.com 
+ - Change: Removed readme information about obsolete variable interavtive_only. The readme is nearing it's maximum size on Dockerhub, so this helps keep tthe number of characters down.
 
 20211121
 
