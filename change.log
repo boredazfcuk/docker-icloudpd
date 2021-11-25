@@ -1,3 +1,7 @@
+20211125
+
+ - Change: Added variable icloud_china so that photos are downloaded from icloud.com.cn instead of icloud.com 
+
 20211121
 
  - Change: Amended healthcheck so that it does not set the status to unhealthy if notification days is less than 7. This was causing my auto-heal container to automatically restart it every 5mins. This behaviour now only occurs when the cookie has actually expired.

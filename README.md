@@ -56,6 +56,8 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **until_found**: Set this variable to an integer number to only download the most recently added photos, until *n* number of previously downloaded consecutive photos are found. If this variable is not set, it will default to downloading all photos.
 
+**icloud_china**: If this variable is set, it will use icloud.com.cm instead of icloud.com as the download source. If this variable is not set, it will default to **False**
+
 ## OPTIONAL ENVIRONMENT VARIABLES
 
 **interactive_only**: ~~Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.~~ The container now defaults to downloading the files, rather than creating the cookie, so this variable is now obsolete.

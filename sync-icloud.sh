@@ -98,6 +98,19 @@ Initialise(){
    if [ "${notification_type}" ]; then
       ConfigureNotifications
    fi
+   if [ "${icloud_china}" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading from: icloud.com.cn"
+      sed -i \
+         -e "s#icloud.com/#icloud.com.cn/#" \
+         -e "s#icloud.com'#icloud.com.cn'#" \
+         "$(pip show pyicloud-ipd | grep "Location" | awk '{print $2}')/pyicloud_ipd/base.py"
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading from: icloud.com"
+      sed -i \
+         -e "s#icloud.com.cn/#icloud.com/#" \
+         -e "s#icloud.com.cn'#icloud.com'#" \
+         "$(pip show pyicloud-ipd | grep "Location" | awk '{print $2}')/pyicloud_ipd/base.py"
+   fi
    if [ ! -d "/home/${user}/.local/share/" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Creating directory: /home/${user}/.local/share/"
       mkdir --parents "/home/${user}/.local/share/"
