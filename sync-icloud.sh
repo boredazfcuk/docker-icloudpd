@@ -100,6 +100,7 @@ Initialise(){
    fi
    if [ "${icloud_china}" ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Downloading from: icloud.com.cn"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Downloading from icloud.com.cn is untested. Please report issues at https://github.com/boredazfcuk/docker-icloudpd/issues"
       sed -i \
          -e "s#icloud.com/#icloud.com.cn/#" \
          -e "s#icloud.com'#icloud.com.cn'#" \
