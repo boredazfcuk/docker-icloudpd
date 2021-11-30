@@ -1,3 +1,7 @@
+20211130
+
+ - Change: Final text alert for cookie expiration not received. Made a couple of changes. Will check again in 3 months time.
+
 20211127
 
  - Change: Added the IYUU notification type. This is a 3rd party service which supports forwarding messages to WeChat.

@@ -436,7 +436,7 @@ Display2FAExpiry(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Days remaining until expiration: ${days_remaining}"
    if [ "${days_remaining}" -le "${notification_days}" ]; then
       if [ "${synchronisation_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]; then
-         if [ "${days_remaining}" -le 1 ]; then
+         if [ "${days_remaining}" -eq 1 ]; then
             echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Final day before two factor authentication cookie expires - Please reinitialise now. This is your last reminder"
             if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
                Notify "cookie expiration" "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
