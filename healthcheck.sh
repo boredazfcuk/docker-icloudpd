@@ -26,7 +26,7 @@ if [ "${authentication_type:=2FA}" = "2FA" ]; then
    twofa_expire_seconds="$(date -d "${twofa_expire_date}" '+%s')"
    days_remaining="$(($((twofa_expire_seconds - $(date '+%s'))) / 86400))"
    if [ -z "${notification_days}" ]; then notification_days=7; fi
-   if [ "${days_remaining}" -lt "${notification_days}" ]; then
+   if [ "${days_remaining}" -le "${notification_days}" ] && [ "${days_remaining}" -ge 1 ]; then
       echo "Warning: Two-factor authentication cookie is due for renewal in ${notification_days} days"
    elif [ "${days_remaining}" -lt 1 ]; then
       echo "Error: Two-factor authentication cookie has expired"

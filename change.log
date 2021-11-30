@@ -1,3 +1,7 @@
+20211127
+
+ - Change: Added the IYUU notification type. This is a 3rd party service which supports forwarding messages to WeChat.
+
 20211125
 
  - Change: Added variable icloud_china so that photos are downloaded from icloud.com.cn instead of icloud.com 
