@@ -1,6 +1,7 @@
 20211211
 
- - Change: Users and Groups now created with useradd/groupadd instead of adduser/addgroup to allow the creation of users/group with an id greater than 256,000
+ - Change: Change to IYUU notifications, which should now get these working, and integrated changes to live.
+ - Change: Users and Groups now created with useradd/groupadd instead of adduser/addgroup to allow the creation of users/group with an id greater than 256,000.
 
 20211130
 
