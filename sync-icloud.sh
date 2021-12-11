@@ -9,7 +9,8 @@ Initialise(){
    apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
    local icloud_dot_com
-   icloud_dot_com="$(nslookup -type=a icloud.com | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
+   if [ "${icloud_china}" ]; then icloud_domain="icloud.com.cn"; else icloud_domain="icloud.com"; fi
+   icloud_dot_com="$(nslookup -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
    case "${synchronisation_interval:=86400}" in
       43200) synchronisation_interval=43200;; #12 hours
       86400) synchronisation_interval=86400;; # 24 hours
@@ -44,18 +45,18 @@ Initialise(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Default gateway: $(ip route | grep default | awk '{print $3}')"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     DNS server: $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')"
    if [ -z "${icloud_dot_com}" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cannot find icloud.com IP address. Please check your DNS settings - exiting"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Cannot find ${icloud_domain} IP address. Please check your DNS settings - exiting"
       sleep 120
       exit 1
    else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     DNS lookup for icloud.com: ${icloud_dot_com}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     DNS lookup for ${icloud_domain}: ${icloud_dot_com}"
    fi
-   if [ "$(traceroute -q 1 -w 1 icloud.com >/dev/null 2>&1; echo $?)" = 1 ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    No route to icloud.com found. Please check your container's network settings - exiting"
+   if [ "$(traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>&1; echo $?)" = 1 ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    No route to ${icloud_domain} found. Please check your container's network settings - exiting"
       sleep 120
       exit 1
    else
-      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Route check to icloud.com successful"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Route check to ${icloud_domain} successful"
    fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Apple ID: ${apple_id}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Authentication Type: ${authentication_type:=2FA}"

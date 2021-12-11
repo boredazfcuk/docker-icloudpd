@@ -1,5 +1,6 @@
 20211211
 
+ - Change: Amended domain and route checks to be compatible with icloud_china variable. No point checking the route to icloud.com is OK when the container downloads from icloud.com.cn.
  - Change: Change to IYUU notifications, which should now get these working, and integrated changes to live.
  - Change: Users and Groups now created with useradd/groupadd instead of adduser/addgroup to allow the creation of users/group with an id greater than 256,000.
 
