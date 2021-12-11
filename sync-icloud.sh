@@ -781,7 +781,8 @@ Notify(){
       fi
    elif [ "${notification_type}" = "IYUU" ]; then
       curl --silent --request POST "${notification_url}" \
-         --data text="${2}" \
+         --data text="${notification_title}" \
+         --data desp="${2}" \
          >/dev/null 2>&1
          curl_exit_code=$?
       if [ "${curl_exit_code}" -eq 0 ]; then
