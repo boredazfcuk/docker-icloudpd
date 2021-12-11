@@ -233,7 +233,7 @@ CreateGroup(){
          fi
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Creating group ${group}:${group_id}"
-         addgroup -g "${group_id}" "${group}"
+         groupadd --gid "${group_id}" "${group}"
       fi
    fi
 }
@@ -252,7 +252,7 @@ CreateUser(){
          exit 1
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Creating user ${user}:${user_id}"
-         adduser -s /bin/ash -D -G "${group}" -u "${user_id}" "${user}" -h "/home/${user}"
+         useradd --shell /bin/ash --groups "${group}" --uid "${user_id}" "${user}" --home-dir "/home/${user}"
       fi
    fi
 }

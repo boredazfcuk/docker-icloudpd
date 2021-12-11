@@ -1,3 +1,7 @@
+20211211
+
+ - Change: Users and Groups now created with useradd/groupadd instead of adduser/addgroup to allow the creation of users/group with an id greater than 256,000
+
 20211130
 
  - Change: Final text alert for cookie expiration not received. Made a couple of changes. Will check again in 3 months time.
