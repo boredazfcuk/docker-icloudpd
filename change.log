@@ -1,3 +1,7 @@
+20211212
+
+ - Change: Fix bug introduced by moving to useradd/groupadd.
+
 20211211
 
  - Change: Amended domain and route checks to be compatible with icloud_china variable. No point checking the route to icloud.com is OK when the container downloads from icloud.com.cn.
