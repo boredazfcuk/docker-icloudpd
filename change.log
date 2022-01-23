@@ -1,3 +1,7 @@
+20220123
+
+ - Change: Added variable to set custom sounds for Pushover notification type. This can be used to silence notifications.
+
 20211212
 
  - Change: Fix bug introduced by moving to useradd/groupadd.

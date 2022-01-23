@@ -26,7 +26,7 @@ Initialise(){
    if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_check_exit_code"; fi
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_download_exit_code"; fi
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** https://github.com/boredazfcuk/docker-icloudpd *****"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** $(realpath "${0}") date: $(date --reference=$(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ***** $(realpath "${0}") hash: $(md5sum $(realpath "${0}") | awk '{print $1}') *****"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     $(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
@@ -148,6 +148,16 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notifications enabled"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} user: ${pushover_user}"
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} token: ${pushover_token}"
+         if [ "${pushover_sound}" ]; then
+            case "${pushover_sound}" in
+               pushover|bike|bugle|cashregister|classical|cosmic|falling|gamelan|incoming|intermission|magic|mechanical|pianobar|siren|spacealarm|tugboat|alien|climb|persistent|echo|updown|vibrate|none)
+                  echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} sound: ${pushover_sound}"
+               ;;
+               *)
+                  echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} sound not recognised. Using default"
+                  unset pushover_sound
+               ;;
+         fi
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          notification_url="https://api.pushover.net/1/messages.json"
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
@@ -704,14 +714,26 @@ Notify(){
          exit 1
       fi
    elif [ "${notification_type}" = "Pushover" ]; then
-      curl --silent "${notification_url}"  \
-         --form-string "user=${pushover_user}" \
-         --form-string "token=${pushover_token}" \
-         --form-string "title=${notification_title}" \
-         --form-string "priority=${3}" \
-         --form-string "message=${4}" \
-         >/dev/null 2>&1
+      if [ "${pushover_sound}" ]; then
+         curl --silent "${notification_url}"  \
+            --form-string "user=${pushover_user}" \
+            --form-string "token=${pushover_token}" \
+            --form-string "title=${notification_title}" \
+            --form-string "sound=${pushover_sound}" \
+            --form-string "priority=${3}" \
+            --form-string "message=${4}" \
+            >/dev/null 2>&1
          curl_exit_code=$?
+      else
+         curl --silent "${notification_url}"  \
+            --form-string "user=${pushover_user}" \
+            --form-string "token=${pushover_token}" \
+            --form-string "title=${notification_title}" \
+            --form-string "priority=${3}" \
+            --form-string "message=${4}" \
+            >/dev/null 2>&1
+         curl_exit_code=$?
+      fi
       if [ "${curl_exit_code}" -eq 0 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Event: ${1}\" \"Priority ${3}\" \"Message ${4}\""
       else
