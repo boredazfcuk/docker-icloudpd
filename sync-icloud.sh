@@ -156,7 +156,7 @@ ConfigureNotifications(){
                *)
                   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} sound not recognised. Using default"
                   unset pushover_sound
-               ;;
+            esac
          fi
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Notification period: ${notification_days=7}"
          notification_url="https://api.pushover.net/1/messages.json"
