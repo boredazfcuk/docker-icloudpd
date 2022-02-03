@@ -5,7 +5,7 @@ MAINTAINER boredazfcuk
 ENV config_dir="/config"
 
 # Container version serves no real purpose. Increment to force a container rebuild.
-ARG container_version="1.0.16"
+ARG container_version="1.0.17"
 ARG app_dependencies="python3 py3-pip exiftool coreutils tzdata curl py3-certifi py3-cffi py3-cryptography py3-secretstorage py3-jeepney py3-dateutil imagemagick shadow"
 ARG build_dependencies="git"
 # Fix tzlocal to 2.1 due to Python 3.8 being default in alpine 3.13.5
