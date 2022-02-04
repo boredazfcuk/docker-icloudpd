@@ -747,7 +747,7 @@ Notify(){
          --data chat_id="${telegram_chat_id}" \
          --data parse_mode="markdown" \
          --data text="${2}")"
-      if [ "$(echo "${notification_result}" | jq -r ".ok")" -eq "true" ]; then
+      if [ "$(echo "${notification_result}" | jq -r ".ok")" = "true" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with error code: $(echo "${notification_result}" | jq -r ".error_code")"
