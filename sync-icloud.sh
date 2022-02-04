@@ -744,7 +744,7 @@ Notify(){
       if [ "${notification_result}" -eq 200 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with error code: ${notification_result})"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with error code: ${notification_result}"
          sleep 120
          exit 1
       fi
