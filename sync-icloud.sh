@@ -706,7 +706,7 @@ Notify(){
          --form priority="${3}" \
          --form description="${4}")"
       if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Event: ${1}\" \"Priority ${2}\" \"Message ${3}\""
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Paremeter 1; ${1}\" \"Event: ${2}\" \"Priority ${3}\" \"Message ${4}\""
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed with status code: ${notification_result}"
          sleep 120
