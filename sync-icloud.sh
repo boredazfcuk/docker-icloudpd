@@ -756,12 +756,11 @@ Notify(){
          exit 1
       fi
    elif [ "${notification_type}" = "Webhook" ]; then
-      curl --silent --request POST "${notification_url}" \
+      curl_response_code=$(curl --output /dev/null --write-out "%{http_code}" --silent --request POST "${notification_url}" \
          --header 'content-type: application/json' \
          --data "{ \"${webhook_body}\" : \"${2}\" }" \
-         >/dev/null 2>&1
-         curl_exit_code=$?
-      if [ "${curl_exit_code}" -eq 0 ]; then
+         )
+      if [[ "${curl_response_code}" =~ ^2[0-9][0-9]$ ]]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed"
