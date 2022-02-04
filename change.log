@@ -3,6 +3,7 @@
  - Change: Changed notification failure log messages to be more accurate and display http status code.
  - Change: Prowl notifications logging not quite right.
  - Change: Standard notification log message.
+ - Change: Moved some stuff to prevent duplication of code.
 
 20220123
 
