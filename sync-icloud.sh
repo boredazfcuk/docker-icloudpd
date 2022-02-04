@@ -451,47 +451,38 @@ Display2FAExpiry(){
             echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    Final day before two factor authentication cookie expires - Please reinitialise now. This is your last reminder"
             if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
                Notify "cookie expiration" "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
-               next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Telegram" ]; then
                telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *${notification_title}\nFinal day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
                Notify "cookie expiration" "${telegram_text}"
-               next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Webhook" ]; then
                webhook_payload="$(echo -e "${notification_title} - Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
                Notify "cookie expiration" "${webhook_payload}"
-               next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Discord" ]; then
                discord_payload="$(echo -e "Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
                Notify "cookie expiration" "${discord_payload}"
-               next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "IYUU" ]; then
                iyuu_text="$(echo -e "\xF0\x9F\x9A\xA8 *${notification_title}\nFinal day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
                Notify "cookie expiration" "${iyuu_text}"
-               next_notification_time="$(date +%s -d "+24 hour")"
             fi
          else
             echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  Only ${days_remaining} days until two factor authentication cookie expires - Please reinitialise"
             if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
                Notify "cookie expiration" "2FA Cookie Expiration" "1" "Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
-               next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Telegram" ]; then
                telegram_text="$(echo -e "\xE2\x9A\xA0 *${notification_title}* Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
                Notify "cookie expiration" "${telegram_text}"
-               next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Webhook" ]; then
                webhook_payload="$(echo -e "${notification_title} - Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
                Notify "cookie expiration" "${webhook_payload}"
-               next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "Discord" ]; then
                discord_payload="$(echo -e "Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
                Notify "cookie expiration" "${discord_payload}"
-               next_notification_time="$(date +%s -d "+24 hour")"
             elif [ "${notification_type}" = "IYUU" ]; then
                iyuu_text="$(echo -e "\xE2\x9A\xA0 *${notification_title}* Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
                Notify "cookie expiration" "${iyuu_text}"
-               next_notification_time="$(date +%s -d "+24 hour")"
             fi
          fi
+         next_notification_time="$(date +%s -d "+24 hour")"
       fi
    fi
 }
@@ -534,29 +525,23 @@ DownloadedFilesNotification(){
    new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${new_files_count:=0}" -gt 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     New files downloaded: ${new_files_count}"
+      new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | head -10)"
+      new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
          Notify "downloaded files" "New files detected" "0" "Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
       elif [ "${notification_type}" = "Telegram" ]; then
-         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | head -10)"
-         new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          telegram_new_files_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nMost Recent ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
          Notify "downloaded files" "${telegram_new_files_text}"
       elif [ "${notification_type}" = "Webhook" ]; then
-         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | head -10)"
-         new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          webhook_payload="$(echo -e "${notification_title} - New files detected for Apple ID ${apple_id}: ${new_files_count} Most Recent ${new_files_preview_count} file names: ${new_files_preview//$'\n'/'\\n'}")"
          Notify "downloaded files" "${webhook_payload}"
 	  elif [ "${notification_type}" = "Discord" ]; then
-         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | head -10)"
-         new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          title="$(echo -e "New files detected for Apple ID ${apple_id}")"
          description="$(echo -e "${new_files_count} files downloaded")"
          field_name="$(echo -e "Most Recent ${new_files_preview_count} file names")"
          field_value="$(echo -e "${new_files_preview//$'\n'/'\\n'}")"
          Notify "downloaded files" "${title}" "${description}" "${field_name}" "${field_value}"
       elif [ "${notification_type}" = "IYUU" ]; then
-         new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | head -10)"
-         new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
          iyuu_new_files_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nMost Recent ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
          Notify "downloaded files" "${iyuu_new_files_text}"
       fi
@@ -569,28 +554,22 @@ DeletedFilesNotification(){
    deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${deleted_files_count:=0}" -gt 0 ]; then
       echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Number of files deleted: ${deleted_files_count}"
+      deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
+      deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
          Notify "deleted files" "Recently deleted files detected" "0" "Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
       elif [ "${notification_type}" = "Telegram" ]; then
-         deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
-         deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          telegram_deleted_files_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview//_/\\_}")"
          Notify "deleted files" "${telegram_deleted_files_text}"
       elif [ "${notification_type}" = "Webhook" ]; then
-         deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
-         deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          webhook_payload="$(echo -e "${notification_title} - Deleted files detected for Apple ID: ${apple_id}: ${deleted_files_count} Last ${deleted_files_preview_count} file names: ${deleted_files_preview//$'\n'/'\\n'}")"
          Notify "deleted files" "${webhook_payload}"
 	  elif [ "${notification_type}" = "Discord" ]; then
-         deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
-         deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          description="$(echo -e "${deleted_files_count} files deleted")"
          field_name="$(echo -e "Last ${deleted_files_preview_count} file names")"
          field_value="$(echo -e "${deleted_files_preview//$'\n'/'\\n'}")"
          Notify "downloaded files" "${title}" "${description}" "${field_name}" "${field_value}"
       elif [ "${notification_type}" = "IYUU" ]; then
-         deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
-         deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
          iyuu_deleted_files_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview//_/\\_}")"
          Notify "deleted files" "${iyuu_deleted_files_text}"
       fi
