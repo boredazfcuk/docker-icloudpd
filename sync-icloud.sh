@@ -706,9 +706,9 @@ Notify(){
          --form priority="${3}" \
          --form description="${4}")"
       if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Paremeter 1; ${1}\" \"Event: ${2}\" \"Priority ${3}\" \"Message ${4}\""
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully: \"Event: ${2}\" \"Priority ${3}\" \"Message ${4}\""
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed with status code: ${notification_result}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
          sleep 120
          exit 1
       fi
@@ -730,9 +730,9 @@ Notify(){
             --form-string "message=${4}")"
       fi
       if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Event: ${1}\" \"Priority ${3}\" \"Message ${4}\""
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully: \"Priority ${3}\" \"Message ${4}\""
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed with status code: ${notification_result}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
          sleep 120
          exit 1
       fi
@@ -742,7 +742,7 @@ Notify(){
          --data parse_mode="markdown" \
          --data text="${2}")"
       if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully: \"Message ${2}\""
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with error code: ${notification_result}"
          sleep 120
@@ -753,7 +753,7 @@ Notify(){
          --header 'content-type: application/json' \
          --data "{ \"${webhook_body}\" : \"${2}\" }")"
       if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully: \"Message ${2}\""
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
          sleep 120
@@ -770,7 +770,7 @@ Notify(){
             --data "{ \"username\" : \"iCloudPD\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_title}\" } , \"color\" : 2061822 , \"title\" : \"${2}\" } ] }")"
       fi
       if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully: \"Title ${2}\""
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
          sleep 120
@@ -781,7 +781,7 @@ Notify(){
          --header 'Content-Type: application/json' \
          --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${4}'}}")"
       if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully: \"Message ${4}\""
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
          sleep 120
@@ -792,7 +792,7 @@ Notify(){
          --data text="${notification_title}" \
          --data desp="${2}")"
       if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully: \"Message ${2}\""
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
          sleep 120
