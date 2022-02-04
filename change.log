@@ -1,3 +1,7 @@
+20220204
+
+ - Change: Changed notification failure log messages to be more accurate and display http status code
+
 20220123
 
  - Change: Added variable to set custom sounds for Pushover notification type. This can be used to silence notifications.

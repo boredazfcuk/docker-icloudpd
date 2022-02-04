@@ -699,118 +699,102 @@ Notify(){
    local notification_result
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
    if [ "${notification_type}" = "Prowl" ]; then
-      curl --silent "${notification_url}"  \
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
          --form apikey="${prowl_api_key}" \
          --form application="${notification_title}" \
          --form event="${2}" \
          --form priority="${3}" \
-         --form description="${4}" \
-         >/dev/null 2>&1
-         curl_exit_code=$?
-      if [ "${curl_exit_code}" -eq 0 ]; then
+         --form description="${4}")"
+      if [ "${notification_result}" -eq 200 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Event: ${1}\" \"Priority ${2}\" \"Message ${3}\""
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed for Apple ID ${apple_id}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed with status code: ${notification_result}"
          sleep 120
          exit 1
       fi
    elif [ "${notification_type}" = "Pushover" ]; then
       if [ "${pushover_sound}" ]; then
-         curl --silent "${notification_url}"  \
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
             --form-string "user=${pushover_user}" \
             --form-string "token=${pushover_token}" \
             --form-string "title=${notification_title}" \
             --form-string "sound=${pushover_sound}" \
             --form-string "priority=${3}" \
-            --form-string "message=${4}" \
-            >/dev/null 2>&1
-         curl_exit_code=$?
+            --form-string "message=${4}")"
       else
-         curl --silent "${notification_url}"  \
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
             --form-string "user=${pushover_user}" \
             --form-string "token=${pushover_token}" \
             --form-string "title=${notification_title}" \
             --form-string "priority=${3}" \
-            --form-string "message=${4}" \
-            >/dev/null 2>&1
-         curl_exit_code=$?
+            --form-string "message=${4}")"
       fi
-      if [ "${curl_exit_code}" -eq 0 ]; then
+      if [ "${notification_result}" -eq 200 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} notification sent successfully for Apple ID ${apple_id}: \"Event: ${1}\" \"Priority ${3}\" \"Message ${4}\""
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed for Apple ID ${apple_id}"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} notification failed with status code: ${notification_result}"
          sleep 120
          exit 1
       fi
    elif [ "${notification_type}" = "Telegram" ]; then
-      notification_result="$(curl --silent --request POST "${notification_url}" \
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --data chat_id="${telegram_chat_id}" \
          --data parse_mode="markdown" \
          --data text="${2}")"
-      if [ "$(echo "${notification_result}" | jq -r ".ok")" = "true" ]; then
+      if [ "${notification_result}" -eq 200 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with error code: $(echo "${notification_result}" | jq -r ".error_code")"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with error code: ${notification_result})"
          sleep 120
          exit 1
       fi
    elif [ "${notification_type}" = "Webhook" ]; then
-      curl --silent --request POST "${notification_url}" \
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
          --header 'content-type: application/json' \
-         --data "{ \"${webhook_body}\" : \"${2}\" }" \
-         >/dev/null 2>&1
-         curl_exit_code=$?
-      if [ "${curl_exit_code}" -eq 0 ]; then
+         --data "{ \"${webhook_body}\" : \"${2}\" }")"
+      if [ "${notification_result}" -eq 200 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
          sleep 120
          exit 1
       fi
    elif [ "${notification_type}" = "Discord" ]; then
       if [ "${1}" = "downloaded files" ] || [ "${1}" = "deleted files" ]; then
-         curl --silent --request POST "${notification_url}" \
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
             --header 'content-type: application/json' \
-            --data "{ \"username\" : \"iCloudPD\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_title}\" } , \"color\" : 2061822 , \"title\" : \"${2}\", \"description\": \"${3}\", \"fields\": [ { \"name\": \"${4}\", \"value\": \"${5}\" } ] } ] }" \
-            >/dev/null 2>&1
-            curl_exit_code=$?
+            --data "{ \"username\" : \"iCloudPD\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_title}\" } , \"color\" : 2061822 , \"title\" : \"${2}\", \"description\": \"${3}\", \"fields\": [ { \"name\": \"${4}\", \"value\": \"${5}\" } ] } ] }")"
       else
-         curl --silent --request POST "${notification_url}" \
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
             --header 'content-type: application/json' \
-            --data "{ \"username\" : \"iCloudPD\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_title}\" } , \"color\" : 2061822 , \"title\" : \"${2}\" } ] }" \
-            >/dev/null 2>&1
-         curl_exit_code=$?
+            --data "{ \"username\" : \"iCloudPD\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_title}\" } , \"color\" : 2061822 , \"title\" : \"${2}\" } ] }")"
       fi
-      if [ "${curl_exit_code}" -eq 0 ]; then
+      if [ "${notification_result}" -eq 200 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
          sleep 120
          exit 1
       fi	  
    elif [ "${notification_type}" = "Dingtalk" ]; then
-      curl --silent --request POST "${notification_url}" \
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --header 'Content-Type: application/json' \
-         --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${4}'}}" \
-         >/dev/null 2>&1
-         curl_exit_code=$?
-      if [ "${curl_exit_code}" -eq 0 ]; then
+         --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${4}'}}")"
+      if [ "${notification_result}" -eq 200 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
          sleep 120
          exit 1
       fi
    elif [ "${notification_type}" = "IYUU" ]; then
-      curl --silent --request POST "${notification_url}" \
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --data text="${notification_title}" \
-         --data desp="${2}" \
-         >/dev/null 2>&1
-         curl_exit_code=$?
-      if [ "${curl_exit_code}" -eq 0 ]; then
+         --data desp="${2}")"
+      if [ "${notification_result}" -eq 200 ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
          sleep 120
          exit 1
       fi
