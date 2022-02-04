@@ -696,6 +696,7 @@ CorrectJPEGTimestamps(){
 }
 
 Notify(){
+   local notification_result
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     Sending ${notification_type} ${1} notification"
    if [ "${notification_type}" = "Prowl" ]; then
       curl --silent "${notification_url}"  \
@@ -742,16 +743,14 @@ Notify(){
          exit 1
       fi
    elif [ "${notification_type}" = "Telegram" ]; then
-      curl --silent --request POST "${notification_url}" \
+      notification_result="$(curl --silent --request POST "${notification_url}" \
          --data chat_id="${telegram_chat_id}" \
          --data parse_mode="markdown" \
-         --data text="${2}" \
-         >/dev/null 2>&1
-         curl_exit_code=$?
-      if [ "${curl_exit_code}" -eq 0 ]; then
+         --data text="${2}")"
+      if [ "$(echo "${notification_result}" | jq -r ".ok")" -eq "true" ]; then
          echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed"
+         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with error code: $(echo "${notification_result}" | jq -r ".error_code")"
          sleep 120
          exit 1
       fi
