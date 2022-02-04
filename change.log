@@ -2,7 +2,7 @@
 
  - Change: Changed notification failure log messages to be more accurate and display http status code.
  - Change: Prowl notifications logging not quite right.
- - Change: Standardise notification log messages.
+ - Change: Standard notification log message.
 
 20220123
 

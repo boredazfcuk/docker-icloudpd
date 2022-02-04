@@ -705,13 +705,6 @@ Notify(){
          --form event="${2}" \
          --form priority="${3}" \
          --form description="${4}")"
-      if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
-      else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
-         sleep 120
-         exit 1
-      fi
    elif [ "${notification_type}" = "Pushover" ]; then
       if [ "${pushover_sound}" ]; then
          notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
@@ -729,36 +722,15 @@ Notify(){
             --form-string "priority=${3}" \
             --form-string "message=${4}")"
       fi
-      if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
-      else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
-         sleep 120
-         exit 1
-      fi
    elif [ "${notification_type}" = "Telegram" ]; then
          notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --data chat_id="${telegram_chat_id}" \
          --data parse_mode="markdown" \
          --data text="${2}")"
-      if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
-      else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with error code: ${notification_result}"
-         sleep 120
-         exit 1
-      fi
    elif [ "${notification_type}" = "Webhook" ]; then
          notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
          --header 'content-type: application/json' \
          --data "{ \"${webhook_body}\" : \"${2}\" }")"
-      if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
-      else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
-         sleep 120
-         exit 1
-      fi
    elif [ "${notification_type}" = "Discord" ]; then
       if [ "${1}" = "downloaded files" ] || [ "${1}" = "deleted files" ]; then
          notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
@@ -769,35 +741,21 @@ Notify(){
             --header 'content-type: application/json' \
             --data "{ \"username\" : \"iCloudPD\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_title}\" } , \"color\" : 2061822 , \"title\" : \"${2}\" } ] }")"
       fi
-      if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
-      else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
-         sleep 120
-         exit 1
-      fi	  
    elif [ "${notification_type}" = "Dingtalk" ]; then
          notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --header 'Content-Type: application/json' \
          --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${4}'}}")"
-      if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
-      else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
-         sleep 120
-         exit 1
-      fi
    elif [ "${notification_type}" = "IYUU" ]; then
          notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --data text="${notification_title}" \
          --data desp="${2}")"
-      if [ "${notification_result}" -eq 200 ]; then
-         echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
-      else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
-         sleep 120
-         exit 1
-      fi
+   fi
+   if [ "${notification_result}" -eq 200 ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${notification_type} ${1} notification sent successfully"
+   else
+      echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${notification_type} ${1} notification failed with status code: ${notification_result}"
+      sleep 120
+      exit 1
    fi
 }
 
