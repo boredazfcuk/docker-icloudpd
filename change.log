@@ -1,3 +1,7 @@
+220206
+
+ - Change: Amended the code which sends to Pushover notifications. Originally this was two separate commands, depending on whether the pushover_sound variable was sent. This is not needed, as Pushover will use the default sound is a blank value is sent for the "sound" argument
+
 20220204
 
  - Change: Changed notification failure log messages to be more accurate and display http status code.
