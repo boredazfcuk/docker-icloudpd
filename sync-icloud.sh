@@ -685,22 +685,13 @@ Notify(){
          --form priority="${3}" \
          --form description="${4}")"
    elif [ "${notification_type}" = "Pushover" ]; then
-      if [ "${pushover_sound}" ]; then
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
-            --form-string "user=${pushover_user}" \
-            --form-string "token=${pushover_token}" \
-            --form-string "title=${notification_title}" \
-            --form-string "sound=${pushover_sound}" \
-            --form-string "priority=${3}" \
-            --form-string "message=${4}")"
-      else
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
-            --form-string "user=${pushover_user}" \
-            --form-string "token=${pushover_token}" \
-            --form-string "title=${notification_title}" \
-            --form-string "priority=${3}" \
-            --form-string "message=${4}")"
-      fi
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
+         --form-string "user=${pushover_user}" \
+         --form-string "token=${pushover_token}" \
+         --form-string "title=${notification_title}" \
+         --form-string "sound=${pushover_sound}" \
+         --form-string "priority=${3}" \
+         --form-string "message=${4}")"
    elif [ "${notification_type}" = "Telegram" ]; then
          notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --data chat_id="${telegram_chat_id}" \
