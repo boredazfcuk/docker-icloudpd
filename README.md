@@ -92,7 +92,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **webhook_id**: If the notification_type is set to 'Webhook' then this is the Webhook ID to use.
 
-**webhook_https**: If this is set to 'True then the Webhoot notification URL will use HTTPS, otherwise it will default to HTTP.
+**webhook_https**: If this is set to 'True then the Webhook notification URL will use HTTPS, otherwise it will default to HTTP.
 
 **webhook_body**: Adapt to different services. Homeassistant uses "data" in the body of the webhook request, Discord uses "content", IFTTT uses "value1", etc.. Defaults to "data".
 

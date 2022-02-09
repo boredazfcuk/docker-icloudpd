@@ -1,4 +1,10 @@
-220206
+20220209
+
+ - Change: Broke out logging into three separate functions. Just because. I dunno. Having tonnes of $(date '+%Y-%m-%d %H:%M:%S') commands in the script just looked a bit weird. Plus if I even need to change it, it's three lines instead of a find/replace of a bazillion.
+ - Change: Set ConfigureNotifications function to check for presence of Dingtalk token, instead of ID, to decide whether to fail or not. Same as the other methods (except webhook, which doesn't use tokens).
+ - Change: Altered priority for Pushover warning/error notifications. Previously they were set to -2, which gives no alert, only changes the icon badge number. Now it sends a standard priority alert for all notification types, except the one that alerts you that your cookie will run out that day, which is a "quiet hours breaking" notification (same for Prowl).
+
+20220206
 
  - Change: Amended the code which sends to Pushover notifications. Originally this was two separate commands, depending on whether the pushover_sound variable was sent. This is not needed, as Pushover will use the default sound is a blank value is sent for the "sound" argument
 
