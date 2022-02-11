@@ -1,3 +1,8 @@
+20220210
+
+ - Change: Handle errors differently. Added suggestions for authentication failure issues.
+ - Change: Eliminated full stops from log entries. Some lines had them, others didn't, so standardised on not having them. We don't need them. They take up precious bytes. They giving me flashbacks to COBOL.
+
 20220209
 
  - Change: Broke out logging into three separate functions. Just because. I dunno. Having tonnes of $(date '+%Y-%m-%d %H:%M:%S') commands in the script just looked a bit weird. Plus if I even need to change it, it's three lines instead of a find/replace of a bazillion.
