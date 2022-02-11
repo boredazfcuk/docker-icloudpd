@@ -1,3 +1,8 @@
+20220211
+
+ - Change: Introduced a bug with my error handling from the last update. Now I create the error and exit_code log files in the Initialisation function of the script so that the correct permisions are applied. Problem was that the files were being created as root, and then the python script didn't have permission to them.
+ - Change: Status code checking for the curl command when sending notifications would only accept 200 as a success. Discord reports 204. I've amended the checking code to just accept 2xx.
+
 20220210
 
  - Change: Handle errors differently. Added suggestions for authentication failure issues.

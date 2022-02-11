@@ -25,8 +25,14 @@ Initialise(){
    if [ ! -d "/tmp/icloudpd" ]; then mkdir --parents "/tmp/icloudpd"; fi
    if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_check_exit_code"; fi
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_download_exit_code"; fi
+   if [ -f "/tmp/icloudpd/icloudpd_check_error" ]; then rm "/tmp/icloudpd/icloudpd_check_error"; fi
+   if [ -f "/tmp/icloudpd/icloudpd_download_error" ]; then rm "/tmp/icloudpd/icloudpd_download_error"; fi
+   touch "/tmp/icloudpd/icloudpd_check_exit_code"
+   touch "/tmp/icloudpd/icloudpd_download_exit_code"
+   touch "/tmp/icloudpd/icloudpd_check_error"
+   touch "/tmp/icloudpd/icloudpd_download_error"
    LogInfo "***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
-   LogInfo "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd *****"
+   LogInfo "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
    LogInfo "***** $(realpath "${0}") date: $(date --reference=$(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
    LogInfo "***** $(realpath "${0}") hash: $(md5sum $(realpath "${0}") | awk '{print $1}') *****"
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
@@ -92,7 +98,7 @@ Initialise(){
    LogInfo "Skip videos: ${skip_videos:=False}"
    if [ "${command_line_options}" ]; then
       LogWarning "Additional command line options supplied: ${command_line_options}"
-      LogWarning "Additional command line options is depreciated. Please specify all options using the dedicated variables."
+      LogWarning "Additional command line options is depreciated. Please specify all options using the dedicated variables"
    fi
    LogInfo "Convert HEIC to JPEG: ${convert_heic_to_jpeg:=False}"
    LogInfo "JPEG conversion quality: ${jpeg_quality:=90}"
@@ -258,7 +264,7 @@ CreateGroup(){
             group="$(grep ":x:${group_id}:" /etc/group | awk -F: '{print $1}')"
             LogWarning "Group id, ${group_id}, already in use by the group: ${group} - continuing as force_gid variable has been set. Group name to use: ${group}"
          else
-            LogError "Group id, ${group_id}, already in use by the group: ${group} - exiting. If you must to add your user to this pre-existing system group, please set the force_gid variable to True."
+            LogError "Group id, ${group_id}, already in use by the group: ${group} - exiting. If you must to add your user to this pre-existing system group, please set the force_gid variable to True"
             sleep 120
             exit 1
          fi
@@ -291,16 +297,16 @@ CreateUser(){
 ConfigurePassword(){
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Configure password"
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ] && [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
-      LogInfo "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing."
+      LogInfo "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing"
       rm "${config_dir}/python_keyring/keyring_pass.cfg"
    fi
    if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
          LogInfo "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
-         su "${user}" -c '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
+         su "${user}" --command '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
       else
-         LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist."
-         LogInfo " - Please add the your password to the system keyring using the --Initialise script command line option."
+         LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
+         LogInfo " - Please add the your password to the system keyring using the --Initialise script command line option"
          LogInfo " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
          LogInfo " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
          LogInfo "Waiting for keyring file to be created..."
@@ -314,7 +320,7 @@ ConfigurePassword(){
                exit 1
             fi
          done
-         LogInfo "Keyring file exists, continuing."
+         LogInfo "Keyring file exists, continuing"
       fi
    else
       LogInfo "Using password stored in keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
@@ -329,12 +335,19 @@ Generate2FACookie(){
    if [ -f "${config_dir}/${cookie_file}" ]; then
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
-   LogInfo "Generate 2FA cookie using password stored in keyring file."
-   su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
+   LogInfo "Generate 2FA cookie using password stored in keyring file"
+   su "${user}" --command '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
    if [ "${authentication_type}" = "2FA" ]; then
-      LogInfo "Two factor authentication cookie generated. Sync should now be successful."
+      if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
+         LogInfo "Two factor authentication cookie generated. Sync should now be successful"
+      else
+         LogError "2FA information missing from cookie. Authentication has failed"
+         LogError " - Was the correct password entered?"
+         LogError " - Was the 2FA code mistyped?"
+         LogError " - Are you based in China? You may need to set the icloud_china variable"
+      fi
    else
-      LogInfo "Web cookie generated. Sync should now be successful."
+      LogInfo "Web cookie generated. Sync should now be successful"
    fi
 }
 
@@ -353,7 +366,7 @@ CheckMount(){
          exit 1
       fi
    done
-   LogInfo "Failsafe file ${download_path}/.mounted exists, continuing."
+   LogInfo "Failsafe file ${download_path}/.mounted exists, continuing"
 }
 
 SetOwnerAndPermissions(){
@@ -383,8 +396,8 @@ CheckWebCookie(){
    if [ -f "${config_dir}/${cookie_file}" ]; then
       web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    else
-      LogError "Cookie does not exist."
-      LogInfo " - Please create your cookie using the --Initialise script command line option."
+      LogError "Cookie does not exist"
+      LogInfo " - Please create your cookie using the --Initialise script command line option"
       LogInfo " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
       LogInfo " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
       LogInfo "Waiting for cookie file to be created..."
@@ -398,7 +411,7 @@ CheckWebCookie(){
             exit 1
          fi
       done
-      LogInfo "Cookie file exists, continuing."
+      LogInfo "Cookie file exists, continuing"
    fi
 }
 
@@ -416,8 +429,8 @@ Check2FACookie(){
          else
             rm -f "${config_dir}/${cookie_file}"
             LogError "Cookie expired at: ${twofa_expire_date}"
-            LogInfo "Expired cookie file has been removed."
-            LogInfo " - Please recreate your cookie using the --Initialise script command line option."
+            LogInfo "Expired cookie file has been removed"
+            LogInfo " - Please recreate your cookie using the --Initialise script command line option"
             LogInfo " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
             LogInfo " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
             LogInfo "Waiting for cookie file to be created..."
@@ -431,11 +444,11 @@ Check2FACookie(){
                   exit 1
                fi
             done
-            LogInfo "Cookie file exists, continuing."
+            LogInfo "Cookie file exists, continuing"
          fi
       else
-         LogError "Cookie is not 2FA capable, authentication type may have changed."
-         LogInfo " - Please recreate your cookie using the --Initialise script command line option."
+         LogError "Cookie is not 2FA capable, authentication type may have changed"
+         LogInfo " - Please recreate your cookie using the --Initialise script command line option"
          LogInfo " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
          LogInfo " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
          LogInfo "Restarting in 5 minutes..."
@@ -443,8 +456,8 @@ Check2FACookie(){
          exit 1
       fi
    else
-      LogError "Cookie does not exist."
-      LogInfo " - Please create your cookie using the --Initialise script command line option."
+      LogError "Cookie does not exist"
+      LogInfo " - Please create your cookie using the --Initialise script command line option"
       LogInfo " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
       LogInfo " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
       LogInfo "Waiting for cookie file to be created..."
@@ -458,7 +471,7 @@ Check2FACookie(){
             exit 1
          fi
       done
-      LogInfo "Cookie file exists, continuing."
+      LogInfo "Cookie file exists, continuing"
    fi
 }
 
@@ -511,12 +524,16 @@ Display2FAExpiry(){
 
 CheckFiles(){
    if [ -f "/tmp/icloudpd/icloudpd_check.log" ]; then rm "/tmp/icloudpd/icloudpd_check.log"; fi
-   LogInfo "Check for new files using password stored in keyring file."
+   LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
-   su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>&1; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" 
+   >/tmp/icloudpd/icloudpd_check_error
+   su "${user}" --command '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" 
    check_exit_code="$(cat /tmp/icloudpd/icloud_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
       LogError "Check failed - Exit code: ${check_exit_code}"
+      LogError "Error debugging info:"
+      LogError "$(cat /tmp/icloudpd/icloudpd_check_error)"
+      LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
       if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
          Notify "failure" "iCloudPD container failure" "0" "iCloudPD failed download check for new files files for Apple ID: ${apple_id} - Exit code ${check_exit_code}"
       elif [ "${notification_type}" = "Telegram" ]; then
@@ -746,7 +763,7 @@ Notify(){
          --data text="${notification_title}" \
          --data desp="${2}")"
    fi
-   if [ "${notification_result}" -eq 200 ]; then
+   if [ "${notification_result:0:1}" -eq 2 ]; then
       LogInfo "${notification_type} ${1} notification sent successfully"
    else
       LogError "${notification_type} ${1} notification failed with status code: ${notification_result}"
@@ -806,11 +823,15 @@ SyncUser(){
             LogInfo "Starting download of new files for user: ${user}"
             synchronisation_time="$(date +%s -d '+15 minutes')"
             LogInfo "Downloading new files using password stored in keyring file..."
-            LogInfo "iCloudPD launch command: /usr/bin/icloudpd ${command_line} ${command_line_options} 2>&1"
-            su "${user}" -c '(/usr/bin/icloudpd ${0} ${1} 2>&1; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${command_line_options}"
+            LogInfo "iCloudPD launch command: /usr/bin/icloudpd ${command_line} ${command_line_options} 2>/tmp/icloudpd/icloudpd_download_error"
+            >/tmp/icloudpd/icloudpd_download_error
+            su "${user}" --command '(/usr/bin/icloudpd ${0} ${1} 2>/tmp/icloudpd/icloudpd_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${command_line_options}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                LogError "Error during download - Exit code: ${download_exit_code}"
+               LogError "Error debugging info:"
+               LogError "$(cat /tmp/icloudpd/icloudpd_download_error)"
+               LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
                if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
                   Notify "failure" "iCloudPD container failure" "0" "iCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}"
                elif [ "${notification_type}" = "Telegram" ]; then
