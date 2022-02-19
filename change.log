@@ -1,3 +1,10 @@
+20220218
+
+ - Change: Cookie expiry notification period was being defaulted in the Initialise function and also for every notification type configured in the ConfigureNotifications function. Removed these as they're just duplicates. Also corrected a bug which would override user configured period, configuring it to 7.
+ - Change: Logic for skipping the file check was checking if value it true, then following two if statements had to check if it was set to false. Don't really like the OR tests that needed to be done so adjusted the logic two set the check_exit code and check_files_count to values that will always perform a sync, as they should never change due to CheckFiles function never being run.
+ - Change: Script doesn't seem to reliably send the "once per day" notifications during the nofitication expiry period. So have added a log entry which details the next notification time
+ - Change: Huge overhaul of notification system. Probably broken everything lol. I've tested Telegra, Prowl, Discord and Pushover. I don't have any of the other methods to test though, so can't guarantee they work, or are formatted correctly. I've standardised the way notifications are sent to the Notify function. This way, only one notification command is needed to send notifications for all types and the formatting of the messages is now handled by the Notify function.
+
 20220211
 
  - Change: Introduced a bug with my error handling from the last update. Now I create the error and exit_code log files in the Initialisation function of the script so that the correct permisions are applied. Problem was that the files were being created as root, and then the python script didn't have permission to them.

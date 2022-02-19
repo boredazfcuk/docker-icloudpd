@@ -9,7 +9,11 @@ Initialise(){
    apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
    local icloud_dot_com
-   if [ "${icloud_china}" ]; then icloud_domain="icloud.com.cn"; else icloud_domain="icloud.com"; fi
+   if [ "${icloud_china}" ]; then
+      icloud_domain="icloud.com.cn"
+   else
+      icloud_domain="icloud.com"
+   fi
    icloud_dot_com="$(nslookup -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
    case "${synchronisation_interval:=86400}" in
       43200) synchronisation_interval=43200;; #12 hours
@@ -39,9 +43,20 @@ Initialise(){
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
    LogInfo "icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
    LogInfo "pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
-   if [ -z "${apple_id}" ]; then LogError "Apple ID not set - exiting"; sleep 120; exit 1; fi
-   if [ "${apple_password}" ] && [ "${apple_password}" != "usekeyring" ]; then LogError "Apple password configured with variable which is no longer supported. Please add password to system keyring - exiting"; sleep 120; exit 1; fi
-   if [ "${apple_password}" = "usekeyring" ]; then LogWarning "Apple password variable set to 'userkeyring'. This variable can now be removed as it is now the only supported option, so obsolete - continue in 2 minutes"; sleep 120; fi
+   if [ -z "${apple_id}" ]; then
+      LogError "Apple ID not set - exiting"
+      sleep 120
+      exit 1
+   fi
+   if [ "${apple_password}" ] && [ "${apple_password}" != "usekeyring" ]; then
+      LogError "Apple password configured with variable which is no longer supported. Please add password to system keyring - exiting"
+      sleep 120
+      exit 1
+   fi
+   if [ "${apple_password}" = "usekeyring" ]; then
+      LogWarning "Apple password variable set to 'userkeyring'. This variable can now be removed as it is now the only supported option, so obsolete - continue in 2 minutes"
+      sleep 120
+   fi
    LogInfo "Running user id: $(id --user)"
    LogInfo "Running group id: $(id --group)"
    LogInfo "Local user: ${user:=user}:${user_id:=1000}"
@@ -165,9 +180,7 @@ ConfigureNotifications(){
       if [ "${notification_type}" = "Prowl" ] && [ "${prowl_api_key}" ]; then
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} api key: ${prowl_api_key}"
-         LogInfo "Notification period: ${notification_days=7}"
          notification_url="https://api.prowlapp.com/publicapi/add"
-         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} user: ${pushover_user}"
@@ -182,9 +195,7 @@ ConfigureNotifications(){
                   unset pushover_sound
             esac
          fi
-         LogInfo "Notification period: ${notification_days=7}"
          notification_url="https://api.pushover.net/1/messages.json"
-         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
          notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
          LogInfo "${notification_type} notifications enabled"
@@ -193,11 +204,12 @@ ConfigureNotifications(){
          LogInfo "${notification_type} notification URL: ${notification_url}"
          if [ "${telegram_silent_file_notifications}" ]; then telegram_silent_file_notifications="True"; fi
          LogInfo "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=False}"
-         LogInfo "Notification period: ${notification_days=7}"
-         telegram_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\niCloud\_Photos\_Downloader container started for Apple ID ${apple_id}")"
-         Notify "startup" "${telegram_text}"
       elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
-         if [ "${webhook_https}" = "True" ]; then webhook_scheme="https"; else webhook_scheme="http"; fi
+         if [ "${webhook_https}" = "True" ]; then
+            webhook_scheme="https"
+         else
+            webhook_scheme="http"
+         fi
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} server: ${webhook_server}"
          LogInfo "${notification_type} port: ${webhook_port:=8123}"
@@ -206,36 +218,27 @@ ConfigureNotifications(){
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
          LogInfo "${notification_type} notification URL: ${notification_url}"
          LogInfo "${notification_type} body keyword: ${webhook_body:=data}"
-         LogInfo "Notification period: ${notification_days=7}"
-         webhook_payload="$(echo -e "${notification_title} - iCloud\\\\\Photos\\\\\Downloader container started for Apple ID ${apple_id}")"
-         Notify "startup" "${webhook_payload}"
 	  elif [ "${notification_type}" = "Discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} Discord ID: ${discord_id}"
          LogInfo "${notification_type} Discord token: ${discord_token}"
          notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
          LogInfo "${notification_type} notification URL: ${notification_url}"
-         LogInfo "Notification period: ${notification_days=7}"
-         discord_payload="$(echo -e "iCloud Photos Downloader container started for Apple ID ${apple_id}")"
-		 Notify "startup" "${discord_payload}"
       elif [ "${notification_type}" = "Dingtalk" ] && [ "${dingtalk_token}" ]; then
          notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} token: ${dingtalk_token}"
          LogInfo "${notification_type} notification URL: ${notification_url}"
-         LogInfo "Notification period: ${notification_days=7}"
-         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       elif [ "${notification_type}" = "IYUU" ] && [ "${iyuu_token}" ]; then
          notification_url="http://iyuu.cn/${iyuu_token}.send?"
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} token: ${iyuu_token}"
          LogInfo "${notification_type} notification URL: ${notification_url}"
-         LogInfo "Notification period: ${notification_days=7}"
-         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
          unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token
       fi
+      Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       if [ "${download_notifications:=True}" = "True" ]; then
          LogInfo "Download notifications: Enabled"
       else
@@ -476,48 +479,20 @@ Check2FACookie(){
 }
 
 Display2FAExpiry(){
+   local error_message
    LogInfo "Two factor authentication cookie expires: ${twofa_expire_date/ / @ }"
    LogInfo "Days remaining until expiration: ${days_remaining}"
    if [ "${days_remaining}" -le "${notification_days}" ]; then
       if [ "${synchronisation_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]; then
          if [ "${days_remaining}" -eq 1 ]; then
-            LogError "Final day before two factor authentication cookie expires - Please reinitialise now. This is your last reminder"
-            if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Dingtalk" ]; then
-               Notify "cookie expiration" "2FA Cookie Expiriation" "2" "Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
-            elif [ "${notification_type}" = "Pushover" ]; then
-               Notify "cookie expiration" "2FA Cookie Expiriation" "1" "Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
-            elif [ "${notification_type}" = "Telegram" ]; then
-               telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *${notification_title}\nFinal day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
-               Notify "cookie expiration" "${telegram_text}"
-            elif [ "${notification_type}" = "Webhook" ]; then
-               webhook_payload="$(echo -e "${notification_title} - Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
-               Notify "cookie expiration" "${webhook_payload}"
-            elif [ "${notification_type}" = "Discord" ]; then
-               discord_payload="$(echo -e "Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
-               Notify "cookie expiration" "${discord_payload}"
-            elif [ "${notification_type}" = "IYUU" ]; then
-               iyuu_text="$(echo -e "\xF0\x9F\x9A\xA8 *${notification_title}\nFinal day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder")"
-               Notify "cookie expiration" "${iyuu_text}"
-            fi
+            error_message="Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
          else
-            LogWarning "Only ${days_remaining} days until two factor authentication cookie expires - Please reinitialise"
-            if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
-               Notify "cookie expiration" "2FA Cookie Expiration" "0" "Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
-            elif [ "${notification_type}" = "Telegram" ]; then
-               telegram_text="$(echo -e "\xE2\x9A\xA0 *${notification_title}* Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
-               Notify "cookie expiration" "${telegram_text}"
-            elif [ "${notification_type}" = "Webhook" ]; then
-               webhook_payload="$(echo -e "${notification_title} - Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
-               Notify "cookie expiration" "${webhook_payload}"
-            elif [ "${notification_type}" = "Discord" ]; then
-               discord_payload="$(echo -e "Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
-               Notify "cookie expiration" "${discord_payload}"
-            elif [ "${notification_type}" = "IYUU" ]; then
-               iyuu_text="$(echo -e "\xE2\x9A\xA0 *${notification_title}* Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise")"
-               Notify "cookie expiration" "${iyuu_text}"
-            fi
+            error_message="Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
          fi
+         LogWarning "${error_message}"
+         Notify "cookie expiration" "2FA Cookie Expiration" "2" "${error_message}"
          next_notification_time="$(date +%s -d "+24 hour")"
+         LogInfo "Next notification not before: $(date +%H:%M:%S -d "${next_notification_time} seconds")"
       fi
    fi
 }
@@ -527,25 +502,14 @@ CheckFiles(){
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
    >/tmp/icloudpd/icloudpd_check_error
-   su "${user}" --command '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloud_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" 
-   check_exit_code="$(cat /tmp/icloudpd/icloud_check_exit_code)"
+   su "${user}" --command '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" 
+   check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
-      LogError "Check failed - Exit code: ${check_exit_code}"
+      LogError "Failed check for new files files"
       LogError "Error debugging info:"
       LogError "$(cat /tmp/icloudpd/icloudpd_check_error)"
       LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
-      if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
-         Notify "failure" "iCloudPD container failure" "0" "iCloudPD failed download check for new files files for Apple ID: ${apple_id} - Exit code ${check_exit_code}"
-      elif [ "${notification_type}" = "Telegram" ]; then
-         telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *${notification_title}*\niCloudPD failed download check for new files files - for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
-         Notify "failure" "${telegram_text}"
-      elif [ "${notification_type}" = "Webhook" ]; then
-         webhook_payload="$(echo -e "${notification_title} - iCloudPD failed download check for new files files for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
-         Notify "failure" "${webhook_payload}"
-	  elif [ "${notification_type}" = "Discord" ]; then
-         discord_payload="$(echo -e "iCloudPD failed download check for new files files for Apple ID: ${apple_id} Exit code ${check_exit_code}")"
-         Notify "failure" "${discord_payload}"
-      fi
+      Notify "failure" "iCloudPD container failure" "0" "iCloudPD failed check for new files for Apple ID: ${apple_id}"
    else
       LogInfo "Check successful"
       check_files_count="$(grep -c ^ /tmp/icloudpd/icloudpd_check.log)"
@@ -559,61 +523,28 @@ CheckFiles(){
 }
 
 DownloadedFilesNotification(){
-   local new_files_count new_files_preview telegram_new_files_text
+   local new_files_count new_files_preview new_files_text
    new_files="$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${new_files_count:=0}" -gt 0 ]; then
       LogInfo "New files downloaded: ${new_files_count}"
       new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | head -10)"
       new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
-      if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
-         Notify "downloaded files" "New files detected" "0" "Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
-      elif [ "${notification_type}" = "Telegram" ]; then
-         if [ "${telegram_silent_file_notifications}" ]; then telegram_disable_notification=True; fi
-         telegram_new_files_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nMost Recent ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
-         Notify "downloaded files" "${telegram_new_files_text}"
-      elif [ "${notification_type}" = "Webhook" ]; then
-         webhook_payload="$(echo -e "${notification_title} - New files detected for Apple ID ${apple_id}: ${new_files_count} Most Recent ${new_files_preview_count} file names: ${new_files_preview//$'\n'/'\\n'}")"
-         Notify "downloaded files" "${webhook_payload}"
-	  elif [ "${notification_type}" = "Discord" ]; then
-         title="$(echo -e "New files detected for Apple ID ${apple_id}")"
-         description="$(echo -e "${new_files_count} files downloaded")"
-         field_name="$(echo -e "Most Recent ${new_files_preview_count} file names")"
-         field_value="$(echo -e "${new_files_preview//$'\n'/'\\n'}")"
-         Notify "downloaded files" "${title}" "${description}" "${field_name}" "${field_value}"
-      elif [ "${notification_type}" = "IYUU" ]; then
-         iyuu_new_files_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\nNew files detected for Apple ID ${apple_id}: ${new_files_count}\nMost Recent ${new_files_preview_count} file names:\n${new_files_preview//_/\\_}")"
-         Notify "downloaded files" "${iyuu_new_files_text}"
-      fi
+      new_files_text="Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
+      Notify "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "downloaded" "${new_files_preview}"
    fi
 }
 
 DeletedFilesNotification(){
-   local deleted_files deleted_files_count deleted_files_preview telegram_deleted_files_text
+   local deleted_files deleted_files_count deleted_files_preview deleted_files_text
    deleted_files="$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
    deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${deleted_files_count:=0}" -gt 0 ]; then
       LogInfo "Number of files deleted: ${deleted_files_count}"
       deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
       deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
-      if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
-         Notify "deleted files" "Recently deleted files detected" "0" "Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
-      elif [ "${notification_type}" = "Telegram" ]; then
-         if [ "${telegram_silent_file_notifications}" ]; then telegram_disable_notification=True; fi
-         telegram_deleted_files_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview//_/\\_}")"
-         Notify "deleted files" "${telegram_deleted_files_text}"
-      elif [ "${notification_type}" = "Webhook" ]; then
-         webhook_payload="$(echo -e "${notification_title} - Deleted files detected for Apple ID: ${apple_id}: ${deleted_files_count} Last ${deleted_files_preview_count} file names: ${deleted_files_preview//$'\n'/'\\n'}")"
-         Notify "deleted files" "${webhook_payload}"
-	  elif [ "${notification_type}" = "Discord" ]; then
-         description="$(echo -e "${deleted_files_count} files deleted")"
-         field_name="$(echo -e "Last ${deleted_files_preview_count} file names")"
-         field_value="$(echo -e "${deleted_files_preview//$'\n'/'\\n'}")"
-         Notify "downloaded files" "${title}" "${description}" "${field_name}" "${field_value}"
-      elif [ "${notification_type}" = "IYUU" ]; then
-         iyuu_deleted_files_text="$(echo -e "\xE2\x84\xB9 *${notification_title}*\nDeleted files detected for Apple ID: ${apple_id}: ${deleted_files_count}\nLast ${deleted_files_preview_count} file names:\n${deleted_files_preview//_/\\_}")"
-         Notify "deleted files" "${iyuu_deleted_files_text}"
-      fi
+      deleted_files_text="Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
+      Notify "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "deleted" "${deleted_files_preview}"
    fi
 }
 
@@ -716,57 +647,88 @@ CorrectJPEGTimestamps(){
 }
 
 Notify(){
-   local notification_result
-   LogInfo "Sending ${notification_type} ${1} notification"
+   local notification_classification notification_event notification_prority notification_message notification_result notification_files_preview_count notification_files_preview_type notification_files_preview_text
+   notification_classification="${1}"
+   notification_event="${2}"
+   notification_prority="${3}"
+   notification_message="${4}"
+   notification_files_preview_count="${5}"
+   notification_files_preview_type="${6}"
+   notification_files_preview_text="${7}"
+
+   if [ "${notification_classification}" = "startup" ] || [ "${notification_classification}" = "deleted files" ] || [ "${notification_classification}" = "downloaded files" ]; then
+      notification_icon="\xE2\x84\xB9"
+   elif [ "${notification_classification}" = "cookie expiration" ]; then
+      notification_icon="\xE2\x9A\xA0"
+   elif [ "${notification_classification}" = "failure" ] || [ "${notification_classification}" = "cookie_expired" ]; then
+      notification_icon="\xF0\x9F\x9A\xA8"
+   fi
+   LogInfo "Sending ${notification_type} ${notification_classification} notification"
    if [ "${notification_type}" = "Prowl" ]; then
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
          --form apikey="${prowl_api_key}" \
          --form application="${notification_title}" \
-         --form event="${2}" \
-         --form priority="${3}" \
-         --form description="${4}")"
+         --form event="${notification_event}" \
+         --form priority="${notification_prority}" \
+         --form description="${notification_message}")"
    elif [ "${notification_type}" = "Pushover" ]; then
+      if [ "${notification_prority}" = "2" ]; then notification_prority=1; fi
+      if [ "${notification_preview}" ]; then
+         pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}\n${notification_preview}")"
+      else
+         pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}")"
+      fi
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
          --form-string "user=${pushover_user}" \
          --form-string "token=${pushover_token}" \
          --form-string "title=${notification_title}" \
          --form-string "sound=${pushover_sound}" \
-         --form-string "priority=${3}" \
-         --form-string "message=${4}")"
+         --form-string "priority=${notification_prority}" \
+         --form-string "message=${pushover_text}")"
    elif [ "${notification_type}" = "Telegram" ]; then
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+      if [ "${notification_files_preview_count}" ]; then
+         telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
+      else
+         telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
+      fi
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --data chat_id="${telegram_chat_id}" \
          --data parse_mode="markdown" \
          --data disable_notification="${telegram_disable_notification:=False}" \
-         --data text="${2}")"
+         --data text="${telegram_text}")"
          unset telegram_disable_notification
    elif [ "${notification_type}" = "Webhook" ]; then
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
+      webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
          --header 'content-type: application/json' \
-         --data "{ \"${webhook_body}\" : \"${2}\" }")"
+         --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
    elif [ "${notification_type}" = "Discord" ]; then
-      if [ "${1}" = "downloaded files" ] || [ "${1}" = "deleted files" ]; then
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-            --header 'content-type: application/json' \
-            --data "{ \"username\" : \"iCloudPD\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_title}\" } , \"color\" : 2061822 , \"title\" : \"${2}\", \"description\": \"${3}\", \"fields\": [ { \"name\": \"${4}\", \"value\": \"${5}\" } ] } ] }")"
+      if [ "${notification_files_preview_count}" ]; then
+         discord_text="${notification_message}\\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\\n${notification_files_preview_text//$'\n'/'\n'}"
       else
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-            --header 'content-type: application/json' \
-            --data "{ \"username\" : \"iCloudPD\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_title}\" } , \"color\" : 2061822 , \"title\" : \"${2}\" } ] }")"
+         discord_text="$(echo -e "${notification_message}")"
       fi
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+            --header 'content-type: application/json' \
+            --data "{ \"username\" : \"${notification_title}\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_event}\" } , \"color\" : 2061822 , \"description\": \"${discord_text}\" } ] }")"
    elif [ "${notification_type}" = "Dingtalk" ]; then
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --header 'Content-Type: application/json' \
-         --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${4}'}}")"
+         --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${notification_message}'}}")"
    elif [ "${notification_type}" = "IYUU" ]; then
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+      if [ "${notification_files_preview_count}" ]; then
+         iyuu_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
+      else
+         iyuu_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
+      fi
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --data text="${notification_title}" \
-         --data desp="${2}")"
+         --data desp="${iyuu_text}")"
    fi
    if [ "${notification_result:0:1}" -eq 2 ]; then
-      LogInfo "${notification_type} ${1} notification sent successfully"
+      LogInfo "${notification_type} ${notification_classification} notification sent successfully"
    else
-      LogError "${notification_type} ${1} notification failed with status code: ${notification_result}"
+      LogError "${notification_type} ${notification_classification} notification failed with status code: ${notification_result}"
       sleep 120
       exit 1
    fi
@@ -817,36 +779,27 @@ SyncUser(){
          while [ "${valid_twofa_cookie}" = "False" ]; do Check2FACookie; done
       fi
       CheckMount
-      if [ "${skip_check}" = "False" ]; then CheckFiles; fi
-      if [ "${skip_check}" = "True" ] || [ "${check_exit_code}" -eq 0 ]; then
-         if [ "${skip_check}" = "True" ] || [ "${check_files_count}" -gt 0 ]; then
+      if [ "${skip_check}" = "False" ]; then
+         CheckFiles
+      else
+         check_exit_code=0
+         check_files_count=1
+      fi
+      if [ "${check_exit_code}" -eq 0 ]; then
+         if [ "${check_files_count}" -gt 0 ]; then
             LogInfo "Starting download of new files for user: ${user}"
             synchronisation_time="$(date +%s -d '+15 minutes')"
             LogInfo "Downloading new files using password stored in keyring file..."
             LogInfo "iCloudPD launch command: /usr/bin/icloudpd ${command_line} ${command_line_options} 2>/tmp/icloudpd/icloudpd_download_error"
             >/tmp/icloudpd/icloudpd_download_error
-            su "${user}" --command '(/usr/bin/icloudpd ${0} ${1} 2>/tmp/icloudpd/icloudpd_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${command_line_options}"
+            su "${user}" --command '(/usr/bin/icloudpd ${0} ${1} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${command_line_options}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
-               LogError "Error during download - Exit code: ${download_exit_code}"
+               LogError "Failed to download new files"
                LogError "Error debugging info:"
                LogError "$(cat /tmp/icloudpd/icloudpd_download_error)"
                LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
-               if [ "${notification_type}" = "Prowl" ] || [ "${notification_type}" = "Pushover" ] || [ "${notification_type}" = "Dingtalk" ]; then
-                  Notify "failure" "iCloudPD container failure" "0" "iCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}"
-               elif [ "${notification_type}" = "Telegram" ]; then
-                  telegram_text="$(echo -e "\xF0\x9F\x9A\xA8 *${notification_title}*\niCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
-                  Notify "failure" "${telegram_text}"
-               elif [ "${notification_type}" = "Webhook" ]; then
-                  webhook_payload="$(echo -e "${notification_title} - iCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
-                  Notify "failure" "${webhook_payload}"
-               elif [ "${notification_type}" = "Discord" ]; then
-                  discord_payload="$(echo -e "iCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
-                  Notify "failure" "${discord_payload}"	  
-               elif [ "${notification_type}" = "IYUU" ]; then
-                  iyuu_text="$(echo -e "\xF0\x9F\x9A\xA8 *${notification_title}*\niCloudPD failed to download new files for Apple ID ${apple_id} - Exit code ${download_exit_code}")"
-                  Notify "failure" "${iyuu_text}"
-               fi
+               Notify "failure" "iCloudPD container failure" "1" "iCloudPD failed to download new files for Apple ID ${apple_id}"
             else
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
                if [ "${convert_heic_to_jpeg}" != "False" ]; then
