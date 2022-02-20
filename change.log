@@ -5,6 +5,7 @@
  - Change: Pushover notifications not showing downloaded/deleted file previews
  - Change: Added function to allow deletion of HEIC accompanying files. These would be the converted JPG files (if using the HEIC to JPG conversion feature) and the_HEVC.MOV files which come with live photos.
  - Change: Bug found with sending Telegram notifications if e-mail address has an _ character in it. The _ character wasn't escaped correctly when passing the text to the Telegram API.
+ - Change: The Notify function is always called, even if notifications aren't configured. A log entry was still being processed and the logic for determining a success/failure of the sent message was being performed too, resulting in an 'out of range' error, as an empty variable was being processsed.
 
 20220218
 

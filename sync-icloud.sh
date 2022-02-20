@@ -704,7 +704,7 @@ Notify(){
    elif [ "${notification_classification}" = "failure" ] || [ "${notification_classification}" = "cookie_expired" ]; then
       notification_icon="\xF0\x9F\x9A\xA8"
    fi
-   LogInfo "Sending ${notification_type} ${notification_classification} notification"
+   if [ "${notification_type}" ]; then LogInfo "Sending ${notification_type} ${notification_classification} notification"; fi
    if [ "${notification_type}" = "Prowl" ]; then
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
          --form apikey="${prowl_api_key}" \
@@ -766,13 +766,15 @@ Notify(){
          --data text="${notification_title}" \
          --data desp="${iyuu_text}")"
    fi
-   if [ "${notification_result:0:1}" -eq 2 ]; then
-      LogInfo "${notification_type} ${notification_classification} notification sent successfully"
-   else
-      LogError "${notification_type} ${notification_classification} notification failed with status code: ${notification_result}"
-      LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
-      sleep 120
-      exit 1
+   if [ "${notification_type}" ]; then
+      if [ "${notification_result:0:1}" -eq 2 ]; then
+         LogInfo "${notification_type} ${notification_classification} notification sent successfully"
+      else
+         LogError "${notification_type} ${notification_classification} notification failed with status code: ${notification_result}"
+         LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
+         sleep 120
+         exit 1
+      fi
    fi
 }
 
