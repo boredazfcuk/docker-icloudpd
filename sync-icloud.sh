@@ -728,9 +728,9 @@ Notify(){
          --form-string "message=${pushover_text}")"
    elif [ "${notification_type}" = "Telegram" ]; then
       if [ "${notification_files_preview_count}" ]; then
-         telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
+         telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message//_/\\_}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
       else
-         telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
+         telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message//_/\\_}")"
       fi
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --data chat_id="${telegram_chat_id}" \
