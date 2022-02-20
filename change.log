@@ -4,6 +4,7 @@
  - Change: Added an extra synchronisation interval of 21600, which synchronises every 6 hours. This generates a warning message detailing the potential issue and fix, and includes a 2 minute wait on container start time to make the warning prominent.
  - Change: Pushover notifications not showing downloaded/deleted file previews
  - Change: Added function to allow deletion of HEIC accompanying files. These would be the converted JPG files (if using the HEIC to JPG conversion feature) and the_HEVC.MOV files which come with live photos.
+ - Change: Bug found with sending Telegram notifications if e-mail address has an _ character in it. The _ character wasn't escaped correctly when passing the text to the Telegram API.
 
 20220218
 
