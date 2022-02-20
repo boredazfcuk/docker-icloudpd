@@ -671,7 +671,7 @@ CorrectJPEGTimestamps(){
 
 RemoveRecentlyDeletedAccompanyingFiles(){
    IFS="$(echo -en "\n\b")"
-   LogInfo "Deleting 'Recently Deleted' accompanying files (.JPG/.HEVC.MOV)..."
+   LogInfo "Deleting 'Recently Deleted' accompanying files (.JPG/_HEVC.MOV)..."
    for heic_file in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
       heic_file_clean="${heic_file/!/}"
       if [ -f "${heic_file_clean%.HEIC}.JPG" ]; then
