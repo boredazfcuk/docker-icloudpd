@@ -4,7 +4,8 @@
 FROM alpine:3.13.5
 MAINTAINER boredazfcuk
 
-ENV config_dir="/config"
+ENV config_dir="/config" \
+   TZ="UTC"
 
 # Container version serves no real purpose. Increment to force a container rebuild.
 ARG container_version="1.0.17"

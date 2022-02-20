@@ -16,7 +16,9 @@ Initialise(){
    fi
    icloud_dot_com="$(nslookup -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
    case "${synchronisation_interval:=86400}" in
-      43200) synchronisation_interval=43200;; #12 hours
+      3600) synchronisation_interval=3600;; # hourly
+      21600) synchronisation_interval=21600;; # 6 hours
+      43200) synchronisation_interval=43200;; # 12 hours
       86400) synchronisation_interval=86400;; # 24 hours
       129600) synchronisation_interval=129600;; # 36 hours
       172800) synchronisation_interval=172800;; # 48 hours
@@ -92,8 +94,18 @@ Initialise(){
       synchronisation_interval="86400"
    fi
    LogInfo "Synchronisation interval: ${synchronisation_interval}"
+   if [ "${synchronisation_interval}" -lt 43200 ]; then
+      LogWarning "Setting synchronisation_interval to less than 43200 (12 hours) may cause throttling by Apple."
+      LogWarning "If you run into the following error: "
+      LogWarning " - private db access disabled for this account. Please wait a few minutes then try again. The remote servers might be trying to throttle requests. (ACCESS_DENIED)"
+      LogWarning "then please change your synchronisation_interval to 43200 or greater and switch the container off for 6-12 hours so Apple's throttling expires. Continuing in 2 minutes"
+      if [ "${warnings_acknowledged:=False}" = "True" ]; then
+         LogInfo "Throttle warning acknowledged"
+      else
+         sleep 120
+      fi
+   fi
    LogInfo "Synchronisation delay (minutes): ${synchronisation_delay}"
-   LogInfo "Time zone: ${TZ:=UTC}"
    LogInfo "Set EXIF date/time: ${set_exif_datetime:=False}"
    LogInfo "Auto delete: ${auto_delete:=False}"
    LogInfo "Photo size: ${photo_size:=original}"
@@ -116,6 +128,17 @@ Initialise(){
       LogWarning "Additional command line options is depreciated. Please specify all options using the dedicated variables"
    fi
    LogInfo "Convert HEIC to JPEG: ${convert_heic_to_jpeg:=False}"
+   if [ "${delete_accompanying:=False}" = "True" ] && [ -z "${warnings_acknowledged}" ]; then
+      LogInfo "Delete accompanying files (.JPG/.HAVE.MOV)"
+      LogWarning "This feature deletes files from your local disk. Please use with caution. I am not responsible for any data loss."
+      LogWarning "This feature cannot be used if the 'folder_structure' variable is set to 'none' and also, 'set_exif_datetime' must be 'False'"
+      LogWarning "These two settings will increase the chances of de-duplication happening, which could result in the wrong files being removed. Continuing in 2 minutes."
+      if [ "${warnings_acknowledged:=False}" = "True" ]; then
+         LogInfo "File deletion warning accepted"
+      else
+         sleep 120
+      fi
+   fi
    LogInfo "JPEG conversion quality: ${jpeg_quality:=90}"
    if [ "${notification_type}" ]; then
       ConfigureNotifications
@@ -357,9 +380,9 @@ Generate2FACookie(){
 CheckMount(){
    LogInfo "Check download directory mounted correctly"
    if [ ! -f "${download_path}/.mounted" ]; then
-      LogError "Failsafe file ${download_path}/.mounted file is not present. Waiting for failsafe file to be created..."
+      LogWarning "Failsafe file ${download_path}/.mounted file is not present. Waiting for failsafe file to be created..."
       local counter
-      counter="${counter:=0}"
+      counter="0"
    fi
    while [ ! -f "${download_path}/.mounted" ]; do
       sleep 5
@@ -588,7 +611,7 @@ ConvertAllHEICs(){
 }
 
 ForceConvertAllHEICs(){
-   IFS=$(echo -en "\n\b")
+   IFS="$(echo -en "\n\b")"
    LogWarning "Force convert all HEICs to JPEG. This could result in dataloss if JPG files have been edited on disk"
    LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
@@ -646,6 +669,24 @@ CorrectJPEGTimestamps(){
    IFS="${save_ifs}"
 }
 
+RemoveRecentlyDeletedAccompanyingFiles(){
+   IFS="$(echo -en "\n\b")"
+   LogInfo "Deleting 'Recently Deleted' accompanying files (.JPG/.HEVC.MOV)..."
+   for heic_file in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
+      heic_file_clean="${heic_file/!/}"
+      if [ -f "${heic_file_clean%.HEIC}.JPG" ]; then
+         LogInfo "Deleting ${heic_file_clean%.HEIC}.JPG"
+         rm -f "${heic_file_clean%.HEIC}.JPG"
+      fi
+      if [ -f "${heic_file_clean%.HEIC}_HEVC.MOV" ]; then
+         LogInfo "Deleting ${heic_file_clean%.HEIC}_HEVC.MOV"
+         rm -f "${heic_file_clean%.HEIC}_HEVC.MOV"
+      fi
+   done
+   LogInfo "Deleting 'Recently Deleted' accompanying files complete"
+   IFS="${save_ifs}"
+}
+
 Notify(){
    local notification_classification notification_event notification_prority notification_message notification_result notification_files_preview_count notification_files_preview_type notification_files_preview_text
    notification_classification="${1}"
@@ -673,8 +714,8 @@ Notify(){
          --form description="${notification_message}")"
    elif [ "${notification_type}" = "Pushover" ]; then
       if [ "${notification_prority}" = "2" ]; then notification_prority=1; fi
-      if [ "${notification_preview}" ]; then
-         pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}\n${notification_preview}")"
+      if [ "${notification_files_preview_count}" ]; then
+         pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text}")"
       else
          pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}")"
       fi
@@ -729,6 +770,7 @@ Notify(){
       LogInfo "${notification_type} ${notification_classification} notification sent successfully"
    else
       LogError "${notification_type} ${notification_classification} notification failed with status code: ${notification_result}"
+      LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
       sleep 120
       exit 1
    fi
@@ -807,6 +849,9 @@ SyncUser(){
                   ConvertDownloadedHEIC2JPEG
                fi
                if [ "${delete_notifications}" ]; then DeletedFilesNotification; fi
+               if [ "${delete_accompanying}" = "True" ] && [ "${folder_structure}" != "none" ] && [ "${set_exif_datetime}" = "False" ]; then
+                  RemoveRecentlyDeletedAccompanyingFiles
+               fi
                LogInfo "Synchronisation complete for ${user}"
             fi
             login_counter=$((login_counter + 1))

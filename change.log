@@ -1,3 +1,10 @@
+20220220
+
+ - Change: The timezone variable is not being set globally if it's not specified, so the underlying Python script generates a warning. The TZ variable is now defaulted to UTC in the Dockerfile which should take care of this.
+ - Change: Added an extra synchronisation interval of 21600, which synchronises every 6 hours. This generates a warning message detailing the potential issue and fix, and includes a 2 minute wait on container start time to make the warning prominent.
+ - Change: Pushover notifications not showing downloaded/deleted file previews
+ - Change: Added function to allow deletion of HEIC accompanying files. These would be the converted JPG files (if using the HEIC to JPG conversion feature) and the_HEVC.MOV files which come with live photos.
+
 20220218
 
  - Change: Cookie expiry notification period was being defaulted in the Initialise function and also for every notification type configured in the ConfigureNotifications function. Removed these as they're just duplicates. Also corrected a bug which would override user configured period, configuring it to 7.
