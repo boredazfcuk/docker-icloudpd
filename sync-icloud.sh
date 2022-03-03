@@ -8,6 +8,15 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
+   LogInfo "***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
+   LogInfo "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"   
+   if [ "${startup_delay:=0}" -gt 0 ]; then
+      if [ "${startup_delay}" -gt 60 ]; then
+         startup_delay=60
+      fi
+      LogInfo "Startup delay for ${startup_delay} minutes"
+      sleep "${startup_delay}m"
+   fi
    local icloud_dot_com
    if [ "${icloud_china}" ]; then
       icloud_domain="icloud.com.cn"
@@ -37,8 +46,6 @@ Initialise(){
    touch "/tmp/icloudpd/icloudpd_download_exit_code"
    touch "/tmp/icloudpd/icloudpd_check_error"
    touch "/tmp/icloudpd/icloudpd_download_error"
-   LogInfo "***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
-   LogInfo "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
    LogInfo "***** $(realpath "${0}") date: $(date --reference=$(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
    LogInfo "***** $(realpath "${0}") hash: $(md5sum $(realpath "${0}") | awk '{print $1}') *****"
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"

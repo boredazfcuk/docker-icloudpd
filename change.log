@@ -1,3 +1,7 @@
+20220304
+
+ - Change: Added "startup_delay" environment variable and documentation
+
 20220220
 
  - Change: The timezone variable is not being set globally if it's not specified, so the underlying Python script generates a warning. The TZ variable is now defaulted to UTC in the Dockerfile which should take care of this.
