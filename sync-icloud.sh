@@ -921,6 +921,9 @@ SanitiseLaunchParameters
 CreateGroup
 CreateUser
 SetOwnerAndPermissions
+if [ "${initialise_container}" ]; then
+   rm -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg"
+fi
 ConfigurePassword
 if [ "${initialise_container}" ]; then
    Generate2FACookie
