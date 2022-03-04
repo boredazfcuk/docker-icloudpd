@@ -8,15 +8,13 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
-   local icloud_dot_com
+   local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
       icloud_domain="icloud.com.cn"
    else
       icloud_domain="icloud.com"
    fi
-   icloud_dot_com="$(nslookup -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
    case "${synchronisation_interval:=86400}" in
-      3600) synchronisation_interval=3600;; # hourly
       21600) synchronisation_interval=21600;; # 6 hours
       43200) synchronisation_interval=43200;; # 12 hours
       86400) synchronisation_interval=86400;; # 24 hours
@@ -67,13 +65,20 @@ Initialise(){
    LogInfo "LAN IP Address: ${lan_ip}"
    LogInfo "Default gateway: $(ip route | grep default | awk '{print $3}')"
    LogInfo "DNS server: $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')"
-   if [ -z "${icloud_dot_com}" ]; then
-      LogError "Cannot find ${icloud_domain} IP address. Please check your DNS settings - exiting"
-      sleep 120
-      exit 1
-   else
-      LogInfo "DNS lookup for ${icloud_domain}: ${icloud_dot_com}"
-   fi
+   icloud_dot_com="$(nslookup -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
+   while [ -z "${icloud_dot_com}" ]; do
+      if [ "${dns_counter:=0}" = 0 ]; then
+         LogWarning "Cannot find ${icloud_domain} IP address - retrying"
+      fi
+      sleep 10
+      icloud_dot_com="$(nslookup -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
+      dns_counter=$((dns_counter+1))
+      if [ "${dns_counter}" = 12 ]; then
+         LogError "Cannot find ${icloud_domain} IP address. Please check your DNS settings - exiting"
+         sleep 120
+         exit 1
+      fi
+   done
    if [ "$(traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>&1; echo $?)" = 1 ]; then
       LogError "No route to ${icloud_domain} found. Please check your container's network settings - exiting"
       sleep 120

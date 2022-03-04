@@ -1,3 +1,7 @@
+20220304
+
+ - Change: Added a check for the IP address lookup performed during initialisation. Previously this could fail if the DNS server was not available (due to container starting on same system as a DNS container). It will now retry the lookup for 2mins before failing.
+
 20220220
 
  - Change: The timezone variable is not being set globally if it's not specified, so the underlying Python script generates a warning. The TZ variable is now defaulted to UTC in the Dockerfile which should take care of this.
