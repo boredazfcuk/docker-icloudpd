@@ -358,7 +358,7 @@ ConfigurePassword(){
    fi
 }
 
-Generate2FACookie(){
+GenerateCookie(){
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
@@ -366,7 +366,7 @@ Generate2FACookie(){
    if [ -f "${config_dir}/${cookie_file}" ]; then
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
-   LogInfo "Generate 2FA cookie using password stored in keyring file"
+   LogInfo "Generate ${authentication_type} cookie using password stored in keyring file"
    su "${user}" --command '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
    if [ "${authentication_type}" = "2FA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
@@ -921,12 +921,9 @@ SanitiseLaunchParameters
 CreateGroup
 CreateUser
 SetOwnerAndPermissions
-if [ "${initialise_container}" ]; then
-   rm -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg"
-fi
 ConfigurePassword
 if [ "${initialise_container}" ]; then
-   Generate2FACookie
+   GenerateCookie
    exit 0
 elif [ "${convert_all_heics}" ]; then
    ConvertAllHEICs
