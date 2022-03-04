@@ -2,6 +2,7 @@
 
  - Change: Added a check for the IP address lookup performed during initialisation. Previously this could fail if the DNS server was not available (due to container starting on same system as a DNS container). It will now retry the lookup for 2mins before failing.
  - Change: Changed cookie generation name from Generate2FACookie to GenerateCookie as it generates both types of cookie and is run no matter what cookie type you use. Also, changed the log output so it doesn't say "Generating 2FA Cookie" when generating a Web cookie.
+ - Change: Urgh. I dunno about you, but sometimes I delete a bunch of stupid memes off my phone and it ends up leaving my folder_structure with empty directories. I've now added a variable delete_empty_directories which will tidy those up.
 
 20220220
 

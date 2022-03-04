@@ -42,6 +42,8 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **delete_accompanying**: This variable tells the script to delete files which accompany the HEIC files that are downloaded. These are the JPG files which are created if you have HEIC to JPG conversion enabled. They are also the \_HEVC.MOV files which make up part of a live photo. This feature deletes files from your disk. I'm not responsible for any data loss.
 
+**delete_empty_directories**: This variable tells the script to delete any empty directories it finds in the download path. It will only run if **folder_structure** isn't set to 'none'
+
 **set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date. If this variable is not set, it will default to **False**.
 
 **auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). If this variable is not set, it will default to **False**.

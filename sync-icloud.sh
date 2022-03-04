@@ -692,6 +692,12 @@ RemoveRecentlyDeletedAccompanyingFiles(){
    IFS="${save_ifs}"
 }
 
+RemoveEmptyDirectories(){
+   LogInfo "Deleting empty directories..."
+   find "${download_path}" -type d -empty -delete
+   LogInfo "Deleting empty directories complete"
+}
+
 Notify(){
    local notification_classification notification_event notification_prority notification_message notification_result notification_files_preview_count notification_files_preview_type notification_files_preview_text
    notification_classification="${1}"
@@ -858,6 +864,9 @@ SyncUser(){
                if [ "${delete_notifications}" ]; then DeletedFilesNotification; fi
                if [ "${delete_accompanying}" = "True" ] && [ "${folder_structure}" != "none" ] && [ "${set_exif_datetime}" = "False" ]; then
                   RemoveRecentlyDeletedAccompanyingFiles
+               fi
+               if [ "${delete_empty_directories}" = "True" ] && [ "${folder_structure}" != "none" ]; then
+                  RemoveEmptyDirectories
                fi
                LogInfo "Synchronisation complete for ${user}"
             fi
