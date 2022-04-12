@@ -600,8 +600,8 @@ SynologyPhotosAppFix(){
    IFS="$(echo -en "\n\b")"
    LogInfo "Fixing Synology Photos App import issue..."
    for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
-      LogInfo "Copy ${heic_file} to ${heic_file%.HEIC}.TMP"
-      cp -p "${heic_file}" "${heic_file%.HEIC}.TMP"
+      LogInfo "Create empty date/time reference file ${heic_file%.HEIC}.TMP"
+      touch --reference="${heic_file}" "${heic_file%.HEIC}.TMP"
       LogInfo "Set time stamp for ${heic_file} to current date/time"
       touch "${heic_file}"
       LogInfo "Set time stamp for ${heic_file} to original date/time"
