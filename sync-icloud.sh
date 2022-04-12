@@ -596,6 +596,22 @@ ConvertDownloadedHEIC2JPEG(){
    IFS="${save_ifs}"
 }
 
+SynologyPhotosAppFix(){
+   IFS="$(echo -en "\n\b")"
+   LogInfo "Fixing Synology Photos App import issue..."
+   for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
+      LogInfo "Copy ${heic_file} to ${heic_file%.HEIC}.TMP"
+      cp -p "${heic_file}" "${heic_file%.HEIC}.TMP"
+      LogInfo "Set time stamp for ${heic_file} to current date/time"
+      touch "${heic_file}"
+      LogInfo "Set time stamp for ${heic_file} to original date/time"
+      touch --reference="${heic_file%.HEIC}.TMP" "${heic_file}"
+      LogInfo "Removing temporary file ${heic_file%.HEIC}.TMP"
+      rm "${heic_file%.HEIC}.TMP"
+   done
+   IFS="${save_ifs}"
+}
+
 ConvertAllHEICs(){
    IFS="$(echo -en "\n\b")"
    LogInfo "Convert all HEICs to JPEG, if required..."
@@ -857,6 +873,7 @@ SyncUser(){
                Notify "failure" "iCloudPD container failure" "1" "iCloudPD failed to download new files for Apple ID ${apple_id}"
             else
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
+               if [ "${synology_photos_app_fix}" ]; then SynologyPhotosAppFix; fi
                if [ "${convert_heic_to_jpeg}" != "False" ]; then
                   LogInfo "Convert HEIC files to JPEG"
                   ConvertDownloadedHEIC2JPEG

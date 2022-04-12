@@ -70,6 +70,8 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **icloud_china**: If this variable is set, it will use icloud.com.cm instead of icloud.com as the download source.
 
+**synology_photos_app_fix**: If this variable is set, it will touch files after download to trigger the Synology Photos app to index any newly created files.
+
 ## NOTIFICATION CONFIGURATION VARIABLES
 
 **notification_type**: This specifies the method that is used to send notifications. Currently, there are six options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **Dingtalk** and **Discord**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
