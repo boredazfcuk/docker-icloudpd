@@ -232,6 +232,19 @@ ConfigureNotifications(){
          LogInfo "${notification_type} notification URL: ${notification_url}"
          if [ "${telegram_silent_file_notifications}" ]; then telegram_silent_file_notifications="True"; fi
          LogInfo "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=False}"
+      elif [ "${notification_type}" = "openhab" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
+         if [ "${webhook_https}" = "True" ]; then
+            webhook_scheme="https"
+         else
+            webhook_scheme="http"
+         fi
+         LogInfo "${notification_type} notifications enabled"
+         LogInfo "${notification_type} server: ${webhook_server}"
+         LogInfo "${notification_type} port: ${webhook_port:=8123}"
+         LogInfo "${notification_type} path: ${webhook_path:=/rest/items/}"
+         LogInfo "${notification_type} ID: ${webhook_id}"
+         notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
+         LogInfo "${notification_type} notification URL: ${notification_url}"
       elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
          if [ "${webhook_https}" = "True" ]; then
             webhook_scheme="https"
@@ -765,6 +778,16 @@ Notify(){
          --data disable_notification="${telegram_disable_notification:=False}" \
          --data text="${telegram_text}")"
          unset telegram_disable_notification
+   elif [ "${notification_type}" = "openhab" ]; then
+      LogInfo "====== EMIEL TEST ===="
+      webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
+      LogInfo "--silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
+         --header 'content-type: text/plain' \
+         --data \"${webhook_payload}\""
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
+         --header 'content-type: text/plain' \
+         --data \"${webhook_payload}\")"
+      LogInfo "====== EMIEL TEST ===="
    elif [ "${notification_type}" = "Webhook" ]; then
       webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
