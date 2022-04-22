@@ -1,3 +1,4 @@
+
 #!/bin/ash
 
 ##### Functions #####
@@ -779,15 +780,10 @@ Notify(){
          --data text="${telegram_text}")"
          unset telegram_disable_notification
    elif [ "${notification_type}" = "openhab" ]; then
-      LogInfo "====== EMIEL TEST ===="
       webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
-      LogInfo "--silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
+      notification_result="$(curl -X 'POST' --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
          --header 'content-type: text/plain' \
-         --data \"${webhook_payload}\""
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
-         --header 'content-type: text/plain' \
-         --data \"${webhook_payload}\")"
-      LogInfo "====== EMIEL TEST ===="
+         --data '${webhook_payload}')"
    elif [ "${notification_type}" = "Webhook" ]; then
       webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
