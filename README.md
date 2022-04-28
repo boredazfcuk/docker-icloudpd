@@ -119,7 +119,7 @@ I have added a failsafe feature to this container so that it doesn't make any ch
 
 ## CREATING A CONTAINER
 
-First off, create a dedicated network for your iCloudPD conter(s) as this overcomes some DNS and routing issues may occur if you use the legacy default network bridge that Docker creates. In this example, I've have told it to use the IP address subnet 192.168.115.1 - 192.168.115.254 and configured the gateway to be 192.168.115.254. You can use any subnet that :
+First off, create a dedicated network for your iCloudPD conter(s) as this overcomes some DNS and routing issues may occur if you use the legacy default network bridge that Docker creates. In this example, I've have told it to use the IP address subnet 192.168.115.1 - 192.168.115.254 and configured the gateway to be 192.168.115.254. You can use any subnet you like:
 
 ```
 docker network create \
@@ -129,32 +129,10 @@ docker network create \
    --opt com.docker.network.bridge.name=icloudpd_br0 \
    icloudpd_bridge
 ```
-Then create the container like this, connecting it to the new icloudpd network bridge:
+Then create the container, connecting it to the new icloudpd network bridge. It should look something like this:
+   
 ```
 docker create \
-   --name <Contrainer Name> \
-   --hostname <Hostname of container> \
-   --network icloudpd_bridge \
-   --restart=always \
-   --env user=<User Name> \
-   --env user_id=<User ID> \
-   --env group=<Group Name> \
-   --env group_id=<Group ID> \
-   --env apple_id="<Apple ID e-mail address>" \
-   --env authentication_type=<2FA or Web> \
-   --env synchronisation_interval=<Include this if you wish to override the default interval of 24hrs> \
-   --env notification_type=<Choice of Prowl/Pushover/Webhook/Telegram/Dingtalk> \
-   --env notification_days=<Number of days for which to send cookie expiry notifications> \
-   --env TZ=<The local time zone> \
-   --volume <Named volume which is mapped to /config> \
-   --volume <Bind mount to the destination folder on the host> \
-   boredazfcuk/icloudpd
-   ```
-   
-   So an example of a true command would look something like this:
-   
-   ```
-   docker create \
    --name iCloudPD-boredazfcuk \
    --hostname icloudpd_boredazfcuk \
    --network icloudpd_bridge \
@@ -177,7 +155,7 @@ docker create \
    --volume icloudpd_boredazfcuk_config:/config \
    --volume /home/boredazfcuk/iCloud:/home/boredazfcuk/iCloud \
    boredazfcuk/icloudpd
-   ```
+```
 
 ## CONFIGURING A PASSWORD
 
