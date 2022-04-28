@@ -74,7 +74,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 ## NOTIFICATION CONFIGURATION VARIABLES
 
-**notification_type**: This specifies the method that is used to send notifications. Currently, there are six options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **Dingtalk** and **Discord**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
+**notification_type**: This specifies the method that is used to send notifications. Currently, there are six options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **openhab**, **Dingtalk** and **Discord**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
 
 **notification_title**: This allows you to change the title which is sent on the notifications. If this variable is not set, it will default to **boredazfcuk/iCloudPD**.
 
@@ -90,15 +90,15 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **telegram_chat_id**: If the notification_type is set to 'Telegram' then this is the chat_id for your Telegram bot. If the bot is a standard user that messages you, the chat ID will be a positive integer number. If the bot is a member of a group, and sends messages to the group, the chat ID will be prefixed with a hyphen '-' character.
 
-**webhook_server**: If the notification_type is set to 'Webhook' then this is the name of the server to connect to when sending webhook notifications.
+**webhook_server**: If the notification_type is set to 'Webhook' or 'openhab' then this is the name of the server to connect to when sending webhook notifications.
 
-**webhook_port**: If the notification_type is set to 'Webhook' then this is the port number to use when connecting to the webhook server. If this is not set, it will default to 8123.
+**webhook_port**: If the notification_type is set to 'Webhook' or 'openhab' then this is the port number to use when connecting to the webhook server. If this is not set, it will default to 8123.
 
-**webhook_path**: If the notification_type is set to 'Webhook' then this is the path to use when connectiong to the webhook server. The path must start and end with a forward slash character. If this is not set, it will default to **/api/webhook/**.
+**webhook_path**: If the notification_type is set to 'Webhook' or 'openhab' then this is the path to use when connectiong to the webhook server. The path must start and end with a forward slash character. If this is not set, it will default to **/api/webhook/**. Openhab uses **"/rest/items/<itemname>/"**.
 
-**webhook_id**: If the notification_type is set to 'Webhook' then this is the Webhook ID to use.
+**webhook_id**: If the notification_type is set to 'Webhook' or 'openhab' then this is the Webhook ID to use. Openhab uses "state".
 
-**webhook_https**: If this is set to 'True then the Webhook notification URL will use HTTPS, otherwise it will default to HTTP.
+**webhook_https**: If this is set to 'True' then the Webhook or openhab notification URL will use HTTPS, otherwise it will default to HTTP.
 
 **webhook_body**: Adapt to different services. Homeassistant uses "data" in the body of the webhook request, Discord uses "content", IFTTT uses "value1", etc.. Defaults to "data".
 
