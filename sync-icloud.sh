@@ -1,4 +1,3 @@
-
 #!/bin/ash
 
 ##### Functions #####
@@ -616,12 +615,12 @@ SynologyPhotosAppFix(){
    for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
       LogInfo "Create empty date/time reference file ${heic_file%.HEIC}.TMP"
       touch --reference="${heic_file}" "${heic_file%.HEIC}.TMP"
-      LogInfo "Set time stamp for ${heic_file} to current date/time"
+      LogInfo "Set time stamp for ${heic_file} to current: $(date)"
       touch "${heic_file}"
-      LogInfo "Set time stamp for ${heic_file} to original date/time"
+      LogInfo "Set time stamp for ${heic_file} to original: $(date -r "${heic_file%.HEIC}.TMP" +"%a %b %e %T %Y")"
       touch --reference="${heic_file%.HEIC}.TMP" "${heic_file}"
       LogInfo "Removing temporary file ${heic_file%.HEIC}.TMP"
-#      rm "${heic_file%.HEIC}.TMP"
+      rm "${heic_file%.HEIC}.TMP"
    done
    IFS="${save_ifs}"
 }
