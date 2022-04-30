@@ -1,3 +1,11 @@
+20220430
+
+ - Change: Added single_pass variable which runs the sync process once before exiting out.
+
+20220428
+
+ - Change: Merged PR from  eliempje (https://github.com/boredazfcuk/docker-icloudpd/pull/155) which adds Openhab functionality.
+
 20220411
  - Change: Apparently Synology devices have a Photos app which doesn't update when a download takes place. The newly created files need to be touched for it to trigger a re-index. I've added a new variable which will touch a file to trigger the update, then set it back to what it was to maintain integrity.
 

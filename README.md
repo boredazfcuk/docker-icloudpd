@@ -72,6 +72,8 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **synology_photos_app_fix**: If this variable is set, it will touch files after download to trigger the Synology Photos app to index any newly created files.
 
+**single_pass**: If this variable is set to True, the script will exit out after a single pass instead of looping as per the synchronisation_interval. If this option is used, it will automatically disable the download check. If using this variable, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
+
 ## NOTIFICATION CONFIGURATION VARIABLES
 
 **notification_type**: This specifies the method that is used to send notifications. Currently, there are six options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **openhab**, **Dingtalk** and **Discord**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.

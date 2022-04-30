@@ -114,6 +114,11 @@ Initialise(){
    LogInfo "Set EXIF date/time: ${set_exif_datetime:=False}"
    LogInfo "Auto delete: ${auto_delete:=False}"
    LogInfo "Photo size: ${photo_size:=original}"
+   LogInfo "Single pass mode: ${single_pass:=False}"
+   if [ "${single_pass}" = "True" ]; then
+      LogInfo "Single pass mode enabled. Disabling download check"
+      skip_check="True"
+   fi
    LogInfo "Skip download check: ${skip_check:=False}"
    LogInfo "Skip live photos: ${skip_live_photos:=False}"
    if [ "${recent_only}" ]; then
@@ -915,11 +920,16 @@ SyncUser(){
       synchronisation_end_time="$(date +'%s')"
       LogInfo "Synchronisation ended at $(date +%H:%M:%S -d "@${synchronisation_end_time}")"
       LogInfo "Total time taken: $(date +%H:%M:%S -u -d @$((synchronisation_end_time - synchronisation_start_time)))"
-      sleep_time="$((synchronisation_interval - synchronisation_end_time + synchronisation_start_time))"
-      LogInfo "Next synchronisation at $(date +%H:%M:%S -d "${sleep_time} seconds")"
-      unset check_exit_code check_files_count download_exit_code
-      unset new_files
-      sleep "${sleep_time}"
+      if [ "${single_pass:=False}" = "True" ]; then
+         LogInfo "Single Pass mode set, exiting"
+         exit 0
+      else
+         sleep_time="$((synchronisation_interval - synchronisation_end_time + synchronisation_start_time))"
+         LogInfo "Next synchronisation at $(date +%H:%M:%S -d "${sleep_time} seconds")"
+         unset check_exit_code check_files_count download_exit_code
+         unset new_files
+         sleep "${sleep_time}"
+      fi
    done
 }
 
