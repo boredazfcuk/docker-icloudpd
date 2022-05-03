@@ -625,7 +625,9 @@ SynologyPhotosAppFix(){
       LogInfo "Set time stamp for ${heic_file} to original: $(date -r "${heic_file%.HEIC}.TMP" +"%a %b %e %T %Y")"
       touch --reference="${heic_file%.HEIC}.TMP" "${heic_file}"
       LogInfo "Removing temporary file ${heic_file%.HEIC}.TMP"
-      rm "${heic_file%.HEIC}.TMP"
+      if [ -z "${persist_temp_files}" ]; then
+         rm "${heic_file%.HEIC}.TMP"
+      fi
    done
    IFS="${save_ifs}"
 }
