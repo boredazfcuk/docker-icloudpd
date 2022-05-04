@@ -616,19 +616,13 @@ ConvertDownloadedHEIC2JPEG(){
 
 SynologyPhotosAppFix(){
    IFS="$(echo -en "\n\b")"
-   LogInfo "Fixing Synology Photos App import issue..."
-   for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
-      LogInfo "Create empty date/time reference file ${heic_file%.HEIC}.TMP"
-      touch --reference="${heic_file}" "${heic_file%.HEIC}.TMP"
-      LogInfo "Set time stamp for ${heic_file} to current: $(date)"
-      touch "${heic_file}"
-      LogInfo "Set time stamp for ${heic_file} to original: $(date -r "${heic_file%.HEIC}.TMP" +"%a %b %e %T %Y")"
-      touch --reference="${heic_file%.HEIC}.TMP" "${heic_file}"
-      LogInfo "Removing temporary file ${heic_file%.HEIC}.TMP"
-      if [ -z "${persist_temp_files}" ]; then
-         rm "${heic_file%.HEIC}.TMP"
-      fi
-   done
+   if [ -f "/usr/syno/bin/synoindex" ]; then
+      LogInfo "Re-indexing for Synology Photos App..."
+      /usr/syno/bin/synoindex -R ${download_path}
+   else
+      LogError "/usr/syno/bin/synoindex does not exist"
+      LogError " - Please recreate the container and mount this file using the --volume command"
+   fi
    IFS="${save_ifs}"
 }
 
@@ -898,7 +892,7 @@ SyncUser(){
                Notify "failure" "iCloudPD container failure" "1" "iCloudPD failed to download new files for Apple ID ${apple_id}"
             else
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
-               if [ "${synology_photos_app_fix}" ]; then SynologyPhotosAppFix; fi
+               if [ "${synology_photos_reindex_path}" ]; then SynologyPhotosAppFix; fi
                if [ "${convert_heic_to_jpeg}" != "False" ]; then
                   LogInfo "Convert HEIC files to JPEG"
                   ConvertDownloadedHEIC2JPEG

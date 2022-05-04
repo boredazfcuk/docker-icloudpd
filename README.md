@@ -70,7 +70,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **icloud_china**: If this variable is set, it will use icloud.com.cm instead of icloud.com as the download source.
 
-**synology_photos_app_fix**: If this variable is set, it will touch files after download to trigger the Synology Photos app to index any newly created files.
+**synology_photos_reindex_path**: If this variable is set, and `/usr/syno/bin/synoindex` is mounted, it will trigger the Synology Photos app to index any newly created files using `synoindex -R ${synology_photos_reindex_path}`.
 
 **single_pass**: If this variable is set to True, the script will exit out after a single pass instead of looping as per the synchronisation_interval. If this option is used, it will automatically disable the download check. If using this variable, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
 
@@ -156,6 +156,7 @@ docker create \
    --env TZ=Europe/London \
    --volume icloudpd_boredazfcuk_config:/config \
    --volume /home/boredazfcuk/iCloud:/home/boredazfcuk/iCloud \
+   --volume /usr/syno/bin/synoindex:/usr/syno/bin/synoindex \
    boredazfcuk/icloudpd
 ```
 
