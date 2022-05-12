@@ -79,6 +79,7 @@ Initialise(){
          exit 1
       fi
    done
+   LogInfo "IP address for icloud.com: ${icloud_dot_com}"
    if [ "$(traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>&1; echo $?)" = 1 ]; then
       LogError "No route to ${icloud_domain} found. Please check your container's network settings - exiting"
       sleep 120
