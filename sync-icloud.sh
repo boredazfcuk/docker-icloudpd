@@ -531,13 +531,13 @@ Display2FAExpiry(){
    LogInfo "Two factor authentication cookie expires: ${twofa_expire_date/ / @ }"
    LogInfo "Days remaining until expiration: ${days_remaining}"
    if [ "${days_remaining}" -le "${notification_days}" ]; then
+      if [ "${days_remaining}" -eq 1 ]; then
+         error_message="Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
+      else
+         error_message="Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
+      fi
+      LogWarning "${error_message}"
       if [ "${synchronisation_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]; then
-         if [ "${days_remaining}" -eq 1 ]; then
-            error_message="Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
-         else
-            error_message="Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
-         fi
-         LogWarning "${error_message}"
          Notify "cookie expiration" "2FA Cookie Expiration" "2" "${error_message}"
          next_notification_time="$(date +%s -d "+24 hour")"
          LogInfo "Next notification not before: $(date +%H:%M:%S -d "${next_notification_time} seconds")"
