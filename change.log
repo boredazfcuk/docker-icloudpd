@@ -1,3 +1,11 @@
+20220520
+
+ - Change: Add option to download from single album
+
+20220518
+
+ - Change: Bug in logic about 2FA renewal reminders means they aren't being sent out daily. I've changed logging to help identify where the problem lies.
+
 20220430
 
  - Change: Added single_pass variable which runs the sync process once before exiting out.

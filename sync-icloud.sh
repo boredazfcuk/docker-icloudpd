@@ -128,6 +128,11 @@ Initialise(){
    else
       LogInfo "Number of most recently added photos to download: Download All Photos"
    fi
+   if [ "${photo_album}" ]; then
+      LogInfo "Downloading photos from album: ${photo_album}"
+   else
+      LogInfo "Downloading photos from album: Download All Photos"
+   fi
    if [ "${until_found}" ]; then
       LogInfo "Stop downloading when prexisiting files count is: ${until_found}"
    else
@@ -852,6 +857,9 @@ CommandLineBuilder(){
    fi
    if [ "${skip_videos}" != "False" ]; then
       command_line="${command_line} --skip-videos"
+   fi
+   if [ "${photo_album}" ]; then
+      command_line="${command_line} --album ${photo_album}"
    fi
    if [ "${until_found}" ]; then
       command_line="${command_line} --until-found ${until_found}"

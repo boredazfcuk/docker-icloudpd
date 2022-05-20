@@ -60,6 +60,8 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **until_found**: Set this variable to an integer number to only download the most recently added photos, until *n* number of previously downloaded consecutive photos are found. If this variable is not set, it will default to downloading all photos.
 
+**photo_album**: Set this variable to the name of an album to only download photos from this album. If this variable is not set, it will default to downloading all photos.
+
 ## OPTIONAL ENVIRONMENT VARIABLES
 
 **command_line_options**: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage).
