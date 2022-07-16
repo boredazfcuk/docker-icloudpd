@@ -183,8 +183,8 @@ Initialise(){
       mkdir --parents "${config_dir}/python_keyring/"
    fi
    if [ ! -L "/home/${user}/.local/share/python_keyring" ]; then
-      LogInfo "Creating symbolic link: /home/${user}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
-      ln --symbolic --force "${config_dir}/python_keyring/" "/home/${user}/.local/share/"
+         LogInfo "Creating symbolic link: /home/${user}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
+         ln --symbolic --force "${config_dir}/python_keyring/" "/home/${user}/.local/share/"
    fi
 }
 
@@ -207,8 +207,8 @@ LogError(){
 }
 
 ConfigureNotifications(){
-   if [ -z "${prowl_api_key}" ] && [ -z "${pushover_token}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ] && [ -z "${dingtalk_token}" ] && [ -z "${discord_token}" ] && [ -z "${iyuu_token}" ]; then
-      LogWarning "${notification_type} notifications enabled, but API key/token not set - disabling notifications"
+   if [ -z "${prowl_api_key}" ] && [ -z "${pushover_token}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ] && [ -z "${dingtalk_token}" ] && [ -z "${discord_token}" ] && [ -z "${iyuu_token}" ] && [ -z "${wecom_secret}" ]; then
+      LogWarning "${notification_type} notifications enabled, but API key/token/secret not set - disabling notifications"
       unset notification_type
    else
       if [ "${notification_title}" ]; then
@@ -286,6 +286,13 @@ ConfigureNotifications(){
          notification_url="http://iyuu.cn/${iyuu_token}.send?"
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} token: ${iyuu_token}"
+         LogInfo "${notification_type} notification URL: ${notification_url}"
+      elif [ "${notification_type}" = "WeCom" ] && [ "${wecom_id}" ] && [ "${wecom_secret}" ]; then
+         wecom_token_url="https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=${wecom_id}&corpsecret=${wecom_secret}"
+         wecom_token="$(/usr/bin/curl -s -G "${wecom_token_url}" | awk -F\" '{print $4}')"
+         notification_url="https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=${wecom_token}"
+         LogInfo "${notification_type} notifications enabled"
+         LogInfo "${notification_type} token: ${wecom_token}"
          LogInfo "${notification_type} notification URL: ${notification_url}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
@@ -824,6 +831,13 @@ Notify(){
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --data text="${notification_title}" \
          --data desp="${iyuu_text}")"
+   elif [ "${notification_type}" = "WeCom" ]; then
+      if [ "${notification_files_preview_count}" ]; then
+         wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
+      else
+         wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
+      fi
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"@all\",\"msgtype\":\"text\",\"agentid\":\"1\",\"text\":{\"content\":\"\${wecom_text}\"},\"safe\":\"0\"}" --url "${notification_url}")"
    fi
    if [ "${notification_type}" ]; then
       if [ "${notification_result:0:1}" -eq 2 ]; then
