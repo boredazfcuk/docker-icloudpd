@@ -56,25 +56,25 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **skip_videos**: If this is set, it will skip downloading videos. If this variable is not set, it will default to **False**.
 
-**recent_only**: Set this variable to an integer number to only download this many recently added photos. If this variable is not set, it will default to downloading all photos.
+**recent_only**: Set this to an integer number to only download this many recently added photos. If this variable is not set, it will default to downloading all photos.
 
-**until_found**: Set this variable to an integer number to only download the most recently added photos, until *n* number of previously downloaded consecutive photos are found. If this variable is not set, it will default to downloading all photos.
+**until_found**: Set this to an integer number to only download the most recently added photos, until *n* number of previously downloaded consecutive photos are found. If this variable is not set, it will default to downloading all photos.
 
-**photo_album**: Set this variable to the name of an album to only download photos from this album. If this variable is not set, it will default to downloading all photos.
+**photo_album**: Set this to the name of an album to only download photos from this album. If this variable is not set, it will default to downloading all photos.
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
 **command_line_options**: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage).
 
-**convert_heic_to_jpeg**: If this variable is set, it will convert any HEIC files it downloads to JPEG, while also retaining the original.
+**convert_heic_to_jpeg**: Set this to True to convert downloaded HEIC files to JPEG, while also retaining the original.
 
 **jpeg_quality**: If HEIC to JPEG conversion is enabled, this variable will let you set the quality of the converted file by specifying a number from 0 (lowest quality) to 100 (highest quality) If convert_heic_to_jpeg is set, and this variable isn't, it will default to 90.
 
-**icloud_china**: If this variable is set, it will use icloud.com.cm instead of icloud.com as the download source.
+**icloud_china**: Set this to True to use icloud.com.cm instead of icloud.com as the download source.
 
-**synology_photos_app_fix**: If this variable is set, it will touch files after download to trigger the Synology Photos app to index any newly created files.
+**synology_photos_app_fix**: Set this to True to touch files after download and trigger the Synology Photos app to index any newly created files.
 
-**single_pass**: If this variable is set to True, the script will exit out after a single pass instead of looping as per the synchronisation_interval. If this option is used, it will automatically disable the download check. If using this variable, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
+**single_pass**: Set this to True to exit out after a single pass instead of looping as per the synchronisation_interval. If this option is used, it will automatically disable the download check. If using this variable, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
 
 ## NOTIFICATION CONFIGURATION VARIABLES
 
