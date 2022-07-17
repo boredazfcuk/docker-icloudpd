@@ -34,7 +34,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure.
 
-**skip_check**: This variable specifies whether the download check is skipped. If this is set to **True** the script will process a download run each time it is run. If this variable is not set, it will default to **False**.
+**skip_check**: This this to **True** skip the check for new files. The check can have issues with large libraries, please set to **True** if you have more than a few thousand photos. If this variable is not set, it will default to **False**.
 
 **download_notifications**: This variable specifies whether notifications with a short summary should be sent for file downloads. If this variable is not set, it will default to **True**.
 
