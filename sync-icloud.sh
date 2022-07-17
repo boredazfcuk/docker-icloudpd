@@ -8,6 +8,7 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
+   user_home_folder="$(eval echo ~${user} | grep -v "~")"
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
       icloud_domain="icloud.com.cn"
@@ -92,7 +93,7 @@ Initialise(){
    LogInfo "Authentication Type: ${authentication_type:=2FA}"
    LogInfo "Cookie path: ${config_dir}/${cookie_file}"
    LogInfo "Cookie expiry notification period: ${notification_days:=7}"
-   LogInfo "Download destination directory: ${download_path:=/home/${user}/iCloud}"
+   LogInfo "Download destination directory: ${download_path:=${user_home_folder:=/home/${user}/iCloud}}"
    LogInfo "Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
    LogInfo "Directory permissions: ${directory_permissions:=750}"
    LogInfo "File permissions: ${file_permissions:=640}"
@@ -174,17 +175,17 @@ Initialise(){
          -e "s#icloud.com.cn'#icloud.com'#" \
          "$(pip show pyicloud-ipd | grep "Location" | awk '{print $2}')/pyicloud_ipd/base.py"
    fi
-   if [ ! -d "/home/${user}/.local/share/" ]; then
-      LogInfo "Creating directory: /home/${user}/.local/share/"
-      mkdir --parents "/home/${user}/.local/share/"
+   if [ ! -d "${user_home_folder}/.local/share/" ]; then
+      LogInfo "Creating directory: ${user_home_folder}/.local/share/"
+      mkdir --parents "${user_home_folder}/.local/share/"
    fi
    if [ ! -d "${config_dir}/python_keyring/" ]; then
       LogInfo "Creating directory: ${config_dir}/python_keyring/"
       mkdir --parents "${config_dir}/python_keyring/"
    fi
-   if [ ! -L "/home/${user}/.local/share/python_keyring" ]; then
-         LogInfo "Creating symbolic link: /home/${user}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
-         ln --symbolic --force "${config_dir}/python_keyring/" "/home/${user}/.local/share/"
+   if [ ! -L "${user_home_folder}/.local/share/python_keyring" ]; then
+         LogInfo "Creating symbolic link: ${user_home_folder}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
+         ln --symbolic --force "${config_dir}/python_keyring/" "${user_home_folder}/.local/share/"
    fi
 }
 
@@ -352,7 +353,7 @@ CreateUser(){
          exit 1
       else
          LogInfo "Creating user ${user}:${user_id}"
-         useradd --shell /bin/ash --gid "${group_id}" --uid "${user_id}" "${user}" --home-dir "/home/${user}" --badnames
+         useradd --shell /bin/ash --gid "${group_id}" --uid "${user_id}" "${user}" --home-dir "${user_home_folder}" --badnames
       fi
    fi
 }
@@ -363,7 +364,7 @@ ConfigurePassword(){
       LogInfo "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing"
       rm "${config_dir}/python_keyring/keyring_pass.cfg"
    fi
-   if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
+   if [ ! -f "${user_home_folder}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
          LogInfo "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
          su "${user}" --command '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
@@ -375,7 +376,7 @@ ConfigurePassword(){
          LogInfo "Waiting for keyring file to be created..."
          local counter
          counter="${counter:=0}"
-         while [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; do
+         while [ ! -f "${user_home_folder}/.local/share/python_keyring/keyring_pass.cfg" ]; do
             sleep 5
             counter=$((counter + 1))
             if [ "${counter}" -eq 360 ]; then
@@ -446,9 +447,9 @@ SetOwnerAndPermissions(){
    LogInfo "Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
    LogInfo "Correct owner on keyring directory, if required"
-   find "/home/${user}/.local" ! -user "${user}" -exec chown "${user}" {} +
+   find "${user_home_folder}/.local" ! -user "${user}" -exec chown "${user}" {} +
    LogInfo "Correct group on keyring directory, if required"
-   find "/home/${user}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
+   find "${user_home_folder}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
    LogInfo "Set ${directory_permissions:=755} permissions on iCloud directories, if required"
    find "${download_path}" -type d ! -perm "${directory_permissions}" -exec chmod "${directory_permissions}" '{}' +
    LogInfo "Set ${file_permissions:=640} permissions on iCloud files, if required"

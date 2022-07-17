@@ -1,3 +1,7 @@
+20220717
+
+ - Change: Evaluate the home directory location of the user... If user is root, home is located at /root. On CoreElec/LibreElec/OpenElec, then the user's home directory is in /storage. This change should work for either of those scenarios
+
 20220716
 
  - Change: Allow badnames when creating user id
