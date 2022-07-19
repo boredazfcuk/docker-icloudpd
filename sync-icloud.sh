@@ -8,7 +8,6 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
-   user_home_folder="$(eval echo ~${user} | grep -v "~")"
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
       icloud_domain="icloud.com.cn"
@@ -93,8 +92,7 @@ Initialise(){
    LogInfo "Authentication Type: ${authentication_type:=2FA}"
    LogInfo "Cookie path: ${config_dir}/${cookie_file}"
    LogInfo "Cookie expiry notification period: ${notification_days:=7}"
-   LogInfo "User home directory: ${user_home_folder:=/home/${user}}"
-   LogInfo "Download destination directory: ${download_path:=${user_home_folder}/iCloud}"
+   LogInfo "Download destination directory: ${download_path:=/home/${user}/iCloud}"
    LogInfo "Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
    LogInfo "Directory permissions: ${directory_permissions:=750}"
    LogInfo "File permissions: ${file_permissions:=640}"
@@ -176,17 +174,17 @@ Initialise(){
          -e "s#icloud.com.cn'#icloud.com'#" \
          "$(pip show pyicloud-ipd | grep "Location" | awk '{print $2}')/pyicloud_ipd/base.py"
    fi
-   if [ ! -d "${user_home_folder}/.local/share/" ]; then
-      LogInfo "Creating directory: ${user_home_folder}/.local/share/"
-      mkdir --parents "${user_home_folder}/.local/share/"
+   if [ ! -d "/home/${user}/.local/share/" ]; then
+      LogInfo "Creating directory: /home/${user}/.local/share/"
+      mkdir --parents "/home/${user}/.local/share/"
    fi
    if [ ! -d "${config_dir}/python_keyring/" ]; then
       LogInfo "Creating directory: ${config_dir}/python_keyring/"
       mkdir --parents "${config_dir}/python_keyring/"
    fi
-   if [ ! -L "${user_home_folder}/.local/share/python_keyring" ]; then
-         LogInfo "Creating symbolic link: ${user_home_folder}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
-         ln --symbolic --force "${config_dir}/python_keyring/" "${user_home_folder}/.local/share/"
+   if [ ! -L "/home/${user}/.local/share/python_keyring" ]; then
+      LogInfo "Creating symbolic link: /home/${user}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
+      ln --symbolic --force "${config_dir}/python_keyring/" "/home/${user}/.local/share/"
    fi
 }
 
@@ -290,8 +288,8 @@ ConfigureNotifications(){
          LogInfo "${notification_type} token: ${iyuu_token}"
          LogInfo "${notification_type} notification URL: ${notification_url}"
       elif [ "${notification_type}" = "WeCom" ] && [ "${wecom_id}" ] && [ "${wecom_secret}" ]; then
-         wecom_token_url="https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=${wecom_id}&corpsecret=${wecom_secret}"
-         wecom_token="$(/usr/bin/curl -s -G "${wecom_token_url}" | awk -F\" '{print $4}')"
+         wecom_token_url="https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={$wecom_id}&corpsecret={$wecom_secret}"
+         wecom_token="$(/usr/bin/curl -s -G "${wecom_token_url}" | awk -F\" '{print $10}')"
          notification_url="https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=${wecom_token}"
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} token: ${wecom_token}"
@@ -300,7 +298,11 @@ ConfigureNotifications(){
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
          unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token
       fi
-      Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
+      if [ -z "${icloud_china}" ]; then
+         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
+      else
+         Notify "startup" "iCloudPD container started" "0" "开始使用 ${name} 的 Apple ID 进行照片同步"
+      fi
       if [ "${download_notifications:=True}" = "True" ]; then
          LogInfo "Download notifications: Enabled"
       else
@@ -354,7 +356,7 @@ CreateUser(){
          exit 1
       else
          LogInfo "Creating user ${user}:${user_id}"
-         useradd --shell /bin/ash --gid "${group_id}" --uid "${user_id}" "${user}" --home-dir "${user_home_folder}" --badnames
+         useradd --shell /bin/ash --gid "${group_id}" --uid "${user_id}" "${user}" --home-dir "/home/${user}" --badnames
       fi
    fi
 }
@@ -365,7 +367,7 @@ ConfigurePassword(){
       LogInfo "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing"
       rm "${config_dir}/python_keyring/keyring_pass.cfg"
    fi
-   if [ ! -f "${user_home_folder}/.local/share/python_keyring/keyring_pass.cfg" ]; then
+   if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
          LogInfo "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
          su "${user}" --command '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
@@ -377,7 +379,7 @@ ConfigurePassword(){
          LogInfo "Waiting for keyring file to be created..."
          local counter
          counter="${counter:=0}"
-         while [ ! -f "${user_home_folder}/.local/share/python_keyring/keyring_pass.cfg" ]; do
+         while [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; do
             sleep 5
             counter=$((counter + 1))
             if [ "${counter}" -eq 360 ]; then
@@ -448,9 +450,9 @@ SetOwnerAndPermissions(){
    LogInfo "Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
    LogInfo "Correct owner on keyring directory, if required"
-   find "${user_home_folder}/.local" ! -user "${user}" -exec chown "${user}" {} +
+   find "/home/${user}/.local" ! -user "${user}" -exec chown "${user}" {} +
    LogInfo "Correct group on keyring directory, if required"
-   find "${user_home_folder}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
+   find "/home/${user}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
    LogInfo "Set ${directory_permissions:=755} permissions on iCloud directories, if required"
    find "${download_path}" -type d ! -perm "${directory_permissions}" -exec chmod "${directory_permissions}" '{}' +
    LogInfo "Set ${file_permissions:=640} permissions on iCloud files, if required"
@@ -546,13 +548,23 @@ Display2FAExpiry(){
    LogInfo "Days remaining until expiration: ${days_remaining}"
    if [ "${days_remaining}" -le "${notification_days}" ]; then
       if [ "${days_remaining}" -eq 1 ]; then
-         error_message="Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
+         cookie_status="cookie expired"
+         if [ -z "${icloud_china}" ]; then
+            error_message="Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
+         else
+            error_message="今天是 ${name} 的 Apple ID 两步验证 cookie 到期前的最后一天 - 请立即重新初始化，这是最后的提醒"
+         fi
       else
-         error_message="Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
+         cookie_status="cookie expiration"
+         if [ -z "${icloud_china}" ]; then
+            error_message="Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
+         else
+            error_message="${days_remaining} 天后 ${name} 的 Apple ID 两步验证将到期 - 请立即重新初始化"
+         fi
       fi
       LogWarning "${error_message}"
       if [ "${synchronisation_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]; then
-         Notify "cookie expiration" "2FA Cookie Expiration" "2" "${error_message}"
+         Notify "${cookie_status}" "2FA Cookie Expiration" "2" "${error_message}"
          next_notification_time="$(date +%s -d "+24 hour")"
          LogInfo "Next notification not before: $(date +%H:%M:%S -d "${next_notification_time} seconds")"
       fi
@@ -571,7 +583,11 @@ CheckFiles(){
       LogError "Error debugging info:"
       LogError "$(cat /tmp/icloudpd/icloudpd_check_error)"
       LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
-      Notify "failure" "iCloudPD container failure" "0" "iCloudPD failed check for new files for Apple ID: ${apple_id}"
+      if [ -z "${icloud_china}" ]; then
+         Notify "failure" "iCloudPD container failure" "0" "iCloudPD failed check for new files for Apple ID: ${apple_id}"
+      else
+         Notify "failure" "iCloudPD container failure" "0" "iCloud 图库查找新照片失败"
+      fi
    else
       LogInfo "Check successful"
       check_files_count="$(grep -c ^ /tmp/icloudpd/icloudpd_check.log)"
@@ -592,8 +608,12 @@ DownloadedFilesNotification(){
       LogInfo "New files downloaded: ${new_files_count}"
       new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | head -10)"
       new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
-      new_files_text="Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
-      Notify "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "downloaded" "${new_files_preview}"
+      if [ -z "${icloud_china}" ]; then
+         new_files_text="Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
+      else
+         new_files_text="iCloud 图库中 ${new_files_count} 张照片已下载完成"
+      fi
+      Notify "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "下载" "${new_files_preview}"
    fi
 }
 
@@ -605,8 +625,13 @@ DeletedFilesNotification(){
       LogInfo "Number of files deleted: ${deleted_files_count}"
       deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
       deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
-      deleted_files_text="Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
-      Notify "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "deleted" "${deleted_files_preview}"
+      if [ -z "${icloud_china}" ]; then
+         deleted_files_text="Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
+         Notify "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "deleted" "${deleted_files_preview}"
+      else
+         deleted_files_text="iCloud 图库中 ${deleted_files_count} 张照片已删除成功"
+         Notify "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "删除" "${deleted_files_preview}"
+      fi
    fi
 }
 
@@ -760,12 +785,20 @@ Notify(){
    notification_files_preview_type="${6}"
    notification_files_preview_text="${7}"
 
-   if [ "${notification_classification}" = "startup" ] || [ "${notification_classification}" = "deleted files" ] || [ "${notification_classification}" = "downloaded files" ]; then
+   if [ "${notification_classification}" = "startup" ] || [ "${notification_classification}" = "downloaded files" ]; then
       notification_icon="\xE2\x84\xB9"
+      # 启动、下载时使用的封面
+      #thumb_media_id="$media_id_normal"
    elif [ "${notification_classification}" = "cookie expiration" ]; then
       notification_icon="\xE2\x9A\xA0"
-   elif [ "${notification_classification}" = "failure" ] || [ "${notification_classification}" = "cookie_expired" ]; then
+   elif [ "${notification_classification}" = "deleted files" ]; then
+      notification_icon="\xE2\x9D\x8C"
+      # cookie快要过期、删除文件时使用的封面
+      #thumb_media_id="$media_id_delete"
+   elif [ "${notification_classification}" = "failure" ] || [ "${notification_classification}" = "cookie expired" ]; then
       notification_icon="\xF0\x9F\x9A\xA8"
+      # 同步失败、cookiey已过期封面
+      #thumb_media_id="$media_id_warning"
    fi
    if [ "${notification_type}" ]; then LogInfo "Sending ${notification_type} ${notification_classification} notification"; fi
    if [ "${notification_type}" = "Prowl" ]; then
@@ -835,11 +868,20 @@ Notify(){
          --data desp="${iyuu_text}")"
    elif [ "${notification_type}" = "WeCom" ]; then
       if [ "${notification_files_preview_count}" ]; then
-         wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
+         if [ -z "${icloud_china}" ]; then
+            wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
+         else
+            wecom_text="$(echo -e "<b>${notification_message}<br/>最近 ${notification_files_preview_count} 条${notification_files_preview_type}记录如下：</b><br/><small><code>${notification_files_preview_text//$'\n'/'<br/>'}</code></small>")"
+         fi
       else
-         wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
+         if [ -z "${icloud_china}" ]; then
+            wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
+         else
+            wecom_text="$(echo -e "${notification_title}\n${notification_message}")"
+         fi
       fi
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"@all\",\"msgtype\":\"text\",\"agentid\":\"1\",\"text\":{\"content\":\"\${wecom_text}\"},\"safe\":\"0\"}" --url "${notification_url}")"
+      # notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"iCloudPD 照片同步 - $name\",\"thumb_media_id\":\"$thumb_media_id\",\"author\":\"$author\",\"content_source_url\":\"$content_source_url\",\"content\":\"$wecom_text\",\"digest\":\"$notification_message\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
    fi
    if [ "${notification_type}" ]; then
       if [ "${notification_result:0:1}" -eq 2 ]; then
@@ -921,7 +963,11 @@ SyncUser(){
                LogError "Error debugging info:"
                LogError "$(cat /tmp/icloudpd/icloudpd_download_error)"
                LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
-               Notify "failure" "iCloudPD container failure" "1" "iCloudPD failed to download new files for Apple ID ${apple_id}"
+               if [ -z "${icloud_china}" ]; then
+                  Notify "failure" "iCloudPD container failure" "1" "iCloudPD failed to download new files for Apple ID ${apple_id}"
+               else
+                  Notify "failure" "iCloudPD container failure" "1" "iCloud 图库下载照片失败"
+               fi
             else
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
                if [ "${synology_photos_app_fix}" ]; then SynologyPhotosAppFix; fi
