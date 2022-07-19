@@ -2,7 +2,7 @@
 
  - Change: Partially added some Chinese translations, still a few questions about some other changest that have been requested, so holding off on all of them
  - Change: Cookie expiration is not working for expired cookies, only the notifications about expiry. This change should change the icon in the notification to the alert symbol when cookie has actually expired.
- - Change: Reverted the changes that were put in place to support root user. Running as root user is really bad, and I probably should have just sacked it off when it was requested, so I'm putting it back to how it was because some people using QNAP devices have seen a load of issues, because they're actually running the thing as root... Why even is that?
+ - Change: Reverted the changes that were put in place to support root user. Running as root user is really bad, and I probably should have just sacked it off when it was requested, so I'm putting it back to how it was because some people using unRAID devices have seen a load of issues, because they're actually running the thing as root... Why even is that?
 
 20220717
 
