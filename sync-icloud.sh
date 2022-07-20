@@ -885,8 +885,8 @@ Notify(){
             wecom_text="$(echo -e "${notification_title}\n${notification_message}")"
          fi
       fi
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"@all\",\"msgtype\":\"text\",\"agentid\":\"1\",\"text\":{\"content\":\"\${wecom_text}\"},\"safe\":\"0\"}" --url "${notification_url}")"
-      # notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"iCloudPD 照片同步 - $name\",\"thumb_media_id\":\"$thumb_media_id\",\"author\":\"$author\",\"content_source_url\":\"$content_source_url\",\"content\":\"$wecom_text\",\"digest\":\"$notification_message\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
+      # notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"@all\",\"msgtype\":\"text\",\"agentid\":\"1\",\"text\":{\"content\":\"\${wecom_text}\"},\"safe\":\"0\"}" --url "${notification_url}")"
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"iCloudPD 照片同步 - $name\",\"thumb_media_id\":\"$thumb_media_id\",\"author\":\"$author\",\"content_source_url\":\"$content_source_url\",\"content\":\"$wecom_text\",\"digest\":\"$notification_message\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
    fi
    if [ "${notification_type}" ]; then
       if [ "${notification_result:0:1}" -eq 2 ]; then

@@ -1,21 +1,26 @@
+22020720
+
+ - Change: Changed the notification events so that they can have a larger range of icons and different ones too.
+ - Change: Gone live with some changes to WeCom notifications.
+
 20220719
 
- - Change: Partially added some Chinese translations, still a few questions about some other changest that have been requested, so holding off on all of them
+ - Change: Partially added some Chinese translations, still a few questions about some other changest that have been requested, so holding off on all of them.
  - Change: Cookie expiration is not working for expired cookies, only the notifications about expiry. This change should change the icon in the notification to the alert symbol when cookie has actually expired.
  - Change: Reverted the changes that were put in place to support root user. Running as root user is really bad, and I probably should have just sacked it off when it was requested, so I'm putting it back to how it was because some people using unRAID devices have seen a load of issues, because they're actually running the thing as root... Why even is that?
 
 20220717
 
- - Change: Evaluate the home directory location of the user... If user is root, home is located at /root. On CoreElec/LibreElec/OpenElec, then the user's home directory is in /storage. This change should work for either of those scenarios
+ - Change: Evaluate the home directory location of the user... If user is root, home is located at /root. On CoreElec/LibreElec/OpenElec, then the user's home directory is in /storage. This change should work for either of those scenarios.
 
 20220716
 
- - Change: Allow badnames when creating user id
+ - Change: Allow badnames when creating user id.
  - Change: UNTESTED BETA: Added WeCom, the official method of WeChat notifications.
 
 20220520
 
- - Change: Add option to download from single album
+ - Change: Add option to download from single album.
 
 20220518
 
@@ -42,7 +47,7 @@
 
  - Change: The timezone variable is not being set globally if it's not specified, so the underlying Python script generates a warning. The TZ variable is now defaulted to UTC in the Dockerfile which should take care of this.
  - Change: Added an extra synchronisation interval of 21600, which synchronises every 6 hours. This generates a warning message detailing the potential issue and fix, and includes a 2 minute wait on container start time to make the warning prominent.
- - Change: Pushover notifications not showing downloaded/deleted file previews
+ - Change: Pushover notifications not showing downloaded/deleted file previews.
  - Change: Added function to allow deletion of HEIC accompanying files. These would be the converted JPG files (if using the HEIC to JPG conversion feature) and the_HEVC.MOV files which come with live photos.
  - Change: Bug found with sending Telegram notifications if e-mail address has an _ character in it. The _ character wasn't escaped correctly when passing the text to the Telegram API.
  - Change: The Notify function is always called, even if notifications aren't configured. A log entry was still being processed and the logic for determining a success/failure of the sent message was being performed too, resulting in an 'out of range' error, as an empty variable was being processsed.
