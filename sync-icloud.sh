@@ -610,10 +610,11 @@ DownloadedFilesNotification(){
       new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
       if [ -z "${icloud_china}" ]; then
          new_files_text="Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
+         Notify "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "downloaded" "${new_files_preview}"
       else
          new_files_text="iCloud 图库中 ${new_files_count} 张照片已下载完成"
+         Notify "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "下载" "${new_files_preview}"
       fi
-      Notify "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "下载" "${new_files_preview}"
    fi
 }
 
@@ -785,20 +786,24 @@ Notify(){
    notification_files_preview_type="${6}"
    notification_files_preview_text="${7}"
 
-   if [ "${notification_classification}" = "startup" ] || [ "${notification_classification}" = "downloaded files" ]; then
-      notification_icon="\xE2\x84\xB9"
+   if [ "${notification_classification}" = "startup" ];then
+      notification_icon="\xE2\x96\xB6"
       # 启动、下载时使用的封面
-      #thumb_media_id="$media_id_normal"
+      thumb_media_id="$media_id_normal"
+   elif [ "${notification_classification}" = "downloaded files" ]; then
+      notification_icon="\xE2\x8F\xAC"
+      # 启动、下载时使用的封面
+      thumb_media_id="$media_id_normal"
    elif [ "${notification_classification}" = "cookie expiration" ]; then
-      notification_icon="\xE2\x9A\xA0"
+      notification_icon="\xF0\x9F\x9A\xA9"
    elif [ "${notification_classification}" = "deleted files" ]; then
       notification_icon="\xE2\x9D\x8C"
       # cookie快要过期、删除文件时使用的封面
-      #thumb_media_id="$media_id_delete"
+      thumb_media_id="$media_id_delete"
    elif [ "${notification_classification}" = "failure" ] || [ "${notification_classification}" = "cookie expired" ]; then
       notification_icon="\xF0\x9F\x9A\xA8"
       # 同步失败、cookiey已过期封面
-      #thumb_media_id="$media_id_warning"
+      thumb_media_id="$media_id_warning"
    fi
    if [ "${notification_type}" ]; then LogInfo "Sending ${notification_type} ${notification_classification} notification"; fi
    if [ "${notification_type}" = "Prowl" ]; then
