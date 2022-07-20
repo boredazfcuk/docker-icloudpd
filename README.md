@@ -16,7 +16,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **force_gid**: If this variable is set it will allow the group to be created with a pre-existing group id. This may be handy if your group id clashes with a system group insude the docker container, however, if may have undesired permissions issues. Please use with caution.
 
-**TZ**: This is the local timezone and is required to calculate timestamps. If this variable is not set, it will default to Coordinated Universal Time 'UTC'.
+**TZ**: Sets the local timezone and is required to calculate timestamps. If this variable is not set, it will default to Coordinated Universal Time 'UTC'.
 
 **download_path**: This is the directory to which files will be downloaded from iCloud. If this variable is not set, it will default to "/home/${user}/iCloud".
 
@@ -34,15 +34,15 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure.
 
-**skip_check**: This this to **True** skip the check for new files. The check can have issues with large libraries, please set to **True** if you have more than a few thousand photos. If this variable is not set, it will default to **False**.
+**skip_check**: Set this to **True** skip the check for new files. The check can have issues with large libraries, please set to **True** if you have more than a few thousand photos. If this variable is not set, it will default to **False**.
 
-**download_notifications**: This variable specifies whether notifications with a short summary should be sent for file downloads. If this variable is not set, it will default to **True**.
+**download_notifications**: specifies whether notifications with a short summary should be sent for file downloads. If this variable is not set, it will default to **True**.
 
-**delete_notifications**: This variable specifies whether notifications with a short summary should be sent for file deletions. If this variable is not set, it will default to **True**.
+**delete_notifications**: Specifies whether notifications with a short summary should be sent for file deletions. If this variable is not set, it will default to **True**.
 
-**delete_accompanying**: This variable tells the script to delete files which accompany the HEIC files that are downloaded. These are the JPG files which are created if you have HEIC to JPG conversion enabled. They are also the \_HEVC.MOV files which make up part of a live photo. This feature deletes files from your disk. I'm not responsible for any data loss.
+**delete_accompanying**: Tells the script to delete files which accompany the HEIC files that are downloaded. These are the JPG files which are created if you have HEIC to JPG conversion enabled. They are also the \_HEVC.MOV files which make up part of a live photo. This feature deletes files from your disk. I'm not responsible for any data loss.
 
-**delete_empty_directories**: This variable tells the script to delete any empty directories it finds in the download path. It will only run if **folder_structure** isn't set to 'none'
+**delete_empty_directories**: Tells the script to delete any empty directories it finds in the download path. It will only run if **folder_structure** isn't set to 'none'
 
 **set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date. If this variable is not set, it will default to **False**.
 
@@ -60,7 +60,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **until_found**: Set this to an integer number to only download the most recently added photos, until *n* number of previously downloaded consecutive photos are found. If this variable is not set, it will default to downloading all photos.
 
-**photo_album**: Set this to the name of an album to only download photos from this album. If this variable is not set, it will default to downloading all photos.
+**photo_album**: Set this to the name of an album to only download photos from a single album. If this variable is not set, it will default to downloading all photos.
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
@@ -143,7 +143,7 @@ Then create the container, connecting it to the new icloudpd network bridge. It 
 
 ```
 docker create \
-   --name iCloudPD-boredazfcuk \
+   --name iCloudPD_boredazfcuk \
    --hostname icloudpd_boredazfcuk \
    --network icloudpd_bridge \
    --restart=always \
@@ -151,8 +151,8 @@ docker create \
    --env user_id=1000 \
    --env group=admins \
    --env group_id=1010 \
-   --env apple_id=thisisnotmy@email.com \
-   --env apple_password="neitheristhismypassword" \
+   --env apple_id=notmy@email.com \
+   --env apple_password="notmypasswordeither" \
    --env authentication_type=2FA \
    --env notification_type=Telegram \
    --env telegram_token=123654 \
@@ -169,9 +169,9 @@ docker create \
 
 ## CONFIGURING A PASSWORD
 
-Once the container has been created, you should connect to it and run `/usr/local/bin/sync-icloud.sh --Initialise`. This will then take you through the process of adding your password to the container's keyring. It will also take you through generating a cookie that will allow the container to download the photos...
+Once the container has been created, you should connect to it and run `/usr/local/bin/sync-icloud.sh --Initialise`. This will then take you through the process of adding your password to the container's keyring. It will also take you through generating a cookie that will allow the container to download the photos.
 
-If you launch a container without initialising it first, you will receive an error message similar to this:
+If you launch a container without initialising it first, you will receive this error message:
 ```
 ERROR    Keyring file /config/python_keyring/keyring_pass.cfg does not exist.
 INFO      - Please add the your password to the system keyring using the --Initialise script command line option.
