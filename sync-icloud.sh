@@ -438,9 +438,9 @@ CheckMount(){
 
 SetOwnerAndPermissions(){
    LogInfo "Set owner, ${user}, on iCloud directory, if required"
-   find "${download_path}" ! -user "${user}" -exec chown "${user}" {} +
+   find "${download_path}" ! -type l ! -user "${user}" -exec chown "${user}" {} +
    LogInfo "Set group, ${group}, on iCloud directory, if required"
-   find "${download_path}" ! -group "${group}" -exec chgrp "${group}" {} +
+   find "${download_path}" ! -type l ! -group "${group}" -exec chgrp "${group}" {} +
    LogInfo "Correct owner on icloudpd temp directory, if required"
    find "/tmp/icloudpd" ! -user "${user}" -exec chown "${user}" {} +
    LogInfo "Correct group on icloudpd temp directory, if required"

@@ -2,6 +2,7 @@
 
  - Change: Changed the notification events so that they can have a larger range of icons and different ones too.
  - Change: Gone live with some changes to WeCom notifications.
+ - Change: Amended the find command to ignore symbolic links when changing the group on downloaded files and their folders. This is due to the Synology Photos app creating symlinks in the download folders.
 
 20220719
 
