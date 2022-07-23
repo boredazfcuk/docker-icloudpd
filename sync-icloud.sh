@@ -290,9 +290,11 @@ ConfigureNotifications(){
       elif [ "${notification_type}" = "WeCom" ] && [ "${wecom_id}" ] && [ "${wecom_secret}" ]; then
          wecom_token_url="https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={$wecom_id}&corpsecret={$wecom_secret}"
          wecom_token="$(/usr/bin/curl -s -G "${wecom_token_url}" | awk -F\" '{print $10}')"
+         wecom_token_expiry="$(date --date='2 hour')"
          notification_url="https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=${wecom_token}"
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} token: ${wecom_token}"
+         LogInfo "${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
          LogInfo "${notification_type} notification URL: ${notification_url}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
@@ -876,6 +878,18 @@ Notify(){
          --data text="${notification_title}" \
          --data desp="${iyuu_text}")"
    elif [ "${notification_type}" = "WeCom" ]; then
+      if [ "$(date +'%s')" -ge "$(date +'%s' -d "${wecom_token_expiry}")" ]; then
+         unset wecom_token
+      fi
+      if [ -z "${wecom_token}" ]; then
+         LogWarning "${notification_type} token has expired. Retrieving new one"
+         wecom_token="$(/usr/bin/curl -s -G "${wecom_token_url}" | awk -F\" '{print $10}')"
+         wecom_token_expiry="$(date --date='2 hour')"
+         notification_url="https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=${wecom_token}"
+         LogInfo "${notification_type} token: ${wecom_token}"
+         LogInfo "${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
+         LogInfo "${notification_type} notification URL: ${notification_url}"
+      fi
       # 结束时间、下次同步时间
       syn_end_time="$(date '+%H:%M:%S')"
       syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
