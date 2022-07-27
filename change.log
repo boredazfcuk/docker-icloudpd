@@ -1,4 +1,8 @@
-22020720
+20220727
+
+ - Change: Added trigger_nextlcoudcli_synchronisation variable
+
+20220720
 
  - Change: Changed the notification events so that they can have a larger range of icons and different ones too.
  - Change: Gone live with some changes to WeCom notifications.

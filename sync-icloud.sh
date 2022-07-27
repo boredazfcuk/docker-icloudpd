@@ -174,6 +174,11 @@ Initialise(){
          -e "s#icloud.com.cn'#icloud.com'#" \
          "$(pip show pyicloud-ipd | grep "Location" | awk '{print $2}')/pyicloud_ipd/base.py"
    fi
+   if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
+      LogInfo "Nextcloud synchronisation trigger: Enabled"
+   else
+      LogInfo "Nextcloud synchronisation trigger: Enabled"
+   fi
    if [ ! -d "/home/${user}/.local/share/" ]; then
       LogInfo "Creating directory: /home/${user}/.local/share/"
       mkdir --parents "/home/${user}/.local/share/"
@@ -999,6 +1004,9 @@ SyncUser(){
                   Notify "failure" "iCloudPD container failure" "1" "从 iCloud 图库下载新照片失败，将在 ${syn_next_time} 再次尝试"
                fi
             else
+               if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
+                  touch "${download_path}/.nextcloud_sync"
+               fi
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
                if [ "${synology_photos_app_fix}" ]; then SynologyPhotosAppFix; fi
                if [ "${convert_heic_to_jpeg}" != "False" ]; then
