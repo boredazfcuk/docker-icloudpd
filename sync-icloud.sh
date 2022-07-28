@@ -624,6 +624,9 @@ DownloadedFilesNotification(){
          new_files_text="iCloud 图库同步完成，新增 ${new_files_count} 张照片"
          Notify "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "下载" "${new_files_preview}"
       fi
+      if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
+         touch "${download_path}/.nextcloud_sync"
+      fi
    fi
 }
 
@@ -641,6 +644,9 @@ DeletedFilesNotification(){
       else
          deleted_files_text="iCloud 图库同步完成，删除 ${deleted_files_count} 张照片"
          Notify "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "删除" "${deleted_files_preview}"
+      fi
+      if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
+         touch "${download_path}/.nextcloud_sync"
       fi
    fi
 }
@@ -1004,9 +1010,6 @@ SyncUser(){
                   Notify "failure" "iCloudPD container failure" "1" "从 iCloud 图库下载新照片失败，将在 ${syn_next_time} 再次尝试"
                fi
             else
-               if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
-                  touch "${download_path}/.nextcloud_sync"
-               fi
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
                if [ "${synology_photos_app_fix}" ]; then SynologyPhotosAppFix; fi
                if [ "${convert_heic_to_jpeg}" != "False" ]; then

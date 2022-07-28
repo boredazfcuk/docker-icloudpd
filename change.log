@@ -1,6 +1,7 @@
 20220728
 
  - Change: Set the function, which corrects the owner and permissions, to run after a successful download. Now permissions are corrected immediately after files are downloaded, rather than at the start of the next scheduled synchronisation.
+ - Change: Moved the Nextcloud trigger to the donwloaded/deleted files notification sections (as it's essentially notifying Nextcloud that it needs to sync), but also because where it was currently executing, meant that it would only trigger a sync on successful downloads, not if files had simply been removed. Now it will trigger a Nextcloud oneither of those two events.
 
 20220727
 
