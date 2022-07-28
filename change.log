@@ -1,6 +1,10 @@
+20220728
+
+ - Change: Set the function, which corrects the owner and permissions, to run after a successful download. Now permissions are corrected immediately after files are downloaded, rather than at the start of the next scheduled synchronisation.
+
 20220727
 
- - Change: Added trigger_nextlcoudcli_synchronisation variable
+ - Change: Added trigger_nextlcoudcli_synchronisation variable.
 
 20220720
 

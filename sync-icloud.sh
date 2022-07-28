@@ -460,9 +460,9 @@ SetOwnerAndPermissions(){
    find "/home/${user}/.local" ! -user "${user}" -exec chown "${user}" {} +
    LogInfo "Correct group on keyring directory, if required"
    find "/home/${user}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
-   LogInfo "Set ${directory_permissions:=755} permissions on iCloud directories, if required"
+   LogInfo "Set ${directory_permissions} permissions on iCloud directories, if required"
    find "${download_path}" -type d ! -perm "${directory_permissions}" -exec chmod "${directory_permissions}" '{}' +
-   LogInfo "Set ${file_permissions:=640} permissions on iCloud files, if required"
+   LogInfo "Set ${file_permissions} permissions on iCloud files, if required"
    find "${download_path}" -type f ! -perm "${file_permissions}" -exec chmod "${file_permissions}" '{}' +
 }
 
@@ -1020,6 +1020,7 @@ SyncUser(){
                if [ "${delete_empty_directories}" = "True" ] && [ "${folder_structure}" != "none" ]; then
                   RemoveEmptyDirectories
                fi
+               SetOwnerAndPermissions
                LogInfo "Synchronisation complete for ${user}"
             fi
             login_counter=$((login_counter + 1))
