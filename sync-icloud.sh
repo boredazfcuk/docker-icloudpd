@@ -212,7 +212,7 @@ LogError(){
 }
 
 ConfigureNotifications(){
-   if [ -z "${prowl_api_key}" ] && [ -z "${pushover_token}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ] && [ -z "${dingtalk_token}" ] && [ -z "${discord_token}" ] && [ -z "${iyuu_token}" ] && [ -z "${wecom_secret}" ]; then
+   if [ -z "${prowl_api_key}" ] && [ -z "${gotify_app_token}" ] && [ -z "${pushover_token}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ] && [ -z "${dingtalk_token}" ] && [ -z "${discord_token}" ] && [ -z "${iyuu_token}" ] && [ -z "${wecom_secret}" ]; then
       LogWarning "${notification_type} notifications enabled, but API key/token/secret not set - disabling notifications"
       unset notification_type
    else
@@ -226,6 +226,11 @@ ConfigureNotifications(){
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} api key: ${prowl_api_key}"
          notification_url="https://api.prowlapp.com/publicapi/add"
+      elif [ "${notification_type}" = "Gotify" ] && [ "${gotify_app_token}" ] && [ "${gotify_server_url}" ]; then
+         LogInfo "${notification_type} notifications enabled"
+         LogInfo "${notification_type} token: ${gotify_app_token}"
+         LogInfo "${notification_type} server URL: ${gotify_server_url}"
+         notification_url="https://$gotify_server_url/message?token=$gotify_app_token"
       elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} user: ${pushover_user}"
@@ -303,7 +308,7 @@ ConfigureNotifications(){
          LogInfo "${notification_type} notification URL: ${notification_url}"
       else
          echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
-         unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token
+         unset notification_type prowl_api_key gotify_app_token gotify_server_url pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token
       fi
       if [ -z "${icloud_china}" ]; then
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
@@ -830,6 +835,10 @@ Notify(){
          --form event="${notification_event}" \
          --form priority="${notification_prority}" \
          --form description="${notification_message}")"
+   elif [ "${notification_type}" = "Gotify" ]; then
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
+         -F "title=$notification_title" \
+         -F "message=$notification_message")"
    elif [ "${notification_type}" = "Pushover" ]; then
       if [ "${notification_prority}" = "2" ]; then notification_prority=1; fi
       if [ "${notification_files_preview_count}" ]; then
