@@ -390,7 +390,7 @@ ConfigurePassword(){
    if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
          LogInfo "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
-         su "${user}" --command '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
+         su "${user}" -c '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
       else
          LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
          LogInfo " - Please add the your password to the system keyring using the --Initialise script command line option"
@@ -423,7 +423,7 @@ GenerateCookie(){
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
    LogInfo "Generate ${authentication_type} cookie using password stored in keyring file"
-   su "${user}" --command '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
+   su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
    if [ "${authentication_type}" = "2FA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
          LogInfo "Two factor authentication cookie generated. Sync should now be successful"
@@ -596,7 +596,7 @@ CheckFiles(){
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
    >/tmp/icloudpd/icloudpd_check_error
-   su "${user}" --command '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" 
+   su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" 
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
       LogError "Failed check for new files files"
@@ -689,11 +689,11 @@ SynologyPhotosAppFix(){
    LogInfo "Fixing Synology Photos App import issue..."
    for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
       LogInfo "Create empty date/time reference file ${heic_file%.HEIC}.TMP"
-      su "${user}" --command 'touch --reference="${0}" "${1}"' -- "${heic_file}" "${heic_file%.HEIC}.TMP"
+      su "${user}" -c 'touch --reference="${0}" "${1}"' -- "${heic_file}" "${heic_file%.HEIC}.TMP"
       LogInfo "Set time stamp for ${heic_file} to current: $(date)"
-      su "${user}" --command 'touch "${0}"' -- "${heic_file}"
+      su "${user}" -c 'touch "${0}"' -- "${heic_file}"
       LogInfo "Set time stamp for ${heic_file} to original: $(date -r "${heic_file%.HEIC}.TMP" +"%a %b %e %T %Y")"
-      su "${user}" --command 'touch --reference="${0}" "${1}"' -- "${heic_file%.HEIC}.TMP" "${heic_file}"
+      su "${user}" -c 'touch --reference="${0}" "${1}"' -- "${heic_file%.HEIC}.TMP" "${heic_file}"
       LogInfo "Removing temporary file ${heic_file%.HEIC}.TMP"
       if [ -z "${persist_temp_files}" ]; then
          rm "${heic_file%.HEIC}.TMP"
@@ -1007,7 +1007,7 @@ SyncUser(){
             LogInfo "Downloading new files using password stored in keyring file..."
             LogInfo "iCloudPD launch command: /usr/bin/icloudpd ${command_line} ${command_line_options} 2>/tmp/icloudpd/icloudpd_download_error"
             >/tmp/icloudpd/icloudpd_download_error
-            su "${user}" --command '(/usr/bin/icloudpd ${0} ${1} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${command_line_options}"
+            su "${user}" -c '(/usr/bin/icloudpd ${0} ${1} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${command_line_options}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                LogError "Failed to download new files"
