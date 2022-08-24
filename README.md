@@ -80,7 +80,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 ## NOTIFICATION CONFIGURATION VARIABLES
 
-**notification_type**: This specifies the method that is used to send notifications. These are the options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **openhab**, **Dingtalk**, **Discord**, **IYUU** and **WeCom**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
+**notification_type**: This specifies the method that is used to send notifications. These are the options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **openhab**, **Dingtalk**, **Discord**, **IYUU**, **WeCom** and **Gotify**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
 
 **notification_title**: This allows you to change the title which is sent on the notifications. This variable will default to **boredazfcuk/iCloudPD**.
 
@@ -119,6 +119,10 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 **wecom_id**: Mandatory if notification_type set to 'WeCom'. This is the CORPID associated with your account.
 
 **wecom_secret**: Mandatory if notification_type set to 'WeCom'. This is the CORPSECRET associated with your account.
+
+**gotify_app_token**: Mandatory if notification_tpye set to 'Gotify'. This is the app_token associated with your account.
+
+**gotify_server_url**: Mandatory if notification_tpye set to 'Gotify'. This is the server name of your Gotify server e.g. server.domain.tld
 
 ## VOLUME CONFIGURATION
 
@@ -231,8 +235,6 @@ The process should look similar to this:
 2020-08-06 16:45:58 INFO     Synchronisation interval: 43200
 2020-08-06 16:45:58 INFO     Time zone: Europe/London
 2020-08-06 16:45:58 INFO     Additional command line options: --auto-delete --set-exif-datetime
-2020-08-06 16:45:58 INFO     Correct owner on config directory, if required
-2020-08-06 16:45:58 INFO     Correct group on config directory, if required
 2020-08-06 16:45:58 INFO     Adding password to keyring...
 Enter iCloud password for email@address.com:
 Save password in keyring?  [y/N]: y
@@ -241,8 +243,6 @@ Two-step authentication required. Your trusted devices are:
 Which device would you like to use? [0]: 0
 Please enter validation code: 123456
 2020-08-06 16:47:04 INFO     Using password stored in keyring
-2020-08-06 16:47:04 INFO     Correct owner on config directory, if required
-2020-08-06 16:47:04 INFO     Correct group on config directory, if required
 2020-08-06 16:47:04 INFO     Generate 2FA cookie with password: usekeyring
 2020-08-06 16:47:04 INFO     Check for new files using password stored in keyring...
   0: SMS to 07********

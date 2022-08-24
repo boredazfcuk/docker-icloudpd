@@ -1,3 +1,8 @@
+20220824
+
+ - Change: Two fixes required for Python 3.10+ support
+ - Pull request: Merged PR from rmlanghopto to add Gotify notifications
+
 20220728
 
  - Change: Set the function, which corrects the owner and permissions, to run after a successful download. Now permissions are corrected immediately after files are downloaded, rather than at the start of the next scheduled synchronisation.
