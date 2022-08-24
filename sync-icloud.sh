@@ -196,7 +196,7 @@ Initialise(){
    if [ "${python_minor}" -ge 10 ]; then
       LogInfo "Applying fix for Python 3.10 and above"
       sed -i 's/from collections import Callable/from collections.abc import Callable/' "/usr/lib/python${python_major}.${python_minor}/site-packages/keyring/util/properties.py"
-      sed -i 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/'"/usr/lib/python${python_major}.${python_minor}/site-packages/keyrings/alt/file_base.py"
+      sed -i 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' "/usr/lib/python${python_major}.${python_minor}/site-packages/keyrings/alt/file_base.py"
    fi
 #####
    # python3 -c 'import sys; print(str(sys.version_info[0])+"."+str(sys.version_info[1]))'
