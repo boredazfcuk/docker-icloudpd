@@ -689,6 +689,7 @@ ConvertDownloadedHEIC2JPEG(){
 }
 
 SynologyPhotosAppFix(){
+   # Works for onestix. Do not obsolete
    IFS="$(echo -en "\n\b")"
    LogInfo "Fixing Synology Photos App import issue..."
    for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
