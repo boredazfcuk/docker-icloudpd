@@ -43,6 +43,11 @@ Initialise(){
    LogInfo "***** $(realpath "${0}") hash: $(md5sum $(realpath "${0}") | awk '{print $1}') *****"
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
+   if [ "${python_minor}" -ge 10 ]; then
+      LogInfo " - Applying fix for Python 3.10 and above"
+      sed -i 's/from collections import Callable/from collections.abc import Callable/' "/usr/lib/python${python_major}.${python_minor}/site-packages/keyring/util/properties.py"
+      sed -i 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' "/usr/lib/python${python_major}.${python_minor}/site-packages/keyrings/alt/file_base.py"
+   fi
    LogInfo "icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
    LogInfo "pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
    if [ -z "${apple_id}" ]; then
@@ -192,11 +197,6 @@ Initialise(){
    if [ ! -L "/home/${user}/.local/share/python_keyring" ]; then
       LogInfo "Creating symbolic link: /home/${user}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
       ln --symbolic --force "${config_dir}/python_keyring/" "/home/${user}/.local/share/"
-   fi
-   if [ "${python_minor}" -ge 10 ]; then
-      LogInfo "Applying fix for Python 3.10 and above"
-      sed -i 's/from collections import Callable/from collections.abc import Callable/' "/usr/lib/python${python_major}.${python_minor}/site-packages/keyring/util/properties.py"
-      sed -i 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' "/usr/lib/python${python_major}.${python_minor}/site-packages/keyrings/alt/file_base.py"
    fi
 }
 
