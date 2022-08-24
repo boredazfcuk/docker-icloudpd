@@ -80,7 +80,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 ## NOTIFICATION CONFIGURATION VARIABLES
 
-The README on Dockerhub has a hard limit of 25,000 characters, and I'd hit this limit multiple times. I'd changed the wording of this README.md file time and time again to keep it under that limit, but I've finally conceeded and just moved this to it's own file. Please see NOTIFICATIONS.md for further details. It is available here: https://github.com/boredazfcuk/docker-icloudpd/blob/master/NOTIFICATIONS.md
+The README on Dockerhub has a hard limit of 25,000 characters, and I'd hit this limit multiple times. I'd changed the wording of this README.md file time and time again to keep it under that limit, but I've finally conceeded and just moved this section to it's own file. Please see NOTIFICATIONS.md for further details. It is available here: https://github.com/boredazfcuk/docker-icloudpd/blob/master/NOTIFICATIONS.md
 
 ## VOLUME CONFIGURATION
 
