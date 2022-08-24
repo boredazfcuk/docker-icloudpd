@@ -195,7 +195,7 @@ Initialise(){
    fi
    if [ "${python_minor}" -ge 10 ]; then
       LogInfo "Applying fix for Python 3.10 and above"
-      sed -i '/from collections import Callable/from collections.abc import Callable/' "/usr/lib/python${python_major}.${python_minor}/site-packages/keyring/util/properties.py"
+      sed -i 's/from collections import Callable/from collections.abc import Callable/' "/usr/lib/python${python_major}.${python_minor}/site-packages/keyring/util/properties.py"
    fi
 #####
    # python3 -c 'import sys; print(str(sys.version_info[0])+"."+str(sys.version_info[1]))'
