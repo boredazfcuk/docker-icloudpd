@@ -8,6 +8,8 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
+   python_major="$(python3 --version | awk '{print $2}' | awk -F '.' '{print $1}')"
+   python_minor="$(python3 --version | awk '{print $2}' | awk -F '.' '{print $2}')"
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
       icloud_domain="icloud.com.cn"
@@ -80,9 +82,9 @@ Initialise(){
       fi
    done
    LogInfo "IP address for icloud.com: ${icloud_dot_com}"
-   if [ "$(traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>/tmp/icloudpd_tracert.err; echo $?)" = 1 ]; then
+   if [ "$(traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>/tmp/icloudpd/icloudpd_tracert.err; echo $?)" = 1 ]; then
       LogError "No route to ${icloud_domain} found. Please check your container's network settings - exiting"
-      LogError "Error debug - $(cat /tmp/icloudpd_tracert.err)"
+      LogError "Error debug - $(cat /tmp/icloudpd/icloudpd_tracert.err)"
       sleep 120
       exit 1
    else
@@ -191,6 +193,17 @@ Initialise(){
       LogInfo "Creating symbolic link: /home/${user}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
       ln --symbolic --force "${config_dir}/python_keyring/" "/home/${user}/.local/share/"
    fi
+   if [ "${python_minor}" -ge 10 ]; then
+      LogInfo "Applying fix for Python 3.10 and above"
+      sed -i '/from collections import Callable/from collections.abc import Callable/' "/usr/lib/python${python_major}.${python_minor}/site-packages/keyring/util/properties.py"
+   fi
+#####
+   # python3 -c 'import sys; print(str(sys.version_info[0])+"."+str(sys.version_info[1]))'
+
+   # if [ "$(grep -c "iCloud Photo Library not finished indexing.  Please try again in a few minutes" /file)" -eq 1 ]; then
+      # sed -i '/iCloud Photo Library not finished indexing.  Please try again in a few minutes/iCloud Photo Library not finished indexing.  Please try again in a few hours/' /file
+   # fi
+######
 }
 
 LogInfo(){

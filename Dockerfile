@@ -1,7 +1,7 @@
 # Fix base to Alpine 3.13.5 due to:-
 # Alpine 3.14 & 3.15 - Python 3.9 incompatibility introduced: AttributeError: module 'base64' has no attribute 'decodestring'
 # Alpine Edge        - Python 3.10 incompatibility introduced: ImportError: cannot import name 'Callable' from 'collections' (/usr/lib/python3.10/collections/__init__.py)
-FROM alpine:3.13.5
+FROM alpine:3.16.1
 MAINTAINER boredazfcuk
 
 ENV config_dir="/config" \
@@ -11,7 +11,7 @@ ENV config_dir="/config" \
 ARG container_version="1.0.19"
 ARG app_dependencies="python3 py3-pip exiftool coreutils tzdata curl py3-certifi py3-cffi py3-cryptography py3-secretstorage py3-jeepney py3-dateutil imagemagick shadow"
 ARG build_dependencies="git"
-# Fix tzlocal to 2.1 due to Python 3.8 being default in alpine 3.13.5
+# Fix tzlocal to 2.1 due to Python 3.8 being default in alpine 3.13.5+
 ARG python_dependencies="pytz tzlocal==2.1 wheel"
 ARG app_repo="icloud-photos-downloader/icloud_photos_downloader"
 
