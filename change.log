@@ -1,5 +1,6 @@
 20220824
 
+ - Change: Added Bark notifications (untested)
  - Change: Two fixes required for Python 3.10+ support
  - Pull request: Merged PR from rmlanghopto to add Gotify notifications
 
