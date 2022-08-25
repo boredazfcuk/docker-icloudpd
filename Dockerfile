@@ -31,6 +31,11 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install Python dependencies" && \
    pip3 install --no-cache-dir -r requirements.txt && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install ${app_repo}" && \
    python3 setup.py install && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Apply Python 3.10 fixes" && \
+   sed -i 's/from collections import Callable/from collections.abc import Callable/' "/usr/lib/python3.10/site-packages/keyring/util/properties.py" && \
+   sed -i -e 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' \
+      -e 's/password_base64 = base64.encodestring(password_encrypted).decode()/password_base64 = base64.encodebytes(password_encrypted).decode()/' \
+      "/usr/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
    cd / && \
    rm -r "${app_temp_dir}" && \

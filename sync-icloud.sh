@@ -8,8 +8,6 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
-   python_major="$(python3 --version | awk '{print $2}' | awk -F '.' '{print $1}')"
-   python_minor="$(python3 --version | awk '{print $2}' | awk -F '.' '{print $2}')"
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
       icloud_domain="icloud.com.cn"
@@ -43,11 +41,6 @@ Initialise(){
    LogInfo "***** $(realpath "${0}") hash: $(md5sum $(realpath "${0}") | awk '{print $1}') *****"
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
-   if [ "${python_minor}" -ge 10 ]; then
-      LogInfo " - Applying fix for Python 3.10 and above"
-      sed -i 's/from collections import Callable/from collections.abc import Callable/' "/usr/lib/python${python_major}.${python_minor}/site-packages/keyring/util/properties.py"
-      sed -i 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' "/usr/lib/python${python_major}.${python_minor}/site-packages/keyrings/alt/file_base.py"
-   fi
    LogInfo "icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
    LogInfo "pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
    if [ -z "${apple_id}" ]; then
