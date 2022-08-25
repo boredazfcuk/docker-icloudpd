@@ -1,7 +1,6 @@
 # Fix base to Alpine 3.16.1 due to:-
 # Alpine 3.14 & 3.15 - Python 3.9 incompatibility introduced: AttributeError: module 'base64' has no attribute 'decodestring'
-# Alpine Edge        - Python 3.10 incompatibility introduced: ImportError: cannot import name 'Callable' from 'collections' (/usr/lib/python3.10/collections/__init__.py)
-# Above isues fixed with code change in sync-icloud.sh
+# Alpine 3.16        - Python 3.10 incompatibility introduced: ImportError: cannot import name 'Callable' from 'collections' (/usr/lib/python3.10/collections/__init__.py)
 FROM alpine:3.16.1
 MAINTAINER boredazfcuk
 

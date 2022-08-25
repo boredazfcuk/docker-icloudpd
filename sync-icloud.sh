@@ -936,9 +936,14 @@ Notify(){
          -F "title=${notification_title}" \
          -F "message=${notification_message}")"   
    elif [ "${notification_type}" = "Bark" ]; then
+      if [ "${notification_files_preview_count}" ]; then
+         bark_text="${notification_message}\\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\\n${notification_files_preview_text//$'\n'/'\n'}"
+      else
+         bark_text="$(echo -e "${notification_message}")"
+      fi
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "http://${bark_server}/push" \
          -H 'Content-Type: application/json; charset=utf-8' \
-         -d $"{ \"device_key\": \"${bark_device_key}\", \"title\": \"${notification_title}\", \"body\": \"${notification_message}\", \"category\": \"category\" }")"
+         -d $"{ \"device_key\": \"${bark_device_key}\", \"title\": \"${notification_title}\", \"body\": \"${bark_text}\", \"category\": \"category\" }")"
    fi
    if [ "${notification_type}" ]; then
       if [ "${notification_result:0:1}" -eq 2 ]; then
