@@ -35,6 +35,8 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Apply Python 3.10 fixes" && \
    sed -i -e 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' \
       -e 's/password_base64 = base64.encodestring(password_encrypted).decode()/password_base64 = base64.encodebytes(password_encrypted).decode()/' \
       "/usr/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Make indexing error more accurate" && \
+   sed -i 's/again in a few minutes/again in a few hours/' "/usr/lib/python3.10/site-packages/pyicloud_ipd/services/photos.py" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
    cd / && \
    rm -r "${app_temp_dir}" && \
