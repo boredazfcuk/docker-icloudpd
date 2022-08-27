@@ -1,3 +1,7 @@
+20220827
+
+ - Change: Amended error relating to unindexed an library. Error says to wait minutes, it should say hours.
+
 20220824
 
  - Change: Added Bark notifications (untested)
