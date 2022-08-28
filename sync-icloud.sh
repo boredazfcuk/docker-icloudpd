@@ -929,7 +929,6 @@ Notify(){
             wecom_text="$(echo -e "${notification_message}")"
          fi
       fi
-      # notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"@all\",\"msgtype\":\"text\",\"agentid\":\"1\",\"text\":{\"content\":\"\${wecom_text}\"},\"safe\":\"0\"}" --url "${notification_url}")"
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_title} 照片同步 - ${name}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_message}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
    elif [ "${notification_type}" = "Gotify" ]; then
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
@@ -937,13 +936,13 @@ Notify(){
          -F "message=${notification_message}")"   
    elif [ "${notification_type}" = "Bark" ]; then
       if [ "${notification_files_preview_count}" ]; then
-         bark_text="${notification_message}\\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\\n${notification_files_preview_text//$'\n'/'\n'}"
+         bark_text="$(echo -e "${notification_icon} \n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
       else
-         bark_text="$(echo -e "${notification_message}")"
+         bark_text="$(echo -e "${notification_icon} \n${notification_message}")"
       fi
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "http://${bark_server}/push" \
          -H 'Content-Type: application/json; charset=utf-8' \
-         -d $"{ \"device_key\": \"${bark_device_key}\", \"title\": \"${notification_title}\", \"body\": \"${bark_text}\", \"category\": \"category\" }")"
+         -d "{ \"device_key\": \"${bark_device_key}\", \"title\": \"${notification_title}\", \"body\": \"${bark_text}\", \"category\": \"category\" }")"
    fi
    if [ "${notification_type}" ]; then
       if [ "${notification_result:0:1}" -eq 2 ]; then
