@@ -116,7 +116,6 @@ docker create \
    --env group=admins \
    --env group_id=1010 \
    --env apple_id=notmy@email.com \
-   --env apple_password="notmypasswordeither" \
    --env authentication_type=2FA \
    --env notification_type=Telegram \
    --env telegram_token=123654 \
