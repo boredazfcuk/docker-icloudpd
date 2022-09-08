@@ -380,7 +380,7 @@ CreateUser(){
 
 DeletePassword(){
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
-      LogInfo "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but --Initialise command line switch has been invoked. Removing"
+      LogInfo "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but --RemoveKeyring command line switch has been invoked. Removing"
       rm "${config_dir}/python_keyring/keyring_pass.cfg"
    fi
 }
@@ -1101,6 +1101,9 @@ case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
    "--initialise"|"--initialize")
       initialise_container="True"
     ;;
+   "--removekeyring")
+      delete_password="True"
+    ;;
    "--convertallheics")
       convert_all_heics="True"
    ;;
@@ -1121,7 +1124,7 @@ SanitiseLaunchParameters
 CreateGroup
 CreateUser
 SetOwnerAndPermissions
-if [ "${initialise_container}" ]; then
+if [ "${delete_password}" ]; then
    DeletePassword
 fi
 ConfigurePassword
