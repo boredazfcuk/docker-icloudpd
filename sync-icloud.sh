@@ -378,6 +378,13 @@ CreateUser(){
    fi
 }
 
+DeletePassword(){
+   if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
+      LogInfo "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but --Initialise command line switch has been invoked. Removing"
+      rm "${config_dir}/python_keyring/keyring_pass.cfg"
+   fi
+}
+
 ConfigurePassword(){
    echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Configure password"
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ] && [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
@@ -1114,6 +1121,9 @@ SanitiseLaunchParameters
 CreateGroup
 CreateUser
 SetOwnerAndPermissions
+if [ "${initialise_container}" ]; then
+   DeletePassword
+fi
 ConfigurePassword
 if [ "${initialise_container}" ]; then
    GenerateCookie

@@ -1,3 +1,7 @@
+20220908
+
+ - Change: Keyring file wasn't actually being removed during container initialisation... Bizarre. Always thought it was. Maybe I removed it while ago, but forgot.
+
 20220828
 
  - Change: Bark modifications
