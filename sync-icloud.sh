@@ -1126,6 +1126,7 @@ CreateUser
 SetOwnerAndPermissions
 if [ "${delete_password}" ]; then
    DeletePassword
+   exit 0
 fi
 ConfigurePassword
 if [ "${initialise_container}" ]; then
