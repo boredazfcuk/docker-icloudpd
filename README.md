@@ -243,6 +243,11 @@ This command line option will allow you to add your password to the system keyri
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --Initialise`
 
+**--DeleteKeyring**
+This command line option will delete the system keyring file. You will need to run this if you change your Apple ID password.
+To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
+`docker exec -it icloudpd sync-icloud.sh --DeleteKeyring`
+
 ## HEALTH CHECK
 
 I have built in a health check for this container. If the script detects a download error the container will be marked as unhealthy. You can then configure this container: https://hub.docker.com/r/willfarrell/autoheal/ to monitor iCloudPD and restart the unhealthy container. Please note, if your 2FA cookie expires, the container will be marked as unhealthy, and will be restarted by the authoheal container every five minutes or so... This can lead to a lot of notifications if it happens while you're asleep!
