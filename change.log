@@ -1,6 +1,7 @@
 20220912
 
  - Change: Documentation updated, changed --DeleteKeyring to --RemoveKeyring
+ - Change: Added feature to place converted JPEGs into different folder from the download location
 
 20220908
 

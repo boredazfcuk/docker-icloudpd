@@ -68,6 +68,8 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **convert_heic_to_jpeg**: Set this to True to convert downloaded HEIC files to JPEG, while also retaining the original.
 
+**jpeg_path**: Set this variable to specify a different location for the converted JPEGs. This variable will default to "/home/${user}/iCloud", or **download_path** if not set, thereby placing the JPEG files alongside the HEIC files.
+
 **jpeg_quality**: If HEIC to JPEG conversion is enabled, this variable will let you set the quality of the converted file by specifying a number from 0 (lowest quality) to 100 (highest quality) If convert_heic_to_jpeg is set, and this variable isn't, it will default to 90.
 
 **icloud_china**: Set this to True to use icloud.com.cm instead of icloud.com as the download source.
