@@ -800,6 +800,14 @@ RemoveRecentlyDeletedAccompanyingFiles(){
    LogInfo "Deleting 'Recently Deleted' accompanying files (.JPG/_HEVC.MOV)..."
    for heic_file in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
       heic_file_clean="${heic_file/!/}"
+      if [ "${jpeg_path}" ]; then
+         LogInfo "Substituting ${download_path} with ${jpeg_path}"
+         heic_file="${heic_file/${download_path}/${jpeg_path}}"
+         LogInfo "HEIC file path $(dirname "${heic_file}")"
+         #mkdir --parents "$(dirname "${heic_file}")"
+         LogInfo "HEIC var: ${heic_file}"             
+      fi
+
       if [ -f "${heic_file_clean%.HEIC}.JPG" ]; then
          LogInfo "Deleting ${heic_file_clean%.HEIC}.JPG"
          rm -f "${heic_file_clean%.HEIC}.JPG"
