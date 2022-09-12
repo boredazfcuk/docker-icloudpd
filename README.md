@@ -243,10 +243,10 @@ This command line option will allow you to add your password to the system keyri
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --Initialise`
 
-**--DeleteKeyring**
+**--RemoveKeyring**
 This command line option will delete the system keyring file. You will need to run this if you change your Apple ID password.
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
-`docker exec -it icloudpd sync-icloud.sh --DeleteKeyring`
+`docker exec -it icloudpd sync-icloud.sh --RemoveKeyring`
 
 ## HEALTH CHECK
 
