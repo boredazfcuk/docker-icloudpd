@@ -832,9 +832,14 @@ RemoveRecentlyDeletedAccompanyingFiles(){
 }
 
 RemoveEmptyDirectories(){
-   LogInfo "Deleting empty directories..."
+   LogInfo "Deleting empty directories from ${download_path}..."
    find "${download_path}" -type d -empty -delete
    LogInfo "Deleting empty directories complete"
+   if [ "${jpeg_path}" ]; then
+      LogInfo "Deleting empty directories from ${jpeg_path}..."
+      find "${jpeg_path}" -type d -empty -delete
+      LogInfo "Deleting empty directories complete"
+   fi
 }
 
 Notify(){
