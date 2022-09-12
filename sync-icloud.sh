@@ -680,21 +680,17 @@ ConvertDownloadedHEIC2JPEG(){
       else
          jpeg_file="${heic_file%.HEIC}.JPG"
          if [ "${jpeg_path}" ]; then
-            LogInfo "Substituting ${download_path} with ${jpeg_path} for JPEG files"
             jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
-            LogInfo "HEIC file path $(dirname "${heic_file}")"
-            LogInfo "JPEG file path $(dirname "${jpeg_file}")"
             mkdir --parents "$(dirname "${jpeg_file}")"
-            LogInfo "VARs: ${heic_file} ${jpeg_file}"             
          fi
          LogInfo "Converting ${heic_file} to ${jpeg_file}"
-         # convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
-         # heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
-         # LogInfo "Timestamp of HEIC file: ${heic_date}"
-         # touch --reference="${heic_file}" "${jpeg_file}"
-         # LogInfo "Setting timestamp of ${jpeg_file} to ${heic_date}"
-         # LogInfo "Correct owner and group of ${jpeg_file} to ${user}:${group}"
-         # chown "${user}:${group}" ${jpeg_file}
+         convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
+         heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
+         LogInfo "Timestamp of HEIC file: ${heic_date}"
+         touch --reference="${heic_file}" "${jpeg_file}"
+         LogInfo "Setting timestamp of ${jpeg_file} to ${heic_date}"
+         LogInfo "Correct owner and group of ${jpeg_file} to ${user}:${group}"
+         chown "${user}:${group}" ${jpeg_file}
       fi
    done
    IFS="${save_ifs}"
@@ -726,10 +722,7 @@ ConvertAllHEICs(){
       LogInfo "HEIC file found: ${heic_file}"
       jpeg_file="${heic_file%.HEIC}.JPG"
       if [ "${jpeg_path}" ]; then
-         LogInfo "Substituting ${download_path} with ${jpeg_path}"
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
-         LogInfo "JPEG file path $(dirname "${jpeg_file}")"
-         LogInfo "JPEG var: ${jpeg_file}"             
       fi
       if [ ! -f "${jpeg_file}" ]; then
          LogInfo "Converting ${heic_file} to ${jpeg_file}"
@@ -751,15 +744,19 @@ ForceConvertAllHEICs(){
    LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
    for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
-      LogInfo "Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
-      rm "${heic_file%.HEIC}.JPG"
-      convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
+      jpeg_file="${heic_file%.HEIC}.JPG"
+      if [ "${jpeg_path}" ]; then
+         jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
+      fi
+      LogInfo "Converting ${heic_file} to ${jpeg_file}"
+      rm "${jpeg_file}"
+      convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
       LogInfo "Timestamp of HEIC file: ${heic_date}"
-      touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
-      LogInfo "Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
-      LogInfo "Correct owner and group of ${heic_file%.HEIC}.JPG to ${user}:${group}"
-      chown "${user}:${group}" "${heic_file%.HEIC}.JPG"
+      touch --reference="${heic_file}" "${jpeg_file}"
+      LogInfo "Setting timestamp of ${jpeg_file} to ${heic_date}"
+      LogInfo "Correct owner and group of ${jpeg_file} to ${user}:${group}"
+      chown "${user}:${group}" "${jpeg_file}"
    done
    IFS="${save_ifs}"
 }
@@ -770,15 +767,19 @@ ForceConvertAllmntHEICs(){
    LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
    for heic_file in $(find "/mnt" -type f -name *.HEIC 2>/dev/null); do
-      LogInfo "Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
-      rm "${heic_file%.HEIC}.JPG"
-      convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
+      jpeg_file="${heic_file%.HEIC}.JPG"
+      if [ "${jpeg_path}" ]; then
+         jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
+      fi
+      LogInfo "Converting ${heic_file} to ${jpeg_file}"
+      rm "${jpeg_file}"
+      convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
       LogInfo "Timestamp of HEIC file: ${heic_date}"
-      touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
-      LogInfo "Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
-      LogInfo "Correct owner and group of ${heic_file%.HEIC}.JPG to ${user}:${group}"
-      chown "${user}:${group}" "${heic_file%.HEIC}.JPG"
+      touch --reference="${heic_file}" "${jpeg_file}"
+      LogInfo "Setting timestamp of ${jpeg_file} to ${heic_date}"
+      LogInfo "Correct owner and group of ${jpeg_file} to ${user}:${group}"
+      chown "${user}:${group}" "${jpeg_file}"
    done
    IFS="${save_ifs}"
 }
@@ -787,15 +788,19 @@ CorrectJPEGTimestamps(){
    IFS="$(echo -en "\n\b")"
    LogInfo "Check and correct converted HEIC timestamps"
    for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
+      jpeg_file="${heic_file%.HEIC}.JPG"
+      if [ "${jpeg_path}" ]; then
+         jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
+      fi
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
       LogInfo "Timestamp of HEIC file: ${heic_date}"
-      if [ -f "${heic_file%.HEIC}.JPG" ]; then
-         LogInfo "JPEG file found: ${heic_file%.HEIC}.JPG"
-         jpeg_date="$(date -r "${heic_file%.HEIC}.JPG" +"%a %b %e %T %Y")"
+      if [ -f "${jpeg_file}" ]; then
+         LogInfo "JPEG file found: ${jpeg_file}"
+         jpeg_date="$(date -r "${jpeg_file}" +"%a %b %e %T %Y")"
          LogInfo "Timestamp of JPEG file: ${jpeg_date}"
          if [ "${heic_date}" != "${jpeg_date}" ]; then
-            LogInfo "Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
-            touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
+            LogInfo "Setting timestamp of ${jpeg_file} to ${heic_date}"
+            touch --reference="${heic_file}" "${jpeg_file}"
          else
             LogInfo "Time stamps match. Adjustment not required"
          fi
@@ -811,12 +816,7 @@ RemoveRecentlyDeletedAccompanyingFiles(){
       heic_file_clean="${heic_file/!/}"
       jpeg_file_clean="${heic_file_clean%.HEIC}.JPG"
       if [ "${jpeg_path}" ]; then
-         LogInfo "Substituting ${download_path} with ${jpeg_path}"
          jpeg_file_clean="${jpeg_file_clean/${download_path}/${jpeg_path}}"
-         LogInfo "HEIC file path $(dirname "${heic_file_clean}")"
-         LogInfo "JPEG file path $(dirname "${jpeg_file_clean}")"
-         #mkdir --parents "$(dirname "${heic_file}")"
-         LogInfo "VARs: ${heic_file_clean} ${jpeg_file_clean}"             
       fi
       if [ -f "${jpeg_file_clean}" ]; then
          LogInfo "Deleting ${jpeg_file_clean}"
