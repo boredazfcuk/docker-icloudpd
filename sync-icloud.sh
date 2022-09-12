@@ -811,10 +811,11 @@ RemoveRecentlyDeletedAccompanyingFiles(){
       heic_file_clean="${heic_file/!/}"
       if [ "${jpeg_path}" ]; then
          LogInfo "Substituting ${download_path} with ${jpeg_path}"
-         heic_file_clean="${heic_file_clean/${download_path}/${jpeg_path}}"
+         jpeg_file_clean="${heic_file_clean/${download_path}/${jpeg_path}}"
          LogInfo "HEIC file path $(dirname "${heic_file_clean}")"
+         LogInfo "JPEG file path $(dirname "${jpeg_file_clean}")"
          #mkdir --parents "$(dirname "${heic_file}")"
-         LogInfo "HEIC var: ${heic_file_clean}"             
+         LogInfo "VARs: ${heic_file_clean} ${jpeg_file_clean}"             
       fi
 
       if [ -f "${heic_file_clean%.HEIC}.JPG" ]; then
