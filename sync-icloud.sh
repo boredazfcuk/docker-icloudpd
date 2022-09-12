@@ -145,8 +145,11 @@ Initialise(){
       LogWarning "Additional command line options is depreciated. Please specify all options using the dedicated variables"
    fi
    LogInfo "Convert HEIC to JPEG: ${convert_heic_to_jpeg:=False}"
+   if [ "${jpeg_path}" ]; then
+      LogInfo "converted JPEGs path: ${jpeg_path}"
+   fi
    if [ "${delete_accompanying:=False}" = "True" ] && [ -z "${warnings_acknowledged}" ]; then
-      LogInfo "Delete accompanying files (.JPG/.HAVE.MOV)"
+      LogInfo "Delete accompanying files (.JPG/.HEIC.MOV)"
       LogWarning "This feature deletes files from your local disk. Please use with caution. I am not responsible for any data loss."
       LogWarning "This feature cannot be used if the 'folder_structure' variable is set to 'none' and also, 'set_exif_datetime' must be 'False'"
       LogWarning "These two settings will increase the chances of de-duplication happening, which could result in the wrong files being removed. Continuing in 2 minutes."
@@ -675,14 +678,21 @@ ConvertDownloadedHEIC2JPEG(){
       if [ ! -f "${heic_file}" ]; then
          LogWarning "HEIC file ${heic_file} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
       else
+         if [ "${jpeg_path}" ]; then
+            LogInfo "Substituting ${download_path} with ${jpeg_path}"
+            heic_file="${heic_file/${download_path}/${jpeg_path}}"
+            LogInfo "HEIC file path $(dirname "${heic_file}")"
+            mkdir --parents "$(dirname "${heic_file}")"
+            LogInfo "HEIC var: ${heic_file}"             
+         fi
          LogInfo "Converting ${heic_file} to ${heic_file%.HEIC}.JPG"
-         convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
-         heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
-         LogInfo "Timestamp of HEIC file: ${heic_date}"
-         touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
-         LogInfo "Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
-         LogInfo "Correct owner and group of ${heic_file%.HEIC}.JPG to ${user}:${group}"
-         chown "${user}:${group}" "${heic_file%.HEIC}.JPG"
+         # convert -quality "${jpeg_quality}" "${heic_file}" "${heic_file%.HEIC}.JPG"
+         # heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
+         # LogInfo "Timestamp of HEIC file: ${heic_date}"
+         # touch --reference="${heic_file}" "${heic_file%.HEIC}.JPG"
+         # LogInfo "Setting timestamp of ${heic_file%.HEIC}.JPG to ${heic_date}"
+         # LogInfo "Correct owner and group of ${heic_file%.HEIC}.JPG to ${user}:${group}"
+         # chown "${user}:${group}" "${heic_file%.HEIC}.JPG"
       fi
    done
    IFS="${save_ifs}"

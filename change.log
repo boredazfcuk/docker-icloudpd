@@ -1,3 +1,7 @@
+20220912
+
+ - Change: Documentation updated, changed --DeleteKeyring to --RemoveKeyring
+
 20220908
 
  - Change: Keyring file wasn't actually being removed during container initialisation... Bizarre. Always thought it was. Maybe I removed it while ago, but forgot. Added a --DeleteKeying command line switch to remove the keyring file, if it exists.
