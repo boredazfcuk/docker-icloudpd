@@ -38,9 +38,28 @@ The README on Dockerhub has a hard limit of 25,000 characters, and I'd hit this 
 
 **iyuu_token**: Mandatory if notification_type set to 'IYUU'. This is the access token required to send messages.
 
-**wecom_id**: Mandatory if notification_type set to 'WeCom'. This is the CORPID associated with your account.
 
-**wecom_secret**: Mandatory if notification_type set to 'WeCom'. This is the CORPSECRET associated with your account.
+**wecom_id**: Mandatory if notification_type set to 'WeCom'.企业微信通知，企业微信通知，企业ID / This is the CORPID associated with your account
+
+**wecom_secret**: Mandatory if notification_type set to 'WeCom'.企业微信通知，企业应用的Secret / This is the CORPSECRET associated with your account
+
+**agentid**: Mandatory if notification_type set to 'WeCom'.企业微信通知，企业应用的id / Enterprise application id
+
+**touser**: Mandatory if notification_type set to 'WeCom'.企业微信通知，接收通知的对象 / who receives notifications
+
+**content_source_url**: Mandatory if notification_type set to 'WeCom'.企业微信通知，阅读原文跳转链接 / Click on the page link after "reading the original text"
+
+**name**: Mandatory if notification_type set to 'WeCom'.企业微信通知，当前 Apple ID 所有人 / Current Apple ID owner
+
+**media_id_startup**: Mandatory if notification_type set to 'WeCom'.企业微信通知，启动成功通知封面 / Image for Startup success
+
+**media_id_download**: Mandatory if notification_type set to 'WeCom'.企业微信通知，下载通知封面 / Image for downloaded files
+
+**media_id_delete**: Mandatory if notification_type set to 'WeCom'.企业微信通知，删除文件通知封面 / Image for deleted files
+
+**media_id_expiration**: Mandatory if notification_type set to 'WeCom'.企业微信通知，cookie即将过期通知封面 / Image for cookie expiration
+
+**media_id_warning**: Mandatory if notification_type set to 'WeCom'.企业微信通知，同步失败、cookiey已过期通知封面 / Image for cookie expired or failure
 
 **gotify_app_token**: Mandatory if notification_type set to 'Gotify'. This is the app_token associated with your account.
 
