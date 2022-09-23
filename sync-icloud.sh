@@ -1115,11 +1115,11 @@ SyncUser(){
 SanitiseLaunchParameters(){
    if [ "${script_launch_parameters}" ]; then
       case "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
-         "--initialise"|"--initialize"|"--convertallheics"|"--forceconvertallheics"|"--forceconvertallmntheics"|"--correctjpegtimestamps")
+         "--initialise"|"--initialize"|"--removekeyring"|"--convertallheics"|"--forceconvertallheics"|"--forceconvertallmntheics"|"--correctjpegtimestamps")
             LogInfo "Script launch parameters: ${script_launch_parameters}"
          ;;
          *)
-            LogWarning "Ignoring innvalid launch parameter specified: ${script_launch_parameters}"
+            LogWarning "Ignoring invalid launch parameter specified: ${script_launch_parameters}"
             LogWarning "Please do not specify the above parameter when launching the container. Continuing in 2 minutes"
             sleep 120
             unset script_launch_parameters

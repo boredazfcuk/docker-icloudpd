@@ -1,3 +1,7 @@
+20220923
+
+ - Change: Bug in --RemoveKeyring preventing it from launching
+
 20220912
 
  - Change: Documentation updated, changed --DeleteKeyring to --RemoveKeyring
