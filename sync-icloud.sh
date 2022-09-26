@@ -438,7 +438,8 @@ GenerateCookie(){
          LogError "2FA information missing from cookie. Authentication has failed"
          LogError " - Was the correct password entered?"
          LogError " - Was the 2FA code mistyped?"
-         LogError " - Are you based in China? You may need to set the icloud_china variable"
+         LogError " - Can you log into iCloud.com without receiving pop-up notifications?"
+         if [ -z "${icloud_china}" ]; then LogError " - Are you based in China? You may need to set the icloud_china variable"; fi
       fi
    else
       LogInfo "Web cookie generated. Sync should now be successful"
@@ -607,6 +608,7 @@ CheckFiles(){
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
       LogError "Failed check for new files files"
+      LogError " - Can you log into iCloud.com without receiving pop-up notifications?"
       LogError "Error debugging info:"
       LogError "$(cat /tmp/icloudpd/icloudpd_check_error)"
       LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
@@ -1061,6 +1063,7 @@ SyncUser(){
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                LogError "Failed to download new files"
+               LogError " - Can you log into iCloud.com without receiving pop-up notifications?"
                LogError "Error debugging info:"
                LogError "$(cat /tmp/icloudpd/icloudpd_download_error)"
                LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
