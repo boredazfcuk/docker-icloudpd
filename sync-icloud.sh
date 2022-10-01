@@ -6,7 +6,7 @@ Initialise(){
    save_ifs="${IFS}"
    lan_ip="$(hostname -i)"
    login_counter="0"
-   apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
+   apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
