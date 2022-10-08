@@ -1,3 +1,7 @@
+20221008
+
+ - Change: Incorrectly named variable. changed bark_key to bark_device_key
+
 20220926
 
  - Change: Amended the log entries so that the warning about setting icloud_china variable only appears if it's not already set. Also changed it to prompt the user to log into iCloud.com and make sure there are no pop-up notifications.

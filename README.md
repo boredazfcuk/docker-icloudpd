@@ -132,6 +132,8 @@ docker create \
    boredazfcuk/icloudpd
 ```
 
+Note: Raspberry Pi users have reported that the container only functions correctly when the containes is created with the `--privileged` parameter.
+
 ## CONFIGURING A PASSWORD
 
 Once the container has been created, you should connect to it and run `/usr/local/bin/sync-icloud.sh --Initialise`. This will then take you through the process of adding your password to the container's keyring. It will also take you through generating a cookie that will allow the container to download the photos.

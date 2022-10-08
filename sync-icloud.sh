@@ -215,7 +215,7 @@ LogError(){
 }
 
 ConfigureNotifications(){
-   if [ -z "${prowl_api_key}" ] && [ -z "${pushover_token}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ] && [ -z "${dingtalk_token}" ] && [ -z "${discord_token}" ] && [ -z "${iyuu_token}" ] && [ -z "${wecom_secret}" ] && [ -z "${gotify_app_token}" ] && [ -z "${bark_key}" ]; then
+   if [ -z "${prowl_api_key}" ] && [ -z "${pushover_token}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ] && [ -z "${dingtalk_token}" ] && [ -z "${discord_token}" ] && [ -z "${iyuu_token}" ] && [ -z "${wecom_secret}" ] && [ -z "${gotify_app_token}" ] && [ -z "${bark_device_key}" ]; then
       LogWarning "${notification_type} notifications enabled, but API key/token/secret not set - disabling notifications"
       unset notification_type
    else
