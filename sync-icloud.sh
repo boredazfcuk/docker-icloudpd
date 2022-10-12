@@ -975,7 +975,7 @@ Notify(){
    elif [ "${notification_type}" = "Gotify" ]; then
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
          -F "title=${notification_title}" \
-         -F "message=${notification_message}")"   
+         -F "message=${notification_message}")"
    elif [ "${notification_type}" = "Bark" ]; then
       if [ "${notification_files_preview_count}" ]; then
          bark_text="$(echo -e "${notification_icon} ${notification_message} Most recent ${notification_files_preview_count} ${notification_files_preview_type} files: ${notification_files_preview_text//_/\\_}")"
