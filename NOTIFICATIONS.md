@@ -51,7 +51,7 @@ The README on Dockerhub has a hard limit of 25,000 characters, and I'd hit this 
 
 **name**: Mandatory if notification_type set to 'WeCom'.企业微信通知，当前 Apple ID 所有人 / Current Apple ID owner
 
-**wecom_proxy**: Optional. 企业微信通知，企业微信的代理,用来绕过企业微信的IP白名单 / Used to bypass the ip whitelist of WeCom
+**wecom_proxy**: Optional. 企业微信通知，企业微信的代理,非必填,用来绕过企业微信的IP白名单 / Optional,Used to bypass the ip whitelist of WeCom
 
 **media_id_startup**: Mandatory if notification_type set to 'WeCom'.企业微信通知，启动成功通知封面 / Image for Startup success
 
