@@ -296,10 +296,15 @@ ConfigureNotifications(){
          LogInfo "${notification_type} token: ${iyuu_token}"
          LogInfo "${notification_type} notification URL: ${notification_url}"
       elif [ "${notification_type}" = "WeCom" ] && [ "${wecom_id}" ] && [ "${wecom_secret}" ]; then
-         wecom_token_url="https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={$wecom_id}&corpsecret={$wecom_secret}"
+         wecom_base_url="https://qyapi.weixin.qq.com"
+         if [ "${wecom_proxy}" ]; then
+            wecom_base_url="${wecom_proxy}"
+            LogInfo "${notification_type} notifications proxy enabled : ${wecom_proxy}"
+         fi
+         wecom_token_url="${wecom_base_url}/cgi-bin/gettoken?corpid=${wecom_id}&corpsecret=${wecom_secret}"
          wecom_token="$(/usr/bin/curl -s -G "${wecom_token_url}" | awk -F\" '{print $10}')"
          wecom_token_expiry="$(date --date='2 hour')"
-         notification_url="https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=${wecom_token}"
+         notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} token: ${wecom_token}"
          LogInfo "${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
@@ -949,7 +954,7 @@ Notify(){
          LogWarning "${notification_type} token has expired. Retrieving new one"
          wecom_token="$(/usr/bin/curl -s -G "${wecom_token_url}" | awk -F\" '{print $10}')"
          wecom_token_expiry="$(date --date='2 hour')"
-         notification_url="https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=${wecom_token}"
+         notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
          LogInfo "${notification_type} token: ${wecom_token}"
          LogInfo "${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
          LogInfo "${notification_type} notification URL: ${notification_url}"
