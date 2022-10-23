@@ -8,6 +8,10 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
+   case "$-" in
+      *i*) interactive_session="True" ;;
+      *)	interactive_session="False" ;;
+   esac
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
       icloud_domain="icloud.com.cn"
@@ -40,6 +44,7 @@ Initialise(){
    LogInfo "***** $(realpath "${0}") date: $(date --reference=$(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
    LogInfo "***** $(realpath "${0}") hash: $(md5sum $(realpath "${0}") | awk '{print $1}') *****"
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
+   LogInfo "Interactive session: ${interactive_session}"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
    LogInfo "icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
    LogInfo "pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
@@ -1032,7 +1037,7 @@ CommandLineBuilder(){
 
 SyncUser(){
    LogInfo "Sync user ${user}"
-   if [ "${synchronisation_delay}" -ne 0 ]; then
+   if [ "${synchronisation_delay}" -ne 0 ] && [ "${interactive_session}" = "False" ]; then
       LogInfo "Delay for ${synchronisation_delay} minutes"
       sleep "${synchronisation_delay}m"
    fi
