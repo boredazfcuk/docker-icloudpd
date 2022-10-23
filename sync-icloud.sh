@@ -44,7 +44,6 @@ Initialise(){
    LogInfo "***** $(realpath "${0}") date: $(date --reference=$(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
    LogInfo "***** $(realpath "${0}") hash: $(md5sum $(realpath "${0}") | awk '{print $1}') *****"
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
-   LogInfo "Interactive session: ${interactive_session}"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
    LogInfo "icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
    LogInfo "pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
@@ -62,6 +61,7 @@ Initialise(){
       LogWarning "Apple password variable set to 'userkeyring'. This variable can now be removed as it is now the only supported option, so obsolete - continue in 2 minutes"
       sleep 120
    fi
+   LogInfo "Interactive session: $- \(${interactive_session}\)"
    LogInfo "Running user id: $(id --user)"
    LogInfo "Running group id: $(id --group)"
    LogInfo "Local user: ${user:=user}:${user_id:=1000}"
