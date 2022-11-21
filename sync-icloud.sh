@@ -8,10 +8,6 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
-   case "$-" in
-      *i*) interactive_session="True" ;;
-      *)	interactive_session="False" ;;
-   esac
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
       icloud_domain="icloud.com.cn"
@@ -61,7 +57,6 @@ Initialise(){
       LogWarning "Apple password variable set to 'userkeyring'. This variable can now be removed as it is now the only supported option, so obsolete - continue in 2 minutes"
       sleep 120
    fi
-   LogInfo "Interactive session: $- \(${interactive_session}\)"
    LogInfo "Running user id: $(id --user)"
    LogInfo "Running group id: $(id --group)"
    LogInfo "Local user: ${user:=user}:${user_id:=1000}"
@@ -135,6 +130,11 @@ Initialise(){
    fi
    if [ "${photo_album}" ]; then
       LogInfo "Downloading photos from album: ${photo_album}"
+   else
+      LogInfo "Downloading photos from album: Download All Photos"
+   fi
+   if [ "${photo_library}" ]; then
+      LogInfo "Downloading photos from library: ${photo_library}"
    else
       LogInfo "Downloading photos from album: Download All Photos"
    fi
@@ -1027,6 +1027,9 @@ CommandLineBuilder(){
    if [ "${photo_album}" ]; then
       command_line="${command_line} --album ${photo_album}"
    fi
+   if [ "${photo_library}" ]; then
+      command_line="${command_line} --library ${photo_library}"
+   fi
    if [ "${until_found}" ]; then
       command_line="${command_line} --until-found ${until_found}"
    fi
@@ -1037,7 +1040,7 @@ CommandLineBuilder(){
 
 SyncUser(){
    LogInfo "Sync user ${user}"
-   if [ "${synchronisation_delay}" -ne 0 ] && [ "${interactive_session}" = "False" ]; then
+   if [ "${synchronisation_delay}" -ne 0 ]; then
       LogInfo "Delay for ${synchronisation_delay} minutes"
       sleep "${synchronisation_delay}m"
    fi

@@ -60,7 +60,9 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **until_found**: Set this to an integer number to only download the most recently added photos, until *n* number of previously downloaded consecutive photos are found. This variable will default to downloading all photos.
 
-**photo_album**: Set this to the name of an album to only download photos from a single album. This variable will default to downloading all photos.
+**photo_album**: Set this to the name of an album to only download photos from a single album.
+
+**photo_library**: Set this to the name of an iOS 16 shared library to only download photos from a single sared library.
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
