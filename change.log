@@ -1,6 +1,7 @@
 20221121
 
  - Change: iOS 16 shared libaries can now be downloaded with the --library option
+ - Change: Added support for WeCom proxy via PR submitted by Alano-i and Sowevo
 
 20221008
 
