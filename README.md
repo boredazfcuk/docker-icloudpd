@@ -32,7 +32,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **file_permissions**: This specifies the permissions to set on the files in your download destination. This variable will default to 640.
 
-**folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure.
+**folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure. Use  **album** to store in folders with same name as on iCloud.com
 
 **skip_check**: Set this to **True** skip the check for new files. The check can have issues with large libraries, please set to **True** if you have more than a few thousand photos. This variable will default to **False**.
 

@@ -130,10 +130,7 @@ Initialise(){
    fi
    if [ "${photo_album}" ]; then
       LogInfo "Downloading photos from album: ${photo_album}"
-   else
-      LogInfo "Downloading photos from album: Download All Photos"
-   fi
-   if [ "${photo_library}" ]; then
+   elif [ "${photo_library}" ]; then
       LogInfo "Downloading photos from library: ${photo_library}"
    else
       LogInfo "Downloading photos from album: Download All Photos"
@@ -1031,8 +1028,7 @@ CommandLineBuilder(){
    fi
    if [ "${photo_album}" ]; then
       command_line="${command_line} --album ${photo_album}"
-   fi
-   if [ "${photo_library}" ]; then
+   elif [ "${photo_library}" ]; then
       command_line="${command_line} --library ${photo_library}"
    fi
    if [ "${until_found}" ]; then
