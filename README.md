@@ -62,7 +62,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **photo_album**: Set this to the name of an album to only download photos from a single album.
 
-**photo_library**: Set this to the name of an iOS 16 shared library to only download photos from a single shared library.
+**photo_library**: Set this to the name of an iOS 16 shared library to only download photos from a single shared library. Please note, due to issues with the shared libraries patch it has been moved to a different container. Please pull boredazfcuk/icloudpd:testing for this version of the container.
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
