@@ -388,6 +388,14 @@ CreateUser(){
    fi
 }
 
+ListLibraries(){
+   LogInfo "Shared libraries available:"
+   shared_libraries="$(su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "/dev/null")"
+   for library in ${shared_libraries}; do
+      LogInfo " - ${library}"
+   done
+}
+
 DeletePassword(){
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
       LogInfo "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but --RemoveKeyring command line switch has been invoked. Removing"
@@ -1127,7 +1135,7 @@ SyncUser(){
 SanitiseLaunchParameters(){
    if [ "${script_launch_parameters}" ]; then
       case "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
-         "--initialise"|"--initialize"|"--removekeyring"|"--convertallheics"|"--forceconvertallheics"|"--forceconvertallmntheics"|"--correctjpegtimestamps")
+         "--initialise"|"--initialize"|"--init"|"--removekeyring"|"--convertallheics"|"--forceconvertallheics"|"--forceconvertallmntheics"|"--correctjpegtimestamps")
             LogInfo "Script launch parameters: ${script_launch_parameters}"
          ;;
          *)
@@ -1143,7 +1151,7 @@ SanitiseLaunchParameters(){
 ##### Script #####
 script_launch_parameters="${1}"
 case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
-   "--initialise"|"--initialize")
+   "--initialise"|"--initialize"|"--init")
       initialise_container="True"
     ;;
    "--removekeyring")
@@ -1168,6 +1176,7 @@ Initialise
 SanitiseLaunchParameters
 CreateGroup
 CreateUser
+ListLibraries
 SetOwnerAndPermissions
 if [ "${delete_password}" ]; then
    DeletePassword
