@@ -182,7 +182,7 @@ Initialise(){
    if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
       LogInfo "Nextcloud synchronisation trigger: Enabled"
    else
-      LogInfo "Nextcloud synchronisation trigger: Enabled"
+      LogInfo "Nextcloud synchronisation trigger: Disabled"
    fi
    if [ ! -d "/home/${user}/.local/share/" ]; then
       LogInfo "Creating directory: /home/${user}/.local/share/"
@@ -1176,7 +1176,7 @@ Initialise
 SanitiseLaunchParameters
 CreateGroup
 CreateUser
-ListLibraries
+#ListLibraries
 SetOwnerAndPermissions
 if [ "${delete_password}" ]; then
    DeletePassword

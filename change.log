@@ -1,6 +1,7 @@
 20221203
  - Change: Added --Init so I'm less likely to typo it
  - Change: When downloading from libraries it now lists available libraries to the log file
+ - Remove: I've pulled support for iOS16 shared libraries, something isn't quite right as many people are reporting errors
 
 20221121
 
