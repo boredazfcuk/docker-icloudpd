@@ -42,7 +42,7 @@ Initialise(){
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
    LogInfo "icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
-   LogInfo "pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
+   LogInfo "pyicloud version: $(pip3 list | grep pyicloud | awk '{print $2}')"
    if [ -z "${apple_id}" ]; then
       LogError "Apple ID not set - exiting"
       sleep 120
@@ -79,7 +79,7 @@ Initialise(){
          exit 1
       fi
    done
-   LogInfo "IP address for icloud.com: ${icloud_dot_com}"
+   LogInfo "IP address for ${icloud_domain}: ${icloud_dot_com}"
    if [ "$(traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>/tmp/icloudpd/icloudpd_tracert.err; echo $?)" = 1 ]; then
       LogError "No route to ${icloud_domain} found. Please check your container's network settings - exiting"
       LogError "Error debug - $(cat /tmp/icloudpd/icloudpd_tracert.err)"
@@ -169,15 +169,23 @@ Initialise(){
       LogInfo "Downloading from: icloud.com.cn"
       LogWarning "Downloading from icloud.com.cn is untested. Please report issues at https://github.com/boredazfcuk/docker-icloudpd/issues"
       sed -i \
+         -e "s#apple.com/#apple.com.cn/#" \
          -e "s#icloud.com/#icloud.com.cn/#" \
-         -e "s#icloud.com'#icloud.com.cn'#" \
-         "$(pip show pyicloud-ipd | grep "Location" | awk '{print $2}')/pyicloud_ipd/base.py"
+         -e "s#icloud.com\"#icloud.com.cn\"#" \
+         "$(pip show pyicloud | grep "Location" | awk '{print $2}')/pyicloud/base.py"  
+      sed -i \
+         -e "s#icloud.com/#icloud.com.cn/#" \
+         "$(pip show pyicloud | grep "Location" | awk '{print $2}')/pyicloud/services/account.py"
    else
       LogInfo "Downloading from: icloud.com"
       sed -i \
+         -e "s#apple.com.cn/#apple.com/#" \
          -e "s#icloud.com.cn/#icloud.com/#" \
-         -e "s#icloud.com.cn'#icloud.com'#" \
-         "$(pip show pyicloud-ipd | grep "Location" | awk '{print $2}')/pyicloud_ipd/base.py"
+         -e "s#icloud.com.cn\"#icloud.com\"#" \
+         "$(pip show pyicloud | grep "Location" | awk '{print $2}')/pyicloud/base.py"      
+         sed -i \
+         -e "s#icloud.com.cn/#icloud.com/#" \
+         "$(pip show pyicloud | grep "Location" | awk '{print $2}')/pyicloud/services/account.py"
    fi
    if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
       LogInfo "Nextcloud synchronisation trigger: Enabled"
