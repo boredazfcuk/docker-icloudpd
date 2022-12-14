@@ -13,7 +13,7 @@ ARG app_dependencies="python3 py3-pip exiftool coreutils tzdata curl py3-certifi
 ARG build_dependencies="git"
 # Fix tzlocal to 2.1 due to Python 3.8 being default in alpine 3.13.5+
 ARG python_dependencies="pytz tzlocal==2.1 wheel"
-ARG app_repo="icloud-photos-downloader/icloud_photos_downloader"
+ARG app_repo="mbax2zf2/icloud_photos_downloader"
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** BUILD STARTED FOR ICLOUDPD ${container_version} *****" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install build dependencies" && \
@@ -36,7 +36,7 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Apply Python 3.10 fixes" && \
       -e 's/password_base64 = base64.encodestring(password_encrypted).decode()/password_base64 = base64.encodebytes(password_encrypted).decode()/' \
       "/usr/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Make indexing error more accurate" && \
-   sed -i 's/again in a few minutes/again later. This process may take hours./' "/usr/lib/python3.10/site-packages/pyicloud_ipd/services/photos.py" && \
+   # sed -i 's/again in a few minutes/again later. This process may take hours./' "/usr/lib/python3.10/site-packages/pyicloud_ipd/services/photos.py" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
    cd / && \
    rm -r "${app_temp_dir}" && \
