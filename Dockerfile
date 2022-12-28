@@ -1,7 +1,7 @@
 # Fix base to Alpine 3.16.1 due to:-
 # Alpine 3.14 & 3.15 - Python 3.9 incompatibility introduced: AttributeError: module 'base64' has no attribute 'decodestring'
 # Alpine 3.16        - Python 3.10 incompatibility introduced: ImportError: cannot import name 'Callable' from 'collections' (/usr/lib/python3.10/collections/__init__.py)
-FROM alpine:3.16.3
+FROM alpine:3.17
 MAINTAINER boredazfcuk
 
 ENV config_dir="/config" \

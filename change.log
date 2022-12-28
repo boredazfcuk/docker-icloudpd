@@ -2,6 +2,7 @@
 
  - Change: Added details in readme warning users about enabling Apple's new Advanced Data Protection feature in iOS 16.2
  - Change: Changed the way permissions and ownership is applied so that it it only applies permissions to the download directory after a sync, rather than at multiple different times.
+ - Change: Slight change needed to user creation due to rebase to Alpine 3.17
 
 20221203
  - Change: Added --Init so I'm less likely to typo it

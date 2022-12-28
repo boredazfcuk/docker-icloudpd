@@ -389,7 +389,7 @@ CreateUser(){
          exit 1
       else
          LogInfo "Creating user ${user}:${user_id}"
-         useradd --shell /bin/ash --gid "${group_id}" --uid "${user_id}" "${user}" --home-dir "/home/${user}" --badnames
+         useradd --shell /bin/ash --gid "${group_id}" --uid "${user_id}" "${user}" --home-dir "/home/${user}" --badname
       fi
    fi
 }
