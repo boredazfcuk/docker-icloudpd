@@ -93,6 +93,12 @@ Initialise(){
    LogInfo "Cookie path: ${config_dir}/${cookie_file}"
    LogInfo "Cookie expiry notification period: ${notification_days:=7}"
    LogInfo "Download destination directory: ${download_path:=/home/${user}/iCloud}"
+   if [ ! -d "${download_path}" ]; then
+      LogInfo "Download directory does not exist."
+      LogInfo "Creating ${download_path} and configuring permissions."
+      mkdir --parents "${download_path}"
+      SetOwnerAndPermissionsDownloads
+   fi
    LogInfo "Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
    LogInfo "Directory permissions: ${directory_permissions:=750}"
    LogInfo "File permissions: ${file_permissions:=640}"
@@ -479,11 +485,7 @@ CheckMount(){
    LogInfo "Failsafe file ${download_path}/.mounted exists, continuing"
 }
 
-SetOwnerAndPermissions(){
-   LogInfo "Set owner, ${user}, on iCloud directory, if required"
-   find "${download_path}" ! -type l ! -user "${user}" -exec chown "${user}" {} +
-   LogInfo "Set group, ${group}, on iCloud directory, if required"
-   find "${download_path}" ! -type l ! -group "${group}" -exec chgrp "${group}" {} +
+SetOwnerAndPermissionsConfig(){
    LogInfo "Correct owner on icloudpd temp directory, if required"
    find "/tmp/icloudpd" ! -user "${user}" -exec chown "${user}" {} +
    LogInfo "Correct group on icloudpd temp directory, if required"
@@ -496,6 +498,13 @@ SetOwnerAndPermissions(){
    find "/home/${user}/.local" ! -user "${user}" -exec chown "${user}" {} +
    LogInfo "Correct group on keyring directory, if required"
    find "/home/${user}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
+}
+
+SetOwnerAndPermissionsDownloads(){
+   LogInfo "Set owner, ${user}, on iCloud directory, if required"
+   find "${download_path}" ! -type l ! -user "${user}" -exec chown "${user}" {} +
+   LogInfo "Set group, ${group}, on iCloud directory, if required"
+   find "${download_path}" ! -type l ! -group "${group}" -exec chgrp "${group}" {} +
    LogInfo "Set ${directory_permissions} permissions on iCloud directories, if required"
    find "${download_path}" -type d ! -perm "${directory_permissions}" -exec chmod "${directory_permissions}" '{}' +
    LogInfo "Set ${file_permissions} permissions on iCloud files, if required"
@@ -1106,7 +1115,7 @@ SyncUser(){
                if [ "${delete_empty_directories}" = "True" ] && [ "${folder_structure}" != "none" ]; then
                   RemoveEmptyDirectories
                fi
-               SetOwnerAndPermissions
+               SetOwnerAndPermissionsDownloads
                LogInfo "Synchronisation complete for ${user}"
             fi
             login_counter=$((login_counter + 1))
@@ -1177,7 +1186,7 @@ SanitiseLaunchParameters
 CreateGroup
 CreateUser
 #ListLibraries
-SetOwnerAndPermissions
+SetOwnerAndPermissionsConfig
 if [ "${delete_password}" ]; then
    DeletePassword
    exit 0
@@ -1188,17 +1197,17 @@ if [ "${initialise_container}" ]; then
    exit 0
 elif [ "${convert_all_heics}" ]; then
    ConvertAllHEICs
-   SetOwnerAndPermissions
+   SetOwnerAndPermissionsDownloads
    LogInfo "HEIC to JPG conversion complete"
    exit 0
 elif [ "${force_convert_all_heics}" ]; then
    ForceConvertAllHEICs
-   SetOwnerAndPermissions
+   SetOwnerAndPermissionsDownloads
    LogInfo "Forced HEIC to JPG conversion complete"
    exit 0
 elif [ "${force_convert_all_mnt_heics}" ]; then
    ForceConvertAllmntHEICs
-   SetOwnerAndPermissions
+   SetOwnerAndPermissionsDownloads
    LogInfo "Forced HEIC to JPG conversion complete"
    exit 0
 elif [ "${correct_jpeg_time_stamps}" ]; then
@@ -1208,6 +1217,6 @@ elif [ "${correct_jpeg_time_stamps}" ]; then
    exit 0
 fi
 CheckMount
-SetOwnerAndPermissions
+SetOwnerAndPermissionsConfig
 CommandLineBuilder
 SyncUser
