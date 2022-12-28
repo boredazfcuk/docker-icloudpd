@@ -281,7 +281,7 @@ ConfigureNotifications(){
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
          LogInfo "${notification_type} notification URL: ${notification_url}"
          LogInfo "${notification_type} body keyword: ${webhook_body:=data}"
-	  elif [ "${notification_type}" = "Discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]; then
+      elif [ "${notification_type}" = "Discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} Discord ID: ${discord_id}"
          LogInfo "${notification_type} Discord token: ${discord_token}"

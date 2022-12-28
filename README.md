@@ -262,6 +262,8 @@ I have built in a health check for this container. If the script detects a downl
 
 The app which runs inside this container connects to iCloud.com website and downloads the files it finds in there. Basically the same way as you would if you were downloading the files in your web browser, as Apple does not provide the capability to do this via an API (gotta love Apple's walled-garden). This is problematic because if the website changes at all, it throws the downloader out due to the website is doing something unexpected. There are many reasons that the website can change, for example, if somebody attempts to brute-force your account, you will be prompted to confirm your security questions the next time you log in. Accounts without two-factor authentication enabled will periodically receive a prompt upon login about upgrading the account's security.
 
+If you have enabled Apple's Advanced Data Protection feature in iOS 16.2, you will need to disable it. This feature encrypts your photos on icloud.com and means it can only be accessed from your trusted devices, as Apple no longer stores your encryption keys on their servers. I presume that the Photos section of icloud.com will no longer allow you to view photos with the Advanced Data Protection option enabled.
+
 If your container starts erroring out all of a sudden, the first thing to do is to log into iCloud.com and check that there isn't some pop-up notification which needs clearing. If that doens't work, then try re-initialising your container. For larger libraries with thousands of images, disabling the download check is also a requirement, so please try that.
 
 Bitcoin: 1E8kUsm3qouXdVYvLMjLbw7rXNmN2jZesL
