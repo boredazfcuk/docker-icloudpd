@@ -42,7 +42,7 @@ Initialise(){
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
    LogInfo "icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
-   LogInfo "pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
+   LogInfo "pyicloud version: $(pip3 list | grep pyicloud | awk '{print $2}')"
    if [ -z "${apple_id}" ]; then
       LogError "Apple ID not set - exiting"
       sleep 120
@@ -79,7 +79,7 @@ Initialise(){
          exit 1
       fi
    done
-   LogInfo "IP address for icloud.com: ${icloud_dot_com}"
+   LogInfo "IP address for ${icloud_domain}: ${icloud_dot_com}"
    if [ "$(traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>/tmp/icloudpd/icloudpd_tracert.err; echo $?)" = 1 ]; then
       LogError "No route to ${icloud_domain} found. Please check your container's network settings - exiting"
       LogError "Error debug - $(cat /tmp/icloudpd/icloudpd_tracert.err)"
@@ -174,16 +174,7 @@ Initialise(){
    if [ "${icloud_china}" ]; then
       LogInfo "Downloading from: icloud.com.cn"
       LogWarning "Downloading from icloud.com.cn is untested. Please report issues at https://github.com/boredazfcuk/docker-icloudpd/issues"
-      sed -i \
-         -e "s#icloud.com/#icloud.com.cn/#" \
-         -e "s#icloud.com'#icloud.com.cn'#" \
-         "$(pip show pyicloud-ipd | grep "Location" | awk '{print $2}')/pyicloud_ipd/base.py"
-   else
-      LogInfo "Downloading from: icloud.com"
-      sed -i \
-         -e "s#icloud.com.cn/#icloud.com/#" \
-         -e "s#icloud.com.cn'#icloud.com'#" \
-         "$(pip show pyicloud-ipd | grep "Location" | awk '{print $2}')/pyicloud_ipd/base.py"
+      export china_option="--china-mainland"
    fi
    if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
       LogInfo "Nextcloud synchronisation trigger: Enabled"
@@ -396,7 +387,7 @@ CreateUser(){
 
 ListLibraries(){
    LogInfo "Shared libraries available:"
-   shared_libraries="$(su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "/dev/null")"
+   shared_libraries="$(su "${user}" -c '/usr/bin/icloudpd --username "${0}" "${1}" --cookie-directory "${2}" --directory "${3}" --list-libraries | sed "1d"' -- "${apple_id}" "${china_option}" "${config_dir}" "/dev/null")"
    for library in ${shared_libraries}; do
       LogInfo " - ${library}"
    done
@@ -418,7 +409,7 @@ ConfigurePassword(){
    if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
          LogInfo "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
-         su "${user}" -c '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
+         su "${user}" -c '/usr/bin/icloud --username "${0}" "${1}"' -- "${apple_id}" "${china_option}"
       else
          LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
          LogInfo " - Please add the your password to the system keyring using the --Initialise script command line option"
@@ -451,7 +442,7 @@ GenerateCookie(){
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
    LogInfo "Generate ${authentication_type} cookie using password stored in keyring file"
-   su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
+   su "${user}" -c '/usr/bin/icloudpd --username "${0}" "${1}" --cookie-directory "${2}" --directory "${3}" --only-print-filenames --recent 0' -- "${apple_id}" "${china_option}" "${config_dir}" "/dev/null"
    if [ "${authentication_type}" = "2FA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
          LogInfo "Two factor authentication cookie generated. Sync should now be successful"
@@ -628,7 +619,7 @@ CheckFiles(){
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
    >/tmp/icloudpd/icloudpd_check_error
-   su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" 
+   su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" "${3}" --folder-structure "${4}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${china_option}" "${folder_structure}"
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
       LogError "Failed check for new files files"
@@ -1023,7 +1014,7 @@ Notify(){
 }
 
 CommandLineBuilder(){
-   command_line="--directory ${download_path} --cookie-directory ${config_dir} --folder-structure ${folder_structure} --username ${apple_id}"
+   command_line="--directory ${download_path} --cookie-directory ${config_dir} --folder-structure ${folder_structure} --username ${apple_id} ${china_option}"
    if [ "${photo_size}" != "original"  ]; then
       command_line="${command_line} --size ${photo_size}"
    fi
