@@ -2,6 +2,7 @@
 
  - Change: Rebuild to Apline Linux 3.17.2 and icloudpd 1.12.0
  - Change: Added delete_after_download variable. This moves all downloaded files to 'Recently Deleted'. Cannot be used with auto_delete variable.
+ - Change: Added support for Telgram proxy server using the variable telegram_server
 
 20230208
 

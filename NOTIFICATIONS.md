@@ -16,7 +16,9 @@ The README on Dockerhub has a hard limit of 25,000 characters, and I'd hit this 
 
 **telegram_token**: Mandatory if notification_type set to 'Telegram'. This is the token that was assigned to your account by The Botfather.
 
-**telegram_chat_id**: Mandatory if notification_type set to 'Telegram' then this is the chat_id for your Telegram bot. If the bot is a standard user that messages you, the chat ID will be a positive integer number. If the bot is a member of a group, and sends messages to the group, the chat ID will be prefixed with a hyphen '-' character.
+**telegram_chat_id**: Mandatory if notification_type set to 'Telegram'. This is the chat_id for your Telegram bot. If the bot is a standard user that messages you, the chat ID will be a positive integer number. If the bot is a member of a group, and sends messages to the group, the chat ID will be prefixed with a hyphen '-' character.
+
+**telegram_server**: Optional if notification_type set to 'Telegram'. If Telegram is blocked in your country and you need to use a proxy server to access it, put the fully qualified domain name of the server here.
 
 **webhook_server**: Mandatory if notification_type set to 'Webhook' or 'openhab' then this is the name of the server to connect to when sending webhook notifications.
 
