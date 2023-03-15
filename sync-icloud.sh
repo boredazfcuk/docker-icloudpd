@@ -253,11 +253,7 @@ ConfigureNotifications(){
          fi
          notification_url="https://api.pushover.net/1/messages.json"
       elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
-         if [ "${telegram_server}" ] ; then
-            notification_url="https://${telegram_server}/bot${telegram_token}/sendMessage"
-         else
-            notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
-         fi
+         notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
          LogInfo "${notification_type} notifications enabled"
          LogInfo "${notification_type} token: ${telegram_token}"
          LogInfo "${notification_type} chat id: ${telegram_chat_id}"
@@ -1010,7 +1006,7 @@ Notify(){
       else
          bark_text="$(echo -e "${notification_icon} ${notification_message}")"
       fi
-      notification_result="$(curl --location --silent --output /dev/null --write-out "%{http_code}" "http://${bark_server}/push" \
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "http://${bark_server}/push" \
          -H 'Content-Type: application/json; charset=utf-8' \
          -d "{ \"device_key\": \"${bark_device_key}\", \"title\": \"${notification_title}\", \"body\": \"${bark_text}\", \"category\": \"category\" }")"
    fi
