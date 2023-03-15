@@ -121,6 +121,12 @@ Initialise(){
    LogInfo "Synchronisation delay (minutes): ${synchronisation_delay}"
    LogInfo "Set EXIF date/time: ${set_exif_datetime:=False}"
    LogInfo "Auto delete: ${auto_delete:=False}"
+   LogInfo "Delete after download: ${delete_after_download:=False}"
+   if [ "${auto_delete}" != "False" ] && [ "${delete_after_download}" != "False" ]; then
+      LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
+      sleep 120
+      exit 1
+   fi
    LogInfo "Photo size: ${photo_size:=original}"
    LogInfo "Single pass mode: ${single_pass:=False}"
    if [ "${single_pass}" = "True" ]; then
@@ -150,7 +156,7 @@ Initialise(){
    LogInfo "Skip videos: ${skip_videos:=False}"
    if [ "${command_line_options}" ]; then
       LogWarning "Additional command line options supplied: ${command_line_options}"
-      LogWarning "Additional command line options is depreciated. Please specify all options using the dedicated variables"
+      LogWarning "Additional command line options are no longer supported and will be ignored. Please specify all options using the dedicated variables."
    fi
    LogInfo "Convert HEIC to JPEG: ${convert_heic_to_jpeg:=False}"
    if [ "${jpeg_path}" ]; then
@@ -170,20 +176,6 @@ Initialise(){
    LogInfo "JPEG conversion quality: ${jpeg_quality:=90}"
    if [ "${notification_type}" ]; then
       ConfigureNotifications
-   fi
-   if [ "${icloud_china}" ]; then
-      LogInfo "Downloading from: icloud.com.cn"
-      LogWarning "Downloading from icloud.com.cn is untested. Please report issues at https://github.com/boredazfcuk/docker-icloudpd/issues"
-      sed -i \
-         -e "s#icloud.com/#icloud.com.cn/#" \
-         -e "s#icloud.com'#icloud.com.cn'#" \
-         "$(pip show pyicloud-ipd | grep "Location" | awk '{print $2}')/pyicloud_ipd/base.py"
-   else
-      LogInfo "Downloading from: icloud.com"
-      sed -i \
-         -e "s#icloud.com.cn/#icloud.com/#" \
-         -e "s#icloud.com.cn'#icloud.com'#" \
-         "$(pip show pyicloud-ipd | grep "Location" | awk '{print $2}')/pyicloud_ipd/base.py"
    fi
    if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
       LogInfo "Nextcloud synchronisation trigger: Enabled"
@@ -460,7 +452,7 @@ GenerateCookie(){
          LogError " - Was the correct password entered?"
          LogError " - Was the 2FA code mistyped?"
          LogError " - Can you log into iCloud.com without receiving pop-up notifications?"
-         if [ -z "${icloud_china}" ]; then LogError " - Are you based in China? You may need to set the icloud_china variable"; fi
+         if [ -z "${icloud_china}" ]; then LogError " - Are you based in China? You will need to set the icloud_china variable"; fi
       fi
    else
       LogInfo "Web cookie generated. Sync should now be successful"
@@ -764,9 +756,27 @@ ConvertAllHEICs(){
    IFS="${save_ifs}"
 }
 
+RemoveAllJPGs(){
+   IFS="$(echo -en "\n\b")"
+   LogWarning "Remove all JPGs that have accompanying HEIC files. This could result in data loss if HEIC file name matches the JPG file name, but content does not."
+   LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
+   sleep 120
+   for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
+      jpeg_file="${heic_file%.HEIC}.JPG"
+      if [ "${jpeg_path}" ]; then
+         jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
+      fi
+      LogInfo "Removing ${jpeg_file}"
+      if [ -f "${jpeg_file}" ]; then
+         rm "${jpeg_file}"
+      fi
+   done
+   IFS="${save_ifs}"
+}
+
 ForceConvertAllHEICs(){
    IFS="$(echo -en "\n\b")"
-   LogWarning "Force convert all HEICs to JPEG. This could result in dataloss if JPG files have been edited on disk"
+   LogWarning "Force convert all HEICs to JPEG. This could result in data loss if JPG files have been edited on disk"
    LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
    for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
@@ -789,7 +799,7 @@ ForceConvertAllHEICs(){
 
 ForceConvertAllmntHEICs(){
    IFS="$(echo -en "\n\b")"
-   LogWarning "Force convert all HEICs in /mnt directory to JPEG. This could result in dataloss if JPG files have been edited on disk"
+   LogWarning "Force convert all HEICs in /mnt directory to JPEG. This could result in data loss if JPG files have been edited on disk"
    LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
    for heic_file in $(find "/mnt" -type f -name *.HEIC 2>/dev/null); do
@@ -1032,6 +1042,8 @@ CommandLineBuilder(){
    fi
    if [ "${auto_delete}" != "False" ]; then
       command_line="${command_line} --auto-delete"
+   elif [ "${delete_after_download}" != "False" ]; then
+      command_line="${command_line} --delete-after-download"
    fi
    if [ "${skip_live_photos}" = "False" ]; then
       if [ "${live_photo_size}" != "original" ]; then
@@ -1053,6 +1065,9 @@ CommandLineBuilder(){
    fi
    if [ "${recent_only}" ]; then
       command_line="${command_line} --recent ${recent_only}"
+   fi
+   if [ "${icloud_china}" ]; then
+      command_line="${command_line} --domain cn"
    fi
 }
 
@@ -1083,9 +1098,9 @@ SyncUser(){
             LogInfo "Starting download of new files for user: ${user}"
             synchronisation_time="$(date +%s -d '+15 minutes')"
             LogInfo "Downloading new files using password stored in keyring file..."
-            LogInfo "iCloudPD launch command: /usr/bin/icloudpd ${command_line} ${command_line_options} 2>/tmp/icloudpd/icloudpd_download_error"
+            LogInfo "iCloudPD launch command: /usr/bin/icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
             >/tmp/icloudpd/icloudpd_download_error
-            su "${user}" -c '(/usr/bin/icloudpd ${0} ${1} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${command_line_options}"
+            su "${user}" -c '(/usr/bin/icloudpd ${0} ${1} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                LogError "Failed to download new files"
@@ -1144,7 +1159,7 @@ SyncUser(){
 SanitiseLaunchParameters(){
    if [ "${script_launch_parameters}" ]; then
       case "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
-         "--initialise"|"--initialize"|"--init"|"--removekeyring"|"--convertallheics"|"--forceconvertallheics"|"--forceconvertallmntheics"|"--correctjpegtimestamps")
+         "--initialise"|"--initialize"|"--init"|"--removekeyring"|"--convertallheics"|"--removealljpgs"|"--forceconvertallheics"|"--forceconvertallmntheics"|"--correctjpegtimestamps")
             LogInfo "Script launch parameters: ${script_launch_parameters}"
          ;;
          *)
@@ -1168,6 +1183,9 @@ case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
     ;;
    "--convertallheics")
       convert_all_heics="True"
+   ;;
+   "--removealljpgs")
+      remove_all_jpgs="True"
    ;;
    "--forceconvertallheics")
       force_convert_all_heics="True"
@@ -1199,6 +1217,11 @@ elif [ "${convert_all_heics}" ]; then
    ConvertAllHEICs
    SetOwnerAndPermissionsDownloads
    LogInfo "HEIC to JPG conversion complete"
+   exit 0
+elif [ "${remove_all_jpgs}" ]; then
+   RemoveAllJPGs
+   SetOwnerAndPermissionsDownloads
+   LogInfo "Forced remove JPG files if accompanying HEIC exists"
    exit 0
 elif [ "${force_convert_all_heics}" ]; then
    ForceConvertAllHEICs

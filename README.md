@@ -48,6 +48,8 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). This variable will default to **False**.
 
+**delete_after_downlaod**: After a file is successfully downloaded it is moved to the Recenlty Deleted folder. This variable cannot be used in conjunction with **auto_delete**. This variable will default to **False**.
+
 **photo_size**: Image size to download. Can be set to **original**, **medium** or **thumb**. This variable will default to **original**.
 
 **skip_live_photos**: If this is set, it will skip downloading live photos. This variable will default to **False**.
@@ -193,7 +195,6 @@ The process should look similar to this:
 2020-08-06 16:45:58 INFO     File permissions: 640
 2020-08-06 16:45:58 INFO     Synchronisation interval: 43200
 2020-08-06 16:45:58 INFO     Time zone: Europe/London
-2020-08-06 16:45:58 INFO     Additional command line options: --auto-delete --set-exif-datetime
 2020-08-06 16:45:58 INFO     Adding password to keyring...
 Enter iCloud password for email@address.com:
 Save password in keyring?  [y/N]: y
