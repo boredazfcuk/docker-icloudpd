@@ -1,5 +1,7 @@
 #!/bin/ash
 
+source "${config_dir}/icloudpd.conf"
+
 if [ -f "/tmp/icloudpd/icloud_check_exit_code" ] || [ -f "/tmp/icloudpd/icloud_download_exit_code}" ]; then
    if [ -f "/tmp/icloudpd/icloud_download_exit_code}" ]; then
       download_exit_code="$(cat /tmp/icloudpd/icloud_download_exit_code)"

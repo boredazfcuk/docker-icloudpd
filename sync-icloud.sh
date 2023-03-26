@@ -1,8 +1,73 @@
 #!/bin/ash
 
 ##### Functions #####
+initialise_config_file(){
+   {
+      echo apple_id="${apple_id}"
+      echo authentication_type="${authentication_type:=2FA}"
+      echo auto_delete="${auto_delete:=False}"
+      echo bark_device_key="${bark_device_key}"
+      echo bark_server="${bark_server}"
+      echo convert_heic_to_jpeg="${convert_heic_to_jpeg:=False}"
+      echo debug_logging="${debug_logging:=False}"
+      echo delete_accompanying="${delete_accompanying:=False}"
+      echo delete_after_download="${delete_after_download:=False}"
+      echo delete_notifications="${delete_notifications:=True}"
+      echo dingtalk_token="${dingtalk_token}"
+      echo directory_permissions="${directory_permissions:=750}"
+      echo discord_id="${discord_id}"
+      echo discord_token="${discord_token}"
+      echo download_notifications="${download_notifications:=True}"
+      echo download_path="${download_path}"
+      echo file_permissions="${file_permissions:=640}"
+      echo folder_structure="${folder_structure:={:%Y/%m/%d\}}"
+      echo gotify_app_token="${gotify_app_token}"
+      echo group="${group:=group}"
+      echo group_id="${group_id:=1000}"
+      echo icloud_china="${icloud_china}"
+      echo iyuu_token="${iyuu_token}"
+      echo jpeg_path="${jpeg_path}"
+      echo jpeg_quality="${jpeg_quality:=90}"
+      echo notification_days="${notification_days:=7}"
+      echo notification_type="${notification_type}"
+      echo photo_album="${photo_album}"
+      echo photo_library="${photo_library}"
+      echo photo_size="${photo_size:=original}"
+      echo prowl_api_key="${prowl_api_key}"
+      echo pushover_sound="${pushover_sound}"
+      echo pushover_token="${pushover_token}"
+      echo pushover_user="${pushover_user}"
+      echo recent_only="${recent_only}"
+      echo set_exif_datetime="${set_exif_datetime:=False}"
+      echo single_pass="${single_pass:=False}"
+      echo skip_check="${skip_check:=False}"
+      echo skip_live_photos="${skip_live_photos:=False}"
+      echo synchronisation_delay="${synchronisation_delay:=0}"
+      echo synchronisation_interval="${synchronisation_interval:=86400}"
+      echo telegram_chat_id="${telegram_chat_id}"
+      echo telegram_silent_file_notifications="${telegram_silent_file_notifications}"
+      echo telegram_token="${telegram_token}"
+      echo trigger_nextlcoudcli_synchronisation="${trigger_nextlcoudcli_synchronisation}"
+      echo until_found="${until_found}"
+      echo user="${user:=user}"
+      echo user_id="${user_id:=1000}"
+      echo webhook_https="${webhook_https:=False}"
+      echo webhook_id="${webhook_id}"
+      echo webhook_path="${webhook_path:=/api/webhook/}"
+      echo webhook_port="${webhook_port:=8123}"
+      echo webhook_server="${webhook_server}"
+      echo wecom_id="${wecom_id}"
+      echo wecom_proxy="${wecom_proxy}"
+      echo wecom_secret="${wecom_secret}"
+   } > "${config_dir}/icloudpd.conf"
+}
+
 Initialise(){
    echo
+   if [ ! -e "${config_dir}/icloudpd.conf" ]; then
+      initialise_config_file
+   fi
+   source "${config_dir}/icloudpd.conf"
    save_ifs="${IFS}"
    lan_ip="$(hostname -i)"
    login_counter="0"
@@ -57,14 +122,14 @@ Initialise(){
       LogWarning "Apple password variable set to 'userkeyring'. This variable can now be removed as it is now the only supported option, so obsolete - continue in 2 minutes"
       sleep 120
    fi
-   LogInfo "Running user id: $(id --user)"
-   LogInfo "Running group id: $(id --group)"
-   LogInfo "Local user: ${user:=user}:${user_id:=1000}"
-   LogInfo "Local group: ${group:=group}:${group_id:=1000}"
-   LogInfo "Force GID: ${force_gid:=False}"
-   LogInfo "LAN IP Address: ${lan_ip}"
-   LogInfo "Default gateway: $(ip route | grep default | awk '{print $3}')"
-   LogInfo "DNS server: $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')"
+   LogDebug "Running user id: $(id --user)"
+   LogDebug "Running group id: $(id --group)"
+   LogDebug "Local user: ${user:=user}:${user_id:=1000}"
+   LogDebug "Local group: ${group:=group}:${group_id:=1000}"
+   LogDebug "Force GID: ${force_gid:=False}"
+   LogDebug "LAN IP Address: ${lan_ip}"
+   LogDebug "Default gateway: $(ip route | grep default | awk '{print $3}')"
+   LogDebug "DNS server: $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')"
    icloud_dot_com="$(nslookup -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
    while [ -z "${icloud_dot_com}" ]; do
       if [ "${dns_counter:=0}" = 0 ]; then
@@ -79,18 +144,26 @@ Initialise(){
          exit 1
       fi
    done
-   LogInfo "IP address for icloud.com: ${icloud_dot_com}"
+   LogDebug "IP address for icloud.com: ${icloud_dot_com}"
    if [ "$(traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>/tmp/icloudpd/icloudpd_tracert.err; echo $?)" = 1 ]; then
       LogError "No route to ${icloud_domain} found. Please check your container's network settings - exiting"
       LogError "Error debug - $(cat /tmp/icloudpd/icloudpd_tracert.err)"
       sleep 120
       exit 1
    else
-      LogInfo "Route check to ${icloud_domain} successful"
+      LogDebug "Route check to ${icloud_domain} successful"
    fi
-   LogInfo "Apple ID: ${apple_id}"
+   if [ "${debug_logging}" = "True" ]; then
+      LogDebug "Apple ID: (hidden)"
+   else
+      LogInfo "Apple ID: ${apple_id}"
+   fi
    LogInfo "Authentication Type: ${authentication_type:=2FA}"
-   LogInfo "Cookie path: ${config_dir}/${cookie_file}"
+   if [ "${debug_logging}" = "True" ]; then
+      LogDebug "Cookie path: ${config_dir}/(hidden)"
+   else
+      LogInfo "Cookie path: ${config_dir}/${cookie_file}"
+   fi
    LogInfo "Cookie expiry notification period: ${notification_days:=7}"
    LogInfo "Download destination directory: ${download_path:=/home/${user}/iCloud}"
    if [ ! -d "${download_path}" ]; then
@@ -100,8 +173,8 @@ Initialise(){
       SetOwnerAndPermissionsDownloads
    fi
    LogInfo "Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
-   LogInfo "Directory permissions: ${directory_permissions:=750}"
-   LogInfo "File permissions: ${file_permissions:=640}"
+   LogDebug "Directory permissions: ${directory_permissions:=750}"
+   LogDebug "File permissions: ${file_permissions:=640}"
    if [ "${syncronisation_interval}" ]; then
       LogWarning "The syncronisation_interval variable contained a typo. This has now been corrected to synchronisation_interval. Please update your container. Defaulting to one sync per 24 hour period"
       synchronisation_interval="86400"
@@ -113,7 +186,7 @@ Initialise(){
       LogWarning " - private db access disabled for this account. Please wait a few minutes then try again. The remote servers might be trying to throttle requests. (ACCESS_DENIED)"
       LogWarning "then please change your synchronisation_interval to 43200 or greater and switch the container off for 6-12 hours so Apple's throttling expires. Continuing in 2 minutes"
       if [ "${warnings_acknowledged:=False}" = "True" ]; then
-         LogInfo "Throttle warning acknowledged"
+         LogDebug "Throttle warning acknowledged"
       else
          sleep 120
       fi
@@ -130,7 +203,7 @@ Initialise(){
    LogInfo "Photo size: ${photo_size:=original}"
    LogInfo "Single pass mode: ${single_pass:=False}"
    if [ "${single_pass}" = "True" ]; then
-      LogInfo "Single pass mode enabled. Disabling download check"
+      LogDebug "Single pass mode enabled. Disabling download check"
       skip_check="True"
    fi
    LogInfo "Skip download check: ${skip_check:=False}"
@@ -152,7 +225,9 @@ Initialise(){
    else
       LogInfo "Stop downloading when prexisiting files count is: Download All Photos"
    fi
-   if [ "${skip_live_photos}" = "False" ]; then LogInfo "Live photo size: ${live_photo_size:=original}"; fi
+   if [ "${skip_live_photos}" = "False" ]; then
+      LogInfo "Live photo size: ${live_photo_size:=original}"
+   fi
    LogInfo "Skip videos: ${skip_videos:=False}"
    if [ "${command_line_options}" ]; then
       LogWarning "Additional command line options supplied: ${command_line_options}"
@@ -160,7 +235,7 @@ Initialise(){
    fi
    LogInfo "Convert HEIC to JPEG: ${convert_heic_to_jpeg:=False}"
    if [ "${jpeg_path}" ]; then
-      LogInfo "converted JPEGs path: ${jpeg_path}"
+      LogInfo "Converted JPEGs path: ${jpeg_path}"
    fi
    if [ "${delete_accompanying:=False}" = "True" ] && [ -z "${warnings_acknowledged}" ]; then
       LogInfo "Delete accompanying files (.JPG/.HEIC.MOV)"
@@ -173,7 +248,7 @@ Initialise(){
          sleep 120
       fi
    fi
-   LogInfo "JPEG conversion quality: ${jpeg_quality:=90}"
+   LogDebug "JPEG conversion quality: ${jpeg_quality:=90}"
    if [ "${notification_type}" ]; then
       ConfigureNotifications
    fi
@@ -183,15 +258,15 @@ Initialise(){
       LogInfo "Nextcloud synchronisation trigger: Disabled"
    fi
    if [ ! -d "/home/${user}/.local/share/" ]; then
-      LogInfo "Creating directory: /home/${user}/.local/share/"
+      LogDebug "Creating directory: /home/${user}/.local/share/"
       mkdir --parents "/home/${user}/.local/share/"
    fi
    if [ ! -d "${config_dir}/python_keyring/" ]; then
-      LogInfo "Creating directory: ${config_dir}/python_keyring/"
+      LogDebug "Creating directory: ${config_dir}/python_keyring/"
       mkdir --parents "${config_dir}/python_keyring/"
    fi
    if [ ! -L "/home/${user}/.local/share/python_keyring" ]; then
-      LogInfo "Creating symbolic link: /home/${user}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
+      LogDebug "Creating symbolic link: /home/${user}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
       ln --symbolic --force "${config_dir}/python_keyring/" "/home/${user}/.local/share/"
    fi
 }
@@ -214,6 +289,14 @@ LogError(){
    echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${log_message}"
 }
 
+LogDebug(){
+   if [ "${debug_logging}" = "True" ]; then
+      local log_message
+      log_message="${1}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') DEBUG    ${log_message}"
+   fi
+}
+
 ConfigureNotifications(){
    if [ -z "${prowl_api_key}" ] && [ -z "${pushover_token}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ] && [ -z "${dingtalk_token}" ] && [ -z "${discord_token}" ] && [ -z "${iyuu_token}" ] && [ -z "${wecom_secret}" ] && [ -z "${gotify_app_token}" ] && [ -z "${bark_device_key}" ]; then
       LogWarning "${notification_type} notifications enabled, but API key/token/secret not set - disabling notifications"
@@ -221,25 +304,34 @@ ConfigureNotifications(){
    else
       if [ "${notification_title}" ]; then
          notification_title="${notification_title//[^a-zA-Z0-9_ ]/}"
-         LogInfo "Cleaned notification title: ${notification_title}"
+         LogDebug "Cleaned notification title: ${notification_title}"
       else
-         LogInfo "Notification title: ${notification_title:=boredazfcuk/iCloudPD}"
+         LogDebug "Notification title: ${notification_title:=boredazfcuk/iCloudPD}"
       fi
       if [ "${notification_type}" = "Prowl" ] && [ "${prowl_api_key}" ]; then
          LogInfo "${notification_type} notifications enabled"
-         LogInfo "${notification_type} api key: ${prowl_api_key}"
+         if [ "${debug_logging}" = "True" ]; then
+            LogDebug "${notification_type} api key: (hidden)"
+         else
+            LogInfo "${notification_type} api key: ${prowl_api_key}"
+         fi
          notification_url="https://api.prowlapp.com/publicapi/add"
       elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
-         LogInfo "${notification_type} user: ${pushover_user}"
-         LogInfo "${notification_type} token: ${pushover_token}"
+         if [ "${debug_logging}" = "True" ]; then
+            LogDebug "${notification_type} user: (hidden)"
+            LogDebug "${notification_type} token: (hidden)"
+         else
+            LogInfo "${notification_type} user: ${pushover_user}"
+            LogInfo "${notification_type} token: ${pushover_token}"
+         fi
          if [ "${pushover_sound}" ]; then
             case "${pushover_sound}" in
                pushover|bike|bugle|cashregister|classical|cosmic|falling|gamelan|incoming|intermission|magic|mechanical|pianobar|siren|spacealarm|tugboat|alien|climb|persistent|echo|updown|vibrate|none)
-                  LogInfo "${notification_type} sound: ${pushover_sound}"
+                  LogDebug "${notification_type} sound: ${pushover_sound}"
                ;;
                *)
-                  LogInfo "${notification_type} sound not recognised. Using default"
+                  LogDebug "${notification_type} sound not recognised. Using default"
                   unset pushover_sound
             esac
          fi
@@ -251,11 +343,17 @@ ConfigureNotifications(){
             notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
          fi
          LogInfo "${notification_type} notifications enabled"
-         LogInfo "${notification_type} token: ${telegram_token}"
-         LogInfo "${notification_type} chat id: ${telegram_chat_id}"
-         LogInfo "${notification_type} notification URL: ${notification_url}"
+         if [ "${debug_logging}" = "True" ]; then
+            LogDebug "${notification_type} token: (hidden)"
+            LogDebug "${notification_type} chat id: (hidden)"
+            LogDebug "${notification_type} notification URL: (hidden)"
+         else
+            LogInfo "${notification_type} token: ${telegram_token}"
+            LogInfo "${notification_type} chat id: ${telegram_chat_id}"
+            LogInfo "${notification_type} notification URL: ${notification_url}"
+         fi
          if [ "${telegram_silent_file_notifications}" ]; then telegram_silent_file_notifications="True"; fi
-         LogInfo "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=False}"
+         LogDebug "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=False}"
       elif [ "${notification_type}" = "openhab" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
          if [ "${webhook_https}" = "True" ]; then
             webhook_scheme="https"
@@ -263,12 +361,12 @@ ConfigureNotifications(){
             webhook_scheme="http"
          fi
          LogInfo "${notification_type} notifications enabled"
-         LogInfo "${notification_type} server: ${webhook_server}"
-         LogInfo "${notification_type} port: ${webhook_port:=8123}"
-         LogInfo "${notification_type} path: ${webhook_path:=/rest/items/}"
-         LogInfo "${notification_type} ID: ${webhook_id}"
+         LogDebug "${notification_type} server: ${webhook_server}"
+         LogDebug "${notification_type} port: ${webhook_port:=8123}"
+         LogDebug "${notification_type} path: ${webhook_path:=/rest/items/}"
+         LogDebug "${notification_type} ID: ${webhook_id}"
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
-         LogInfo "${notification_type} notification URL: ${notification_url}"
+         LogDebug "${notification_type} notification URL: ${notification_url}"
       elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
          if [ "${webhook_https}" = "True" ]; then
             webhook_scheme="https"
@@ -276,55 +374,88 @@ ConfigureNotifications(){
             webhook_scheme="http"
          fi
          LogInfo "${notification_type} notifications enabled"
-         LogInfo "${notification_type} server: ${webhook_server}"
-         LogInfo "${notification_type} port: ${webhook_port:=8123}"
-         LogInfo "${notification_type} path: ${webhook_path:=/api/webhook/}"
-         LogInfo "${notification_type} ID: ${webhook_id}"
+         LogDebug "${notification_type} server: ${webhook_server}"
+         LogDebug "${notification_type} port: ${webhook_port:=8123}"
+         LogDebug "${notification_type} path: ${webhook_path:=/api/webhook/}"
+         LogDebug "${notification_type} ID: ${webhook_id}"
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
-         LogInfo "${notification_type} notification URL: ${notification_url}"
-         LogInfo "${notification_type} body keyword: ${webhook_body:=data}"
+         LogDebug "${notification_type} notification URL: ${notification_url}"
+         LogDebug "${notification_type} body keyword: ${webhook_body:=data}"
       elif [ "${notification_type}" = "Discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
-         LogInfo "${notification_type} Discord ID: ${discord_id}"
-         LogInfo "${notification_type} Discord token: ${discord_token}"
-         notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
-         LogInfo "${notification_type} notification URL: ${notification_url}"
+         if [ "${debug_logging}" = "True" ]; then
+            LogDebug "${notification_type} Discord ID: (hidden)"
+            LogDebug "${notification_type} Discord token: (hidden)"
+            notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
+            LogDebug "${notification_type} notification URL: (hidden)"
+         else
+            LogInfo "${notification_type} Discord ID: ${discord_id}"
+            LogInfo "${notification_type} Discord token: ${discord_token}"
+            notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
+            LogInfo "${notification_type} notification URL: ${notification_url}"
+         fi
       elif [ "${notification_type}" = "Dingtalk" ] && [ "${dingtalk_token}" ]; then
          notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
          LogInfo "${notification_type} notifications enabled"
-         LogInfo "${notification_type} token: ${dingtalk_token}"
-         LogInfo "${notification_type} notification URL: ${notification_url}"
+         if [ "${debug_logging}" = "True" ]; then
+            LogDebug "${notification_type} token: (hidden)"
+            LogDebug "${notification_type} notification URL: (hidden)"
+         else
+            LogInfo "${notification_type} token: ${dingtalk_token}"
+            LogInfo "${notification_type} notification URL: ${notification_url}"
+         fi
       elif [ "${notification_type}" = "IYUU" ] && [ "${iyuu_token}" ]; then
          notification_url="http://iyuu.cn/${iyuu_token}.send?"
          LogInfo "${notification_type} notifications enabled"
-         LogInfo "${notification_type} token: ${iyuu_token}"
-         LogInfo "${notification_type} notification URL: ${notification_url}"
+         if [ "${debug_logging}" = "True" ]; then
+            LogDebug "${notification_type} token: (hidden)"
+            LogDebug "${notification_type} notification URL: (hidden)"
+         else
+            LogInfo "${notification_type} token: ${iyuu_token}"
+            LogInfo "${notification_type} notification URL: ${notification_url}"
+         fi
       elif [ "${notification_type}" = "WeCom" ] && [ "${wecom_id}" ] && [ "${wecom_secret}" ]; then
          wecom_base_url="https://qyapi.weixin.qq.com"
          if [ "${wecom_proxy}" ]; then
             wecom_base_url="${wecom_proxy}"
-            LogInfo "${notification_type} notifications proxy enabled : ${wecom_proxy}"
+            LogDebug "${notification_type} notifications proxy enabled : ${wecom_proxy}"
          fi
          wecom_token_url="${wecom_base_url}/cgi-bin/gettoken?corpid=${wecom_id}&corpsecret=${wecom_secret}"
          wecom_token="$(/usr/bin/curl -s -G "${wecom_token_url}" | awk -F\" '{print $10}')"
          wecom_token_expiry="$(date --date='2 hour')"
          notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
          LogInfo "${notification_type} notifications enabled"
-         LogInfo "${notification_type} token: ${wecom_token}"
-         LogInfo "${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
-         LogInfo "${notification_type} notification URL: ${notification_url}"
+         if [ "${debug_logging}" = "True" ]; then
+            LogDebug "${notification_type} token: (hidden)"
+            LogDebug "${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
+            LogDebug "${notification_type} notification URL: (hidden)"
+         else
+            LogInfo "${notification_type} token: ${wecom_token}"
+            LogInfo "${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
+            LogInfo "${notification_type} notification URL: ${notification_url}"
+         fi
       elif [ "${notification_type}" = "Gotify" ] && [ "${gotify_app_token}" ] && [ "${gotify_server_url}" ]; then
          LogInfo "${notification_type} notifications enabled"
-         LogInfo "${notification_type} token: ${gotify_app_token}"
-         LogInfo "${notification_type} server URL: ${gotify_server_url}"
+         if [ "${debug_logging}" = "True" ]; then
+            LogDebug "${notification_type} token: (hidden)"
+            LogDebug "${notification_type} server URL: (hidden)"
+         else
+            LogInfo "${notification_type} token: ${gotify_app_token}"
+            LogInfo "${notification_type} server URL: ${gotify_server_url}"
+         fi
          notification_url="https://${gotify_server_url}/message?token=${gotify_app_token}"
       elif [ "${notification_type}" = "Bark" ] && [ "${bark_device_key}" ] && [ "${bark_server}" ]; then
          LogInfo "${notification_type} notifications enabled"
-         LogInfo "${notification_type} device key: ${bark_device_key}"
-         LogInfo "${notification_type} server: ${bark_server}"
+         if [ "${debug_logging}" = "True" ]; then
+            LogDebug "${notification_type} device key: (hidden)"
+            LogDebug "${notification_type} server: (hidden)"
+         else
+            LogInfo "${notification_type} device key: ${bark_device_key}"
+            LogInfo "${notification_type} server: ${bark_server}"
+         fi
          notification_url="http://${bark_server}/push"
       else
-         echo "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
+         LogWarning "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
          unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_server_url bark_device_key bark_server
       fi
       if [ -z "${icloud_china}" ]; then
@@ -333,15 +464,15 @@ ConfigureNotifications(){
          Notify "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片"
       fi
       if [ "${download_notifications:=True}" = "True" ]; then
-         LogInfo "Download notifications: Enabled"
+         LogDebug "Download notifications: Enabled"
       else
-         LogInfo "Download notifications: Disabled"
+         LogDebug "Download notifications: Disabled"
          unset download_notifications
       fi
       if [ "${delete_notifications:=True}" = "True" ]; then
-         LogInfo "Delete notifications: Enabled"
+         LogDebug "Delete notifications: Enabled"
       else
-         LogInfo "Delete notifications: Disabled"
+         LogDebug "Delete notifications: Disabled"
          unset delete_notifications
       fi
    fi
@@ -349,10 +480,10 @@ ConfigureNotifications(){
 
 CreateGroup(){
    if [ "$(grep -c "^${group}:x:${group_id}:" "/etc/group")" -eq 1 ]; then
-      LogInfo "Group, ${group}:${group_id}, already created"
+      LogDebug "Group, ${group}:${group_id}, already created"
    else
       if [ "$(grep -c "^${group}:" "/etc/group")" -eq 1 ]; then
-         LogError "Group name, ${group}, already in use - exiting"
+         LogDebug "Group name, ${group}, already in use - exiting"
          sleep 120
          exit 1
       elif [ "$(grep -c ":x:${group_id}:" "/etc/group")" -eq 1 ]; then
@@ -365,7 +496,7 @@ CreateGroup(){
             exit 1
          fi
       else
-         LogInfo "Creating group ${group}:${group_id}"
+         LogDebug "Creating group ${group}:${group_id}"
          groupadd --gid "${group_id}" "${group}"
       fi
    fi
@@ -373,7 +504,7 @@ CreateGroup(){
 
 CreateUser(){
    if [ "$(grep -c "^${user}:x:${user_id}:${group_id}" "/etc/passwd")" -eq 1 ]; then
-      LogInfo "User, ${user}:${user_id}, already created"
+      LogDebug "User, ${user}:${user_id}, already created"
    else
       if [ "$(grep -c "^${user}:" "/etc/passwd")" -eq 1 ]; then
          LogError "User name, ${user}, already in use - exiting"
@@ -384,7 +515,7 @@ CreateUser(){
          sleep 120
          exit 1
       else
-         LogInfo "Creating user ${user}:${user_id}"
+         LogDebug "Creating user ${user}:${user_id}"
          useradd --shell /bin/ash --gid "${group_id}" --uid "${user_id}" "${user}" --home-dir "/home/${user}" --badname
       fi
    fi
@@ -406,47 +537,47 @@ DeletePassword(){
 }
 
 ConfigurePassword(){
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Configure password"
+   LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Configure password"
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ] && [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
-      LogInfo "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing"
+      LogDebug "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing"
       rm "${config_dir}/python_keyring/keyring_pass.cfg"
    fi
    if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
-         LogInfo "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
+         LogDebug "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
          su "${user}" -c '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
       else
          LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
-         LogInfo " - Please add the your password to the system keyring using the --Initialise script command line option"
-         LogInfo " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-         LogInfo " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-         LogInfo "Waiting for keyring file to be created..."
+         LogError " - Please add the your password to the system keyring using the --Initialise script command line option"
+         LogError " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
+         LogError " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
+         LogError "Waiting for keyring file to be created..."
          local counter
          counter="${counter:=0}"
          while [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; do
             sleep 5
             counter=$((counter + 1))
             if [ "${counter}" -eq 360 ]; then
-               LogInfo "Keyring file has not appeared within 30 minutes. Restarting container..."
+               LogError "Keyring file has not appeared within 30 minutes. Restarting container..."
                exit 1
             fi
          done
-         LogInfo "Keyring file exists, continuing"
+         LogDebug "Keyring file exists, continuing"
       fi
    else
-      LogInfo "Using password stored in keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
+      LogDebug "Using password stored in keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
    fi
 }
 
 GenerateCookie(){
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
+   LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
-   echo  "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
+   LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
    if [ -f "${config_dir}/${cookie_file}" ]; then
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
-   LogInfo "Generate ${authentication_type} cookie using password stored in keyring file"
+   LogDebug "Generate ${authentication_type} cookie using password stored in keyring file"
    su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
    if [ "${authentication_type}" = "2FA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
@@ -456,15 +587,17 @@ GenerateCookie(){
          LogError " - Was the correct password entered?"
          LogError " - Was the 2FA code mistyped?"
          LogError " - Can you log into iCloud.com without receiving pop-up notifications?"
-         if [ -z "${icloud_china}" ]; then LogError " - Are you based in China? You will need to set the icloud_china variable"; fi
+         if [ -z "${icloud_china}" ]; then
+            LogError " - Are you based in China? You will need to set the icloud_china variable"
+         fi
       fi
    else
-      LogInfo "Web cookie generated. Sync should now be successful"
+      LogDebug "Web cookie generated. Sync should now be successful"
    fi
 }
 
 CheckMount(){
-   LogInfo "Check download directory mounted correctly"
+   LogInfo "Check download directory mounted correctly..."
    if [ ! -f "${download_path}/.mounted" ]; then
       LogWarning "Failsafe file ${download_path}/.mounted file is not present. Waiting for failsafe file to be created..."
       local counter
@@ -474,7 +607,7 @@ CheckMount(){
       sleep 5
       counter=$((counter + 1))
       if [ "${counter}" -eq 360 ]; then
-         LogInfo "Failsafe file has not appeared within 30 minutes. Restarting container..."
+         LogError "Failsafe file has not appeared within 30 minutes. Restarting container..."
          exit 1
       fi
    done
@@ -482,28 +615,28 @@ CheckMount(){
 }
 
 SetOwnerAndPermissionsConfig(){
-   LogInfo "Correct owner on icloudpd temp directory, if required"
+   LogDebug "Correct owner on icloudpd temp directory, if required"
    find "/tmp/icloudpd" ! -user "${user}" -exec chown "${user}" {} +
-   LogInfo "Correct group on icloudpd temp directory, if required"
+   LogDebug "Correct group on icloudpd temp directory, if required"
    find "/tmp/icloudpd" ! -group "${group}" -exec chgrp "${group}" {} +
-   LogInfo "Correct owner on config directory, if required"
+   LogDebug "Correct owner on config directory, if required"
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
-   LogInfo "Correct group on config directory, if required"
+   LogDebug "Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
-   LogInfo "Correct owner on keyring directory, if required"
+   LogDebug "Correct owner on keyring directory, if required"
    find "/home/${user}/.local" ! -user "${user}" -exec chown "${user}" {} +
-   LogInfo "Correct group on keyring directory, if required"
+   LogDebug "Correct group on keyring directory, if required"
    find "/home/${user}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
 }
 
 SetOwnerAndPermissionsDownloads(){
-   LogInfo "Set owner, ${user}, on iCloud directory, if required"
+   LogDebug "Set owner on iCloud directory, if required"
    find "${download_path}" ! -type l ! -user "${user}" -exec chown "${user}" {} +
-   LogInfo "Set group, ${group}, on iCloud directory, if required"
+   LogDebug "Set group on iCloud directory, if required"
    find "${download_path}" ! -type l ! -group "${group}" -exec chgrp "${group}" {} +
-   LogInfo "Set ${directory_permissions} permissions on iCloud directories, if required"
+   LogDebug "Set ${directory_permissions} permissions on iCloud directories, if required"
    find "${download_path}" -type d ! -perm "${directory_permissions}" -exec chmod "${directory_permissions}" '{}' +
-   LogInfo "Set ${file_permissions} permissions on iCloud files, if required"
+   LogDebug "Set ${file_permissions} permissions on iCloud files, if required"
    find "${download_path}" -type f ! -perm "${file_permissions}" -exec chmod "${file_permissions}" '{}' +
 }
 
@@ -512,17 +645,17 @@ CheckWebCookie(){
       web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    else
       LogError "Cookie does not exist"
-      LogInfo " - Please create your cookie using the --Initialise script command line option"
-      LogInfo " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-      LogInfo " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-      LogInfo "Waiting for cookie file to be created..."
+      LogError " - Please create your cookie using the --Initialise script command line option"
+      LogError " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
+      LogError " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
+      LogError "Waiting for cookie file to be created..."
       local counter
       counter="${counter:=0}"
       while [ ! -f "${config_dir}/${cookie_file}" ]; do
          sleep 5
          counter=$((counter + 1))
          if [ "${counter}" -eq 360 ]; then
-            LogInfo "Cookie file has not appeared within 30 minutes. Restarting container..."
+            LogError "Cookie file has not appeared within 30 minutes. Restarting container..."
             exit 1
          fi
       done
@@ -532,7 +665,7 @@ CheckWebCookie(){
 
 Check2FACookie(){
    if [ -f "${config_dir}/${cookie_file}" ]; then
-      LogInfo "Cookie exists, check expiry date"
+      LogDebug "Cookie exists, check expiry date"
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
          twofa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
          twofa_expire_seconds="$(date -d "${twofa_expire_date}" '+%s')"
@@ -540,53 +673,53 @@ Check2FACookie(){
          echo "${days_remaining}" > "${config_dir}/DAYS_REMAINING"
          if [ "${days_remaining}" -gt 0 ]; then
             valid_twofa_cookie="True"
-            LogInfo "Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
+            LogDebug "Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
          else
             rm -f "${config_dir}/${cookie_file}"
             LogError "Cookie expired at: ${twofa_expire_date}"
-            LogInfo "Expired cookie file has been removed"
-            LogInfo " - Please recreate your cookie using the --Initialise script command line option"
-            LogInfo " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-            LogInfo " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-            LogInfo "Waiting for cookie file to be created..."
+            LogError "Expired cookie file has been removed"
+            LogError " - Please recreate your cookie using the --Initialise script command line option"
+            LogError " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
+            LogError " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
+            LogError "Waiting for cookie file to be created..."
             local counter
             counter="${counter:=0}"
             while [ ! -f "${config_dir}/${cookie_file}" ]; do
                sleep 5
                counter=$((counter + 1))
                if [ "${counter}" -eq 360 ]; then
-                  LogInfo "Cookie file has not appeared within 30 minutes. Restarting container..."
+                  LogError "Cookie file has not appeared within 30 minutes. Restarting container..."
                   exit 1
                fi
             done
-            LogInfo "Cookie file exists, continuing"
+            LogDebug "Cookie file exists, continuing"
          fi
       else
          LogError "Cookie is not 2FA capable, authentication type may have changed"
-         LogInfo " - Please recreate your cookie using the --Initialise script command line option"
-         LogInfo " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-         LogInfo " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-         LogInfo "Restarting in 5 minutes..."
+         LogError " - Please recreate your cookie using the --Initialise script command line option"
+         LogError " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
+         LogError " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
+         LogError "Restarting in 5 minutes..."
          sleep 300
          exit 1
       fi
    else
       LogError "Cookie does not exist"
-      LogInfo " - Please create your cookie using the --Initialise script command line option"
-      LogInfo " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-      LogInfo " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-      LogInfo "Waiting for cookie file to be created..."
+      LogError " - Please create your cookie using the --Initialise script command line option"
+      LogError " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
+      LogError " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
+      LogError "Waiting for cookie file to be created..."
       local counter
       counter="${counter:=0}"
       while [ ! -f "${config_dir}/${cookie_file}" ]; do
          sleep 5
          counter=$((counter + 1))
          if [ "${counter}" -eq 360 ]; then
-            LogInfo "Cookie file has not appeared within 30 minutes. Restarting container..."
+            LogError "Cookie file has not appeared within 30 minutes. Restarting container..."
             exit 1
          fi
       done
-      LogInfo "Cookie file exists, continuing"
+      LogDebug "Cookie file exists, continuing"
    fi
 }
 
@@ -614,7 +747,7 @@ Display2FAExpiry(){
       if [ "${synchronisation_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]; then
          Notify "${cookie_status}" "2FA Cookie Expiration" "2" "${error_message}"
          next_notification_time="$(date +%s -d "+24 hour")"
-         LogInfo "Next notification not before: $(date +%H:%M:%S -d "${next_notification_time} seconds")"
+         LogDebug "Next notification not before: $(date +%H:%M:%S -d "${next_notification_time} seconds")"
       fi
    fi
 }
@@ -708,10 +841,10 @@ ConvertDownloadedHEIC2JPEG(){
          LogInfo "Converting ${heic_file} to ${jpeg_file}"
          convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
          heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
-         LogInfo "Timestamp of HEIC file: ${heic_date}"
+         LogDebug "Timestamp of HEIC file: ${heic_date}"
          touch --reference="${heic_file}" "${jpeg_file}"
-         LogInfo "Setting timestamp of ${jpeg_file} to ${heic_date}"
-         LogInfo "Correct owner and group of ${jpeg_file} to ${user}:${group}"
+         LogDebug "Setting timestamp of ${jpeg_file} to ${heic_date}"
+         LogDebug "Correct owner and group of ${jpeg_file} to ${user}:${group}"
          chown "${user}:${group}" ${jpeg_file}
       fi
    done
@@ -723,13 +856,13 @@ SynologyPhotosAppFix(){
    IFS="$(echo -en "\n\b")"
    LogInfo "Fixing Synology Photos App import issue..."
    for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
-      LogInfo "Create empty date/time reference file ${heic_file%.HEIC}.TMP"
+      LogDebug "Create empty date/time reference file ${heic_file%.HEIC}.TMP"
       su "${user}" -c 'touch --reference="${0}" "${1}"' -- "${heic_file}" "${heic_file%.HEIC}.TMP"
-      LogInfo "Set time stamp for ${heic_file} to current: $(date)"
+      LogDebug "Set time stamp for ${heic_file} to current: $(date)"
       su "${user}" -c 'touch "${0}"' -- "${heic_file}"
-      LogInfo "Set time stamp for ${heic_file} to original: $(date -r "${heic_file%.HEIC}.TMP" +"%a %b %e %T %Y")"
+      LogDebug "Set time stamp for ${heic_file} to original: $(date -r "${heic_file%.HEIC}.TMP" +"%a %b %e %T %Y")"
       su "${user}" -c 'touch --reference="${0}" "${1}"' -- "${heic_file%.HEIC}.TMP" "${heic_file}"
-      LogInfo "Removing temporary file ${heic_file%.HEIC}.TMP"
+      LogDebug "Removing temporary file ${heic_file%.HEIC}.TMP"
       if [ -z "${persist_temp_files}" ]; then
          rm "${heic_file%.HEIC}.TMP"
       fi
@@ -741,7 +874,7 @@ ConvertAllHEICs(){
    IFS="$(echo -en "\n\b")"
    LogInfo "Convert all HEICs to JPEG, if required..."
    for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
-      LogInfo "HEIC file found: ${heic_file}"
+      LogDebug "HEIC file found: ${heic_file}"
       jpeg_file="${heic_file%.HEIC}.JPG"
       if [ "${jpeg_path}" ]; then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
@@ -750,10 +883,10 @@ ConvertAllHEICs(){
          LogInfo "Converting ${heic_file} to ${jpeg_file}"
          convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
          heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
-         LogInfo "Timestamp of HEIC file: ${heic_date}"
+         LogDebug "Timestamp of HEIC file: ${heic_date}"
          touch --reference="${heic_file}" "${jpeg_file}"
-         LogInfo "Setting timestamp of ${jpeg_file} to ${heic_date}"
-         LogInfo "Correct owner and group of ${jpeg_file} to ${user}:${group}"
+         LogDebug "Setting timestamp of ${jpeg_file} to ${heic_date}"
+         LogDebug "Correct owner and group of ${jpeg_file} to ${user}:${group}"
          chown "${user}:${group}" "${jpeg_file}"
       fi
    done
@@ -792,10 +925,10 @@ ForceConvertAllHEICs(){
       rm "${jpeg_file}"
       convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
-      LogInfo "Timestamp of HEIC file: ${heic_date}"
+      LogDebug "Timestamp of HEIC file: ${heic_date}"
       touch --reference="${heic_file}" "${jpeg_file}"
-      LogInfo "Setting timestamp of ${jpeg_file} to ${heic_date}"
-      LogInfo "Correct owner and group of ${jpeg_file} to ${user}:${group}"
+      LogDebug "Setting timestamp of ${jpeg_file} to ${heic_date}"
+      LogDebug "Correct owner and group of ${jpeg_file} to ${user}:${group}"
       chown "${user}:${group}" "${jpeg_file}"
    done
    IFS="${save_ifs}"
@@ -815,10 +948,10 @@ ForceConvertAllmntHEICs(){
       rm "${jpeg_file}"
       convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
-      LogInfo "Timestamp of HEIC file: ${heic_date}"
+      LogDebug "Timestamp of HEIC file: ${heic_date}"
       touch --reference="${heic_file}" "${jpeg_file}"
-      LogInfo "Setting timestamp of ${jpeg_file} to ${heic_date}"
-      LogInfo "Correct owner and group of ${jpeg_file} to ${user}:${group}"
+      LogDebug "Setting timestamp of ${jpeg_file} to ${heic_date}"
+      LogDebug "Correct owner and group of ${jpeg_file} to ${user}:${group}"
       chown "${user}:${group}" "${jpeg_file}"
    done
    IFS="${save_ifs}"
@@ -826,23 +959,23 @@ ForceConvertAllmntHEICs(){
 
 CorrectJPEGTimestamps(){
    IFS="$(echo -en "\n\b")"
-   LogInfo "Check and correct converted HEIC timestamps"
+   LogInfo "Check and correct converted HEIC timestamps..."
    for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
       jpeg_file="${heic_file%.HEIC}.JPG"
       if [ "${jpeg_path}" ]; then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
       fi
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
-      LogInfo "Timestamp of HEIC file: ${heic_date}"
+      LogDebug "Timestamp of HEIC file: ${heic_date}"
       if [ -f "${jpeg_file}" ]; then
-         LogInfo "JPEG file found: ${jpeg_file}"
+         LogDebug "JPEG file found: ${jpeg_file}"
          jpeg_date="$(date -r "${jpeg_file}" +"%a %b %e %T %Y")"
-         LogInfo "Timestamp of JPEG file: ${jpeg_date}"
+         LogDebug "Timestamp of JPEG file: ${jpeg_date}"
          if [ "${heic_date}" != "${jpeg_date}" ]; then
             LogInfo "Setting timestamp of ${jpeg_file} to ${heic_date}"
             touch --reference="${heic_file}" "${jpeg_file}"
          else
-            LogInfo "Time stamps match. Adjustment not required"
+            LogDebug "Time stamps match. Adjustment not required"
          fi
       fi
    done
@@ -859,11 +992,11 @@ RemoveRecentlyDeletedAccompanyingFiles(){
          jpeg_file_clean="${jpeg_file_clean/${download_path}/${jpeg_path}}"
       fi
       if [ -f "${jpeg_file_clean}" ]; then
-         LogInfo "Deleting ${jpeg_file_clean}"
+         LogDebug "Deleting ${jpeg_file_clean}"
          rm -f "${jpeg_file_clean}"
       fi
       if [ -f "${heic_file_clean%.HEIC}_HEVC.MOV" ]; then
-         LogInfo "Deleting ${heic_file_clean%.HEIC}_HEVC.MOV"
+         LogDebug "Deleting ${heic_file_clean%.HEIC}_HEVC.MOV"
          rm -f "${heic_file_clean%.HEIC}_HEVC.MOV"
       fi
    done
@@ -876,7 +1009,7 @@ RemoveEmptyDirectories(){
    find "${download_path}" -type d -empty -delete
    LogInfo "Deleting empty directories complete"
    if [ "${jpeg_path}" ]; then
-      LogInfo "Deleting empty directories from ${jpeg_path}..."
+      LogDebug "Deleting empty directories from ${jpeg_path}..."
       find "${jpeg_path}" -type d -empty -delete
       LogInfo "Deleting empty directories complete"
    fi
@@ -1026,7 +1159,7 @@ Notify(){
    fi
    if [ "${notification_type}" ]; then
       if [ "${notification_result:0:1}" -eq 2 ]; then
-         LogInfo "${notification_type} ${notification_classification} notification sent successfully"
+         LogDebug "${notification_type} ${notification_classification} notification sent successfully"
       else
          LogError "${notification_type} ${notification_classification} notification failed with status code: ${notification_result}"
          LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
@@ -1076,7 +1209,7 @@ CommandLineBuilder(){
 }
 
 SyncUser(){
-   LogInfo "Sync user ${user}"
+   LogInfo "Sync user: ${user}"
    if [ "${synchronisation_delay}" -ne 0 ]; then
       LogInfo "Delay for ${synchronisation_delay} minutes"
       sleep "${synchronisation_delay}m"
@@ -1086,7 +1219,7 @@ SyncUser(){
       LogInfo "Synchronisation starting at $(date +%H:%M:%S -d "@${synchronisation_start_time}")"
       chown -R "${user}":"${group}" "${config_dir}"
       if [ "${authentication_type}" = "2FA" ]; then
-         LogInfo "Check 2FA Cookie"
+         LogDebug "Check 2FA Cookie"
          valid_twofa_cookie=False
          while [ "${valid_twofa_cookie}" = "False" ]; do Check2FACookie; done
       fi
@@ -1099,10 +1232,10 @@ SyncUser(){
       fi
       if [ "${check_exit_code}" -eq 0 ]; then
          if [ "${check_files_count}" -gt 0 ]; then
-            LogInfo "Starting download of new files for user: ${user}"
+            LogDebug "Starting download of new files for user: ${user}"
             synchronisation_time="$(date +%s -d '+15 minutes')"
-            LogInfo "Downloading new files using password stored in keyring file..."
-            LogInfo "iCloudPD launch command: /usr/bin/icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
+            LogDebug "Downloading new files using password stored in keyring file..."
+            LogDebug "iCloudPD launch command: /usr/bin/icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
             >/tmp/icloudpd/icloudpd_download_error
             su "${user}" -c '(/usr/bin/icloudpd ${0} ${1} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
@@ -1143,12 +1276,12 @@ SyncUser(){
       CheckWebCookie
       LogInfo "Web cookie expires: ${web_cookie_expire_date/ / @ }"
       if [ "${authentication_type}" = "2FA" ]; then Display2FAExpiry; fi
-      LogInfo "iCloud login counter = ${login_counter}"
+      LogDebug "iCloud login counter = ${login_counter}"
       synchronisation_end_time="$(date +'%s')"
       LogInfo "Synchronisation ended at $(date +%H:%M:%S -d "@${synchronisation_end_time}")"
       LogInfo "Total time taken: $(date +%H:%M:%S -u -d @$((synchronisation_end_time - synchronisation_start_time)))"
       if [ "${single_pass:=False}" = "True" ]; then
-         LogInfo "Single Pass mode set, exiting"
+         LogDebug "Single Pass mode set, exiting"
          exit 0
       else
          sleep_time="$((synchronisation_interval - synchronisation_end_time + synchronisation_start_time))"

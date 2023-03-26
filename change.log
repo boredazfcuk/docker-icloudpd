@@ -1,3 +1,8 @@
+20230326
+
+ - Change: Complete overhaul of logging system. A DEBUG log now introduced which removes a lot of the standard logging and puts it behind this option. When it's enabled, it will hide some of the sensitive data such as e-mail address, Apple ID and tokens.
+ - Change: Complete overhaul of variables. Docker variables are now pushed into the icloudpd.conf log file stored in the config directory. This allows users to toggle options by just changing the log file and restarting the container. This will allow people to switch on/off deug logging, or change the notification method without having to remove and recreate the container.
+
 20230315
 
  - Change: Rebuild to Apline Linux 3.17.2 and icloudpd 1.12.0
