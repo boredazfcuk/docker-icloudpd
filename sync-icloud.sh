@@ -878,6 +878,7 @@ ConvertAllHEICs(){
       jpeg_file="${heic_file%.HEIC}.JPG"
       if [ "${jpeg_path}" ]; then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
+         mkdir --parents "$(dirname "${jpeg_file}")"
       fi
       if [ ! -f "${jpeg_file}" ]; then
          LogInfo "Converting ${heic_file} to ${jpeg_file}"
