@@ -1,3 +1,9 @@
+20230328
+
+ - Change: Urgh. It's filth, but it might just work... Docker container downloads a forked copy of icloud_photos_downloader which has been customised to work with China's authentication servers. The cookie generation function will now swap out/in these versions of the files if the auth_china variable is set to True, or just set really, I'm not fussy on this one
+ - Change: Added a --enabledebugging and a --disabledebugging command line option which will edit the config file to enable/disable debugging for people who may find editing a file a little trickier on some systems... I'm thinking NAS devices may not make this so easy
+ - Change: Made it so that the script reads the value of the debug_logging variable prior to each sync. That way debug logging can be switched on using the command line and it will apply on the next run
+
 20230326
 
  - Change: Complete overhaul of logging system. A DEBUG log now introduced which removes a lot of the standard logging and puts it behind this option. When it's enabled, it will hide some of the sensitive data such as e-mail address, Apple ID and tokens
@@ -7,7 +13,7 @@
 20230315
 
  - Change: Rebuild to Apline Linux 3.17.2 and icloudpd 1.12.0
- - Change: Added delete_after_download variable. This moves all downloaded files to 'Recently Deleted'. Cannot be used with auto_delete variable.
+ - Change: Added delete_after_download variable. This moves all downloaded files to 'Recently Deleted'. Cannot be used with auto_delete variable
  - Change: Added support for Telgram proxy server using the variable telegram_server
 
 20230208

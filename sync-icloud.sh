@@ -4,6 +4,7 @@
 initialise_config_file(){
    {
       echo apple_id="${apple_id}"
+      echo auth_china="${auth_china}"
       echo authentication_type="${authentication_type:=2FA}"
       echo auto_delete="${auto_delete:=False}"
       echo bark_device_key="${bark_device_key}"
@@ -59,20 +60,22 @@ initialise_config_file(){
       echo wecom_id="${wecom_id}"
       echo wecom_proxy="${wecom_proxy}"
       echo wecom_secret="${wecom_secret}"
-   } > "${config_dir}/icloudpd.conf"
+   } > "${config_file}"
 }
 
 Initialise(){
    echo
-   if [ ! -e "${config_dir}/icloudpd.conf" ]; then
+   config_file="${config_dir}/icloudpd.conf"
+   if [ ! -e "${config_file}" ]; then
       initialise_config_file
    fi
-   source "${config_dir}/icloudpd.conf"
+   source "${config_file}"
    save_ifs="${IFS}"
    lan_ip="$(hostname -i)"
    login_counter="0"
    apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
+
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
       icloud_domain="icloud.com.cn"
@@ -107,7 +110,7 @@ Initialise(){
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
    LogInfo "icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
-   LogInfo "pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
+#   LogInfo "pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
    if [ -z "${apple_id}" ]; then
       LogError "Apple ID not set - exiting"
       sleep 120
@@ -574,6 +577,13 @@ GenerateCookie(){
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
    LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
+   if [ "${auth_china}" ]; then
+      LogInfo "Enabling Chinese authentication"
+      pip3 install pyicloud==1.0.0
+      cp -p /opt/china_fixes/authentication.py /usr/lib/python3.10/site-packages/icloudpd/authentication.py 
+      cp -p /opt/china_fixes/base.py /usr/lib/python3.10/site-packages/icloudpd/base.py
+      cp -p /opt/china_fixes/download.py /usr/lib/python3.10/site-packages/icloudpd/download.py
+   fi
    if [ -f "${config_dir}/${cookie_file}" ]; then
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
@@ -593,6 +603,13 @@ GenerateCookie(){
       fi
    else
       LogDebug "Web cookie generated. Sync should now be successful"
+   fi
+   if [ "${auth_china}" ]; then
+      LogInfo "Disabling Chinese authentication"
+      pip3 uninstall -y pyicloud==1.0.0
+      cp -p /opt/original/authentication.py /usr/lib/python3.10/site-packages/icloudpd/authentication.py 
+      cp -p /opt/original/base.py /usr/lib/python3.10/site-packages/icloudpd/base.py
+      cp -p /opt/original/download.py /usr/lib/python3.10/site-packages/icloudpd/download.py
    fi
 }
 
@@ -1218,6 +1235,7 @@ SyncUser(){
    while :; do
       synchronisation_start_time="$(date +'%s')"
       LogInfo "Synchronisation starting at $(date +%H:%M:%S -d "@${synchronisation_start_time}")"
+      source <(grep debug_logging "${config_file}")
       chown -R "${user}":"${group}" "${config_dir}"
       if [ "${authentication_type}" = "2FA" ]; then
          LogDebug "Check 2FA Cookie"
@@ -1310,6 +1328,16 @@ SanitiseLaunchParameters(){
    fi
 }
 
+enable_debug_logging(){
+   LogInfo "Enabling Debug Logging"
+   sed -i 's/debug_logging=.*/debug_logging=True/' "${config_file}"
+}
+
+disable_debug_logging(){
+   LogInfo "Disabling Debug Logging"
+   sed -i 's/debug_logging=.*/debug_logging=False/' "${config_file}"
+}
+
 ##### Script #####
 script_launch_parameters="${1}"
 case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
@@ -1334,6 +1362,12 @@ case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
    "--correctjpegtimestamps")
       correct_jpeg_time_stamps="True"
    ;;
+   "--enabledebugging")
+      enable_debugging="True"
+   ;;
+   "--disabledebugging")
+      disable_debugging="True"
+   ;;
    *)
    ;;
 esac
@@ -1350,6 +1384,12 @@ fi
 ConfigurePassword
 if [ "${initialise_container}" ]; then
    GenerateCookie
+   exit 0
+elif [ "${enable_debugging}" ]; then
+   enable_debug_logging
+   exit 0
+elif [ "${disable_debugging}" ]; then
+   disable_debug_logging
    exit 0
 elif [ "${convert_all_heics}" ]; then
    ConvertAllHEICs

@@ -5,11 +5,12 @@ ENV config_dir="/config" \
    TZ="UTC"
 
 # Container/icloudpd versions serve no real purpose. Increment to force a container rebuild.
-ARG container_version="1.0.23"
+ARG container_version="1.0.24"
 ARG icloudpd_version="1.12.0"
 ARG app_dependencies="python3 py3-pip exiftool coreutils tzdata curl py3-certifi py3-cffi py3-cryptography py3-secretstorage py3-jeepney py3-dateutil imagemagick shadow"
 ARG build_dependencies="git"
 ARG app_repo="icloud-photos-downloader/icloud_photos_downloader"
+ARG fix_repo="mbax2zf2/icloud_photos_downloader"
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** BUILD STARTED FOR ICLOUDPD ${container_version} *****" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install build dependencies" && \
@@ -24,11 +25,23 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install Python dependencies" && \
    pip3 install --upgrade pip && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install ${app_repo}" && \
    pip3 install icloudpd && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Backup key files" && \
+   mkdir /opt/original && \
+   cp -p /usr/lib/python3.10/site-packages/icloudpd/authentication.py /opt/original && \
+   cp -p /usr/lib/python3.10/site-packages/icloudpd/base.py /opt/original && \
+   cp -p /usr/lib/python3.10/site-packages/icloudpd/download.py /opt/original && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clone ${fix_repo}" && \
+   mkdir /opt/china_fixes && \
+   fix_temp_dir=$(mktemp -d) && \
+   git clone -b master "https://github.com/${fix_repo}.git" "${fix_temp_dir}" && \
+   cp -p "${fix_temp_dir}/icloudpd/authentication.py" /opt/china_fixes/authentication.py && \
+   cp -p "${fix_temp_dir}/icloudpd/base.py" /opt/china_fixes/base.py && \
+   cp -p "${fix_temp_dir}/icloudpd/download.py" /opt/china_fixes/download.py && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Make indexing error more accurate" && \
    sed -i 's/again in a few minutes/again later. This process may take a day or two./' "/usr/lib/python3.10/site-packages/pyicloud_ipd/services/photos.py" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
    cd / && \
-   rm -r "${app_temp_dir}" && \
+   rm -r "${app_temp_dir}" "${fix_temp_dir}" && \
    apk del --no-progress --purge build-deps
 
 COPY --chmod=0755 sync-icloud.sh /usr/local/bin/sync-icloud.sh
