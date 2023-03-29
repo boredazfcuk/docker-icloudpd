@@ -1,3 +1,7 @@
+20230329
+
+ - Change: Altered the way the log file creation works so that it can add missing/future variables and sort it into alphabetical order. 
+
 20230328
 
  - Change: Urgh. It's filth, but it might just work... Docker container downloads a forked copy of icloud_photos_downloader which has been customised to work with China's authentication servers. The cookie generation function will now swap out/in these versions of the files if the auth_china variable is set to True, or just set really, I'm not fussy on this one
