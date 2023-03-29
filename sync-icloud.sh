@@ -3,78 +3,88 @@
 ##### Functions #####
 initialise_config_file(){
    {
-      echo apple_id="${apple_id}"
-      echo auth_china="${auth_china}"
-      echo authentication_type="${authentication_type:=2FA}"
-      echo auto_delete="${auto_delete:=False}"
-      echo bark_device_key="${bark_device_key}"
-      echo bark_server="${bark_server}"
-      echo convert_heic_to_jpeg="${convert_heic_to_jpeg:=False}"
-      echo debug_logging="${debug_logging:=False}"
-      echo delete_accompanying="${delete_accompanying:=False}"
-      echo delete_after_download="${delete_after_download:=False}"
-      echo delete_notifications="${delete_notifications:=True}"
-      echo dingtalk_token="${dingtalk_token}"
-      echo directory_permissions="${directory_permissions:=750}"
-      echo discord_id="${discord_id}"
-      echo discord_token="${discord_token}"
-      echo download_notifications="${download_notifications:=True}"
-      echo download_path="${download_path}"
-      echo file_permissions="${file_permissions:=640}"
-      echo folder_structure="${folder_structure:={:%Y/%m/%d\}}"
-      echo gotify_app_token="${gotify_app_token}"
-      echo group="${group:=group}"
-      echo group_id="${group_id:=1000}"
-      echo icloud_china="${icloud_china}"
-      echo iyuu_token="${iyuu_token}"
-      echo jpeg_path="${jpeg_path}"
-      echo jpeg_quality="${jpeg_quality:=90}"
-      echo notification_days="${notification_days:=7}"
-      echo notification_type="${notification_type}"
-      echo photo_album="${photo_album}"
-      echo photo_library="${photo_library}"
-      echo photo_size="${photo_size:=original}"
-      echo prowl_api_key="${prowl_api_key}"
-      echo pushover_sound="${pushover_sound}"
-      echo pushover_token="${pushover_token}"
-      echo pushover_user="${pushover_user}"
-      echo recent_only="${recent_only}"
-      echo set_exif_datetime="${set_exif_datetime:=False}"
-      echo single_pass="${single_pass:=False}"
-      echo skip_check="${skip_check:=False}"
-      echo skip_live_photos="${skip_live_photos:=False}"
-      echo synchronisation_delay="${synchronisation_delay:=0}"
-      echo synchronisation_interval="${synchronisation_interval:=86400}"
-      echo telegram_chat_id="${telegram_chat_id}"
-      echo telegram_silent_file_notifications="${telegram_silent_file_notifications}"
-      echo telegram_token="${telegram_token}"
-      echo trigger_nextlcoudcli_synchronisation="${trigger_nextlcoudcli_synchronisation}"
-      echo until_found="${until_found}"
-      echo user="${user:=user}"
-      echo user_id="${user_id:=1000}"
-      echo webhook_https="${webhook_https:=False}"
-      echo webhook_id="${webhook_id}"
-      echo webhook_path="${webhook_path:=/api/webhook/}"
-      echo webhook_port="${webhook_port:=8123}"
-      echo webhook_server="${webhook_server}"
-      echo wecom_id="${wecom_id}"
-      echo wecom_proxy="${wecom_proxy}"
-      echo wecom_secret="${wecom_secret}"
-   } > "${config_file}"
+      if [ "$(grep -c "apple_id=" "${config_file}")" -eq 0 ]; then echo apple_id="${apple_id}"; fi
+      if [ "$(grep -c "auth_china=" "${config_file}")" -eq 0 ]; then echo auth_china="${auth_china}"; fi
+      if [ "$(grep -c "authentication_type=" "${config_file}")" -eq 0 ]; then echo authentication_type="${authentication_type:=2FA}"; fi
+      if [ "$(grep -c "auto_delete=" "${config_file}")" -eq 0 ]; then echo auto_delete="${auto_delete:=False}"; fi
+      if [ "$(grep -c "bark_device_key=" "${config_file}")" -eq 0 ]; then echo bark_device_key="${bark_device_key}"; fi
+      if [ "$(grep -c "bark_server=" "${config_file}")" -eq 0 ]; then echo bark_server="${bark_server}"; fi
+      if [ "$(grep -c "convert_heic_to_jpeg=" "${config_file}")" -eq 0 ]; then echo convert_heic_to_jpeg="${convert_heic_to_jpeg:=False}"; fi
+      if [ "$(grep -c "debug_logging=" "${config_file}")" -eq 0 ]; then echo debug_logging="${debug_logging:=False}"; fi
+      if [ "$(grep -c "delete_accompanying=" "${config_file}")" -eq 0 ]; then echo delete_accompanying="${delete_accompanying:=False}"; fi
+      if [ "$(grep -c "delete_after_download=" "${config_file}")" -eq 0 ]; then echo delete_after_download="${delete_after_download:=False}"; fi
+      if [ "$(grep -c "delete_notifications=" "${config_file}")" -eq 0 ]; then echo delete_notifications="${delete_notifications:=True}"; fi
+      if [ "$(grep -c "dingtalk_token=" "${config_file}")" -eq 0 ]; then echo dingtalk_token="${dingtalk_token}"; fi
+      if [ "$(grep -c "directory_permissions=" "${config_file}")" -eq 0 ]; then echo directory_permissions="${directory_permissions:=750}"; fi
+      if [ "$(grep -c "discord_id=" "${config_file}")" -eq 0 ]; then echo discord_id="${discord_id}"; fi
+      if [ "$(grep -c "discord_token=" "${config_file}")" -eq 0 ]; then echo discord_token="${discord_token}"; fi
+      if [ "$(grep -c "download_notifications=" "${config_file}")" -eq 0 ]; then echo download_notifications="${download_notifications:=True}"; fi
+      if [ "$(grep -c "download_path=" "${config_file}")" -eq 0 ]; then echo download_path="${download_path}"; fi
+      if [ "$(grep -c "file_permissions=" "${config_file}")" -eq 0 ]; then echo file_permissions="${file_permissions:=640}"; fi
+      if [ "$(grep -c "folder_structure=" "${config_file}")" -eq 0 ]; then echo folder_structure="${folder_structure:={:%Y/%m/%d\}}"; fi
+      if [ "$(grep -c "gotify_app_token=" "${config_file}")" -eq 0 ]; then echo gotify_app_token="${gotify_app_token}"; fi
+      if [ "$(grep -c "group=" "${config_file}")" -eq 0 ]; then echo group="${group:=group}"; fi
+      if [ "$(grep -c "group_id=" "${config_file}")" -eq 0 ]; then echo group_id="${group_id:=1000}"; fi
+      if [ "$(grep -c "icloud_china=" "${config_file}")" -eq 0 ]; then echo icloud_china="${icloud_china}"; fi
+      if [ "$(grep -c "iyuu_token=" "${config_file}")" -eq 0 ]; then echo iyuu_token="${iyuu_token}"; fi
+      if [ "$(grep -c "jpeg_path=" "${config_file}")" -eq 0 ]; then echo jpeg_path="${jpeg_path}"; fi
+      if [ "$(grep -c "jpeg_quality=" "${config_file}")" -eq 0 ]; then echo jpeg_quality="${jpeg_quality:=90}"; fi
+      if [ "$(grep -c "notification_days=" "${config_file}")" -eq 0 ]; then echo notification_days="${notification_days:=7}"; fi
+      if [ "$(grep -c "notification_type=" "${config_file}")" -eq 0 ]; then echo notification_type="${notification_type}"; fi
+      if [ "$(grep -c "photo_album=" "${config_file}")" -eq 0 ]; then echo photo_album="${photo_album}"; fi
+      if [ "$(grep -c "photo_library=" "${config_file}")" -eq 0 ]; then echo photo_library="${photo_library}"; fi
+      if [ "$(grep -c "photo_size=" "${config_file}")" -eq 0 ]; then echo photo_size="${photo_size:=original}"; fi
+      if [ "$(grep -c "prowl_api_key=" "${config_file}")" -eq 0 ]; then echo prowl_api_key="${prowl_api_key}"; fi
+      if [ "$(grep -c "pushover_sound=" "${config_file}")" -eq 0 ]; then echo pushover_sound="${pushover_sound}"; fi
+      if [ "$(grep -c "pushover_token=" "${config_file}")" -eq 0 ]; then echo pushover_token="${pushover_token}"; fi
+      if [ "$(grep -c "pushover_user=" "${config_file}")" -eq 0 ]; then echo pushover_user="${pushover_user}"; fi
+      if [ "$(grep -c "recent_only=" "${config_file}")" -eq 0 ]; then echo recent_only="${recent_only}"; fi
+      if [ "$(grep -c "set_exif_datetime=" "${config_file}")" -eq 0 ]; then echo set_exif_datetime="${set_exif_datetime:=False}"; fi
+      if [ "$(grep -c "single_pass=" "${config_file}")" -eq 0 ]; then echo single_pass="${single_pass:=False}"; fi
+      if [ "$(grep -c "skip_check=" "${config_file}")" -eq 0 ]; then echo skip_check="${skip_check:=False}"; fi
+      if [ "$(grep -c "skip_live_photos=" "${config_file}")" -eq 0 ]; then echo skip_live_photos="${skip_live_photos:=False}"; fi
+      if [ "$(grep -c "synchronisation_delay=" "${config_file}")" -eq 0 ]; then echo synchronisation_delay="${synchronisation_delay:=0}"; fi
+      if [ "$(grep -c "synchronisation_interval=" "${config_file}")" -eq 0 ]; then echo synchronisation_interval="${synchronisation_interval:=86400}"; fi
+      if [ "$(grep -c "telegram_chat_id=" "${config_file}")" -eq 0 ]; then echo telegram_chat_id="${telegram_chat_id}"; fi
+      if [ "$(grep -c "telegram_silent_file_notifications=" "${config_file}")" -eq 0 ]; then echo telegram_silent_file_notifications="${telegram_silent_file_notifications}"; fi
+      if [ "$(grep -c "telegram_token=" "${config_file}")" -eq 0 ]; then echo telegram_token="${telegram_token}"; fi
+      if [ "$(grep -c "trigger_nextlcoudcli_synchronisation=" "${config_file}")" -eq 0 ]; then echo trigger_nextlcoudcli_synchronisation="${trigger_nextlcoudcli_synchronisation}"; fi
+      if [ "$(grep -c "until_found=" "${config_file}")" -eq 0 ]; then echo until_found="${until_found}"; fi
+      if [ "$(grep -c "user=" "${config_file}")" -eq 0 ]; then echo user="${user:=user}"; fi
+      if [ "$(grep -c "user_id=" "${config_file}")" -eq 0 ]; then echo user_id="${user_id:=1000}"; fi
+      if [ "$(grep -c "webhook_https=" "${config_file}")" -eq 0 ]; then echo webhook_https="${webhook_https:=False}"; fi
+      if [ "$(grep -c "webhook_id=" "${config_file}")" -eq 0 ]; then echo webhook_id="${webhook_id}"; fi
+      if [ "$(grep -c "webhook_path=" "${config_file}")" -eq 0 ]; then echo webhook_path="${webhook_path:=/api/webhook/}"; fi
+      if [ "$(grep -c "webhook_port=" "${config_file}")" -eq 0 ]; then echo webhook_port="${webhook_port:=8123}"; fi
+      if [ "$(grep -c "webhook_server=" "${config_file}")" -eq 0 ]; then echo webhook_server="${webhook_server}"; fi
+      if [ "$(grep -c "wecom_id=" "${config_file}")" -eq 0 ]; then echo wecom_id="${wecom_id}"; fi
+      if [ "$(grep -c "wecom_proxy=" "${config_file}")" -eq 0 ]; then echo wecom_proxy="${wecom_proxy}"; fi
+      if [ "$(grep -c "wecom_secret=" "${config_file}")" -eq 0 ]; then echo wecom_secret="${wecom_secret}"; fi
+   } >> "${config_file}"
+   mv "${config_file}" "${config_file}.tmp"
+   sort "${config_file}.tmp" --output="${config_file}"
+   chmod --reference="${config_file}.tmp" "${config_file}"
+   rm "${config_file}.tmp"
 }
 
 Initialise(){
-   echo
    config_file="${config_dir}/icloudpd.conf"
-   if [ ! -e "${config_file}" ]; then
-      initialise_config_file
-   fi
+   initialise_config_file
    source "${config_file}"
    save_ifs="${IFS}"
    lan_ip="$(hostname -i)"
    login_counter="0"
    apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
+
+   echo
+   LogInfo "***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
+   LogInfo "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
+   LogInfo "***** $(realpath "${0}") date: $(date --reference=$(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
+   LogInfo "***** $(realpath "${0}") hash: $(md5sum $(realpath "${0}") | awk '{print $1}') *****"
+   LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
+   LogInfo "Python version: $(python3 --version | awk '{print $2}')"
+   LogInfo "icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
 
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
@@ -103,14 +113,7 @@ Initialise(){
    touch "/tmp/icloudpd/icloudpd_download_exit_code"
    touch "/tmp/icloudpd/icloudpd_check_error"
    touch "/tmp/icloudpd/icloudpd_download_error"
-   LogInfo "***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****"
-   LogInfo "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
-   LogInfo "***** $(realpath "${0}") date: $(date --reference=$(realpath "${0}") +%Y/%m/%d_%H:%M) *****"
-   LogInfo "***** $(realpath "${0}") hash: $(md5sum $(realpath "${0}") | awk '{print $1}') *****"
-   LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
-   LogInfo "Python version: $(python3 --version | awk '{print $2}')"
-   LogInfo "icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
-#   LogInfo "pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
+
    if [ -z "${apple_id}" ]; then
       LogError "Apple ID not set - exiting"
       sleep 120
