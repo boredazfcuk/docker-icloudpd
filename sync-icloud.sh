@@ -86,6 +86,15 @@ Initialise(){
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
    LogInfo "icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
 
+   if [ "${dev_mode}" = "True" ]; then
+      if [ ! -e "${config_dir}/dev_mode_enabled" ]; then
+         apk add nano
+         pip install Flask-WTF Flask-Bootstrap4
+         python -m http.server 58008 &
+         touch "${config_dir}/dev_mode_enabled"
+      fi
+   fi
+
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
       icloud_domain="icloud.com.cn"
