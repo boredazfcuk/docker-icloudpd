@@ -1,3 +1,7 @@
+20200330
+
+ - Change: Got rid of auth_china variable, as it doesn't work.
+
 20230329
 
  - Change: Altered the way the log file creation works so that it can add missing/future variables and sort it into alphabetical order. 

@@ -5,7 +5,7 @@ ENV config_dir="/config" \
    TZ="UTC"
 
 # Container/icloudpd versions serve no real purpose. Increment to force a container rebuild.
-ARG build_version=125
+ARG build_version=127
 ARG icloudpd_version=1.12.0
 ARG app_dependencies="python3 py3-pip exiftool coreutils tzdata curl py3-certifi py3-cffi py3-cryptography py3-secretstorage py3-jeepney py3-dateutil imagemagick shadow"
 ARG python_dependencies="pytz tzlocal==2.1 wheel"

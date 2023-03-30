@@ -78,8 +78,6 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **icloud_china**: Set this to True to use icloud.com.cn instead of icloud.com as the download source.
 
-**auth_china**: Set this variable to True to use Apple's China based authentication servers.
-
 **synology_photos_app_fix**: Set this to True to touch files after download and trigger the Synology Photos app to index any newly created files.
 
 **single_pass**: Set this to True to exit out after a single pass instead of looping as per the synchronisation_interval. If this option is used, it will automatically disable the download check. If using this variable, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.

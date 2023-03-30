@@ -4,7 +4,6 @@
 initialise_config_file(){
    {
       if [ "$(grep -c "apple_id=" "${config_file}")" -eq 0 ]; then echo apple_id="${apple_id}"; fi
-      if [ "$(grep -c "auth_china=" "${config_file}")" -eq 0 ]; then echo auth_china="${auth_china}"; fi
       if [ "$(grep -c "authentication_type=" "${config_file}")" -eq 0 ]; then echo authentication_type="${authentication_type:=2FA}"; fi
       if [ "$(grep -c "auto_delete=" "${config_file}")" -eq 0 ]; then echo auto_delete="${auto_delete:=False}"; fi
       if [ "$(grep -c "bark_device_key=" "${config_file}")" -eq 0 ]; then echo bark_device_key="${bark_device_key}"; fi
@@ -65,6 +64,7 @@ initialise_config_file(){
    sort "${config_file}.tmp" --output="${config_file}"
    chmod --reference="${config_file}.tmp" "${config_file}"
    rm "${config_file}.tmp"
+   sed -i "/auth_china=/d" "${config_file}"
 }
 
 Initialise(){
@@ -589,13 +589,6 @@ GenerateCookie(){
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
    LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
-   if [ "${auth_china}" ]; then
-      LogInfo "Enabling Chinese authentication"
-      pip3 install pyicloud==1.0.0
-      cp -p /opt/china_fixes/authentication.py /usr/lib/python3.10/site-packages/icloudpd/authentication.py 
-      cp -p /opt/china_fixes/base.py /usr/lib/python3.10/site-packages/icloudpd/base.py
-      cp -p /opt/china_fixes/download.py /usr/lib/python3.10/site-packages/icloudpd/download.py
-   fi
    if [ -f "${config_dir}/${cookie_file}" ]; then
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
@@ -615,13 +608,6 @@ GenerateCookie(){
       fi
    else
       LogDebug "Web cookie generated. Sync should now be successful"
-   fi
-   if [ "${auth_china}" ]; then
-      LogInfo "Disabling Chinese authentication"
-      pip3 uninstall -y pyicloud==1.0.0
-      cp -p /opt/original/authentication.py /usr/lib/python3.10/site-packages/icloudpd/authentication.py 
-      cp -p /opt/original/base.py /usr/lib/python3.10/site-packages/icloudpd/base.py
-      cp -p /opt/original/download.py /usr/lib/python3.10/site-packages/icloudpd/download.py
    fi
 }
 
