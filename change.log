@@ -1,6 +1,7 @@
 20200330
 
  - Change: Got rid of auth_china variable, as it doesn't work.
+ - Change: Rebuilt using icloudpd and integrating PR 608 https://github.com/icloud-photos-downloader/icloud_photos_downloader/pull/608 in an attempt to fix the on going China authentication issue
 
 20230329
 
