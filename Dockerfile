@@ -4,7 +4,7 @@ MAINTAINER boredazfcuk
 ENV config_dir="/config" \
    TZ="UTC"
 
-ARG build_version=130
+ARG build_version=131
 ARG app_dependencies="python3 py3-pip exiftool coreutils tzdata curl py3-certifi py3-cffi py3-cryptography py3-secretstorage py3-jeepney py3-dateutil imagemagick shadow"
 #ARG python_dependencies="pytz tzlocal==2.1 wheel tqdm===4.64.1"
 ARG python_dependencies="tqdm===4.64.1"
