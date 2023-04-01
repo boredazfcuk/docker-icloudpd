@@ -1,4 +1,4 @@
-FROM alpine:3.16.3
+FROM alpine:3.17.3
 MAINTAINER boredazfcuk
 
 ENV config_dir="/config" TZ="UTC"

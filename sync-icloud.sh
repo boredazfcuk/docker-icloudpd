@@ -11,7 +11,7 @@ initialise_config_file(){
       if [ "$(grep -c "convert_heic_to_jpeg=" "${config_file}")" -eq 0 ]; then echo convert_heic_to_jpeg="${convert_heic_to_jpeg:=False}"; fi
       if [ "$(grep -c "debug_logging=" "${config_file}")" -eq 0 ]; then echo debug_logging="${debug_logging:=False}"; fi
       if [ "$(grep -c "delete_accompanying=" "${config_file}")" -eq 0 ]; then echo delete_accompanying="${delete_accompanying:=False}"; fi
-      if [ "$(grep -c "delete_after_download=" "${config_file}")" -eq 0 ]; then echo delete_after_download="${delete_after_download:=False}"; fi
+      # if [ "$(grep -c "delete_after_download=" "${config_file}")" -eq 0 ]; then echo delete_after_download="${delete_after_download:=False}"; fi
       if [ "$(grep -c "delete_notifications=" "${config_file}")" -eq 0 ]; then echo delete_notifications="${delete_notifications:=True}"; fi
       if [ "$(grep -c "dingtalk_token=" "${config_file}")" -eq 0 ]; then echo dingtalk_token="${dingtalk_token}"; fi
       if [ "$(grep -c "directory_permissions=" "${config_file}")" -eq 0 ]; then echo directory_permissions="${directory_permissions:=750}"; fi
@@ -65,6 +65,7 @@ initialise_config_file(){
    chmod --reference="${config_file}.tmp" "${config_file}"
    rm "${config_file}.tmp"
    sed -i "/auth_china=/d" "${config_file}"
+   sed -i "/delete_after_download=/d" "${config_file}"
 }
 
 Initialise(){
@@ -212,12 +213,12 @@ Initialise(){
    LogInfo "Synchronisation delay (minutes): ${synchronisation_delay}"
    LogInfo "Set EXIF date/time: ${set_exif_datetime:=False}"
    LogInfo "Auto delete: ${auto_delete:=False}"
-   LogInfo "Delete after download: ${delete_after_download:=False}"
-   if [ "${auto_delete}" != "False" ] && [ "${delete_after_download}" != "False" ]; then
-      LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
-      sleep 120
-      exit 1
-   fi
+   # LogInfo "Delete after download: ${delete_after_download:=False}"
+   # if [ "${auto_delete}" != "False" ] && [ "${delete_after_download}" != "False" ]; then
+      # LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
+      # sleep 120
+      # exit 1
+   # fi
    LogInfo "Photo size: ${photo_size:=original}"
    LogInfo "Single pass mode: ${single_pass:=False}"
    if [ "${single_pass}" = "True" ]; then
@@ -1214,8 +1215,8 @@ CommandLineBuilder(){
    fi
    if [ "${auto_delete}" != "False" ]; then
       command_line="${command_line} --auto-delete"
-   elif [ "${delete_after_download}" != "False" ]; then
-      command_line="${command_line} --delete-after-download"
+   # elif [ "${delete_after_download}" != "False" ]; then
+      # command_line="${command_line} --delete-after-download"
    fi
    if [ "${skip_live_photos}" = "False" ]; then
       if [ "${live_photo_size}" != "original" ]; then
