@@ -1,5 +1,9 @@
 20230401
 
+ - Change: Some stuff around how build tags are handled in docker buildx. Mainly so that I have versioning in Dockerhub, instead of only a single "latest" container.
+
+20230401
+
  - Change: New build refers to --china-mainland rather than --domain cn
  - Change: FFS, I typo'd it as --china_mainland
 

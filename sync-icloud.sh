@@ -269,9 +269,9 @@ Initialise(){
       ConfigureNotifications
    fi
    if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
-      LogInfo "Nextcloud synchronisation trigger: Enabled"
+      LogDebug "Nextcloud synchronisation trigger: Enabled"
    else
-      LogInfo "Nextcloud synchronisation trigger: Disabled"
+      LogDebug "Nextcloud synchronisation trigger: Disabled"
    fi
    if [ ! -d "/home/${user}/.local/share/" ]; then
       LogDebug "Creating directory: /home/${user}/.local/share/"
