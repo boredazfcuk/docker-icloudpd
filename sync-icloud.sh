@@ -542,7 +542,7 @@ ListLibraries(){
    if [ -z "${icloud_china}" ]; then
       shared_libraries="$(su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "/dev/null")"
    else
-      shared_libraries="$(su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --china_mainland --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "/dev/null")"
+      shared_libraries="$(su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --china-mainland --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "/dev/null")"
    fi
    for library in ${shared_libraries}; do
       LogInfo " - ${library}"
@@ -568,7 +568,7 @@ ConfigurePassword(){
          if [ -z "${icloud_china}" ]; then
             su "${user}" -c '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
          else
-            su "${user}" -c '/usr/bin/icloud --username "${0}" --china_mainland' -- "${apple_id}"
+            su "${user}" -c '/usr/bin/icloud --username "${0}" --china-mainland' -- "${apple_id}"
          fi
       else
          LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
@@ -605,7 +605,7 @@ GenerateCookie(){
    if [ "${icloud_china}" ]; then
       su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
    else
-      su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --china_mainland --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
+      su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --china-mainland --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
    fi
    if [ "${authentication_type}" = "2FA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
@@ -788,7 +788,7 @@ CheckFiles(){
    if [ -z "${icloud_china}" ]; then
       su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}"
    else
-      su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --china_mainland --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}"
+      su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --china-mainland --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}"
    fi
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
@@ -1237,7 +1237,7 @@ CommandLineBuilder(){
       command_line="${command_line} --recent ${recent_only}"
    fi
    if [ "${icloud_china}" ]; then
-      command_line="${command_line} --china_mainland"
+      command_line="${command_line} --china-mainland"
    fi
 }
 

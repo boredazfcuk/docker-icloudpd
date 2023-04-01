@@ -1,6 +1,7 @@
 20230401
 
  - Change: New build refers to --china-mainland rather than --domain cn
+ - Change: FFS, I typo'd it as --china_mainland
 
 20230331
  - Change: Rebuilt using icloudpd and integrating PR 608 https://github.com/icloud-photos-downloader/icloud_photos_downloader/pull/608 in an attempt to fix the on going China authentication issue
