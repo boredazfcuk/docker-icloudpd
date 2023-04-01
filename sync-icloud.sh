@@ -91,9 +91,11 @@ Initialise(){
       if [ ! -e "${config_dir}/dev_mode_enabled" ]; then
          apk add nano
          pip install Flask-WTF Flask-Bootstrap4
-         python -m http.server 58008 &
          touch "${config_dir}/dev_mode_enabled"
       fi
+      flask --app "${config_dir}/app/app.py" run --host=0.0.0.0 --port 58008
+   else
+      nohup flask --app "${config_dir}/app/app.py" run --host=0.0.0.0 --port 58008 &
    fi
 
    local icloud_dot_com dns_counter
