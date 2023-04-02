@@ -540,11 +540,7 @@ CreateUser(){
 
 ListLibraries(){
    LogInfo "Shared libraries available:"
-   if [ -z "${icloud_china}" ]; then
-      shared_libraries="$(su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "/dev/null")"
-   else
-      shared_libraries="$(su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --china-mainland --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "/dev/null")"
-   fi
+   shared_libraries="$(su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "/dev/null")"
    for library in ${shared_libraries}; do
       LogInfo " - ${library}"
    done
@@ -566,11 +562,7 @@ ConfigurePassword(){
    if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
          LogDebug "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
-         if [ -z "${icloud_china}" ]; then
-            su "${user}" -c '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
-         else
-            su "${user}" -c '/usr/bin/icloud --username "${0}" --china-mainland' -- "${apple_id}"
-         fi
+         su "${user}" -c '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
       else
          LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
          LogError " - Please add the your password to the system keyring using the --Initialise script command line option"
@@ -603,11 +595,7 @@ GenerateCookie(){
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
    LogDebug "Generate ${authentication_type} cookie using password stored in keyring file"
-   if [ "${icloud_china}" ]; then
-      su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
-   else
-      su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --china-mainland --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
-   fi
+   su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
    if [ "${authentication_type}" = "2FA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
          LogInfo "Two factor authentication cookie generated. Sync should now be successful"
@@ -786,11 +774,7 @@ CheckFiles(){
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
    >/tmp/icloudpd/icloudpd_check_error
-   if [ -z "${icloud_china}" ]; then
-      su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}"
-   else
-      su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --china-mainland --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}"
-   fi
+   su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}"
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
       LogError "Failed check for new files files"
@@ -1236,9 +1220,6 @@ CommandLineBuilder(){
    fi
    if [ "${recent_only}" ]; then
       command_line="${command_line} --recent ${recent_only}"
-   fi
-   if [ "${icloud_china}" ]; then
-      command_line="${command_line} --china-mainland"
    fi
 }
 
