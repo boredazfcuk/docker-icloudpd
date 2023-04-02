@@ -39,6 +39,7 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
    rm -r "${app_temp_dir}" && \
    apk del --no-progress --purge build-deps
 
+COPY build_version.txt /
 COPY --chmod=0755 *.sh /usr/local/bin/
 
 HEALTHCHECK --start-period=10s --interval=1m --timeout=10s CMD /usr/local/bin/healthcheck.sh
