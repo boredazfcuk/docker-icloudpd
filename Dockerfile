@@ -1,11 +1,10 @@
-FROM alpine:3.16.3
+FROM alpine:3.17.3
 MAINTAINER boredazfcuk
 
 ENV config_dir="/config" TZ="UTC"
 
 ARG app_dependencies="python3 py3-pip exiftool coreutils tzdata curl py3-certifi py3-cffi py3-cryptography py3-secretstorage py3-jeepney py3-dateutil imagemagick shadow"
-ARG python_dependencies="pytz tzlocal wheel requests==2.28.1 urllib3==1.26.13 keyring==23.11.0 importlib-metadata==5.1.0"
-# tzlocal==2.1 
+ARG python_dependencies="pytz wheel"
 ARG build_dependencies="git"
 #ARG app_repo="icloud-photos-downloader/icloud_photos_downloader"
 ARG app_repo="mbax2zf2/icloud_photos_downloader"
