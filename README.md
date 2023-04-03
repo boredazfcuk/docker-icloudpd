@@ -34,29 +34,29 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure. Use  **album** to store in folders with same name as on iCloud.com
 
-**skip_check**: Set this to **True** skip the check for new files. The check can have issues with large libraries, please set to **True** if you have more than a few thousand photos. This variable will default to **False**.
+**skip_check**: Set this to **true** skip the check for new files. The check can have issues with large libraries, please set to **true** if you have more than a few thousand photos. This variable will default to **false**.
 
-**download_notifications**: specifies whether notifications with a short summary should be sent for file downloads. This variable will default to **True**.
+**download_notifications**: specifies whether notifications with a short summary should be sent for file downloads. This variable will default to **true**.
 
-**delete_notifications**: Specifies whether notifications with a short summary should be sent for file deletions. This variable will default to **True**.
+**delete_notifications**: Specifies whether notifications with a short summary should be sent for file deletions. This variable will default to **true**.
 
 **delete_accompanying**: Tells the script to delete files which accompany the HEIC files that are downloaded. These are the JPG files which are created if you have HEIC to JPG conversion enabled. They are also the \_HEVC.MOV files which make up part of a live photo. This feature deletes files from your disk. I'm not responsible for any data loss.
 
 **delete_empty_directories**: Tells the script to delete any empty directories it finds in the download path. It will only run if **folder_structure** isn't set to 'none'
 
-**set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date. This variable will default to **False**.
+**set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date. This variable will default to **false**.
 
-**auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). This variable will default to **False**.
+**auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). This variable will default to **false**.
 
-**delete_after_downlaod**: After a file is successfully downloaded it is moved to the Recenlty Deleted folder. This variable cannot be used in conjunction with **auto_delete**. This variable will default to **False**.
+**delete_after_downlaod**: After a file is successfully downloaded it is moved to the Recenlty Deleted folder. This variable cannot be used in conjunction with **auto_delete**. This variable will default to **false**.
 
 **photo_size**: Image size to download. Can be set to **original**, **medium** or **thumb**. This variable will default to **original**.
 
-**skip_live_photos**: If this is set, it will skip downloading live photos. This variable will default to **False**.
+**skip_live_photos**: If this is set, it will skip downloading live photos. This variable will default to **false**.
 
 **live_photo_size**: Live photo file size to download. Can be set to **original**, **medium** or **thumb**. If skip_live_photos is set, this setting is redundant. This variable will default to **original**.
 
-**skip_videos**: If this is set, it will skip downloading videos. This variable will default to **False**.
+**skip_videos**: If this is set, it will skip downloading videos. This variable will default to **false**.
 
 **recent_only**: Set this to an integer number to only download this many recently added photos. This variable will default to downloading all photos.
 
@@ -70,17 +70,17 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **command_line_options**: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage).
 
-**convert_heic_to_jpeg**: Set this to True to convert downloaded HEIC files to JPEG, while also retaining the original.
+**convert_heic_to_jpeg**: Set this to **true** to convert downloaded HEIC files to JPEG, while also retaining the original.
 
 **jpeg_path**: Set this variable to specify a different location for the converted JPEGs. This variable will default to "/home/${user}/iCloud", or **download_path** if not set, thereby placing the JPEG files alongside the HEIC files.
 
 **jpeg_quality**: If HEIC to JPEG conversion is enabled, this variable will let you set the quality of the converted file by specifying a number from 0 (lowest quality) to 100 (highest quality) If convert_heic_to_jpeg is set, and this variable isn't, it will default to 90.
 
-**icloud_china**: Set this to True to use icloud.com.cn instead of icloud.com as the download source.
+**icloud_china**: Set this to **true** to use icloud.com.cn instead of icloud.com as the download source.
 
-**synology_photos_app_fix**: Set this to True to touch files after download and trigger the Synology Photos app to index any newly created files.
+**synology_photos_app_fix**: Set this to **true** to touch files after download and trigger the Synology Photos app to index any newly created files.
 
-**single_pass**: Set this to True to exit out after a single pass instead of looping as per the synchronisation_interval. If this option is used, it will automatically disable the download check. If using this variable, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
+**single_pass**: Set this to **true** to exit out after a single pass instead of looping as per the synchronisation_interval. If this option is used, it will automatically disable the download check. If using this variable, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
 
 **trigger_nextlcoudcli_synchronisation**: This creates a file in the download directory after a new files are downloaded. My NextcloudCLI container will detect this and force an immediate sync to the Nextcloud server.
 
@@ -127,7 +127,7 @@ docker create \
    --env telegram_token=123654 \
    --env telegram_chat_id=456321 \
    --env folder_structure={:%Y} \
-   --env auto_delete=True \
+   --env auto_delete=true \
    --env notification_days=14 \
    --env synchronisation_interval=21600 \
    --env TZ=Europe/London \
@@ -181,7 +181,7 @@ The process should look similar to this:
 ```
 2020-08-06 16:45:58 INFO     ***** boredazfcuk/icloudpd container for icloud_photo_downloader started *****
 2020-08-06 16:45:58 INFO     Alpine Linux v3.12
-2020-08-06 16:45:58 INFO     Interactive session: True
+2020-08-06 16:45:58 INFO     Interactive session: true
 2020-08-06 16:45:58 INFO     Local user: user:1000
 2020-08-06 16:45:58 INFO     Local group: group:1000
 2020-08-06 16:45:58 INFO     LAN IP Address: 192.168.20.1

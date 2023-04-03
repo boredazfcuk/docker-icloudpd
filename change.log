@@ -1,7 +1,11 @@
+20230403
+ - Change: Changed any "True/False" variable to "true/false" and also find/replace title cased variables in icloudpd.conf to lower case
+
 20230401
 
  - Change: Some stuff around how build tags are handled in docker buildx. Mainly so that I have versioning in Dockerhub, instead of only a single "latest" container
  - Change: Delete after download option removed due to bug where it deletes files from iCloud that have not been downloaded yet
+
 20230401
 
  - Change: New build refers to --china-mainland rather than --domain cn

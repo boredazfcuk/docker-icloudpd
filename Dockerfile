@@ -4,14 +4,10 @@ MAINTAINER boredazfcuk
 ENV config_dir="/config" TZ="UTC"
 
 ARG app_dependencies="python3 py3-pip exiftool coreutils tzdata curl py3-certifi py3-cffi py3-cryptography py3-secretstorage py3-jeepney py3-dateutil imagemagick shadow"
-ARG python_dependencies="pytz wheel"
+ARG python_dependencies="pytz wheel pyicloud"
 ARG build_dependencies="git"
-#ARG app_repo="icloud-photos-downloader/icloud_photos_downloader"
-ARG app_repo="mbax2zf2/icloud_photos_downloader"
-
-#   git fetch origin pull/608/head:domain_fix && \  
-#echo "$(date '+%d/%m/%Y - %H:%M:%S') | Apply domain fix pull request" && \
-#   git checkout domain_fix && \
+ARG app_repo="icloud-photos-downloader/icloud_photos_downloader"
+ARG app_release="0e1f69bf549624a71b5526c0242701209ab8b258"
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** BUILD STARTED FOR ICLOUDPD *****" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install build dependencies" && \
@@ -20,8 +16,13 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install requirements" && \
    apk add --no-progress --no-cache ${app_dependencies} && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clone ${app_repo}" && \
    app_temp_dir=$(mktemp -d) && \
-   git clone "https://github.com/${app_repo}.git" "${app_temp_dir}" && \
+   git clone -b master "https://github.com/${app_repo}.git" "${app_temp_dir}" && \
    cd "${app_temp_dir}" && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Select release v1.7.3" && \
+   git reset --hard "${app_release}" && \
+   git fetch origin pull/617/head:domain_fix && \  
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Apply domain fix pull request" && \
+   git checkout domain_fix && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install Python dependencies" && \
    pip3 install --upgrade pip && \
    pip3 install --no-cache-dir ${python_dependencies} && \
@@ -33,7 +34,7 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Apply Python 3.10 fixes" && \
    sed -i -e 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' \
       -e 's/password_base64 = base64.encodestring(password_encrypted).decode()/password_base64 = base64.encodebytes(password_encrypted).decode()/'       "/usr/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Make indexing error more accurate" && \
-   sed -i 's/again in a few minutes/again later. This process may take a day or two./' "$(find / -name photos.py)" && \
+   sed -i 's/again in a few minutes/again later. This process may take a day or two./' "$(find /usr/lib/ -name photos.py)" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
    cd / && \
    rm -r "${app_temp_dir}" && \

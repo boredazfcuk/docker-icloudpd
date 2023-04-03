@@ -5,19 +5,19 @@ initialise_config_file(){
    {
       if [ "$(grep -c "apple_id=" "${config_file}")" -eq 0 ]; then echo apple_id="${apple_id}"; fi
       if [ "$(grep -c "authentication_type=" "${config_file}")" -eq 0 ]; then echo authentication_type="${authentication_type:=2FA}"; fi
-      if [ "$(grep -c "auto_delete=" "${config_file}")" -eq 0 ]; then echo auto_delete="${auto_delete:=False}"; fi
+      if [ "$(grep -c "auto_delete=" "${config_file}")" -eq 0 ]; then echo auto_delete="${auto_delete:=false}"; fi
       if [ "$(grep -c "bark_device_key=" "${config_file}")" -eq 0 ]; then echo bark_device_key="${bark_device_key}"; fi
       if [ "$(grep -c "bark_server=" "${config_file}")" -eq 0 ]; then echo bark_server="${bark_server}"; fi
-      if [ "$(grep -c "convert_heic_to_jpeg=" "${config_file}")" -eq 0 ]; then echo convert_heic_to_jpeg="${convert_heic_to_jpeg:=False}"; fi
-      if [ "$(grep -c "debug_logging=" "${config_file}")" -eq 0 ]; then echo debug_logging="${debug_logging:=False}"; fi
-      if [ "$(grep -c "delete_accompanying=" "${config_file}")" -eq 0 ]; then echo delete_accompanying="${delete_accompanying:=False}"; fi
-      # if [ "$(grep -c "delete_after_download=" "${config_file}")" -eq 0 ]; then echo delete_after_download="${delete_after_download:=False}"; fi
-      if [ "$(grep -c "delete_notifications=" "${config_file}")" -eq 0 ]; then echo delete_notifications="${delete_notifications:=True}"; fi
+      if [ "$(grep -c "convert_heic_to_jpeg=" "${config_file}")" -eq 0 ]; then echo convert_heic_to_jpeg="${convert_heic_to_jpeg:=false}"; fi
+      if [ "$(grep -c "debug_logging=" "${config_file}")" -eq 0 ]; then echo debug_logging="${debug_logging:=false}"; fi
+      if [ "$(grep -c "delete_accompanying=" "${config_file}")" -eq 0 ]; then echo delete_accompanying="${delete_accompanying:=false}"; fi
+      # if [ "$(grep -c "delete_after_download=" "${config_file}")" -eq 0 ]; then echo delete_after_download="${delete_after_download:=false}"; fi
+      if [ "$(grep -c "delete_notifications=" "${config_file}")" -eq 0 ]; then echo delete_notifications="${delete_notifications:=true}"; fi
       if [ "$(grep -c "dingtalk_token=" "${config_file}")" -eq 0 ]; then echo dingtalk_token="${dingtalk_token}"; fi
       if [ "$(grep -c "directory_permissions=" "${config_file}")" -eq 0 ]; then echo directory_permissions="${directory_permissions:=750}"; fi
       if [ "$(grep -c "discord_id=" "${config_file}")" -eq 0 ]; then echo discord_id="${discord_id}"; fi
       if [ "$(grep -c "discord_token=" "${config_file}")" -eq 0 ]; then echo discord_token="${discord_token}"; fi
-      if [ "$(grep -c "download_notifications=" "${config_file}")" -eq 0 ]; then echo download_notifications="${download_notifications:=True}"; fi
+      if [ "$(grep -c "download_notifications=" "${config_file}")" -eq 0 ]; then echo download_notifications="${download_notifications:=true}"; fi
       if [ "$(grep -c "download_path=" "${config_file}")" -eq 0 ]; then echo download_path="${download_path}"; fi
       if [ "$(grep -c "file_permissions=" "${config_file}")" -eq 0 ]; then echo file_permissions="${file_permissions:=640}"; fi
       if [ "$(grep -c "folder_structure=" "${config_file}")" -eq 0 ]; then echo folder_structure="${folder_structure:={:%Y/%m/%d\}}"; fi
@@ -38,10 +38,10 @@ initialise_config_file(){
       if [ "$(grep -c "pushover_token=" "${config_file}")" -eq 0 ]; then echo pushover_token="${pushover_token}"; fi
       if [ "$(grep -c "pushover_user=" "${config_file}")" -eq 0 ]; then echo pushover_user="${pushover_user}"; fi
       if [ "$(grep -c "recent_only=" "${config_file}")" -eq 0 ]; then echo recent_only="${recent_only}"; fi
-      if [ "$(grep -c "set_exif_datetime=" "${config_file}")" -eq 0 ]; then echo set_exif_datetime="${set_exif_datetime:=False}"; fi
-      if [ "$(grep -c "single_pass=" "${config_file}")" -eq 0 ]; then echo single_pass="${single_pass:=False}"; fi
-      if [ "$(grep -c "skip_check=" "${config_file}")" -eq 0 ]; then echo skip_check="${skip_check:=False}"; fi
-      if [ "$(grep -c "skip_live_photos=" "${config_file}")" -eq 0 ]; then echo skip_live_photos="${skip_live_photos:=False}"; fi
+      if [ "$(grep -c "set_exif_datetime=" "${config_file}")" -eq 0 ]; then echo set_exif_datetime="${set_exif_datetime:=false}"; fi
+      if [ "$(grep -c "single_pass=" "${config_file}")" -eq 0 ]; then echo single_pass="${single_pass:=false}"; fi
+      if [ "$(grep -c "skip_check=" "${config_file}")" -eq 0 ]; then echo skip_check="${skip_check:=false}"; fi
+      if [ "$(grep -c "skip_live_photos=" "${config_file}")" -eq 0 ]; then echo skip_live_photos="${skip_live_photos:=false}"; fi
       if [ "$(grep -c "synchronisation_delay=" "${config_file}")" -eq 0 ]; then echo synchronisation_delay="${synchronisation_delay:=0}"; fi
       if [ "$(grep -c "synchronisation_interval=" "${config_file}")" -eq 0 ]; then echo synchronisation_interval="${synchronisation_interval:=86400}"; fi
       if [ "$(grep -c "telegram_chat_id=" "${config_file}")" -eq 0 ]; then echo telegram_chat_id="${telegram_chat_id}"; fi
@@ -51,7 +51,7 @@ initialise_config_file(){
       if [ "$(grep -c "until_found=" "${config_file}")" -eq 0 ]; then echo until_found="${until_found}"; fi
       if [ "$(grep -c "user=" "${config_file}")" -eq 0 ]; then echo user="${user:=user}"; fi
       if [ "$(grep -c "user_id=" "${config_file}")" -eq 0 ]; then echo user_id="${user_id:=1000}"; fi
-      if [ "$(grep -c "webhook_https=" "${config_file}")" -eq 0 ]; then echo webhook_https="${webhook_https:=False}"; fi
+      if [ "$(grep -c "webhook_https=" "${config_file}")" -eq 0 ]; then echo webhook_https="${webhook_https:=false}"; fi
       if [ "$(grep -c "webhook_id=" "${config_file}")" -eq 0 ]; then echo webhook_id="${webhook_id}"; fi
       if [ "$(grep -c "webhook_path=" "${config_file}")" -eq 0 ]; then echo webhook_path="${webhook_path:=/api/webhook/}"; fi
       if [ "$(grep -c "webhook_port=" "${config_file}")" -eq 0 ]; then echo webhook_port="${webhook_port:=8123}"; fi
@@ -66,6 +66,8 @@ initialise_config_file(){
    rm "${config_file}.tmp"
    sed -i "/auth_china=/d" "${config_file}"
    sed -i "/delete_after_download=/d" "${config_file}"
+   sed -i "s/=True/=true/g" "${config_file}"
+   sed -i "s/=False/=false/g" "${config_file}"
 }
 
 Initialise(){
@@ -88,7 +90,7 @@ Initialise(){
    LogInfo "pyicloud version: ${pyicloud_version:=N/A}"
    LogInfo "pyicloud-ipd version: ${pyicloudipd_version:=N/A}"
 
-   if [ "${dev_mode}" = "True" ]; then
+   if [ "${dev_mode}" = true ]; then
       if [ ! -e "/dev_apps_installed" ]; then
          apk add nano
          pip install Flask-WTF Flask-Bootstrap4
@@ -143,7 +145,7 @@ Initialise(){
    LogDebug "Running group id: $(id --group)"
    LogDebug "Local user: ${user:=user}:${user_id:=1000}"
    LogDebug "Local group: ${group:=group}:${group_id:=1000}"
-   LogDebug "Force GID: ${force_gid:=False}"
+   LogDebug "Force GID: ${force_gid:=false}"
    LogDebug "LAN IP Address: ${lan_ip}"
    LogDebug "Default gateway: $(ip route | grep default | awk '{print $3}')"
    LogDebug "DNS server: $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')"
@@ -170,13 +172,13 @@ Initialise(){
    else
       LogDebug "Route check to ${icloud_domain} successful"
    fi
-   if [ "${debug_logging}" = "True" ]; then
+   if [ "${debug_logging}" = true ]; then
       LogDebug "Apple ID: (hidden)"
    else
       LogInfo "Apple ID: ${apple_id}"
    fi
    LogInfo "Authentication Type: ${authentication_type:=2FA}"
-   if [ "${debug_logging}" = "True" ]; then
+   if [ "${debug_logging}" = true ]; then
       LogDebug "Cookie path: ${config_dir}/(hidden)"
    else
       LogInfo "Cookie path: ${config_dir}/${cookie_file}"
@@ -202,29 +204,29 @@ Initialise(){
       LogWarning "If you run into the following error: "
       LogWarning " - private db access disabled for this account. Please wait a few minutes then try again. The remote servers might be trying to throttle requests. (ACCESS_DENIED)"
       LogWarning "then please change your synchronisation_interval to 43200 or greater and switch the container off for 6-12 hours so Apple's throttling expires. Continuing in 2 minutes"
-      if [ "${warnings_acknowledged:=False}" = "True" ]; then
+      if [ "${warnings_acknowledged:=false}" = true ]; then
          LogDebug "Throttle warning acknowledged"
       else
          sleep 120
       fi
    fi
    LogInfo "Synchronisation delay (minutes): ${synchronisation_delay}"
-   LogInfo "Set EXIF date/time: ${set_exif_datetime:=False}"
-   LogInfo "Auto delete: ${auto_delete:=False}"
-   # LogInfo "Delete after download: ${delete_after_download:=False}"
-   # if [ "${auto_delete}" != "False" ] && [ "${delete_after_download}" != "False" ]; then
+   LogInfo "Set EXIF date/time: ${set_exif_datetime:=false}"
+   LogInfo "Auto delete: ${auto_delete:=false}"
+   # LogInfo "Delete after download: ${delete_after_download:=false}"
+   # if [ "${auto_delete}" != false ] && [ "${delete_after_download}" != false ]; then
       # LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
       # sleep 120
       # exit 1
    # fi
    LogInfo "Photo size: ${photo_size:=original}"
-   LogInfo "Single pass mode: ${single_pass:=False}"
-   if [ "${single_pass}" = "True" ]; then
+   LogInfo "Single pass mode: ${single_pass:=false}"
+   if [ "${single_pass}" = true ]; then
       LogDebug "Single pass mode enabled. Disabling download check"
-      skip_check="True"
+      skip_check=true
    fi
-   LogInfo "Skip download check: ${skip_check:=False}"
-   LogInfo "Skip live photos: ${skip_live_photos:=False}"
+   LogInfo "Skip download check: ${skip_check:=false}"
+   LogInfo "Skip live photos: ${skip_live_photos:=false}"
    if [ "${recent_only}" ]; then
       LogInfo "Number of most recently added photos to download: ${recent_only}"
    else
@@ -242,24 +244,24 @@ Initialise(){
    else
       LogInfo "Stop downloading when prexisiting files count is: Download All Photos"
    fi
-   if [ "${skip_live_photos}" = "False" ]; then
+   if [ "${skip_live_photos}" = false ]; then
       LogInfo "Live photo size: ${live_photo_size:=original}"
    fi
-   LogInfo "Skip videos: ${skip_videos:=False}"
+   LogInfo "Skip videos: ${skip_videos:=false}"
    if [ "${command_line_options}" ]; then
       LogWarning "Additional command line options supplied: ${command_line_options}"
       LogWarning "Additional command line options are no longer supported and will be ignored. Please specify all options using the dedicated variables."
    fi
-   LogInfo "Convert HEIC to JPEG: ${convert_heic_to_jpeg:=False}"
+   LogInfo "Convert HEIC to JPEG: ${convert_heic_to_jpeg:=false}"
    if [ "${jpeg_path}" ]; then
       LogInfo "Converted JPEGs path: ${jpeg_path}"
    fi
-   if [ "${delete_accompanying:=False}" = "True" ] && [ -z "${warnings_acknowledged}" ]; then
+   if [ "${delete_accompanying:=false}" = true ] && [ -z "${warnings_acknowledged}" ]; then
       LogInfo "Delete accompanying files (.JPG/.HEIC.MOV)"
       LogWarning "This feature deletes files from your local disk. Please use with caution. I am not responsible for any data loss."
       LogWarning "This feature cannot be used if the 'folder_structure' variable is set to 'none' and also, 'set_exif_datetime' must be 'False'"
       LogWarning "These two settings will increase the chances of de-duplication happening, which could result in the wrong files being removed. Continuing in 2 minutes."
-      if [ "${warnings_acknowledged:=False}" = "True" ]; then
+      if [ "${warnings_acknowledged:=false}" = true ]; then
          LogInfo "File deletion warning accepted"
       else
          sleep 120
@@ -329,7 +331,7 @@ LogError(){
 }
 
 LogDebug(){
-   if [ "${debug_logging}" = "True" ]; then
+   if [ "${debug_logging}" = true ]; then
       local log_message
       log_message="${1}"
       echo "$(date '+%Y-%m-%d %H:%M:%S') DEBUG    ${log_message}"
@@ -349,7 +351,7 @@ ConfigureNotifications(){
       fi
       if [ "${notification_type}" = "Prowl" ] && [ "${prowl_api_key}" ]; then
          LogInfo "${notification_type} notifications enabled"
-         if [ "${debug_logging}" = "True" ]; then
+         if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} api key: (hidden)"
          else
             LogInfo "${notification_type} api key: ${prowl_api_key}"
@@ -357,7 +359,7 @@ ConfigureNotifications(){
          notification_url="https://api.prowlapp.com/publicapi/add"
       elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
-         if [ "${debug_logging}" = "True" ]; then
+         if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} user: (hidden)"
             LogDebug "${notification_type} token: (hidden)"
          else
@@ -382,7 +384,7 @@ ConfigureNotifications(){
             notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
          fi
          LogInfo "${notification_type} notifications enabled"
-         if [ "${debug_logging}" = "True" ]; then
+         if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} token: (hidden)"
             LogDebug "${notification_type} chat id: (hidden)"
             LogDebug "${notification_type} notification URL: (hidden)"
@@ -391,10 +393,10 @@ ConfigureNotifications(){
             LogInfo "${notification_type} chat id: ${telegram_chat_id}"
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
-         if [ "${telegram_silent_file_notifications}" ]; then telegram_silent_file_notifications="True"; fi
-         LogDebug "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=False}"
+         if [ "${telegram_silent_file_notifications}" ]; then telegram_silent_file_notifications=true; fi
+         LogDebug "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=false}"
       elif [ "${notification_type}" = "openhab" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
-         if [ "${webhook_https}" = "True" ]; then
+         if [ "${webhook_https}" = true ]; then
             webhook_scheme="https"
          else
             webhook_scheme="http"
@@ -407,7 +409,7 @@ ConfigureNotifications(){
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
          LogDebug "${notification_type} notification URL: ${notification_url}"
       elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
-         if [ "${webhook_https}" = "True" ]; then
+         if [ "${webhook_https}" = true ]; then
             webhook_scheme="https"
          else
             webhook_scheme="http"
@@ -422,7 +424,7 @@ ConfigureNotifications(){
          LogDebug "${notification_type} body keyword: ${webhook_body:=data}"
       elif [ "${notification_type}" = "Discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
-         if [ "${debug_logging}" = "True" ]; then
+         if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} Discord ID: (hidden)"
             LogDebug "${notification_type} Discord token: (hidden)"
             notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
@@ -436,7 +438,7 @@ ConfigureNotifications(){
       elif [ "${notification_type}" = "Dingtalk" ] && [ "${dingtalk_token}" ]; then
          notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
          LogInfo "${notification_type} notifications enabled"
-         if [ "${debug_logging}" = "True" ]; then
+         if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} token: (hidden)"
             LogDebug "${notification_type} notification URL: (hidden)"
          else
@@ -446,7 +448,7 @@ ConfigureNotifications(){
       elif [ "${notification_type}" = "IYUU" ] && [ "${iyuu_token}" ]; then
          notification_url="http://iyuu.cn/${iyuu_token}.send?"
          LogInfo "${notification_type} notifications enabled"
-         if [ "${debug_logging}" = "True" ]; then
+         if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} token: (hidden)"
             LogDebug "${notification_type} notification URL: (hidden)"
          else
@@ -464,7 +466,7 @@ ConfigureNotifications(){
          wecom_token_expiry="$(date --date='2 hour')"
          notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
          LogInfo "${notification_type} notifications enabled"
-         if [ "${debug_logging}" = "True" ]; then
+         if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} token: (hidden)"
             LogDebug "${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
             LogDebug "${notification_type} notification URL: (hidden)"
@@ -475,7 +477,7 @@ ConfigureNotifications(){
          fi
       elif [ "${notification_type}" = "Gotify" ] && [ "${gotify_app_token}" ] && [ "${gotify_server_url}" ]; then
          LogInfo "${notification_type} notifications enabled"
-         if [ "${debug_logging}" = "True" ]; then
+         if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} token: (hidden)"
             LogDebug "${notification_type} server URL: (hidden)"
          else
@@ -485,7 +487,7 @@ ConfigureNotifications(){
          notification_url="https://${gotify_server_url}/message?token=${gotify_app_token}"
       elif [ "${notification_type}" = "Bark" ] && [ "${bark_device_key}" ] && [ "${bark_server}" ]; then
          LogInfo "${notification_type} notifications enabled"
-         if [ "${debug_logging}" = "True" ]; then
+         if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} device key: (hidden)"
             LogDebug "${notification_type} server: (hidden)"
          else
@@ -502,13 +504,13 @@ ConfigureNotifications(){
       else
          Notify "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片"
       fi
-      if [ "${download_notifications:=True}" = "True" ]; then
+      if [ "${download_notifications:=true}" = true ]; then
          LogDebug "Download notifications: Enabled"
       else
          LogDebug "Download notifications: Disabled"
          unset download_notifications
       fi
-      if [ "${delete_notifications:=True}" = "True" ]; then
+      if [ "${delete_notifications:=true}" = true ]; then
          LogDebug "Delete notifications: Enabled"
       else
          LogDebug "Delete notifications: Disabled"
@@ -526,7 +528,7 @@ CreateGroup(){
          sleep 120
          exit 1
       elif [ "$(grep -c ":x:${group_id}:" "/etc/group")" -eq 1 ]; then
-         if [ "${force_gid}" = "True" ]; then
+         if [ "${force_gid}" = true ]; then
             group="$(grep ":x:${group_id}:" /etc/group | awk -F: '{print $1}')"
             LogWarning "Group id, ${group_id}, already in use by the group: ${group} - continuing as force_gid variable has been set. Group name to use: ${group}"
          else
@@ -711,7 +713,7 @@ Check2FACookie(){
          days_remaining="$(($((twofa_expire_seconds - $(date '+%s'))) / 86400))"
          echo "${days_remaining}" > "${config_dir}/DAYS_REMAINING"
          if [ "${days_remaining}" -gt 0 ]; then
-            valid_twofa_cookie="True"
+            valid_twofa_cookie=true
             LogDebug "Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
          else
             rm -f "${config_dir}/${cookie_file}"
@@ -1117,7 +1119,7 @@ Notify(){
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --data chat_id="${telegram_chat_id}" \
          --data parse_mode="markdown" \
-         --data disable_notification="${telegram_disable_notification:=False}" \
+         --data disable_notification="${telegram_disable_notification:=false}" \
          --data text="${telegram_text}")"
          unset telegram_disable_notification
    elif [ "${notification_type}" = "openhab" ]; then
@@ -1214,22 +1216,22 @@ CommandLineBuilder(){
    if [ "${photo_size}" != "original"  ]; then
       command_line="${command_line} --size ${photo_size}"
    fi
-   if [ "${set_exif_datetime}" != "False" ]; then
+   if [ "${set_exif_datetime}" != false ]; then
       command_line="${command_line} --set-exif-datetime"
    fi
-   if [ "${auto_delete}" != "False" ]; then
+   if [ "${auto_delete}" != false ]; then
       command_line="${command_line} --auto-delete"
-   # elif [ "${delete_after_download}" != "False" ]; then
+   # elif [ "${delete_after_download}" != false ]; then
       # command_line="${command_line} --delete-after-download"
    fi
-   if [ "${skip_live_photos}" = "False" ]; then
+   if [ "${skip_live_photos}" = false ]; then
       if [ "${live_photo_size}" != "original" ]; then
          command_line="${command_line} --live-photo-size ${live_photo_size}"
       fi
    else
       command_line="${command_line} --skip-live-photos"
    fi
-   if [ "${skip_videos}" != "False" ]; then
+   if [ "${skip_videos}" != false ]; then
       command_line="${command_line} --skip-videos"
    fi
    if [ "${photo_album}" ]; then
@@ -1258,11 +1260,11 @@ SyncUser(){
       chown -R "${user}":"${group}" "${config_dir}"
       if [ "${authentication_type}" = "2FA" ]; then
          LogDebug "Check 2FA Cookie"
-         valid_twofa_cookie=False
-         while [ "${valid_twofa_cookie}" = "False" ]; do Check2FACookie; done
+         valid_twofa_cookie=false
+         while [ "${valid_twofa_cookie}" = false ]; do Check2FACookie; done
       fi
       CheckMount
-      if [ "${skip_check}" = "False" ]; then
+      if [ "${skip_check}" = false ]; then
          CheckFiles
       else
          check_exit_code=0
@@ -1294,15 +1296,15 @@ SyncUser(){
             else
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
                if [ "${synology_photos_app_fix}" ]; then SynologyPhotosAppFix; fi
-               if [ "${convert_heic_to_jpeg}" != "False" ]; then
+               if [ "${convert_heic_to_jpeg}" != false ]; then
                   LogInfo "Convert HEIC files to JPEG"
                   ConvertDownloadedHEIC2JPEG
                fi
                if [ "${delete_notifications}" ]; then DeletedFilesNotification; fi
-               if [ "${delete_accompanying}" = "True" ] && [ "${folder_structure}" != "none" ] && [ "${set_exif_datetime}" = "False" ]; then
+               if [ "${delete_accompanying}" = true ] && [ "${folder_structure}" != "none" ] && [ "${set_exif_datetime}" = false ]; then
                   RemoveRecentlyDeletedAccompanyingFiles
                fi
-               if [ "${delete_empty_directories}" = "True" ] && [ "${folder_structure}" != "none" ]; then
+               if [ "${delete_empty_directories}" = true ] && [ "${folder_structure}" != "none" ]; then
                   RemoveEmptyDirectories
                fi
                SetOwnerAndPermissionsDownloads
@@ -1318,7 +1320,7 @@ SyncUser(){
       synchronisation_end_time="$(date +'%s')"
       LogInfo "Synchronisation ended at $(date +%H:%M:%S -d "@${synchronisation_end_time}")"
       LogInfo "Total time taken: $(date +%H:%M:%S -u -d @$((synchronisation_end_time - synchronisation_start_time)))"
-      if [ "${single_pass:=False}" = "True" ]; then
+      if [ "${single_pass:=false}" = true ]; then
          LogDebug "Single Pass mode set, exiting"
          exit 0
       else
@@ -1349,43 +1351,43 @@ SanitiseLaunchParameters(){
 
 enable_debug_logging(){
    LogInfo "Enabling Debug Logging"
-   sed -i 's/debug_logging=.*/debug_logging=True/' "${config_file}"
+   sed -i 's/debug_logging=.*/debug_logging=true/' "${config_file}"
 }
 
 disable_debug_logging(){
    LogInfo "Disabling Debug Logging"
-   sed -i 's/debug_logging=.*/debug_logging=False/' "${config_file}"
+   sed -i 's/debug_logging=.*/debug_logging=false/' "${config_file}"
 }
 
 ##### Script #####
 script_launch_parameters="${1}"
 case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
    "--initialise"|"--initialize"|"--init")
-      initialise_container="True"
+      initialise_container=true
     ;;
    "--removekeyring")
-      delete_password="True"
+      delete_password=true
     ;;
    "--convertallheics")
-      convert_all_heics="True"
+      convert_all_heics=true
    ;;
    "--removealljpgs")
-      remove_all_jpgs="True"
+      remove_all_jpgs=true
    ;;
    "--forceconvertallheics")
-      force_convert_all_heics="True"
+      force_convert_all_heics=true
    ;;
    "--forceconvertallmntheics")
-      force_convert_all_mnt_heics="True"
+      force_convert_all_mnt_heics=true
    ;;
    "--correctjpegtimestamps")
-      correct_jpeg_time_stamps="True"
+      correct_jpeg_time_stamps=true
    ;;
    "--enabledebugging")
-      enable_debugging="True"
+      enable_debugging=true
    ;;
    "--disabledebugging")
-      disable_debugging="True"
+      disable_debugging=true
    ;;
    *)
    ;;
