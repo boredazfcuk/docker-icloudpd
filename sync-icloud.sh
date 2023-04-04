@@ -277,21 +277,15 @@ Initialise(){
       sed -i \
          -e "s#apple.com/#apple.com.cn/#" \
          -e "s#icloud.com/#icloud.com.cn/#" \
-         -e "s#icloud.com\"#icloud.com.cn\"#" \
-         "$(pip show pyicloud | grep "Location" | awk '{print $2}')/pyicloud/base.py"
-      sed -i \
-         -e "s#icloud.com/#icloud.com.cn/#" \
-         "$(pip show pyicloud | grep "Location" | awk '{print $2}')/pyicloud/services/account.py"
+         -e "s#icloud.com\'#icloud.com.cn\'#" \
+         "$(find /usr -name pyicloud_ipd -type d)/base.py"
    else
       LogInfo "Downloading from: icloud.com"
       sed -i \
          -e "s#apple.com.cn/#apple.com/#" \
          -e "s#icloud.com.cn/#icloud.com/#" \
-         -e "s#icloud.com.cn\"#icloud.com\"#" \
-         "$(pip show pyicloud | grep "Location" | awk '{print $2}')/pyicloud/base.py"
-         sed -i \
-         -e "s#icloud.com.cn/#icloud.com/#" \
-         "$(pip show pyicloud | grep "Location" | awk '{print $2}')/pyicloud/services/account.py"
+         -e "s#icloud.com.cn\'#icloud.com\'#" \
+         "$(find /usr -name pyicloud_ipd -type d)/base.py"
    fi
    if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
       LogDebug "Nextcloud synchronisation trigger: Enabled"
