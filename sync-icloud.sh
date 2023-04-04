@@ -271,8 +271,8 @@ Initialise(){
    if [ "${notification_type}" ]; then
       ConfigureNotifications
    fi
+   LogInfo "Downloading from: ${icloud_domain}"
    if [ "${icloud_china}" ]; then
-      LogInfo "Downloading from: icloud.com.cn"
       LogWarning "Downloading from icloud.com.cn is untested. Please report issues at https://github.com/boredazfcuk/docker-icloudpd/issues"
       sed -i \
          -e "s#apple.com/#apple.com.cn/#" \
@@ -280,7 +280,6 @@ Initialise(){
          -e "s#icloud.com\'#icloud.com.cn\'#" \
          "$(find /usr -name pyicloud_ipd -type d)/base.py"
    else
-      LogInfo "Downloading from: icloud.com"
       sed -i \
          -e "s#apple.com.cn/#apple.com/#" \
          -e "s#icloud.com.cn/#icloud.com/#" \
