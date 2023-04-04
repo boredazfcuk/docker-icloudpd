@@ -6,8 +6,14 @@ ENV config_dir="/config" TZ="UTC"
 ARG app_dependencies="python3 py3-pip exiftool coreutils tzdata curl py3-certifi py3-cffi py3-cryptography py3-secretstorage py3-jeepney py3-dateutil imagemagick shadow"
 ARG python_dependencies="pytz wheel pyicloud"
 ARG build_dependencies="git"
-ARG app_repo="icloud-photos-downloader/icloud_photos_downloader"
-ARG app_release="0e1f69bf549624a71b5526c0242701209ab8b258"
+ARG app_repo="boredazfcuk/icloud_photos_downloader"
+#ARG app_release="0e1f69bf549624a71b5526c0242701209ab8b258"
+#echo "$(date '+%d/%m/%Y - %H:%M:%S') | Select release v1.7.3" && \
+   # git reset --hard "${app_release}" && \
+   # git fetch origin pull/617/head:domain_fix && \  
+# echo "$(date '+%d/%m/%Y - %H:%M:%S') | Apply domain fix pull request" && \
+   # git checkout domain_fix && \
+#python3 setup.py install && \
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** BUILD STARTED FOR ICLOUDPD *****" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install build dependencies" && \
@@ -16,13 +22,8 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install requirements" && \
    apk add --no-progress --no-cache ${app_dependencies} && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clone ${app_repo}" && \
    app_temp_dir=$(mktemp -d) && \
-   git clone -b master "https://github.com/${app_repo}.git" "${app_temp_dir}" && \
+   git clone -b auth_fix "https://github.com/${app_repo}.git" "${app_temp_dir}" && \
    cd "${app_temp_dir}" && \
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Select release v1.7.3" && \
-   git reset --hard "${app_release}" && \
-   git fetch origin pull/617/head:domain_fix && \  
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Apply domain fix pull request" && \
-   git checkout domain_fix && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install Python dependencies" && \
    pip3 install --upgrade pip && \
    pip3 install --no-cache-dir ${python_dependencies} && \
