@@ -6,7 +6,9 @@ ENV config_dir="/config" TZ="UTC"
 ARG app_dependencies="python3 py3-pip exiftool coreutils tzdata curl py3-certifi py3-cffi py3-cryptography py3-secretstorage py3-jeepney py3-dateutil imagemagick shadow"
 ARG python_dependencies="pytz wheel"
 ARG build_dependencies="git"
+ARG python_fix_dependencies="pyicloud"
 ARG app_repo="icloud-photos-downloader/icloud_photos_downloader"
+ARG fix_repo="boredazfcuk/icloud_photos_downloader"
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** BUILD STARTED FOR ICLOUDPD *****" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install build dependencies" && \
@@ -29,6 +31,11 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Apply Python 3.10 fixes" && \
       -e 's/password_base64 = base64.encodestring(password_encrypted).decode()/password_base64 = base64.encodebytes(password_encrypted).decode()/'       "/usr/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Make indexing error more accurate" && \
    sed -i 's/again in a few minutes/again later. This process may take a day or two./' "$(find /usr/lib/ -name photos.py)" && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clone ${fix_repo}" && \
+   app_fix_dir="/opt/china_auth_fix" && \
+   mkdir --parents "${app_fix_dir}" && \
+   git clone -b china_auth_fix "https://github.com/${fix_repo}.git" "${app_fix_dir}" && \
+   pip3 install --no-cache-dir ${python_fix_dependencies} && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
    cd / && \
    rm -r "${app_temp_dir}" && \

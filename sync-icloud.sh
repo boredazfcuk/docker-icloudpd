@@ -278,13 +278,13 @@ Initialise(){
          -e "s#apple.com/#apple.com.cn/#" \
          -e "s#icloud.com/#icloud.com.cn/#" \
          -e "s#icloud.com\'#icloud.com.cn\'#" \
-         "$(find /usr -name pyicloud_ipd -type d)/base.py"
+         "$(pip3 show pyicloud | grep "Location" | awk '{print $2}')/pyicloud/base.py"
    else
       sed -i \
          -e "s#apple.com.cn/#apple.com/#" \
          -e "s#icloud.com.cn/#icloud.com/#" \
          -e "s#icloud.com.cn\'#icloud.com\'#" \
-         "$(find /usr -name pyicloud_ipd -type d)/base.py"
+         "$(pip3 show pyicloud | grep "Location" | awk '{print $2}')/pyicloud/base.py"
    fi
    if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
       LogDebug "Nextcloud synchronisation trigger: Enabled"
@@ -579,7 +579,7 @@ ConfigurePassword(){
    if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
          LogDebug "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
-         su "${user}" -c '/usr/bin/icloud --username "${0}"' -- "${apple_id}"
+         su "${user}" -c '/opt/china_auth_fix/icloudpd.py --username "${0}"' -- "${apple_id}"
       else
          LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
          LogError " - Please add the your password to the system keyring using the --Initialise script command line option"
@@ -612,7 +612,7 @@ GenerateCookie(){
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
    LogDebug "Generate ${authentication_type} cookie using password stored in keyring file"
-   su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
+   su "${user}" -c '/opt/china_auth_fix/icloudpd.py --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
    if [ "${authentication_type}" = "2FA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
          LogInfo "Two factor authentication cookie generated. Sync should now be successful"
