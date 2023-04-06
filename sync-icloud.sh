@@ -86,7 +86,10 @@ Initialise(){
    LogInfo "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
-   LogInfo "icloudpd version: $(pip3 list | grep icloudpd | awk '{print $2}')"
+   LogInfo "icloudpd version: $(grep version /opt/icloudpd/setup.py | awk -F'=' '{print $2}' | sed -e 's/"//g' -e 's/,//')"
+   if [ "${icloud_china}" ]; then
+      LogInfo "icloudpd China version: $(grep version /opt/china_auth_fix/setup.py | awk -F'=' '{print $2}' | sed -e 's/"//g' -e 's/,//')"
+   fi
    LogInfo "pyicloud version: ${pyicloud_version:=N/A}"
    LogInfo "pyicloud-ipd version: ${pyicloudipd_version:=N/A}"
 
@@ -274,17 +277,6 @@ Initialise(){
    LogInfo "Downloading from: ${icloud_domain}"
    if [ "${icloud_china}" ]; then
       LogWarning "Downloading from icloud.com.cn is untested. Please report issues at https://github.com/boredazfcuk/docker-icloudpd/issues"
-      sed -i \
-         -e "s#apple.com/#apple.com.cn/#" \
-         -e "s#icloud.com/#icloud.com.cn/#" \
-         -e "s#icloud.com\'#icloud.com.cn\'#" \
-         "$(pip3 show pyicloud | grep "Location" | awk '{print $2}')/pyicloud/base.py"
-   else
-      sed -i \
-         -e "s#apple.com.cn/#apple.com/#" \
-         -e "s#icloud.com.cn/#icloud.com/#" \
-         -e "s#icloud.com.cn\'#icloud.com\'#" \
-         "$(pip3 show pyicloud | grep "Location" | awk '{print $2}')/pyicloud/base.py"
    fi
    if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
       LogDebug "Nextcloud synchronisation trigger: Enabled"
@@ -557,7 +549,7 @@ CreateUser(){
 
 ListLibraries(){
    LogInfo "Shared libraries available:"
-   shared_libraries="$(su "${user}" -c '/usr/bin/icloudpd --username "${0}" --cookie-directory "${1}" --directory "${2}" --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "/dev/null")"
+   shared_libraries="$(su "${user}" -c '/opt/icloudpd/icloudpd.py --username "${0}" --cookie-directory "${1}" --directory "${2}" --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "/dev/null")"
    for library in ${shared_libraries}; do
       LogInfo " - ${library}"
    done
@@ -579,7 +571,13 @@ ConfigurePassword(){
    if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
          LogDebug "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
-         su "${user}" -c '/opt/china_auth_fix/icloudpd.py --username "${0}"' -- "${apple_id}"
+         if [ "${icloud_china}" ]; then
+            LogDebug "Authentication using iCloud China servers"
+            su "${user}" -c '/opt/china_auth_fix/icloudpd.py --username "${0}"' -- "${apple_id}"
+         else
+            LogDebug "Authentication using iCloud global servers"
+            su "${user}" -c '/opt/icloudpd/icloudpd.py --username "${0}"' -- "${apple_id}"
+         fi
       else
          LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
          LogError " - Please add the your password to the system keyring using the --Initialise script command line option"
@@ -791,7 +789,7 @@ CheckFiles(){
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
    >/tmp/icloudpd/icloudpd_check_error
-   su "${user}" -c '(/usr/bin/icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}"
+   su "${user}" -c '(/opt/icloudpd/icloudpd.py --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}"
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ]; then
       LogError "Failed check for new files files"
@@ -1268,9 +1266,9 @@ SyncUser(){
             LogDebug "Starting download of new files for user: ${user}"
             synchronisation_time="$(date +%s -d '+15 minutes')"
             LogDebug "Downloading new files using password stored in keyring file..."
-            LogDebug "iCloudPD launch command: /usr/bin/icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
+            LogDebug "iCloudPD launch command: /opt/icloudpd/icloudpd.py ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
             >/tmp/icloudpd/icloudpd_download_error
-            su "${user}" -c '(/usr/bin/icloudpd ${0} ${1} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
+            su "${user}" -c '(/opt/icloudpd/icloudpd.py ${0} ${1} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             if [ "${download_exit_code}" -gt 0 ]; then
                LogError "Failed to download new files"
