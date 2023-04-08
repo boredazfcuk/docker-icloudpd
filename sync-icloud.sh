@@ -599,7 +599,7 @@ ConfigurePassword(){
             source /opt/icloudpd_v1.7.2/bin/activate
          fi
          LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
-         su "${user}" -c 'icloudpd --username "${0}" --directory /dev/null --only-print-filenames --recent 0 --no-progress-bar' -- "${apple_id}"
+         su "${user}" -c 'icloud --username "${0}"' -- "${apple_id}"
          deactivate
       else
          LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
@@ -640,7 +640,7 @@ GenerateCookie(){
    LogDebug "Generate ${authentication_type} cookie using password stored in keyring file"
    source /opt/icloudpd_v1.12.0/bin/activate
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
-   su "${user}" -c '/opt/icloudpd/icloudpd.py --username "${0}" --cookie-directory "${1}" --directory /dev/null --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}"
+   su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --directory /dev/null --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}"
    deactivate
    if [ "${authentication_type}" = "2FA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
@@ -822,7 +822,7 @@ CheckFiles(){
    >/tmp/icloudpd/icloudpd_check_error
    source /opt/icloudpd_v1.12.0/bin/activate
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
-   su "${user}" -c '(/opt/icloudpd/icloudpd.py --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" "${auth_domain}"
+   su "${user}" -c '(icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" "${auth_domain}"
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    deactivate
    if [ "${check_exit_code}" -ne 0 ]; then
