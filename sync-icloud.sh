@@ -79,19 +79,31 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
-   pyicloud_version="$(pip3 list | grep "pyicloud " | awk '{print $2}')"
-   pyicloudipd_version="$(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
+
    echo
    LogInfo "***** boredazfcuk/icloudpd container for icloud_photo_downloader v1.0.$(cat /build_version.txt) started *****"
    LogInfo "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
-   LogInfo "icloudpd version: $(grep version /opt/icloudpd/setup.py | awk -F'=' '{print $2}' | sed -e 's/"//g' -e 's/,//')"
-   if [ "${icloud_china}" ]; then
-      LogInfo "icloudpd China version: $(grep version /opt/china_auth_fix/setup.py | awk -F'=' '{print $2}' | sed -e 's/"//g' -e 's/,//')"
-   fi
-   LogInfo "pyicloud version: ${pyicloud_version:=N/A}"
-   LogInfo "pyicloud-ipd version: ${pyicloudipd_version:=N/A}"
+   # LogInfo "icloudpd version: $(grep version "${app_dir}/setup.py" | awk -F= '{print $2}' | sed -e 's/"//g' -e 's/,//')"
+   # LogInfo "pyicloud version: ${pyicloud_version:=N/A}"
+   # LogInfo "pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
+   
+   # if [ "${icloud_china}" ]; then
+      # LogInfo "Setting China authentication servers"
+      # sed -i \
+         # -e "s#apple.com/#apple.com.cn/#" \
+         # -e "s#icloud.com/#icloud.com.cn/#" \
+         # -e "s#icloud.com\"#icloud.com.cn\"#" \
+         # "$(pip3 show pyicloud | grep Location | awk '{print $2}')/pyicloud/base.py"
+   # else
+      # LogInfo "Setting global authentication servers"
+      # sed -i \
+         # -e "s#apple.com.cn/#apple.com/#" \
+         # -e "s#icloud.com.cn/#icloud.com/#" \
+         # -e "s#icloud.com.cn\"#icloud.com\"#" \
+         # "$(pip3 show pyicloud | grep Location | awk '{print $2}')/pyicloud/base.py"
+   # fi
 
    if [ "${dev_mode}" = true ]; then
       if [ ! -e "/dev_apps_installed" ]; then
@@ -549,7 +561,10 @@ CreateUser(){
 
 ListLibraries(){
    LogInfo "Shared libraries available:"
-   shared_libraries="$(su "${user}" -c '/opt/icloudpd/icloudpd.py --username "${0}" --cookie-directory "${1}" --directory "${2}" --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "/dev/null")"
+   source /opt/icloudpd_v1.12.0/bin/activate
+   LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
+   shared_libraries="$(su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --directory /dev/null --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}")"
+   deactivate
    for library in ${shared_libraries}; do
       LogInfo " - ${library}"
    done
@@ -557,8 +572,15 @@ ListLibraries(){
 
 DeletePassword(){
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
-      LogInfo "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but --RemoveKeyring command line switch has been invoked. Removing"
+      LogWarning "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but --RemoveKeyring command line switch has been invoked. Removing in 30 seconds"
+      if [ -z "${warnings_acknowledged}" ]; then
+         sleep 30
+      else
+         LogInfo "Warnings acknowledged, removing immediately"
+      fi
       rm "${config_dir}/python_keyring/keyring_pass.cfg"
+   else
+      LogError "Keyring file does not exist"
    fi
 }
 
@@ -572,12 +594,13 @@ ConfigurePassword(){
       if [ "${initialise_container}" ]; then
          LogDebug "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
          if [ "${icloud_china}" ]; then
-            LogDebug "Authentication using iCloud China servers"
-            su "${user}" -c '/opt/china_auth_fix/icloudpd.py --username "${0}"' -- "${apple_id}"
+            source /opt/icloudpd_v1.7.2_china/bin/activate
          else
-            LogDebug "Authentication using iCloud global servers"
-            su "${user}" -c '/opt/icloudpd/icloudpd.py --username "${0}"' -- "${apple_id}"
+            source /opt/icloudpd_v1.7.2/bin/activate
          fi
+         LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
+         su "${user}" -c 'icloudpd --username "${0}" --directory /dev/null --only-print-filenames --recent 0 --no-progress-bar' -- "${apple_id}"
+         deactivate
       else
          LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
          LogError " - Please add the your password to the system keyring using the --Initialise script command line option"
@@ -599,6 +622,11 @@ ConfigurePassword(){
    else
       LogDebug "Using password stored in keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
    fi
+   if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
+      LogError "Keyring file does not exist. Please try again."
+      sleep 120
+      exit 1
+   fi
 }
 
 GenerateCookie(){
@@ -610,7 +638,10 @@ GenerateCookie(){
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
    LogDebug "Generate ${authentication_type} cookie using password stored in keyring file"
-   su "${user}" -c '/opt/china_auth_fix/icloudpd.py --username "${0}" --cookie-directory "${1}" --directory "${2}" --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}" "/dev/null"
+   source /opt/icloudpd_v1.12.0/bin/activate
+   LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
+   su "${user}" -c '/opt/icloudpd/icloudpd.py --username "${0}" --cookie-directory "${1}" --directory /dev/null --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}"
+   deactivate
    if [ "${authentication_type}" = "2FA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
          LogInfo "Two factor authentication cookie generated. Sync should now be successful"
@@ -789,8 +820,11 @@ CheckFiles(){
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
    >/tmp/icloudpd/icloudpd_check_error
-   su "${user}" -c '(/opt/icloudpd/icloudpd.py --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}"
+   source /opt/icloudpd_v1.12.0/bin/activate
+   LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
+   su "${user}" -c '(/opt/icloudpd/icloudpd.py --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" "${auth_domain}"
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
+   deactivate
    if [ "${check_exit_code}" -ne 0 ]; then
       LogError "Failed check for new files files"
       LogError " - Can you log into iCloud.com without receiving pop-up notifications?"
@@ -1266,10 +1300,13 @@ SyncUser(){
             LogDebug "Starting download of new files for user: ${user}"
             synchronisation_time="$(date +%s -d '+15 minutes')"
             LogDebug "Downloading new files using password stored in keyring file..."
-            LogDebug "iCloudPD launch command: /opt/icloudpd/icloudpd.py ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
+            LogDebug "iCloudPD launch command: icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
             >/tmp/icloudpd/icloudpd_download_error
-            su "${user}" -c '(/opt/icloudpd/icloudpd.py ${0} ${1} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
+            source /opt/icloudpd_v1.12.0/bin/activate
+            LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
+            su "${user}" -c '(icloudpd ${0} ${1} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
+            deactivate
             if [ "${download_exit_code}" -gt 0 ]; then
                LogError "Failed to download new files"
                LogError " - Can you log into iCloud.com without receiving pop-up notifications?"

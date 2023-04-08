@@ -3,46 +3,67 @@ MAINTAINER boredazfcuk
 
 ENV config_dir="/config" TZ="UTC"
 
-ARG build_dependencies="git"
-ARG app_dependencies="python3 py3-pip exiftool coreutils tzdata curl py3-certifi py3-cffi py3-cryptography py3-secretstorage py3-jeepney py3-dateutil imagemagick shadow"
-ARG python_dependencies="pytz wheel"
-ARG python_fix_dependencies="pyicloud"
-ARG app_repo="icloud-photos-downloader/icloud_photos_downloader"
+ARG build_dependencies="git gcc python3-dev musl-dev rust cargo libffi-dev openssl-dev"
+ARG app_dependencies="py3-pip exiftool coreutils tzdata curl imagemagick shadow"
 ARG fix_repo="boredazfcuk/icloud_photos_downloader"
-ARG app_dir="/opt/icloudpd"
-ARG app_fix_dir="/opt/china_auth_fix"
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** BUILD STARTED FOR ICLOUDPD *****" && \
-   mkdir --parents "${app_dir}" "${app_fix_dir}" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install build dependencies" && \
-  apk add --no-cache --no-progress --virtual=build-deps ${build_dependencies} && \
+  apk add --no-progress --no-cache --virtual=build-deps ${build_dependencies} && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install requirements" && \
    apk add --no-progress --no-cache ${app_dependencies} && \
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clone ${app_repo}" && \
-   git clone "https://github.com/${app_repo}.git" "${app_dir}" && \
+echo "$(date '+%d/ %m/%Y - %H:%M:%S') | Create and enter icloudpd_v.1.7.2_china virtual environment" && \
+   python -m venv /opt/icloudpd_v1.7.2_china && \
+   source /opt/icloudpd_v1.7.2_china/bin/activate && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clone ${fix_repo}" && \
-   git clone -b china_auth_fix "https://github.com/${fix_repo}.git" "${app_fix_dir}" && \
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install Python dependencies" && \
+   fix_dir=$(mktemp -d) && \
+   git clone -b china_auth_fix "https://github.com/${fix_repo}.git" "${fix_dir}" && \
+   cd "${fix_dir}" && \
+   sed -i 's/version="1.7.2/version="1.7.2_china_auth_fix/' setup.py && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install Python dependencies for China fix" && \
    pip3 install --upgrade pip && \
-   pip3 install --no-cache-dir ${python_dependencies} && \
-   pip3 install --no-cache-dir -r "${app_dir}/requirements.txt" && \
-   pip3 install --no-cache-dir ${python_fix_dependencies} && \
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Apply Python 3.10 fixes" && \
+   pip3 install --no-cache-dir pytz pyicloud && \
+   pip3 install --no-cache-dir -r requirements.txt && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD v1.7.2_china_auth_fix" && \
+   python3 setup.py install && \
+   cd .. && \
+   rm -r "${fix_dir}" && \
+   sed -i -e 's/icloud.com/icloud.com.cn/g' /opt/icloudpd_v1.7.2_china/lib/python3.10/site-packages/pyicloud/base.py && \
+   sed -i -e 's/apple.com/apple.com.cn/g' /opt/icloudpd_v1.7.2_china/lib/python3.10/site-packages/pyicloud/base.py && \
    sed -i 's/from collections import Callable/from collections.abc import Callable/' \
-      "$(pip3 show keyring | grep Location | awk '{print $2}')/keyring/util/properties.py" && \
+      "/opt/icloudpd_v1.7.2_china/lib/python3.10/site-packages/keyring/util/properties.py" && \
    sed -i -e 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' \
       -e 's/password_base64 = base64.encodestring(password_encrypted).decode()/password_base64 = base64.encodebytes(password_encrypted).decode()/' \
-      "$(pip3 show keyrings.alt | grep Location | awk '{print $2}')/keyrings/alt/file_base.py" && \
-   sed -i \
-      -e "s#apple.com/#apple.com.cn/#" \
-      -e "s#icloud.com/#icloud.com.cn/#" \
-      -e "s#icloud.com\"#icloud.com.cn\"#" \
-      "$(pip3 show pyicloud | grep Location | awk '{print $2}')/pyicloud/base.py" && \
+      "/opt/icloudpd_v1.7.2_china/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
+   deactivate && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD v1.12.0" && \
+   python -m venv /opt/icloudpd_v1.12.0 && \
+   source /opt/icloudpd_v1.12.0/bin/activate && \
+   pip3 install --upgrade pip && \
+   pip3 install --no-cache-dir wheel && \
+   pip3 install --no-cache-dir icloudpd && \
+   sed -i 's/from collections import Callable/from collections.abc import Callable/' \
+      "/opt/icloudpd_v1.12.0/lib/python3.10/site-packages/keyring/util/properties.py" && \
+   sed -i -e 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' \
+      -e 's/password_base64 = base64.encodestring(password_encrypted).decode()/password_base64 = base64.encodebytes(password_encrypted).decode()/' \
+      "/opt/icloudpd_v1.12.0/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
+   deactivate && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Create and enter icloudpd_v.1.7.2 virtual environment" && \
+   python -m venv /opt/icloudpd_v1.7.2 && \
+   source /opt/icloudpd_v1.7.2/bin/activate && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD v1.7.2" && \
+   pip3 install --upgrade pip && \
+   pip3 install --no-cache-dir wheel && \
+   pip3 install --no-cache-dir icloudpd==1.7.2 && \
+   sed -i 's/from collections import Callable/from collections.abc import Callable/' \
+      "/opt/icloudpd_v1.7.2/lib/python3.10/site-packages/keyring/util/properties.py" && \
+   sed -i -e 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' \
+      -e 's/password_base64 = base64.encodestring(password_encrypted).decode()/password_base64 = base64.encodebytes(password_encrypted).decode()/' \
+      "/opt/icloudpd_v1.7.2/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
+   deactivate && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Make indexing error more accurate" && \
-   sed -i 's/again in a few minutes/again later. This process may take a day or two./' \
-   "$(pip3 show pyicloud | grep Location | awk '{print $2}')/pyicloud/services/photos.py" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
-   apk del --no-progress --purge build-deps
+   apk del --no-progress --purge build-deps 
 
 COPY build_version.txt /
 COPY --chmod=0755 *.sh /usr/local/bin/
