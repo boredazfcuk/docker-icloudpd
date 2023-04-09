@@ -291,7 +291,11 @@ Initialise(){
    LogInfo "Downloading from: ${icloud_domain}"
    if [ "${icloud_china}" ]; then
       LogWarning "Downloading from icloud.com.cn is untested. Please report issues at https://github.com/boredazfcuk/docker-icloudpd/issues"
+      if [ "${auth_china}" ]; then
+         auth_domain="cn"
+      fi
    fi
+   LogDebug "Authentication domain: ${auth_domain:=com}"
    if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
       LogDebug "Nextcloud synchronisation trigger: Enabled"
    else
@@ -565,7 +569,7 @@ ListLibraries(){
    LogInfo "Shared libraries available:"
    source /opt/icloudpd_v1.12.0/bin/activate
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
-   shared_libraries="$(su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --directory /dev/null --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}")"
+   shared_libraries="$(su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
    deactivate
    for library in ${shared_libraries}; do
       LogInfo " - ${library}"
@@ -828,8 +832,8 @@ CheckFiles(){
    >/tmp/icloudpd/icloudpd_check_error
    source /opt/icloudpd_v1.12.0/bin/activate
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
-   su "${user}" -c '(icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --folder-structure "${3}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${folder_structure}" "${auth_domain}"
-   check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
+   su "${user}" -c '(icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --domain "${3}" --folder-structure "${4}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${auth_domain}" "${folder_structure}"
+      check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    deactivate
    if [ "${check_exit_code}" -ne 0 ]; then
       LogError "Failed check for new files files"
@@ -1243,7 +1247,7 @@ Notify(){
 }
 
 CommandLineBuilder(){
-   command_line="--directory ${download_path} --cookie-directory ${config_dir} --folder-structure ${folder_structure} --username ${apple_id}"
+   command_line="--directory ${download_path} --cookie-directory ${config_dir} --domain ${auth_domain} --folder-structure ${folder_structure} --username ${apple_id}"
    if [ "${photo_size}" != "original"  ]; then
       command_line="${command_line} --size ${photo_size}"
    fi
@@ -1310,7 +1314,7 @@ SyncUser(){
             >/tmp/icloudpd/icloudpd_download_error
             source /opt/icloudpd_v1.12.0/bin/activate
             LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
-            su "${user}" -c '(icloudpd ${0} ${1} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
+            su "${user}" -c '(icloudpd ${0} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             deactivate
             if [ "${download_exit_code}" -gt 0 ]; then
