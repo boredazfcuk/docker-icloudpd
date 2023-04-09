@@ -35,6 +35,8 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD v1.7.2_china_auth_fix" &
    sed -i -e 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' \
       -e 's/password_base64 = base64.encodestring(password_encrypted).decode()/password_base64 = base64.encodebytes(password_encrypted).decode()/' \
       "/opt/icloudpd_v1.7.2_china/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
+   sed -i 's/again in a few minutes/again later. This process may take a day or two./' \
+      "/opt/icloudpd_v1.7.2_china/lib/python3.10/site-packages/pyicloud/services/photos.py" && \
    deactivate && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD v1.12.0" && \
    python -m venv /opt/icloudpd_v1.12.0 && \
@@ -47,21 +49,9 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD v1.12.0" && \
    sed -i -e 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' \
       -e 's/password_base64 = base64.encodestring(password_encrypted).decode()/password_base64 = base64.encodebytes(password_encrypted).decode()/' \
       "/opt/icloudpd_v1.12.0/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
+   sed -i 's/again in a few minutes/again later. This process may take a day or two./' \
+      "/opt/icloudpd_v1.12.0/lib/python3.10/site-packages/pyicloud_ipd/services/photos.py" && \
    deactivate && \
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Create and enter icloudpd_v.1.7.2 virtual environment" && \
-   python -m venv /opt/icloudpd_v1.7.2 && \
-   source /opt/icloudpd_v1.7.2/bin/activate && \
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD v1.7.2" && \
-   pip3 install --upgrade pip && \
-   pip3 install --no-cache-dir wheel && \
-   pip3 install --no-cache-dir icloudpd==1.7.2 && \
-   sed -i 's/from collections import Callable/from collections.abc import Callable/' \
-      "/opt/icloudpd_v1.7.2/lib/python3.10/site-packages/keyring/util/properties.py" && \
-   sed -i -e 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' \
-      -e 's/password_base64 = base64.encodestring(password_encrypted).decode()/password_base64 = base64.encodebytes(password_encrypted).decode()/' \
-      "/opt/icloudpd_v1.7.2/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
-   deactivate && \
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Make indexing error more accurate" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
    apk del --no-progress --purge build-deps 
 

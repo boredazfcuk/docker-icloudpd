@@ -268,6 +268,9 @@ Initialise(){
       LogWarning "Additional command line options are no longer supported and will be ignored. Please specify all options using the dedicated variables."
    fi
    LogInfo "Convert HEIC to JPEG: ${convert_heic_to_jpeg:=false}"
+   if [ "${convert_heic_to_jpeg}" = true ]; then
+      LogDebug "JPEG conversion quality: ${jpeg_quality:=90}"
+   fi
    if [ "${jpeg_path}" ]; then
       LogInfo "Converted JPEGs path: ${jpeg_path}"
    fi
@@ -282,7 +285,6 @@ Initialise(){
          sleep 120
       fi
    fi
-   LogDebug "JPEG conversion quality: ${jpeg_quality:=90}"
    if [ "${notification_type}" ]; then
       ConfigureNotifications
    fi
@@ -596,7 +598,7 @@ ConfigurePassword(){
          if [ "${icloud_china}" ]; then
             source /opt/icloudpd_v1.7.2_china/bin/activate
          else
-            source /opt/icloudpd_v1.7.2/bin/activate
+            source /opt/icloudpd_v1.12.0/bin/activate
          fi
          LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
          su "${user}" -c 'icloud --username "${0}"' -- "${apple_id}"
@@ -638,7 +640,11 @@ GenerateCookie(){
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
    LogDebug "Generate ${authentication_type} cookie using password stored in keyring file"
-   source /opt/icloudpd_v1.12.0/bin/activate
+   if [ "${icloud_china}" ]; then
+      source /opt/icloudpd_v1.7.2_china/bin/activate
+   else
+      source /opt/icloudpd_v1.12.0/bin/activate
+   fi
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
    su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --directory /dev/null --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}"
    deactivate
