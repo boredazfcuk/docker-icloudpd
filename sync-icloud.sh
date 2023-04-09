@@ -85,25 +85,6 @@ Initialise(){
    LogInfo "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
-   # LogInfo "icloudpd version: $(grep version "${app_dir}/setup.py" | awk -F= '{print $2}' | sed -e 's/"//g' -e 's/,//')"
-   # LogInfo "pyicloud version: ${pyicloud_version:=N/A}"
-   # LogInfo "pyicloud-ipd version: $(pip3 list | grep pyicloud-ipd | awk '{print $2}')"
-   
-   # if [ "${icloud_china}" ]; then
-      # LogInfo "Setting China authentication servers"
-      # sed -i \
-         # -e "s#apple.com/#apple.com.cn/#" \
-         # -e "s#icloud.com/#icloud.com.cn/#" \
-         # -e "s#icloud.com\"#icloud.com.cn\"#" \
-         # "$(pip3 show pyicloud | grep Location | awk '{print $2}')/pyicloud/base.py"
-   # else
-      # LogInfo "Setting global authentication servers"
-      # sed -i \
-         # -e "s#apple.com.cn/#apple.com/#" \
-         # -e "s#icloud.com.cn/#icloud.com/#" \
-         # -e "s#icloud.com.cn\"#icloud.com\"#" \
-         # "$(pip3 show pyicloud | grep Location | awk '{print $2}')/pyicloud/base.py"
-   # fi
 
    if [ "${dev_mode}" = true ]; then
       if [ ! -e "/dev_apps_installed" ]; then
@@ -1427,6 +1408,9 @@ case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
    "--disabledebugging")
       disable_debugging=true
    ;;
+   "--listlibraries")
+      list_libraries=true
+   ;;
    *)
    ;;
 esac
@@ -1434,7 +1418,6 @@ Initialise
 SanitiseLaunchParameters
 CreateGroup
 CreateUser
-#ListLibraries
 SetOwnerAndPermissionsConfig
 if [ "${delete_password}" ]; then
    DeletePassword
@@ -1474,6 +1457,9 @@ elif [ "${correct_jpeg_time_stamps}" ]; then
    LogInfo "Correcting timestamps for JPEG files in ${download_path}"
    CorrectJPEGTimestamps
    LogInfo "JPEG timestamp correction complete"
+   exit 0
+elif [ "${list_libraries}" ];then
+   ListLibraries
    exit 0
 fi
 CheckMount
