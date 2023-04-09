@@ -291,7 +291,7 @@ Initialise(){
    LogInfo "Downloading from: ${icloud_domain}"
    if [ "${icloud_china}" ]; then
       LogWarning "Downloading from icloud.com.cn is untested. Please report issues at https://github.com/boredazfcuk/docker-icloudpd/issues"
-      if [ "${auth_china}" ]; then
+      if [ -z "${auth_china}" ]; then
          auth_domain="cn"
       fi
    fi
