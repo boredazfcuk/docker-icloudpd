@@ -5,6 +5,7 @@ initialise_config_file(){
    {
       if [ "$(grep -c "apple_id=" "${config_file}")" -eq 0 ]; then echo apple_id="${apple_id}"; fi
       if [ "$(grep -c "authentication_type=" "${config_file}")" -eq 0 ]; then echo authentication_type="${authentication_type:=2FA}"; fi
+      if [ "$(grep -c "auth_china=" "${config_file}")" -eq 0 ]; then echo auth_china="${auth_china}"; fi
       if [ "$(grep -c "auto_delete=" "${config_file}")" -eq 0 ]; then echo auto_delete="${auto_delete:=false}"; fi
       if [ "$(grep -c "bark_device_key=" "${config_file}")" -eq 0 ]; then echo bark_device_key="${bark_device_key}"; fi
       if [ "$(grep -c "bark_server=" "${config_file}")" -eq 0 ]; then echo bark_server="${bark_server}"; fi
@@ -64,7 +65,6 @@ initialise_config_file(){
    sort "${config_file}.tmp" --output="${config_file}"
    chmod --reference="${config_file}.tmp" "${config_file}"
    rm "${config_file}.tmp"
-   sed -i "/auth_china=/d" "${config_file}"
    sed -i "/delete_after_download=/d" "${config_file}"
    sed -i "s/=True/=true/g" "${config_file}"
    sed -i "s/=False/=false/g" "${config_file}"
