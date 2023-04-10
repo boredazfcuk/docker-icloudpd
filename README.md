@@ -1,5 +1,5 @@
 # docker-icloudpd
-An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I use it for syncing the photo streams of all the iDevices in my house back to my server because it's the only way of backing up multiple devices to a single location. It uses the system keyring to securely store credentials, has HEIC to JPG conversion capability, and can send Telegram, Prowl, Pushover, WebHook, DingTalk, Discord, openhab, IYUU and WeCom notifications.
+An Alpine Linux Docker container for iCloud Photos Downloader. I use it for syncing the photo streams of all the iDevices in my house back to my server because it's the only way of backing up multiple devices to a single location. It uses the system keyring to securely store credentials, has HEIC to JPG conversion capability, and can send Telegram, Prowl, Pushover, WebHook, DingTalk, Discord, openhab, IYUU and WeCom notifications.
 
 ## MANDATORY ENVIRONMENT VARIABLES
 **apple_id**: This is the Apple ID that will be used when downloading files.
@@ -64,7 +64,7 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 
 **photo_album**: Set this to the name of an album to only download photos from a single album.
 
-**photo_library**: Set this to the name of an iOS 16 shared library to only download photos from a single shared library. Please note, due to issues with the shared libraries patch it has been moved to a different container. Please pull boredazfcuk/icloudpd:testing for this version of the container.
+**photo_library**: Set this to the name of an iOS 16 shared library to only download photos from a single shared library.
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
@@ -77,6 +77,8 @@ An Alpine Linux Docker container for ndbroadbent's iCloud Photos Downloader. I u
 **jpeg_quality**: If HEIC to JPEG conversion is enabled, this variable will let you set the quality of the converted file by specifying a number from 0 (lowest quality) to 100 (highest quality) If convert_heic_to_jpeg is set, and this variable isn't, it will default to 90.
 
 **icloud_china**: Set this to **true** to use icloud.com.cn instead of icloud.com as the download source.
+
+**auth_china**: Set this to **true** to use icloud.com.cn instead of icloud.com for cookie generation. If **icloud_china** is set to **true** and this variable is not set, it will default to **true**. If **icloud_china** is not set, this variable will be set to **false**
 
 **synology_photos_app_fix**: Set this to **true** to touch files after download and trigger the Synology Photos app to index any newly created files.
 
@@ -260,6 +262,10 @@ This command line option will edit the config file so that debugging is enabled.
 
 **--DisableDebugging**
 This command line option will edit the config file so that debugging is disabled. This will automatically be picked up the next time a synchronisation takes place. There should be no need to restart the container
+
+**--ListLibraries**
+This command line option will list the shared libraries that are available for synchronisation. To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
+`docker exec -it icloudpd sync-icloud.sh --ListLibraries`
 
 ## HEALTH CHECK
 
