@@ -486,7 +486,7 @@ ConfigureNotifications(){
       if [ -z "${icloud_china}" ]; then
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       else
-         Notify "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片"
+         Notify "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片" "启动成功" "启动" "开始同步" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
       fi
       if [ "${download_notifications:=true}" = true ]; then
          LogDebug "Download notifications: Enabled"
@@ -799,7 +799,11 @@ Display2FAExpiry(){
       fi
       LogWarning "${error_message}"
       if [ "${synchronisation_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]; then
-         Notify "${cookie_status}" "2FA Cookie Expiration" "2" "${error_message}"
+         if [ -z "${icloud_china}" ]; then
+            Notify "${cookie_status}" "2FA Cookie Expiration" "2" "${error_message}"
+         else
+            Notify "${cookie_status}" "2FA Cookie Expiration" "2" "${error_message}" "身份验证" "两步验证" "过期/即将到期" "${days_remaining} 天后，${name} 的身份验证到期" "${error_message}"
+         fi
          next_notification_time="$(date +%s -d "+24 hour")"
          LogDebug "Next notification not before: $(date +%H:%M:%S -d "${next_notification_time} seconds")"
       fi
@@ -827,7 +831,7 @@ CheckFiles(){
       else
          syn_end_time="$(date '+%H:%M:%S')"
          syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
-         Notify "failure" "iCloudPD container failure" "0" "检查 iCloud 图库新照片失败，将在 ${syn_next_time} 再次尝试"
+         Notify "failure" "iCloudPD container failure" "0" "检查 iCloud 图库新照片失败，将在 ${syn_next_time} 再次尝试" "同步新照片失败" "同步失败" "检查新照片失败" "检查 ${name} 的 iCloud 图库新照片失败" "将在 ${syn_next_time} 再次尝试"
       fi
    else
       LogInfo "Check successful"
@@ -853,8 +857,11 @@ DownloadedFilesNotification(){
          new_files_text="Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
          Notify "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "downloaded" "${new_files_preview}"
       else
+         # 结束时间、下次同步时间
+         syn_end_time="$(date '+%H:%M:%S')"
+         syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
          new_files_text="iCloud 图库同步完成，新增 ${new_files_count} 张照片"
-         Notify "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "下载" "${new_files_preview}"
+         Notify "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "下载" "${new_files_preview}" "新增 ${new_files_count} 张照片 - ${name}" "下次同步时间 ${syn_next_time}"
       fi
       if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
          touch "${download_path}/.nextcloud_sync"
@@ -874,8 +881,11 @@ DeletedFilesNotification(){
          deleted_files_text="Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
          Notify "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "deleted" "${deleted_files_preview}"
       else
+         # 结束时间、下次同步时间
+         syn_end_time="$(date '+%H:%M:%S')"
+         syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
          deleted_files_text="iCloud 图库同步完成，删除 ${deleted_files_count} 张照片"
-         Notify "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "删除" "${deleted_files_preview}"
+         Notify "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "删除" "${deleted_files_preview}" "删除 ${deleted_files_count} 张照片 - ${name}" "下次同步时间 ${syn_next_time}"
       fi
       if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
          touch "${download_path}/.nextcloud_sync"
@@ -1082,6 +1092,8 @@ Notify(){
    notification_files_preview_count="${5}"
    notification_files_preview_type="${6}"
    notification_files_preview_text="${7}"
+   notification_wecom_title="${8}"
+   notification_wecom_digest="${9}"
 
    if [ "${notification_classification}" = "startup" ];then
       notification_icon="\xE2\x96\xB6"
@@ -1200,7 +1212,7 @@ Notify(){
             wecom_text="$(echo -e "${notification_message}")"
          fi
       fi
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_title} 照片同步 - ${name}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_message}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
    elif [ "${notification_type}" = "Gotify" ]; then
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
          -F "title=${notification_title}" \
@@ -1310,7 +1322,7 @@ SyncUser(){
                   # 结束时间、下次同步时间
                   syn_end_time="$(date '+%H:%M:%S')"
                   syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
-                  Notify "failure" "iCloudPD container failure" "1" "从 iCloud 图库下载新照片失败，将在 ${syn_next_time} 再次尝试"
+                  Notify "failure" "iCloudPD container failure" "1" "从 iCloud 图库下载新照片失败，将在 ${syn_next_time} 再次尝试" "下载失败" "下载" "下载照片失败" "下载 ${name} 的 iCloud 图库新照片失败" "将在 ${syn_next_time} 再次尝试"
                fi
             else
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
