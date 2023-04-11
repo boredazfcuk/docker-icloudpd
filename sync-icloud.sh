@@ -486,7 +486,7 @@ ConfigureNotifications(){
       if [ -z "${icloud_china}" ]; then
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
       else
-         Notify "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片" "启动成功" "启动" "开始同步" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
+         Notify "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
       fi
       if [ "${download_notifications:=true}" = true ]; then
          LogDebug "Download notifications: Enabled"
@@ -802,7 +802,7 @@ Display2FAExpiry(){
          if [ -z "${icloud_china}" ]; then
             Notify "${cookie_status}" "2FA Cookie Expiration" "2" "${error_message}"
          else
-            Notify "${cookie_status}" "2FA Cookie Expiration" "2" "${error_message}" "身份验证" "两步验证" "过期/即将到期" "${days_remaining} 天后，${name} 的身份验证到期" "${error_message}"
+            Notify "${cookie_status}" "2FA Cookie Expiration" "2" "${error_message}" "" "" "" "${days_remaining} 天后，${name} 的身份验证到期" "${error_message}"
          fi
          next_notification_time="$(date +%s -d "+24 hour")"
          LogDebug "Next notification not before: $(date +%H:%M:%S -d "${next_notification_time} seconds")"
@@ -831,7 +831,7 @@ CheckFiles(){
       else
          syn_end_time="$(date '+%H:%M:%S')"
          syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
-         Notify "failure" "iCloudPD container failure" "0" "检查 iCloud 图库新照片失败，将在 ${syn_next_time} 再次尝试" "同步新照片失败" "同步失败" "检查新照片失败" "检查 ${name} 的 iCloud 图库新照片失败" "将在 ${syn_next_time} 再次尝试"
+         Notify "failure" "iCloudPD container failure" "0" "检查 iCloud 图库新照片失败，将在 ${syn_next_time} 再次尝试" "" "" "" "检查 ${name} 的 iCloud 图库新照片失败" "将在 ${syn_next_time} 再次尝试"
       fi
    else
       LogInfo "Check successful"
@@ -1322,7 +1322,7 @@ SyncUser(){
                   # 结束时间、下次同步时间
                   syn_end_time="$(date '+%H:%M:%S')"
                   syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
-                  Notify "failure" "iCloudPD container failure" "1" "从 iCloud 图库下载新照片失败，将在 ${syn_next_time} 再次尝试" "下载失败" "下载" "下载照片失败" "下载 ${name} 的 iCloud 图库新照片失败" "将在 ${syn_next_time} 再次尝试"
+                  Notify "failure" "iCloudPD container failure" "1" "从 iCloud 图库下载新照片失败，将在 ${syn_next_time} 再次尝试" "" "" "" "下载 ${name} 的 iCloud 图库新照片失败" "将在 ${syn_next_time} 再次尝试"
                fi
             else
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
