@@ -1,6 +1,9 @@
 # docker-icloudpd
 An Alpine Linux Docker container for iCloud Photos Downloader. I use it for syncing the photo streams of all the iDevices in my house back to my server because it's the only way of backing up multiple devices to a single location. It uses the system keyring to securely store credentials, has HEIC to JPG conversion capability, and can send Telegram, Prowl, Pushover, WebHook, DingTalk, Discord, openhab, IYUU and WeCom notifications.
 
+# Configuring environment variables
+Environment variables can, for the time being, be used to configure the Docker container. However, they will be used to write a configuration file "/config/icloudpd.conf" and the variables will be loaded from there. I fyou find that some things are still being set, even though you have removed the variables from the container, it could be that they are still located in the configuration file.
+
 ## MANDATORY ENVIRONMENT VARIABLES
 **apple_id**: This is the Apple ID that will be used when downloading files.
 
@@ -68,7 +71,7 @@ An Alpine Linux Docker container for iCloud Photos Downloader. I use it for sync
 
 ## OPTIONAL ENVIRONMENT VARIABLES
 
-**command_line_options**: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage).
+~~**command_line_options**: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage)~~
 
 **convert_heic_to_jpeg**: Set this to **true** to convert downloaded HEIC files to JPEG, while also retaining the original.
 
@@ -119,19 +122,6 @@ docker create \
    --hostname icloudpd_boredazfcuk \
    --network icloudpd_bridge \
    --restart=always \
-   --env user=boredazfcuk \
-   --env user_id=1000 \
-   --env group=admins \
-   --env group_id=1010 \
-   --env apple_id=notmy@email.com \
-   --env authentication_type=2FA \
-   --env notification_type=Telegram \
-   --env telegram_token=123654 \
-   --env telegram_chat_id=456321 \
-   --env folder_structure={:%Y} \
-   --env auto_delete=true \
-   --env notification_days=14 \
-   --env synchronisation_interval=21600 \
    --env TZ=Europe/London \
    --volume icloudpd_boredazfcuk_config:/config \
    --volume /home/boredazfcuk/iCloud:/home/boredazfcuk/iCloud \
@@ -139,6 +129,8 @@ docker create \
 ```
 
 Note: Raspberry Pi users have reported that the container only functions correctly when the containes is created with the `--privileged` parameter.
+
+Once you have created your container. The configurable environment variables will be listed in the configuration file located in `/config/icloudpd.conf`
 
 ## CONFIGURING A PASSWORD
 
