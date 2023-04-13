@@ -1,7 +1,7 @@
 # docker-icloudpd
 An Alpine Linux Docker container for iCloud Photos Downloader. I use it for syncing the photo streams of all the iDevices in my house back to my server because it's the only way of backing up multiple devices to a single location. It uses the system keyring to securely store credentials, has HEIC to JPG conversion capability, and can send Telegram, Prowl, Pushover, WebHook, DingTalk, Discord, openhab, IYUU and WeCom notifications.
 
-# Configuring environment variables
+## Configuring environment variables
 Environment variables can, for the time being, be used to configure the Docker container. However, they will be used to write a configuration file "/config/icloudpd.conf" and the variables will be loaded from there. I fyou find that some things are still being set, even though you have removed the variables from the container, it could be that they are still located in the configuration file.
 
 ## MANDATORY ENVIRONMENT VARIABLES
