@@ -61,6 +61,63 @@ initialise_config_file(){
       if [ "$(grep -c "wecom_proxy=" "${config_file}")" -eq 0 ]; then echo wecom_proxy="${wecom_proxy}"; fi
       if [ "$(grep -c "wecom_secret=" "${config_file}")" -eq 0 ]; then echo wecom_secret="${wecom_secret}"; fi
    } >> "${config_file}"
+   if [ "${apple_id}" ]; then sed -i "s%^apple_id=.*%apple_id=${apple_id}%" "${config_file}"; fi
+   if [ "${authentication_type}" ]; then sed -i "s%^authentication_type=.*%authentication_type=${authentication_type}%" "${config_file}"; fi
+   if [ "${auth_china}" ]; then sed -i "s%^auth_china=.*%auth_china=${auth_china}%" "${config_file}"; fi
+   if [ "${auto_delete}" ]; then sed -i "s%^auto_delete=.*%auto_delete=${auto_delete}%" "${config_file}"; fi
+   if [ "${bark_device_key}" ]; then sed -i "s%^bark_device_key=.*%bark_device_key=${bark_device_key}%" "${config_file}"; fi
+   if [ "${bark_server}" ]; then sed -i "s%^bark_server=.*%bark_server=${bark_server}%" "${config_file}"; fi
+   if [ "${convert_heic_to_jpeg}" ]; then sed -i "s%^convert_heic_to_jpeg=.*%convert_heic_to_jpeg=${convert_heic_to_jpeg}%" "${config_file}"; fi
+   if [ "${debug_logging}" ]; then sed -i "s%^debug_logging=.*%debug_logging=${debug_logging}%" "${config_file}"; fi
+   if [ "${delete_accompanying}" ]; then sed -i "s%^delete_accompanying=.*%delete_accompanying=${delete_accompanying}%" "${config_file}"; fi
+   # if [ "${delete_after_download}" ]; then sed -i "s%^delete_after_download=.*%delete_after_download=${delete_after_download}%" "${config_file}"; fi
+   if [ "${delete_notification}" ]; then sed -i "s%^delete_notification=.*%delete_notification=${delete_notification}%" "${config_file}"; fi
+   if [ "${dingtalk_token}" ]; then sed -i "s%^dingtalk_token=.*%dingtalk_token=${dingtalk_token}%" "${config_file}"; fi
+   if [ "${directory_permissions}" ]; then sed -i "s%^directory_permissions=.*%directory_permissions=${directory_permissions}%" "${config_file}"; fi
+   if [ "${discord_id}" ]; then sed -i "s%^discord_id=.*%discord_id=${discord_id}%" "${config_file}"; fi
+   if [ "${discord_token}" ]; then sed -i "s%^discord_token=.*%discord_token=${discord_token}%" "${config_file}"; fi
+   if [ "${download_notifications}" ]; then sed -i "s%^download_notifications=.*%download_notifications=${download_notifications}%" "${config_file}"; fi
+   if [ "${download_path}" ]; then sed -i "s%^download_path=.*%download_path=${download_path}%" "${config_file}"; fi
+   if [ "${file_permissions}" ]; then sed -i "s%^file_permissions=.*%file_permissions=${file_permissions}%" "${config_file}"; fi
+   if [ "${folder_structure}" ]; then sed -i "s%^folder_structure=.*%folder_structure=${folder_structure}%" "${config_file}"; fi
+   if [ "${gotify_app_token}" ]; then sed -i "s%^gotify_app_token=.*%gotify_app_token=${gotify_app_token}%" "${config_file}"; fi
+   if [ "${group}" ]; then sed -i "s%^group=.*%group=${group}%" "${config_file}"; fi
+   if [ "${group_id}" ]; then sed -i "s%^group_id=.*%group_id=${group_id}%" "${config_file}"; fi
+   if [ "${icloud_china}" ]; then sed -i "s%^icloud_china=.*%icloud_china=${icloud_china}%" "${config_file}"; fi
+   if [ "${iyuu_token}" ]; then sed -i "s%^iyuu_token=.*%iyuu_token=${iyuu_token}%" "${config_file}"; fi
+   if [ "${jpeg_path}" ]; then sed -i "s%^jpeg_path=.*%jpeg_path=${jpeg_path}%" "${config_file}"; fi
+   if [ "${jpeg_quality}" ]; then sed -i "s%^jpeg_quality=.*%jpeg_quality=${jpeg_quality}%" "${config_file}"; fi
+   if [ "${notification_days}" ]; then sed -i "s%^notification_days=.*%notification_days=${notification_days}%" "${config_file}"; fi
+   if [ "${notification_type}" ]; then sed -i "s%^notification_type=.*%notification_type=${notification_type}%" "${config_file}"; fi
+   if [ "${photo_album}" ]; then sed -i "s%^photo_album=.*%photo_album=${photo_album}%" "${config_file}"; fi
+   if [ "${photo_library}" ]; then sed -i "s%^photo_library=.*%photo_library=${photo_library}%" "${config_file}"; fi
+   if [ "${photo_size}" ]; then sed -i "s%^photo_size=.*%photo_size=${photo_size}%" "${config_file}"; fi
+   if [ "${prowl_api_key}" ]; then sed -i "s%^prowl_api_key=.*%prowl_api_key=${prowl_api_key}%" "${config_file}"; fi
+   if [ "${pushover_sound}" ]; then sed -i "s%^pushover_sound=.*%pushover_sound=${pushover_sound}%" "${config_file}"; fi
+   if [ "${pushover_token}" ]; then sed -i "s%^pushover_token=.*%pushover_token=${pushover_token}%" "${config_file}"; fi
+   if [ "${pushover_user}" ]; then sed -i "s%^pushover_user=.*%pushover_user=${pushover_user}%" "${config_file}"; fi
+   if [ "${recent_only}" ]; then sed -i "s%^recent_only=.*%recent_only=${recent_only}%" "${config_file}"; fi
+   if [ "${set_exif_datetime}" ]; then sed -i "s%^set_exif_datetime=.*%set_exif_datetime=${set_exif_datetime}%" "${config_file}"; fi
+   if [ "${single_pass}" ]; then sed -i "s%^single_pass=.*%single_pass=${single_pass}%" "${config_file}"; fi
+   if [ "${skip_check}" ]; then sed -i "s%^skip_check=.*%skip_check=${skip_check}%" "${config_file}"; fi
+   if [ "${skip_live_photos}" ]; then sed -i "s%^skip_live_photos=.*%skip_live_photos=${skip_live_photos}%" "${config_file}"; fi
+   if [ "${synchronisation_delay}" ]; then sed -i "s%^synchronisation_delay=.*%synchronisation_delay=${synchronisation_delay}%" "${config_file}"; fi
+   if [ "${synchronisation_interval}" ]; then sed -i "s%^synchronisation_interval=.*%synchronisation_interval=${synchronisation_interval}%" "${config_file}"; fi
+   if [ "${telegram_chat_id}" ]; then sed -i "s%^telegram_chat_id=.*%telegram_chat_id=${telegram_chat_id}%" "${config_file}"; fi
+   if [ "${telegram_silent_file_notifications}" ]; then sed -i "s%^telegram_silent_file_notifications=.*%telegram_silent_file_notifications=${telegram_silent_file_notifications}%" "${config_file}"; fi
+   if [ "${telegram_token}" ]; then sed -i "s%^telegram_token=.*%telegram_token=${telegram_token}%" "${config_file}"; fi
+   if [ "${trigger_nextlcoudcli_synchronisation}" ]; then sed -i "s%^trigger_nextlcoudcli_synchronisation=.*%trigger_nextlcoudcli_synchronisation=${trigger_nextlcoudcli_synchronisation}%" "${config_file}"; fi
+   if [ "${until_found}" ]; then sed -i "s%^until_found=.*%until_found=${until_found}%" "${config_file}"; fi
+   if [ "${user}" ]; then sed -i "s%^user=.*%user=${user}%" "${config_file}"; fi
+   if [ "${user_id}" ]; then sed -i "s%^user_id=.*%user_id=${user_id}%" "${config_file}"; fi
+   if [ "${webhook_https}" ]; then sed -i "s%^webhook_https=.*%webhook_https=${webhook_https}%" "${config_file}"; fi
+   if [ "${webhook_id}" ]; then sed -i "s%^webhook_id=.*%webhook_id=${webhook_id}%" "${config_file}"; fi
+   if [ "${webhook_path}" ]; then sed -i "s%^webhook_path=.*%webhook_path=${webhook_path}%" "${config_file}"; fi
+   if [ "${webhook_port}" ]; then sed -i "s%^webhook_port=.*%webhook_port=${webhook_port}%" "${config_file}"; fi
+   if [ "${webhook_server}" ]; then sed -i "s%^webhook_server=.*%webhook_server=${webhook_server}%" "${config_file}"; fi
+   if [ "${wecom_id}" ]; then sed -i "s%^wecom_id=.*%wecom_id=${wecom_id}%" "${config_file}"; fi
+   if [ "${wecom_proxy}" ]; then sed -i "s%^wecom_proxy=.*%wecom_proxy=${wecom_proxy}%" "${config_file}"; fi
+   if [ "${wecom_secret}" ]; then sed -i "s%^wecom_secret=.*%wecom_secret=${wecom_secret}%" "${config_file}"; fi
    mv "${config_file}" "${config_file}.tmp"
    sort "${config_file}.tmp" --output="${config_file}"
    chmod --reference="${config_file}.tmp" "${config_file}"
@@ -274,6 +331,9 @@ Initialise(){
       LogWarning "Downloading from icloud.com.cn is untested. Please report issues at https://github.com/boredazfcuk/docker-icloudpd/issues"
       if [ -z "${auth_china}" ] || [ "${auth_china}" = true ]; then
          auth_domain="cn"
+      fi
+      if [ "${auth_china}" = false ]; then
+         LogWarning "You have the icloud_china variable set, but auth_china is false. Are you sure this is correct?"
       fi
    fi
    LogDebug "Authentication domain: ${auth_domain:=com}"
