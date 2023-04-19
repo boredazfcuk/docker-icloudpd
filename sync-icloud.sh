@@ -1,7 +1,7 @@
 #!/bin/ash
 
 ##### Functions #####
-initialise_config_file(){
+initialise_config_file() {
    {
       if [ "$(grep -c "apple_id=" "${config_file}")" -eq 0 ]; then echo apple_id="${apple_id}"; fi
       if [ "$(grep -c "authentication_type=" "${config_file}")" -eq 0 ]; then echo authentication_type="${authentication_type:=2FA}"; fi
@@ -12,7 +12,7 @@ initialise_config_file(){
       if [ "$(grep -c "convert_heic_to_jpeg=" "${config_file}")" -eq 0 ]; then echo convert_heic_to_jpeg="${convert_heic_to_jpeg:=false}"; fi
       if [ "$(grep -c "debug_logging=" "${config_file}")" -eq 0 ]; then echo debug_logging="${debug_logging:=false}"; fi
       if [ "$(grep -c "delete_accompanying=" "${config_file}")" -eq 0 ]; then echo delete_accompanying="${delete_accompanying:=false}"; fi
-      # if [ "$(grep -c "delete_after_download=" "${config_file}")" -eq 0 ]; then echo delete_after_download="${delete_after_download:=false}"; fi
+      if [ "$(grep -c "delete_after_download=" "${config_file}")" -eq 0 ]; then echo delete_after_download="${delete_after_download:=false}"; fi
       if [ "$(grep -c "delete_notifications=" "${config_file}")" -eq 0 ]; then echo delete_notifications="${delete_notifications:=true}"; fi
       if [ "$(grep -c "dingtalk_token=" "${config_file}")" -eq 0 ]; then echo dingtalk_token="${dingtalk_token}"; fi
       if [ "$(grep -c "directory_permissions=" "${config_file}")" -eq 0 ]; then echo directory_permissions="${directory_permissions:=750}"; fi
@@ -60,7 +60,7 @@ initialise_config_file(){
       if [ "$(grep -c "wecom_id=" "${config_file}")" -eq 0 ]; then echo wecom_id="${wecom_id}"; fi
       if [ "$(grep -c "wecom_proxy=" "${config_file}")" -eq 0 ]; then echo wecom_proxy="${wecom_proxy}"; fi
       if [ "$(grep -c "wecom_secret=" "${config_file}")" -eq 0 ]; then echo wecom_secret="${wecom_secret}"; fi
-   } >> "${config_file}"
+   } >>"${config_file}"
    if [ "${apple_id}" ]; then sed -i "s%^apple_id=.*%apple_id=${apple_id}%" "${config_file}"; fi
    if [ "${authentication_type}" ]; then sed -i "s%^authentication_type=.*%authentication_type=${authentication_type}%" "${config_file}"; fi
    if [ "${auth_china}" ]; then sed -i "s%^auth_china=.*%auth_china=${auth_china}%" "${config_file}"; fi
@@ -70,7 +70,7 @@ initialise_config_file(){
    if [ "${convert_heic_to_jpeg}" ]; then sed -i "s%^convert_heic_to_jpeg=.*%convert_heic_to_jpeg=${convert_heic_to_jpeg}%" "${config_file}"; fi
    if [ "${debug_logging}" ]; then sed -i "s%^debug_logging=.*%debug_logging=${debug_logging}%" "${config_file}"; fi
    if [ "${delete_accompanying}" ]; then sed -i "s%^delete_accompanying=.*%delete_accompanying=${delete_accompanying}%" "${config_file}"; fi
-   # if [ "${delete_after_download}" ]; then sed -i "s%^delete_after_download=.*%delete_after_download=${delete_after_download}%" "${config_file}"; fi
+   if [ "${delete_after_download}" ]; then sed -i "s%^delete_after_download=.*%delete_after_download=${delete_after_download}%" "${config_file}"; fi
    if [ "${delete_notification}" ]; then sed -i "s%^delete_notification=.*%delete_notification=${delete_notification}%" "${config_file}"; fi
    if [ "${dingtalk_token}" ]; then sed -i "s%^dingtalk_token=.*%dingtalk_token=${dingtalk_token}%" "${config_file}"; fi
    if [ "${directory_permissions}" ]; then sed -i "s%^directory_permissions=.*%directory_permissions=${directory_permissions}%" "${config_file}"; fi
@@ -127,7 +127,7 @@ initialise_config_file(){
    sed -i "s/=False/=false/g" "${config_file}"
 }
 
-Initialise(){
+Initialise() {
    config_file="${config_dir}/icloudpd.conf"
    initialise_config_file
    source "${config_file}"
@@ -159,13 +159,13 @@ Initialise(){
       icloud_domain="icloud.com"
    fi
    case "${synchronisation_interval:=86400}" in
-      21600) synchronisation_interval=21600;; # 6 hours
-      43200) synchronisation_interval=43200;; # 12 hours
-      86400) synchronisation_interval=86400;; # 24 hours
-      129600) synchronisation_interval=129600;; # 36 hours
-      172800) synchronisation_interval=172800;; # 48 hours
-      604800) synchronisation_interval=604800;; # 7 days
-      *) synchronisation_interval=86400;; # 24 hours
+   21600) synchronisation_interval=21600 ;;   # 6 hours
+   43200) synchronisation_interval=43200 ;;   # 12 hours
+   86400) synchronisation_interval=86400 ;;   # 24 hours
+   129600) synchronisation_interval=129600 ;; # 36 hours
+   172800) synchronisation_interval=172800 ;; # 48 hours
+   604800) synchronisation_interval=604800 ;; # 7 days
+   *) synchronisation_interval=86400 ;;       # 24 hours
    esac
    if [ "${synchronisation_delay:=0}" -gt 60 ]; then
       synchronisation_delay=60
@@ -209,7 +209,7 @@ Initialise(){
       fi
       sleep 10
       icloud_dot_com="$(nslookup -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
-      dns_counter=$((dns_counter+1))
+      dns_counter=$((dns_counter + 1))
       if [ "${dns_counter}" = 12 ]; then
          LogError "Cannot find ${icloud_domain} IP address. Please check your DNS settings - exiting"
          sleep 120
@@ -217,7 +217,10 @@ Initialise(){
       fi
    done
    LogDebug "IP address for ${icloud_domain}: ${icloud_dot_com}"
-   if [ "$(traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>/tmp/icloudpd/icloudpd_tracert.err; echo $?)" = 1 ]; then
+   if [ "$(
+      traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>/tmp/icloudpd/icloudpd_tracert.err
+      echo $?
+   )" = 1 ]; then
       LogError "No route to ${icloud_domain} found. Please check your container's network settings - exiting"
       LogError "Error debug - $(cat /tmp/icloudpd/icloudpd_tracert.err)"
       sleep 120
@@ -266,12 +269,12 @@ Initialise(){
    LogInfo "Synchronisation delay (minutes): ${synchronisation_delay}"
    LogInfo "Set EXIF date/time: ${set_exif_datetime:=false}"
    LogInfo "Auto delete: ${auto_delete:=false}"
-   # LogInfo "Delete after download: ${delete_after_download:=false}"
-   # if [ "${auto_delete}" != false ] && [ "${delete_after_download}" != false ]; then
-      # LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
-      # sleep 120
-      # exit 1
-   # fi
+   LogInfo "Delete after download: ${delete_after_download:=false}"
+   if [ "${auto_delete}" != false ] && [ "${delete_after_download}" != false ]; then
+      LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
+      sleep 120
+      exit 1
+   fi
    LogInfo "Photo size: ${photo_size:=original}"
    LogInfo "Single pass mode: ${single_pass:=false}"
    if [ "${single_pass}" = true ]; then
@@ -356,25 +359,25 @@ Initialise(){
    fi
 }
 
-LogInfo(){
+LogInfo() {
    local log_message
    log_message="${1}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${log_message}"
 }
 
-LogWarning(){
+LogWarning() {
    local log_message
    log_message="${1}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  ${log_message}"
 }
 
-LogError(){
+LogError() {
    local log_message
    log_message="${1}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${log_message}"
 }
 
-LogDebug(){
+LogDebug() {
    if [ "${debug_logging}" = true ]; then
       local log_message
       log_message="${1}"
@@ -382,7 +385,7 @@ LogDebug(){
    fi
 }
 
-ConfigureNotifications(){
+ConfigureNotifications() {
    if [ -z "${prowl_api_key}" ] && [ -z "${pushover_token}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ] && [ -z "${dingtalk_token}" ] && [ -z "${discord_token}" ] && [ -z "${iyuu_token}" ] && [ -z "${wecom_secret}" ] && [ -z "${gotify_app_token}" ] && [ -z "${bark_device_key}" ]; then
       LogWarning "${notification_type} notifications enabled, but API key/token/secret not set - disabling notifications"
       unset notification_type
@@ -412,17 +415,18 @@ ConfigureNotifications(){
          fi
          if [ "${pushover_sound}" ]; then
             case "${pushover_sound}" in
-               pushover|bike|bugle|cashregister|classical|cosmic|falling|gamelan|incoming|intermission|magic|mechanical|pianobar|siren|spacealarm|tugboat|alien|climb|persistent|echo|updown|vibrate|none)
-                  LogDebug "${notification_type} sound: ${pushover_sound}"
+            pushover | bike | bugle | cashregister | classical | cosmic | falling | gamelan | incoming | intermission | magic | mechanical | pianobar | siren | spacealarm | tugboat | alien | climb | persistent | echo | updown | vibrate | none)
+               LogDebug "${notification_type} sound: ${pushover_sound}"
                ;;
-               *)
-                  LogDebug "${notification_type} sound not recognised. Using default"
-                  unset pushover_sound
+            *)
+               LogDebug "${notification_type} sound not recognised. Using default"
+               unset pushover_sound
+               ;;
             esac
          fi
          notification_url="https://api.pushover.net/1/messages.json"
       elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
-         if [ "${telegram_server}" ] ; then
+         if [ "${telegram_server}" ]; then
             notification_url="https://${telegram_server}/bot${telegram_token}/sendMessage"
          else
             notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
@@ -563,7 +567,7 @@ ConfigureNotifications(){
    fi
 }
 
-CreateGroup(){
+CreateGroup() {
    if [ "$(grep -c "^${group}:x:${group_id}:" "/etc/group")" -eq 1 ]; then
       LogDebug "Group, ${group}:${group_id}, already created"
    else
@@ -587,7 +591,7 @@ CreateGroup(){
    fi
 }
 
-CreateUser(){
+CreateUser() {
    if [ "$(grep -c "^${user}:x:${user_id}:${group_id}" "/etc/passwd")" -eq 1 ]; then
       LogDebug "User, ${user}:${user_id}, already created"
    else
@@ -606,7 +610,7 @@ CreateUser(){
    fi
 }
 
-ListLibraries(){
+ListLibraries() {
    LogInfo "Shared libraries available:"
    source /opt/icloudpd_v1.12.0/bin/activate
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
@@ -617,7 +621,7 @@ ListLibraries(){
    done
 }
 
-DeletePassword(){
+DeletePassword() {
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
       LogWarning "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but --RemoveKeyring command line switch has been invoked. Removing in 30 seconds"
       if [ -z "${warnings_acknowledged}" ]; then
@@ -631,7 +635,7 @@ DeletePassword(){
    fi
 }
 
-ConfigurePassword(){
+ConfigurePassword() {
    LogDebug "Configure password"
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ] && [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
       LogDebug "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing"
@@ -676,7 +680,7 @@ ConfigurePassword(){
    fi
 }
 
-GenerateCookie(){
+GenerateCookie() {
    LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
    find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
    LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
@@ -710,7 +714,7 @@ GenerateCookie(){
    fi
 }
 
-CheckMount(){
+CheckMount() {
    LogInfo "Check download directory mounted correctly..."
    if [ ! -f "${download_path}/.mounted" ]; then
       LogWarning "Failsafe file ${download_path}/.mounted file is not present. Waiting for failsafe file to be created..."
@@ -728,7 +732,7 @@ CheckMount(){
    LogInfo "Failsafe file ${download_path}/.mounted exists, continuing"
 }
 
-SetOwnerAndPermissionsConfig(){
+SetOwnerAndPermissionsConfig() {
    LogDebug "Correct owner on icloudpd temp directory, if required"
    find "/tmp/icloudpd" ! -user "${user}" -exec chown "${user}" {} +
    LogDebug "Correct group on icloudpd temp directory, if required"
@@ -743,7 +747,7 @@ SetOwnerAndPermissionsConfig(){
    find "/home/${user}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
 }
 
-SetOwnerAndPermissionsDownloads(){
+SetOwnerAndPermissionsDownloads() {
    LogDebug "Set owner on iCloud directory, if required"
    find "${download_path}" ! -type l ! -user "${user}" -exec chown "${user}" {} +
    LogDebug "Set group on iCloud directory, if required"
@@ -754,7 +758,7 @@ SetOwnerAndPermissionsDownloads(){
    find "${download_path}" -type f ! -perm "${file_permissions}" -exec chmod "${file_permissions}" '{}' +
 }
 
-CheckWebCookie(){
+CheckWebCookie() {
    if [ -f "${config_dir}/${cookie_file}" ]; then
       web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    else
@@ -777,14 +781,14 @@ CheckWebCookie(){
    fi
 }
 
-Check2FACookie(){
+Check2FACookie() {
    if [ -f "${config_dir}/${cookie_file}" ]; then
       LogDebug "Cookie exists, check expiry date"
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
          twofa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
          twofa_expire_seconds="$(date -d "${twofa_expire_date}" '+%s')"
          days_remaining="$(($((twofa_expire_seconds - $(date '+%s'))) / 86400))"
-         echo "${days_remaining}" > "${config_dir}/DAYS_REMAINING"
+         echo "${days_remaining}" >"${config_dir}/DAYS_REMAINING"
          if [ "${days_remaining}" -gt 0 ]; then
             valid_twofa_cookie=true
             LogDebug "Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
@@ -837,7 +841,7 @@ Check2FACookie(){
    fi
 }
 
-Display2FAExpiry(){
+Display2FAExpiry() {
    local error_message
    LogInfo "Two factor authentication cookie expires: ${twofa_expire_date/ / @ }"
    LogInfo "Days remaining until expiration: ${days_remaining}"
@@ -870,7 +874,7 @@ Display2FAExpiry(){
    fi
 }
 
-CheckFiles(){
+CheckFiles() {
    if [ -f "/tmp/icloudpd/icloudpd_check.log" ]; then rm "/tmp/icloudpd/icloudpd_check.log"; fi
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
@@ -878,7 +882,7 @@ CheckFiles(){
    source /opt/icloudpd_v1.12.0/bin/activate
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
    su "${user}" -c '(icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --domain "${3}" --folder-structure "${4}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${auth_domain}" "${folder_structure}"
-      check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
+   check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    deactivate
    if [ "${check_exit_code}" -ne 0 ]; then
       LogError "Failed check for new files files"
@@ -905,7 +909,7 @@ CheckFiles(){
    login_counter=$((login_counter + 1))
 }
 
-DownloadedFilesNotification(){
+DownloadedFilesNotification() {
    local new_files_count new_files_preview new_files_text
    new_files="$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
@@ -929,7 +933,7 @@ DownloadedFilesNotification(){
    fi
 }
 
-DeletedFilesNotification(){
+DeletedFilesNotification() {
    local deleted_files deleted_files_count deleted_files_preview deleted_files_text
    deleted_files="$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
    deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
@@ -953,7 +957,7 @@ DeletedFilesNotification(){
    fi
 }
 
-ConvertDownloadedHEIC2JPEG(){
+ConvertDownloadedHEIC2JPEG() {
    IFS="$(echo -en "\n\b")"
    LogInfo "Convert HEIC to JPEG..."
    for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
@@ -978,7 +982,7 @@ ConvertDownloadedHEIC2JPEG(){
    IFS="${save_ifs}"
 }
 
-SynologyPhotosAppFix(){
+SynologyPhotosAppFix() {
    # Works for onestix. Do not obsolete
    IFS="$(echo -en "\n\b")"
    LogInfo "Fixing Synology Photos App import issue..."
@@ -997,7 +1001,7 @@ SynologyPhotosAppFix(){
    IFS="${save_ifs}"
 }
 
-ConvertAllHEICs(){
+ConvertAllHEICs() {
    IFS="$(echo -en "\n\b")"
    LogInfo "Convert all HEICs to JPEG, if required..."
    for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
@@ -1021,7 +1025,7 @@ ConvertAllHEICs(){
    IFS="${save_ifs}"
 }
 
-RemoveAllJPGs(){
+RemoveAllJPGs() {
    IFS="$(echo -en "\n\b")"
    LogWarning "Remove all JPGs that have accompanying HEIC files. This could result in data loss if HEIC file name matches the JPG file name, but content does not."
    LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
@@ -1039,7 +1043,7 @@ RemoveAllJPGs(){
    IFS="${save_ifs}"
 }
 
-ForceConvertAllHEICs(){
+ForceConvertAllHEICs() {
    IFS="$(echo -en "\n\b")"
    LogWarning "Force convert all HEICs to JPEG. This could result in data loss if JPG files have been edited on disk"
    LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
@@ -1062,7 +1066,7 @@ ForceConvertAllHEICs(){
    IFS="${save_ifs}"
 }
 
-ForceConvertAllmntHEICs(){
+ForceConvertAllmntHEICs() {
    IFS="$(echo -en "\n\b")"
    LogWarning "Force convert all HEICs in /mnt directory to JPEG. This could result in data loss if JPG files have been edited on disk"
    LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
@@ -1085,7 +1089,7 @@ ForceConvertAllmntHEICs(){
    IFS="${save_ifs}"
 }
 
-CorrectJPEGTimestamps(){
+CorrectJPEGTimestamps() {
    IFS="$(echo -en "\n\b")"
    LogInfo "Check and correct converted HEIC timestamps..."
    for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
@@ -1110,7 +1114,7 @@ CorrectJPEGTimestamps(){
    IFS="${save_ifs}"
 }
 
-RemoveRecentlyDeletedAccompanyingFiles(){
+RemoveRecentlyDeletedAccompanyingFiles() {
    IFS="$(echo -en "\n\b")"
    LogInfo "Deleting 'Recently Deleted' accompanying files (.JPG/_HEVC.MOV)..."
    for heic_file in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
@@ -1132,7 +1136,7 @@ RemoveRecentlyDeletedAccompanyingFiles(){
    IFS="${save_ifs}"
 }
 
-RemoveEmptyDirectories(){
+RemoveEmptyDirectories() {
    LogInfo "Deleting empty directories from ${download_path}..."
    find "${download_path}" -type d -empty -delete
    LogInfo "Deleting empty directories complete"
@@ -1143,7 +1147,7 @@ RemoveEmptyDirectories(){
    fi
 }
 
-Notify(){
+Notify() {
    local notification_classification notification_event notification_prority notification_message notification_result notification_files_preview_count notification_files_preview_type notification_files_preview_text
    notification_classification="${1}"
    notification_event="${2}"
@@ -1155,7 +1159,7 @@ Notify(){
    notification_wecom_title="${8}"
    notification_wecom_digest="${9}"
 
-   if [ "${notification_classification}" = "startup" ];then
+   if [ "${notification_classification}" = "startup" ]; then
       notification_icon="\xE2\x96\xB6"
       # 启动成功通知封面/Image for Startup success
       thumb_media_id="$media_id_startup"
@@ -1178,7 +1182,7 @@ Notify(){
    fi
    if [ "${notification_type}" ]; then LogInfo "Sending ${notification_type} ${notification_classification} notification"; fi
    if [ "${notification_type}" = "Prowl" ]; then
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
          --form apikey="${prowl_api_key}" \
          --form application="${notification_title}" \
          --form event="${notification_event}" \
@@ -1191,7 +1195,7 @@ Notify(){
       else
          pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}")"
       fi
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
          --form-string "user=${pushover_user}" \
          --form-string "token=${pushover_token}" \
          --form-string "title=${notification_title}" \
@@ -1209,7 +1213,7 @@ Notify(){
          --data parse_mode="markdown" \
          --data disable_notification="${telegram_disable_notification:=false}" \
          --data text="${telegram_text}")"
-         unset telegram_disable_notification
+      unset telegram_disable_notification
    elif [ "${notification_type}" = "openhab" ]; then
       webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
       notification_result="$(curl -X 'PUT' --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
@@ -1227,8 +1231,8 @@ Notify(){
          discord_text="$(echo -e "${notification_message}")"
       fi
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-            --header 'content-type: application/json' \
-            --data "{ \"username\" : \"${notification_title}\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_event}\" } , \"color\" : 2061822 , \"description\": \"${discord_text}\" } ] }")"
+         --header 'content-type: application/json' \
+         --data "{ \"username\" : \"${notification_title}\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_event}\" } , \"color\" : 2061822 , \"description\": \"${discord_text}\" } ] }")"
    elif [ "${notification_type}" = "Dingtalk" ]; then
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --header 'Content-Type: application/json' \
@@ -1274,7 +1278,7 @@ Notify(){
       fi
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
    elif [ "${notification_type}" = "Gotify" ]; then
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
          -F "title=${notification_title}" \
          -F "message=${notification_message}")"
    elif [ "${notification_type}" = "Bark" ]; then
@@ -1299,9 +1303,9 @@ Notify(){
    fi
 }
 
-CommandLineBuilder(){
+CommandLineBuilder() {
    command_line="--directory ${download_path} --cookie-directory ${config_dir} --domain ${auth_domain} --folder-structure ${folder_structure} --username ${apple_id}"
-   if [ "${photo_size}" != "original"  ]; then
+   if [ "${photo_size}" != "original" ]; then
       command_line="${command_line} --size ${photo_size}"
    fi
    if [ "${set_exif_datetime}" != false ]; then
@@ -1309,8 +1313,8 @@ CommandLineBuilder(){
    fi
    if [ "${auto_delete}" != false ]; then
       command_line="${command_line} --auto-delete"
-   # elif [ "${delete_after_download}" != false ]; then
-      # command_line="${command_line} --delete-after-download"
+   elif [ "${delete_after_download}" != false ]; then
+      command_line="${command_line} --delete-after-download"
    fi
    if [ "${skip_live_photos}" = false ]; then
       if [ "${live_photo_size}" != "original" ]; then
@@ -1335,7 +1339,7 @@ CommandLineBuilder(){
    fi
 }
 
-SyncUser(){
+SyncUser() {
    LogInfo "Sync user: ${user}"
    if [ "${synchronisation_delay}" -ne 0 ]; then
       LogInfo "Delay for ${synchronisation_delay} minutes"
@@ -1424,67 +1428,67 @@ SyncUser(){
    done
 }
 
-SanitiseLaunchParameters(){
+SanitiseLaunchParameters() {
    if [ "${script_launch_parameters}" ]; then
       case "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
-         "--initialise"|"--initialize"|"--init"|"--removekeyring"|"--convertallheics"|"--removealljpgs"|"--forceconvertallheics"|"--forceconvertallmntheics"|"--correctjpegtimestamps")
-            LogInfo "Script launch parameters: ${script_launch_parameters}"
+      "--initialise" | "--initialize" | "--init" | "--removekeyring" | "--convertallheics" | "--removealljpgs" | "--forceconvertallheics" | "--forceconvertallmntheics" | "--correctjpegtimestamps")
+         LogInfo "Script launch parameters: ${script_launch_parameters}"
          ;;
-         *)
-            LogWarning "Ignoring invalid launch parameter specified: ${script_launch_parameters}"
-            LogWarning "Please do not specify the above parameter when launching the container. Continuing in 2 minutes"
-            sleep 120
-            unset script_launch_parameters
+      *)
+         LogWarning "Ignoring invalid launch parameter specified: ${script_launch_parameters}"
+         LogWarning "Please do not specify the above parameter when launching the container. Continuing in 2 minutes"
+         sleep 120
+         unset script_launch_parameters
          ;;
       esac
    fi
 }
 
-enable_debug_logging(){
+enable_debug_logging() {
    LogInfo "Enabling Debug Logging"
    sed -i 's/debug_logging=.*/debug_logging=true/' "${config_file}"
 }
 
-disable_debug_logging(){
+disable_debug_logging() {
    LogInfo "Disabling Debug Logging"
    sed -i 's/debug_logging=.*/debug_logging=false/' "${config_file}"
 }
 
 ##### Script #####
 script_launch_parameters="${1}"
-case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
-   "--initialise"|"--initialize"|"--init")
-      initialise_container=true
-    ;;
-   "--removekeyring")
-      delete_password=true
-    ;;
-   "--convertallheics")
-      convert_all_heics=true
+case "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
+"--initialise" | "--initialize" | "--init")
+   initialise_container=true
    ;;
-   "--removealljpgs")
-      remove_all_jpgs=true
+"--removekeyring")
+   delete_password=true
    ;;
-   "--forceconvertallheics")
-      force_convert_all_heics=true
+"--convertallheics")
+   convert_all_heics=true
    ;;
-   "--forceconvertallmntheics")
-      force_convert_all_mnt_heics=true
+"--removealljpgs")
+   remove_all_jpgs=true
    ;;
-   "--correctjpegtimestamps")
-      correct_jpeg_time_stamps=true
+"--forceconvertallheics")
+   force_convert_all_heics=true
    ;;
-   "--enabledebugging")
-      enable_debugging=true
+"--forceconvertallmntheics")
+   force_convert_all_mnt_heics=true
    ;;
-   "--disabledebugging")
-      disable_debugging=true
+"--correctjpegtimestamps")
+   correct_jpeg_time_stamps=true
    ;;
-   "--listlibraries")
-      list_libraries=true
+"--enabledebugging")
+   enable_debugging=true
    ;;
-   *)
+"--disabledebugging")
+   disable_debugging=true
    ;;
+"--listlibraries")
+   list_libraries=true
+   ;;
+*) ;;
+
 esac
 Initialise
 SanitiseLaunchParameters
@@ -1530,7 +1534,7 @@ elif [ "${correct_jpeg_time_stamps}" ]; then
    CorrectJPEGTimestamps
    LogInfo "JPEG timestamp correction complete"
    exit 0
-elif [ "${list_libraries}" ];then
+elif [ "${list_libraries}" ]; then
    ListLibraries
    exit 0
 fi
