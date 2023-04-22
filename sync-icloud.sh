@@ -1438,8 +1438,8 @@ SyncUser(){
                LogDebug "Current message_id: ${current_message_id}"
                LogDebug "Latest message_id: ${latest_message_id}"
                if [ "${latest_message_id}" -gt "${current_message_id}" ]; then
-                  LogDebug "New message received: ${current_message_text}"
-                  if [ "${current_message_text,,}" = "${user,,}" ]; then
+                  LogDebug "New message received: ${latest_message_text}"
+                  if [ "${latest_message_text,,}" = "${user,,}" ]; then
                      LogDebug "Remote sync initiated"
                      current_message_id="${latest_message_id}"
                      break
