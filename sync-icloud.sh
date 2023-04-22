@@ -1428,7 +1428,7 @@ SyncUser(){
          unset check_exit_code check_files_count download_exit_code
          unset new_files
          if [ "${telegram_polling}" = true ]; then
-            LogDebug "Monitoring ${notification_type} for remote wake command: ${user}"
+            LogInfo "Monitoring ${notification_type} for remote wake command: ${user}"
             listen_counter=0
             while [ "${listen_counter}" -lt "${sleep_time}" ]; do
                latest_message="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq '.result[-1:][].message')"
