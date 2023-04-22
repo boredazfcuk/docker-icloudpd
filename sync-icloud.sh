@@ -1435,10 +1435,13 @@ SyncUser(){
                latest_message="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq '.result[-1:][].message')"
                latest_message_id="$(echo "${latest_message}" | jq .message_id)"
                latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g')"
+               LogDebug "Current message_id: ${current_message_id}"
+               LogDebug "Latest message_id: ${latest_message_id}"
                if [ "${latest_message_id}" -lt "${current_message_id}" ]; then
                   LogDebug "New message received: ${current_message_text}"
                   if [ "${current_message_text,,}" = "${user,,}" ]; then
                      LogDebug "Remote sync initiated"
+                     current_message_id="${latest_message_id}"
                      break
                   fi
                fi
