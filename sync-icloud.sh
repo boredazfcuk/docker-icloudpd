@@ -1442,6 +1442,7 @@ SyncUser(){
                   LogDebug "New message received: ${latest_message_text}"
                   if [ "${latest_message_text}" = "$(echo ${user} | tr [:upper:] [:lower:])" ]; then
                      LogDebug "Remote sync initiated"
+                     current_message_id="${latest_message_id}"
                      break
                   fi
                   current_message_id="${latest_message_id}"
