@@ -46,6 +46,7 @@ initialise_config_file(){
       if [ "$(grep -c "synchronisation_delay=" "${config_file}")" -eq 0 ]; then echo synchronisation_delay="${synchronisation_delay:=0}"; fi
       if [ "$(grep -c "synchronisation_interval=" "${config_file}")" -eq 0 ]; then echo synchronisation_interval="${synchronisation_interval:=86400}"; fi
       if [ "$(grep -c "telegram_chat_id=" "${config_file}")" -eq 0 ]; then echo telegram_chat_id="${telegram_chat_id}"; fi
+      if [ "$(grep -c "telegram_polling=" "${config_file}")" -eq 0 ]; then echo telegram_polling="${telegram_polling:=false}"; fi
       if [ "$(grep -c "telegram_silent_file_notifications=" "${config_file}")" -eq 0 ]; then echo telegram_silent_file_notifications="${telegram_silent_file_notifications}"; fi
       if [ "$(grep -c "telegram_token=" "${config_file}")" -eq 0 ]; then echo telegram_token="${telegram_token}"; fi
       if [ "$(grep -c "trigger_nextlcoudcli_synchronisation=" "${config_file}")" -eq 0 ]; then echo trigger_nextlcoudcli_synchronisation="${trigger_nextlcoudcli_synchronisation}"; fi
@@ -104,6 +105,7 @@ initialise_config_file(){
    if [ "${synchronisation_delay}" ]; then sed -i "s%^synchronisation_delay=.*%synchronisation_delay=${synchronisation_delay}%" "${config_file}"; fi
    if [ "${synchronisation_interval}" ]; then sed -i "s%^synchronisation_interval=.*%synchronisation_interval=${synchronisation_interval}%" "${config_file}"; fi
    if [ "${telegram_chat_id}" ]; then sed -i "s%^telegram_chat_id=.*%telegram_chat_id=${telegram_chat_id}%" "${config_file}"; fi
+   if [ "${telegram_polling}" ]; then sed -i "s%^telegram_polling=.*%telegram_polling=${telegram_polling}%" "${config_file}"; fi
    if [ "${telegram_silent_file_notifications}" ]; then sed -i "s%^telegram_silent_file_notifications=.*%telegram_silent_file_notifications=${telegram_silent_file_notifications}%" "${config_file}"; fi
    if [ "${telegram_token}" ]; then sed -i "s%^telegram_token=.*%telegram_token=${telegram_token}%" "${config_file}"; fi
    if [ "${trigger_nextlcoudcli_synchronisation}" ]; then sed -i "s%^trigger_nextlcoudcli_synchronisation=.*%trigger_nextlcoudcli_synchronisation=${trigger_nextlcoudcli_synchronisation}%" "${config_file}"; fi
