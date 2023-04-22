@@ -1443,7 +1443,6 @@ SyncUser(){
                   if [ "${latest_message_text}" = "$(echo ${user} | tr [:upper:] [:lower:])" ]; then
                      LogDebug "Remote sync initiated"
                      break
-LogDebug "Somehow break out of nested while loop"
                      current_message_id="${latest_message_id}"
                   fi
                fi
