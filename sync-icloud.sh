@@ -1443,8 +1443,8 @@ SyncUser(){
                   if [ "${latest_message_text}" = "$(echo ${user} | tr [:upper:] [:lower:])" ]; then
                      LogDebug "Remote sync initiated"
                      break
-                     current_message_id="${latest_message_id}"
                   fi
+                  current_message_id="${latest_message_id}"
                fi
                listen_counter=$((listen_counter+60))
                sleep 60
