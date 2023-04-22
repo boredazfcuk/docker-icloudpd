@@ -442,7 +442,7 @@ ConfigureNotifications(){
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
          if [ "${telegram_polling}" = true ]; then
-            current_message_id="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}getUpdates" | jq '.result[-1:][].message.message_id')"
+            current_message_id="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq '.result[-1:][].message.message_id')"
             LogDebug "${notification_type} current message_id: ${current_message_id}"
             LogDebug "${notification_type} remote sync command: ${user}"
          fi
