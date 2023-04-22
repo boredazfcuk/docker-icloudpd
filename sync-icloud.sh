@@ -1429,7 +1429,7 @@ SyncUser(){
          unset check_exit_code check_files_count download_exit_code
          unset new_files
          if [ "${telegram_polling}" = true ]; then
-            DebugLog "Listening for remote sync command"
+            LogDebug "Listening for remote sync command"
             listen_counter=0
             while "${listen_counter}" -lt "${sleep_time}"; do
                latest_message="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq '.result[-1:][].message')"
