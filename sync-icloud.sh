@@ -1441,7 +1441,7 @@ SyncUser(){
                   if [ "${latest_message_text,,}" = "${user,,}" ]; then
                      LogDebug "Remote sync initiated"
                      current_message_id="${latest_message_id}"
-                     break 2
+                     break 1
                   fi
                fi
                listen_counter=$((listen_counter+60))
