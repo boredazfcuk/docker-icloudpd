@@ -1445,7 +1445,7 @@ SyncUser(){
                      break
                   fi
                fi
-               listen_counter=$((listen_counter + 60))
+               listen_counter=$((listen_counter+60))
                sleep 60
             done
          fi
