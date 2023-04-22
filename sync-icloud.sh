@@ -1433,15 +1433,16 @@ SyncUser(){
             while [ "${listen_counter}" -lt "${sleep_time}" ]; do
                latest_message="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq '.result[-1:][].message')"
                latest_message_id="$(echo "${latest_message}" | jq .message_id)"
-               latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g')"
+               latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g'  | tr [:upper:] [:lower:])"
                LogDebug "Current message_id: ${current_message_id}"
                LogDebug "Latest message_id: ${latest_message_id}"
                LogDebug "Sleep time: ${sleep_time}"
                LogDebug "Listen counter: ${listen_counter}"
                if [ "${latest_message_id}" -gt "${current_message_id}" ]; then
                   LogDebug "New message received: ${latest_message_text}"
-                  if [ "${latest_message_text,,}" = "${user,,}" ]; then
+                  if [ "${latest_message_text}" = "$(echo ${user} | tr [:upper:] [:lower:])" ]; then
                      LogDebug "Remote sync initiated"
+                     break
 LogDebug "Somehow break out of nested while loop"
                      current_message_id="${latest_message_id}"
                   fi
