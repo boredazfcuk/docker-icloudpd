@@ -444,7 +444,7 @@ ConfigureNotifications(){
          if [ "${telegram_polling}" = true ]; then
             current_message_id="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}getUpdates" | jq '.result[-1:][].message.message_id')"
             LogDebug "${notification_type} current message_id: ${current_message_id}"
-            LogDebug "${notification_type} remote sync name: ${HOSTNAME}"
+            LogDebug "${notification_type} remote sync command: ${user}"
          fi
          if [ "${telegram_silent_file_notifications}" ]; then telegram_silent_file_notifications=true; fi
          LogDebug "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=false}"
@@ -1431,13 +1431,13 @@ SyncUser(){
          if [ "${telegram_polling}" = true ]; then
             LogDebug "Listening for remote sync command"
             listen_counter=0
-            while "${listen_counter}" -lt "${sleep_time}"; do
+            while [ "${listen_counter}" -lt "${sleep_time}" ]; do
                latest_message="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq '.result[-1:][].message')"
                latest_message_id="$(echo "${latest_message}" | jq .message_id)"
                latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g')"
                if [ "${previous_message_id}" -lt "${current_message_id}" ]; then
                   LogDebug "New message received: ${current_message_text}"
-                  if [ "${current_message_text}" = "${HOSTNAME}" ]; then
+                  if [ "${current_message_text,,}" = "${user,,}" ]; then
                      LogDebug "Remote sync initiated"
                      break
                   fi
