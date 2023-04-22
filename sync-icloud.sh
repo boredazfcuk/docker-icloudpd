@@ -1436,19 +1436,22 @@ SyncUser(){
                latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g')"
                LogDebug "Current message_id: ${current_message_id}"
                LogDebug "Latest message_id: ${latest_message_id}"
+               LogDebug "Sleep time: ${sleep_time}"
+               LogDebug "Listen counter: ${listen_counter}"
                if [ "${latest_message_id}" -gt "${current_message_id}" ]; then
                   LogDebug "New message received: ${latest_message_text}"
                   if [ "${latest_message_text,,}" = "${user,,}" ]; then
                      LogDebug "Remote sync initiated"
+LogDebug "Somehow break out of nested while loop"
                      current_message_id="${latest_message_id}"
-                     break 1
                   fi
                fi
                listen_counter=$((listen_counter+60))
                sleep 60
             done
+         else
+            sleep "${sleep_time}"
          fi
-         sleep "${sleep_time}"
       fi
    done
 }
