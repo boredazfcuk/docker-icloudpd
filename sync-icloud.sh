@@ -1431,7 +1431,7 @@ SyncUser(){
          if [ "${telegram_polling}" = true ]; then
             LogDebug "Listening for remote sync command"
             listen_counter=0
-            while [ "${listen_counter}" -lt "${sleep_time}" ]; do
+            while [ "${listen_counter}" -lt "${synchronisation_interval}" ]; do
                latest_message="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq '.result[-1:][].message')"
                latest_message_id="$(echo "${latest_message}" | jq .message_id)"
                latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g')"
