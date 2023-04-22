@@ -18,6 +18,10 @@ The README on Dockerhub has a hard limit of 25,000 characters, and I'd hit this 
 
 **telegram_chat_id**: Mandatory if notification_type set to 'Telegram'. This is the chat_id for your Telegram bot. If the bot is a standard user that messages you, the chat ID will be a positive integer number. If the bot is a member of a group, and sends messages to the group, the chat ID will be prefixed with a hyphen '-' character.
 
+**telegram_silent_file_notifications**: Optional if notification_type set to 'Telegram'. Set this to **true** for the file download notifications to be sent silently. Default = false
+
+**telegram_polling**: Optional if notification_type set to 'Telegram'. Set this to true to enable Telegram polling. This will check the Telegram chat for messages every 60 seconds. If the latest message is the user name, it will synchronise immediately
+
 **telegram_server**: Optional if notification_type set to 'Telegram'. If Telegram is blocked in your country and you need to use a proxy server to access it, put the fully qualified domain name of the server here.
 
 **webhook_server**: Mandatory if notification_type set to 'Webhook' or 'openhab' then this is the name of the server to connect to when sending webhook notifications.

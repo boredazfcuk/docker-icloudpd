@@ -12,7 +12,7 @@ initialise_config_file(){
       if [ "$(grep -c "convert_heic_to_jpeg=" "${config_file}")" -eq 0 ]; then echo convert_heic_to_jpeg="${convert_heic_to_jpeg:=false}"; fi
       if [ "$(grep -c "debug_logging=" "${config_file}")" -eq 0 ]; then echo debug_logging="${debug_logging:=false}"; fi
       if [ "$(grep -c "delete_accompanying=" "${config_file}")" -eq 0 ]; then echo delete_accompanying="${delete_accompanying:=false}"; fi
-      # if [ "$(grep -c "delete_after_download=" "${config_file}")" -eq 0 ]; then echo delete_after_download="${delete_after_download:=false}"; fi
+      if [ "$(grep -c "delete_after_download=" "${config_file}")" -eq 0 ]; then echo delete_after_download="${delete_after_download:=false}"; fi
       if [ "$(grep -c "delete_notifications=" "${config_file}")" -eq 0 ]; then echo delete_notifications="${delete_notifications:=true}"; fi
       if [ "$(grep -c "dingtalk_token=" "${config_file}")" -eq 0 ]; then echo dingtalk_token="${dingtalk_token}"; fi
       if [ "$(grep -c "directory_permissions=" "${config_file}")" -eq 0 ]; then echo directory_permissions="${directory_permissions:=750}"; fi
@@ -46,7 +46,7 @@ initialise_config_file(){
       if [ "$(grep -c "synchronisation_delay=" "${config_file}")" -eq 0 ]; then echo synchronisation_delay="${synchronisation_delay:=0}"; fi
       if [ "$(grep -c "synchronisation_interval=" "${config_file}")" -eq 0 ]; then echo synchronisation_interval="${synchronisation_interval:=86400}"; fi
       if [ "$(grep -c "telegram_chat_id=" "${config_file}")" -eq 0 ]; then echo telegram_chat_id="${telegram_chat_id}"; fi
-      if [ "$(grep -c "telegram_polling=" "${config_file}")" -eq 0 ]; then echo telegram_polling="${telegram_polling:=false}"; fi
+      if [ "$(grep -c "telegram_polling=" "${config_file}")" -eq 0 ]; then echo telegram_polling="${telegram_polling:=true}"; fi
       if [ "$(grep -c "telegram_silent_file_notifications=" "${config_file}")" -eq 0 ]; then echo telegram_silent_file_notifications="${telegram_silent_file_notifications}"; fi
       if [ "$(grep -c "telegram_token=" "${config_file}")" -eq 0 ]; then echo telegram_token="${telegram_token}"; fi
       if [ "$(grep -c "trigger_nextlcoudcli_synchronisation=" "${config_file}")" -eq 0 ]; then echo trigger_nextlcoudcli_synchronisation="${trigger_nextlcoudcli_synchronisation}"; fi
@@ -71,7 +71,7 @@ initialise_config_file(){
    if [ "${convert_heic_to_jpeg}" ]; then sed -i "s%^convert_heic_to_jpeg=.*%convert_heic_to_jpeg=${convert_heic_to_jpeg}%" "${config_file}"; fi
    if [ "${debug_logging}" ]; then sed -i "s%^debug_logging=.*%debug_logging=${debug_logging}%" "${config_file}"; fi
    if [ "${delete_accompanying}" ]; then sed -i "s%^delete_accompanying=.*%delete_accompanying=${delete_accompanying}%" "${config_file}"; fi
-   # if [ "${delete_after_download}" ]; then sed -i "s%^delete_after_download=.*%delete_after_download=${delete_after_download}%" "${config_file}"; fi
+   if [ "${delete_after_download}" ]; then sed -i "s%^delete_after_download=.*%delete_after_download=${delete_after_download}%" "${config_file}"; fi
    if [ "${delete_notification}" ]; then sed -i "s%^delete_notification=.*%delete_notification=${delete_notification}%" "${config_file}"; fi
    if [ "${dingtalk_token}" ]; then sed -i "s%^dingtalk_token=.*%dingtalk_token=${dingtalk_token}%" "${config_file}"; fi
    if [ "${directory_permissions}" ]; then sed -i "s%^directory_permissions=.*%directory_permissions=${directory_permissions}%" "${config_file}"; fi
@@ -124,7 +124,6 @@ initialise_config_file(){
    sort "${config_file}.tmp" --output="${config_file}"
    chmod --reference="${config_file}.tmp" "${config_file}"
    rm "${config_file}.tmp"
-   sed -i "/delete_after_download=/d" "${config_file}"
    sed -i "s/=True/=true/g" "${config_file}"
    sed -i "s/=False/=false/g" "${config_file}"
 }
@@ -268,12 +267,12 @@ Initialise(){
    LogInfo "Synchronisation delay (minutes): ${synchronisation_delay}"
    LogInfo "Set EXIF date/time: ${set_exif_datetime:=false}"
    LogInfo "Auto delete: ${auto_delete:=false}"
-   # LogInfo "Delete after download: ${delete_after_download:=false}"
-   # if [ "${auto_delete}" != false ] && [ "${delete_after_download}" != false ]; then
-      # LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
-      # sleep 120
-      # exit 1
-   # fi
+   LogInfo "Delete after download: ${delete_after_download:=false}"
+   if [ "${auto_delete}" != false ] && [ "${delete_after_download}" != false ]; then
+      LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
+      sleep 120
+      exit 1
+   fi
    LogInfo "Photo size: ${photo_size:=original}"
    LogInfo "Single pass mode: ${single_pass:=false}"
    if [ "${single_pass}" = true ]; then
@@ -1317,8 +1316,8 @@ CommandLineBuilder(){
    fi
    if [ "${auto_delete}" != false ]; then
       command_line="${command_line} --auto-delete"
-   # elif [ "${delete_after_download}" != false ]; then
-      # command_line="${command_line} --delete-after-download"
+   elif [ "${delete_after_download}" != false ]; then
+      command_line="${command_line} --delete-after-download"
    fi
    if [ "${skip_live_photos}" = false ]; then
       if [ "${live_photo_size}" != "original" ]; then

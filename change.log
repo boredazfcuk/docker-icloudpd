@@ -1,3 +1,10 @@
+202304022
+
+ - Change: So, I messed up and accidentally pushed a version I was working on, to Dockerhub and to Github, which contained my Telegram API token. I had to delete the latest tag from Dockerhub, reset the master branch on GitHub and rotate my Telegram token. What a pain in the arse. That means this latest version is a little rushed, so don't be surprised if it's broken. It does bring within it a cracking new feature though... I've now coded it so it polls the Telegram chat (the one it normally sends notifications to), and if the latest message is the same as the **user** variable, it will force an immediate sync. That way, if you've taken a load of photos on your phone, you can tell your NAS at home to sync the queue once you're done.
+ - Change: This is just a change to the documentation. There has been a variable for Telegram **telegram_silent_file_notifications** which sends the telegram notifications for download/delete previews silenetly, I just noticed it's not been documented so I thought I'd change that.
+ - Change: I've re-enabled the **delete_after_download** option as it's been implemented correctly upstream and newly released.
+ - Change: I've also removed the i386 build platform from my images. They're failing to compile as they can't build a wheel for cryptography. I'm hoping nobody complains, but it they do I'll look at trying to re-add it in.
+
 20230410
 
  - Change: So many changes, I've forgotten most of them... Um... now I use Python virtual environments to install mutliple versions of icloud-photos-downloader... It incorporates v1.12.0, which is used for downloading photos globally. It also uses a modified version of v1.7.3 which allows authentication against the China servers. Also rebased the image to use Alpine 3.17.3. 
