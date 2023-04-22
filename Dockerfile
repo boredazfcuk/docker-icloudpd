@@ -4,7 +4,7 @@ MAINTAINER boredazfcuk
 ENV config_dir="/config" TZ="UTC"
 
 ARG build_dependencies="git gcc python3-dev musl-dev rust cargo libffi-dev openssl-dev"
-ARG app_dependencies="py3-pip exiftool coreutils tzdata curl imagemagick shadow"
+ARG app_dependencies="py3-pip exiftool coreutils tzdata curl imagemagick shadow jq"
 ARG fix_repo="boredazfcuk/icloud_photos_downloader"
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** BUILD STARTED FOR ICLOUDPD *****" && \

@@ -433,11 +433,18 @@ ConfigureNotifications(){
          if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} token: (hidden)"
             LogDebug "${notification_type} chat id: (hidden)"
+            LogDebug "${notification_type} polling: ${telegram_polling}"
             LogDebug "${notification_type} notification URL: (hidden)"
          else
             LogInfo "${notification_type} token: ${telegram_token}"
             LogInfo "${notification_type} chat id: ${telegram_chat_id}"
+            LogInfo "${notification_type} polling: ${telegram_polling}"
             LogInfo "${notification_type} notification URL: ${notification_url}"
+         fi
+         if [ "${telegram_polling}" = true ]; then
+            current_message_id="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}getUpdates" | jq '.result[-1:][].message.message_id')"
+            LogDebug "${notification_type} current message_id: ${current_message_id}"
+            LogDebug "${notification_type} remote sync name: ${HOSTNAME}"
          fi
          if [ "${telegram_silent_file_notifications}" ]; then telegram_silent_file_notifications=true; fi
          LogDebug "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=false}"
@@ -1421,6 +1428,24 @@ SyncUser(){
          LogInfo "Next synchronisation at $(date +%H:%M:%S -d "${sleep_time} seconds")"
          unset check_exit_code check_files_count download_exit_code
          unset new_files
+         if [ "${telegram_polling}" = true ]; then
+            DebugLog "Listening for remote sync command"
+            listen_counter=0
+            while "${listen_counter}" -lt "${sleep_time}"; do
+               latest_message="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq '.result[-1:][].message')"
+               latest_message_id="$(echo "${latest_message}" | jq .message_id)"
+               latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g')"
+               if [ "${previous_message_id}" -lt "${current_message_id}" ]; then
+                  LogDebug "New message received: ${current_message_text}"
+                  if [ "${current_message_text}" = "${HOSTNAME}" ]; then
+                     LogDebug "Remote sync initiated"
+                     break
+                  fi
+               fi
+               listen_counter=$((listen_counter + 60))
+               sleep 60
+            done
+         fi
          sleep "${sleep_time}"
       fi
    done
