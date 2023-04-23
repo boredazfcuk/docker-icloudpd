@@ -3,95 +3,90 @@ An Alpine Linux Docker container for iCloud Photos Downloader. I use it for sync
 
 # Now with 2-way comms via Telegram!
 
-## Configuring environment variables
-Environment variables can, for the time being, be used to configure the Docker container. However, they will be used to write a configuration file "/config/icloudpd.conf" and the variables will be loaded from there. I fyou find that some things are still being set, even though you have removed the variables from the container, it could be that they are still located in the configuration file.
+## Environment variables
+Environment variables can, for the time being, be used to configure the Docker container. However, configuring containers by using variables is deprecated and will be removed in future versions.
+When the container is first started, it will write a default configuration file "/config/icloudpd.conf" and the variables will be loaded from there. I you find that some things are still being set, even though you have removed the variables from the container, it could be that they are still located in the configuration file.
 
-## MANDATORY ENVIRONMENT VARIABLES
-**apple_id**: This is the Apple ID that will be used when downloading files.
+## CONFGURATION OPTIONS
+**apple_id**: This is the Apple ID that will be used when downloading files. This option is mandatory
 
-## DEFAULT ENVIRONMENT VARIABLES
+**user**: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. This configuration option will default to 'user'. This option is also used as the trigger for remotly initiated sync. Simply send your user name as a message to the Telegram chat and icoudpd will see it and start a manual sync.
 
-**user**: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. This variable will default to 'user'.
+**user_id**: This is the User ID number of the above user account. This can be any number that isn't already in use. Ideally, you should set this to be the same ID number as the user's ID on the host system. This will avoid permissions issues if syncing to your host's home directory. This configuration option will default to '1000'.
 
-**user_id**: This is the User ID number of the above user account. This can be any number that isn't already in use. Ideally, you should set this to be the same ID number as the user's ID on the host system. This will avoid permissions issues if syncing to your host's home directory. This variable will default to '1000'.
+**group**: This is name of the group account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user's primary group on the host system. This This group will be set as the group for all downloaded files. This configuration option will default to 'group'.
 
-**group**: This is name of the group account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user's primary group on the host system. This This group will be set as the group for all downloaded files. This variable will default to 'group'.
+**group_id**: This is the Group ID number of the above group. This can be any number that isn't already in use. Ideally, you should set this to be the same Group ID number as the user's primary group on the host system. This configuration option will default to '1000'.
 
-**group_id**: This is the Group ID number of the above group. This can be any number that isn't already in use. Ideally, you should set this to be the same Group ID number as the user's primary group on the host system. This variable will default to '1000'.
+**force_gid**: If this configuration option is set it will allow the group to be created with a pre-existing group id. This may be handy if your group id clashes with a system group insude the docker container, however, if may have undesired permissions issues. Please use with caution.
 
-**force_gid**: If this variable is set it will allow the group to be created with a pre-existing group id. This may be handy if your group id clashes with a system group insude the docker container, however, if may have undesired permissions issues. Please use with caution.
+**TZ**: Sets the local timezone and is required to calculate timestamps. This configuration option will default to Coordinated Universal Time 'UTC'.
 
-**TZ**: Sets the local timezone and is required to calculate timestamps. This variable will default to Coordinated Universal Time 'UTC'.
+**download_path**: This is the directory to which files will be downloaded from iCloud. This configuration option will default to "/home/${user}/iCloud".
 
-**download_path**: This is the directory to which files will be downloaded from iCloud. This variable will default to "/home/${user}/iCloud".
-
-**synchronisation_interval**: This is the number of seconds between synchronisations. It can be set to the following periods: 21600 (6hrs), 43200 (12hrs), 86400 (24hrs), 129600 (36hrs), 172800 (48hrs) and 604800 (7 days). If this variable is not set to one of these values, it will default to 86400 seconds. Be careful if setting a short synchronisation period. Apple have a tendency to throttle connections that are hitting their server too often. I find that every 24hrs is fine. My phone will upload files to the cloud immediately, so if I lose my phone the photos I've taken that day will still be safe in the cloud, and the container will download those photos when it runs in the evening. Setting a value less than 12 hours will display a warning as Apple may throttle you.
+**synchronisation_interval**: This is the number of seconds between synchronisations. It can be set to the following periods: 21600 (6hrs), 43200 (12hrs), 86400 (24hrs), 129600 (36hrs), 172800 (48hrs) and 604800 (7 days). If this configuration option is not set to one of these values, it will default to 86400 seconds. Be careful if setting a short synchronisation period. Apple have a tendency to throttle connections that are hitting their server too often. I find that every 24hrs is fine. My phone will upload files to the cloud immediately, so if I lose my phone the photos I've taken that day will still be safe in the cloud, and the container will download those photos when it runs in the evening. Setting a value less than 12 hours will display a warning as Apple may throttle you.
 
 **synchronisation_delay**: This is the number of minutes to delay the first synchronisation. This is so that you can stagger the synchronisations of multiple containers. If this value is not set. It will default to 0. It has a maximum setting of 60.
 
 **notification_days**: When your cookie is nearing expiration, this is the number of days in advance it should notify you. This will default to 7 days if not specified. You will receive a single notification, per day, in the days running up to cookie expiration.
 
-**authentication_type**: This is the type of authentication that is enabled on your iCloud account. Valid values are '2FA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. This variable will default to '2FA'.
+**authentication_type**: This is the type of authentication that is enabled on your iCloud account. Valid values are '2FA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. This configuration option will default to '2FA'.
 
-**directory_permissions**: This specifies the permissions to set on the directories in your download destination. This variable will default to 750.
+**directory_permissions**: This specifies the permissions to set on the directories in your download destination. This configuration option will default to 750.
 
-**file_permissions**: This specifies the permissions to set on the files in your download destination. This variable will default to 640.
+**file_permissions**: This specifies the permissions to set on the files in your download destination. This configuration option will default to 640.
 
-**folder_structure**: This specifies the folder structure to use in your download destination directory. If this variable is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure. Use  **album** to store in folders with same name as on iCloud.com
+**folder_structure**: This specifies the folder structure to use in your download destination directory. If this configuration option is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure. Use  **album** to store in folders with same name as on iCloud.com
 
-**skip_check**: Set this to **true** skip the check for new files. The check can have issues with large libraries, please set to **true** if you have more than a few thousand photos. This variable will default to **false**.
+**skip_check**: Set this to **true** skip the check for new files. The check can have issues with large libraries, please set to **true** if you have more than a few thousand photos. This configuration option will default to **false**.
 
-**download_notifications**: specifies whether notifications with a short summary should be sent for file downloads. This variable will default to **true**.
+**download_notifications**: specifies whether notifications with a short summary should be sent for file downloads. This configuration option will default to **true**.
 
-**delete_notifications**: Specifies whether notifications with a short summary should be sent for file deletions. This variable will default to **true**.
+**delete_notifications**: Specifies whether notifications with a short summary should be sent for file deletions. This configuration option will default to **true**.
 
 **delete_accompanying**: Tells the script to delete files which accompany the HEIC files that are downloaded. These are the JPG files which are created if you have HEIC to JPG conversion enabled. They are also the \_HEVC.MOV files which make up part of a live photo. This feature deletes files from your disk. I'm not responsible for any data loss.
 
 **delete_empty_directories**: Tells the script to delete any empty directories it finds in the download path. It will only run if **folder_structure** isn't set to 'none'
 
-**set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date. This variable will default to **false**.
+**set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date. This configuration option will default to **false**.
 
-**auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). This variable will default to **false**.
+**auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). This configuration option will default to **false**.
 
-**delete_after_downlaod**: After a file is successfully downloaded it is moved to the Recenlty Deleted folder. This variable cannot be used in conjunction with **auto_delete**. This variable will default to **false**.
+**delete_after_downlaod**: After a file is successfully downloaded it is moved to the Recenlty Deleted folder. This configuration option cannot be used in conjunction with **auto_delete**. This configuration option will default to **false**.
 
-**photo_size**: Image size to download. Can be set to **original**, **medium** or **thumb**. This variable will default to **original**.
+**photo_size**: Image size to download. Can be set to **original**, **medium** or **thumb**. This configuration option will default to **original**.
 
-**skip_live_photos**: If this is set, it will skip downloading live photos. This variable will default to **false**.
+**skip_live_photos**: If this is set, it will skip downloading live photos. This configuration option will default to **false**.
 
-**live_photo_size**: Live photo file size to download. Can be set to **original**, **medium** or **thumb**. If skip_live_photos is set, this setting is redundant. This variable will default to **original**.
+**live_photo_size**: Live photo file size to download. Can be set to **original**, **medium** or **thumb**. If skip_live_photos is set, this setting is redundant. This configuration option will default to **original**.
 
-**skip_videos**: If this is set, it will skip downloading videos. This variable will default to **false**.
+**skip_videos**: If this is set, it will skip downloading videos. This configuration option will default to **false**.
 
-**recent_only**: Set this to an integer number to only download this many recently added photos. This variable will default to downloading all photos.
+**recent_only**: Set this to an integer number to only download this many recently added photos. This configuration option will default to downloading all photos.
 
-**until_found**: Set this to an integer number to only download the most recently added photos, until *n* number of previously downloaded consecutive photos are found. This variable will default to downloading all photos.
+**until_found**: Set this to an integer number to only download the most recently added photos, until *n* number of previously downloaded consecutive photos are found. This configuration option will default to downloading all photos.
 
 **photo_album**: Set this to the name of an album to only download photos from a single album.
 
 **photo_library**: Set this to the name of an iOS 16 shared library to only download photos from a single shared library.
 
-## OPTIONAL ENVIRONMENT VARIABLES
-
-~~**command_line_options**: This is for additional command line options you want to pass to the icloudpd application. The list of options for icloudpd can be found [HERE](https://github.com/ndbroadbent/icloud_photos_downloader#usage)~~
-
 **convert_heic_to_jpeg**: Set this to **true** to convert downloaded HEIC files to JPEG, while also retaining the original.
 
-**jpeg_path**: Set this variable to specify a different location for the converted JPEGs. This variable will default to "/home/${user}/iCloud", or **download_path** if not set, thereby placing the JPEG files alongside the HEIC files.
+**jpeg_path**: Set this configuration option to specify a different location for the converted JPEGs. This configuration option will default to "/home/${user}/iCloud", or **download_path** if not set, thereby placing the JPEG files alongside the HEIC files.
 
-**jpeg_quality**: If HEIC to JPEG conversion is enabled, this variable will let you set the quality of the converted file by specifying a number from 0 (lowest quality) to 100 (highest quality) If convert_heic_to_jpeg is set, and this variable isn't, it will default to 90.
+**jpeg_quality**: If HEIC to JPEG conversion is enabled, this configuration option will let you set the quality of the converted file by specifying a number from 0 (lowest quality) to 100 (highest quality) If convert_heic_to_jpeg is set, and this configuration option isn't, it will default to 90.
 
 **icloud_china**: Set this to **true** to use icloud.com.cn instead of icloud.com as the download source.
 
-**auth_china**: Set this to **true** to use icloud.com.cn instead of icloud.com for cookie generation. If **icloud_china** is set to **true** and this variable is not set, it will default to **true**. If **icloud_china** is not set, this variable will be set to **false**
+**auth_china**: Set this to **true** to use icloud.com.cn instead of icloud.com for cookie generation. If **icloud_china** is set to **true** and this configuration option is not set, it will default to **true**. If **icloud_china** is not set, this configuration option will be set to **false**
 
 **synology_photos_app_fix**: Set this to **true** to touch files after download and trigger the Synology Photos app to index any newly created files.
 
-**single_pass**: Set this to **true** to exit out after a single pass instead of looping as per the synchronisation_interval. If this option is used, it will automatically disable the download check. If using this variable, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
+**single_pass**: Set this to **true** to exit out after a single pass instead of looping as per the synchronisation_interval. If this option is used, it will automatically disable the download check. If using this configuration option, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
 
 **trigger_nextlcoudcli_synchronisation**: This creates a file in the download directory after a new files are downloaded. My NextcloudCLI container will detect this and force an immediate sync to the Nextcloud server.
 
-## NOTIFICATION CONFIGURATION VARIABLES
+## NOTIFICATION CONFIGURATION OPTIONS
 
 The README on Dockerhub has a hard limit of 25,000 characters, and I'd hit this limit multiple times. I'd changed the wording of this README.md file time and time again to keep it under that limit, but I've finally conceeded and just moved this section to it's own file. Please see NOTIFICATIONS.md for further details. It is available here: https://github.com/boredazfcuk/docker-icloudpd/blob/master/NOTIFICATIONS.md
 
@@ -214,9 +209,9 @@ After this, the container should start downloading your photos.
 
 Dockerfile has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within a set number of days (notification_days) and also if the download fails. 
 
-## COMMAND LINE OPTIONS
+## COMMAND LINE PARAMETERS
 
-There are currently a number of command line options available to use with the sync-icloud.sh script. These are:
+There are currently a number of command line parameters are available to use with the sync-icloud.sh script. These are:
 
 **--ConvertAllHEICs**
 This command line option will check for HEIC files that do not have an accompanying JPEG file. If it finds a HEIC that does not have an accompaying JPEG file, it will create it. This can be used to add JPEGs for previously downloaded libraries. The easiest way to run this is to connect to the running container and executing the script.
@@ -241,7 +236,7 @@ This command line option will correct the timestamps of JPEG files that do not m
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --CorrectJPEGTimestamps`
 
-**--Initialise**
+**--Initialise** | **--Initialize** | **--init**
 This command line option will allow you to add your password to the system keyring. It will also force the creation of a new two-factor authentication cookie.
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --Initialise`
