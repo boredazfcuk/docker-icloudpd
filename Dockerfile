@@ -22,7 +22,7 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clone ${fix_repo}" && \
    sed -i 's/version="1.7.2/version="1.7.2_china_auth_fix/' setup.py && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install Python dependencies for China fix" && \
    pip3 install --upgrade pip && \
-   pip3 install --no-cache-dir pytz pyicloud && \
+   pip3 install --no-cache-dir pytz pyicloud cryptography==40.0.1 && \
    pip3 install --no-cache-dir -r requirements.txt && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD v1.7.2_china_auth_fix" && \
    python3 setup.py install && \
@@ -38,19 +38,19 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD v1.7.2_china_auth_fix" &
    sed -i 's/again in a few minutes/again later. This process may take a day or two./' \
       "/opt/icloudpd_v1.7.2_china/lib/python3.10/site-packages/pyicloud/services/photos.py" && \
    deactivate && \
-echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD v1.12.0" && \
-   python -m venv /opt/icloudpd_v1.12.0 && \
-   source /opt/icloudpd_v1.12.0/bin/activate && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD latest release" && \
+   python -m venv /opt/icloudpd_latest && \
+   source /opt/icloudpd_latest/bin/activate && \
    pip3 install --upgrade pip && \
    pip3 install --no-cache-dir wheel && \
    pip3 install --no-cache-dir icloudpd && \
    sed -i 's/from collections import Callable/from collections.abc import Callable/' \
-      "/opt/icloudpd_v1.12.0/lib/python3.10/site-packages/keyring/util/properties.py" && \
+      "/opt/icloudpd_latest/lib/python3.10/site-packages/keyring/util/properties.py" && \
    sed -i -e 's/password_encrypted = base64.decodestring(password_base64)/password_encrypted = base64.decodebytes(password_base64)/' \
       -e 's/password_base64 = base64.encodestring(password_encrypted).decode()/password_base64 = base64.encodebytes(password_encrypted).decode()/' \
-      "/opt/icloudpd_v1.12.0/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
+      "/opt/icloudpd_latest/lib/python3.10/site-packages/keyrings/alt/file_base.py" && \
    sed -i 's/again in a few minutes/again later. This process may take a day or two./' \
-      "/opt/icloudpd_v1.12.0/lib/python3.10/site-packages/pyicloud_ipd/services/photos.py" && \
+      "/opt/icloudpd_latest/lib/python3.10/site-packages/pyicloud_ipd/services/photos.py" && \
    deactivate && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
    apk del --no-progress --purge build-deps 

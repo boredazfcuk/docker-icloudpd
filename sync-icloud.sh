@@ -615,7 +615,7 @@ CreateUser(){
 
 ListLibraries(){
    LogInfo "Shared libraries available:"
-   source /opt/icloudpd_v1.12.0/bin/activate
+   source /opt/icloudpd_latest/bin/activate
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
    shared_libraries="$(su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
    deactivate
@@ -650,7 +650,7 @@ ConfigurePassword(){
          if [ "${icloud_china}" ]; then
             source /opt/icloudpd_v1.7.2_china/bin/activate
          else
-            source /opt/icloudpd_v1.12.0/bin/activate
+            source /opt/icloudpd_latest/bin/activate
          fi
          LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
          su "${user}" -c 'icloud --username "${0}"' -- "${apple_id}"
@@ -695,7 +695,7 @@ GenerateCookie(){
    if [ "${icloud_china}" ]; then
       source /opt/icloudpd_v1.7.2_china/bin/activate
    else
-      source /opt/icloudpd_v1.12.0/bin/activate
+      source /opt/icloudpd_latest/bin/activate
    fi
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
    su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --directory /dev/null --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}"
@@ -882,7 +882,7 @@ CheckFiles(){
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
    >/tmp/icloudpd/icloudpd_check_error
-   source /opt/icloudpd_v1.12.0/bin/activate
+   source /opt/icloudpd_latest/bin/activate
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
    su "${user}" -c '(icloudpd --directory "${0}" --cookie-directory "${1}" --username "${2}" --domain "${3}" --folder-structure "${4}" --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log' -- "${download_path}" "${config_dir}" "${apple_id}" "${auth_domain}" "${folder_structure}"
       check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
@@ -1372,7 +1372,7 @@ SyncUser(){
             LogDebug "Downloading new files using password stored in keyring file..."
             LogDebug "iCloudPD launch command: icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
             >/tmp/icloudpd/icloudpd_download_error
-            source /opt/icloudpd_v1.12.0/bin/activate
+            source /opt/icloudpd_latest/bin/activate
             LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
             su "${user}" -c '(icloudpd ${0} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
