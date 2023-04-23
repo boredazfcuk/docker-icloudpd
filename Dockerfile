@@ -1,6 +1,8 @@
 FROM alpine:3.17.3
 MAINTAINER boredazfcuk
 
+# Fix wheel to v0.38.4 for China iCloud due to incompatilbility when building cryptography on i386/arm platforms
+
 ENV config_dir="/config" TZ="UTC"
 
 ARG build_dependencies="git gcc python3-dev musl-dev rust cargo libffi-dev openssl-dev"
@@ -22,8 +24,8 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clone ${fix_repo}" && \
    sed -i 's/version="1.7.2/version="1.7.2_china_auth_fix/' setup.py && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install Python dependencies for China fix" && \
    pip3 install --upgrade pip && \
-   pip3 install --no-cache-dir pytz pyicloud cryptography==40.0.1 && \
    pip3 install --no-cache-dir -r requirements.txt && \
+   pip3 install --no-cache-dir pytz wheel>=0.38.4 && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD v1.7.2_china_auth_fix" && \
    python3 setup.py install && \
    cd .. && \
