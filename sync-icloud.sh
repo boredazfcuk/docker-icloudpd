@@ -129,20 +129,22 @@ initialise_config_file(){
 }
 
 Initialise(){
-   config_file="${config_dir}/icloudpd.conf"
-   initialise_config_file
-   source "${config_file}"
-   save_ifs="${IFS}"
-   lan_ip="$(hostname -i)"
-   login_counter="0"
-   apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
-   cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
 
    echo
    LogInfo "***** boredazfcuk/icloudpd container for icloud_photo_downloader v1.0.$(cat /build_version.txt) started *****"
    LogInfo "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
+
+   config_file="${config_dir}/icloudpd.conf"
+   initialise_config_file
+   LogInfo "Loading configuration from: ${config_file}"
+   source "${config_file}"
+   save_ifs="${IFS}"
+   lan_ip="$(hostname -i)"
+   login_counter="0"
+   apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
+   cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
 
    if [ "${dev_mode}" = true ]; then
       if [ ! -e "/dev_apps_installed" ]; then
@@ -337,7 +339,7 @@ Initialise(){
          LogWarning "You have the icloud_china variable set, but auth_china is false. Are you sure this is correct?"
       fi
    fi
-   LogDebug "Authentication domain: ${auth_domain:=com}"
+   LogInfo "Authentication domain: ${auth_domain:=com}"
    if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
       LogDebug "Nextcloud synchronisation trigger: Enabled"
    else
@@ -685,7 +687,7 @@ ConfigurePassword(){
 
 GenerateCookie(){
    LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
-   find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
+   find "${config_dir}" ! -user "${user}" -exec chown "${user_id}" {} +
    LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
    find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
    if [ -f "${config_dir}/${cookie_file}" ]; then
@@ -707,7 +709,7 @@ GenerateCookie(){
          LogError "2FA information missing from cookie. Authentication has failed"
          LogError " - Was the correct password entered?"
          LogError " - Was the 2FA code mistyped?"
-         LogError " - Can you log into iCloud.com without receiving pop-up notifications?"
+         LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
          if [ -z "${icloud_china}" ]; then
             LogError " - Are you based in China? You will need to set the icloud_china variable"
          fi
@@ -737,24 +739,24 @@ CheckMount(){
 
 SetOwnerAndPermissionsConfig(){
    LogDebug "Correct owner on icloudpd temp directory, if required"
-   find "/tmp/icloudpd" ! -user "${user}" -exec chown "${user}" {} +
+   find "/tmp/icloudpd" ! -user "${user_id}" -exec chown "${user_id}" {} +
    LogDebug "Correct group on icloudpd temp directory, if required"
-   find "/tmp/icloudpd" ! -group "${group}" -exec chgrp "${group}" {} +
+   find "/tmp/icloudpd" ! -group "${group_id}" -exec chgrp "${group}" {} +
    LogDebug "Correct owner on config directory, if required"
-   find "${config_dir}" ! -user "${user}" -exec chown "${user}" {} +
+   find "${config_dir}" ! -user "${user_id}" -exec chown "${user_id}" {} +
    LogDebug "Correct group on config directory, if required"
-   find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
+   find "${config_dir}" ! -group "${group_id}" -exec chgrp "${group_id}" {} +
    LogDebug "Correct owner on keyring directory, if required"
-   find "/home/${user}/.local" ! -user "${user}" -exec chown "${user}" {} +
+   find "/home/${user}/.local" ! -user "${user_id}" -exec chown "${user_id}" {} +
    LogDebug "Correct group on keyring directory, if required"
-   find "/home/${user}/.local" ! -group "${group}" -exec chgrp "${group}" {} +
+   find "/home/${user}/.local" ! -group "${group_id}" -exec chgrp "${group_id}" {} +
 }
 
 SetOwnerAndPermissionsDownloads(){
    LogDebug "Set owner on iCloud directory, if required"
-   find "${download_path}" ! -type l ! -user "${user}" -exec chown "${user}" {} +
+   find "${download_path}" ! -type l ! -user "${user_id}" -exec chown "${user_id}" {} +
    LogDebug "Set group on iCloud directory, if required"
-   find "${download_path}" ! -type l ! -group "${group}" -exec chgrp "${group}" {} +
+   find "${download_path}" ! -type l ! -group "${group_id}" -exec chgrp "${group_id}" {} +
    LogDebug "Set ${directory_permissions} permissions on iCloud directories, if required"
    find "${download_path}" -type d ! -perm "${directory_permissions}" -exec chmod "${directory_permissions}" '{}' +
    LogDebug "Set ${file_permissions} permissions on iCloud files, if required"
@@ -889,7 +891,7 @@ CheckFiles(){
    deactivate
    if [ "${check_exit_code}" -ne 0 ]; then
       LogError "Failed check for new files files"
-      LogError " - Can you log into iCloud.com without receiving pop-up notifications?"
+      LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
       LogError "Error debugging info:"
       LogError "$(cat /tmp/icloudpd/icloudpd_check_error)"
       LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
@@ -1379,7 +1381,7 @@ SyncUser(){
             deactivate
             if [ "${download_exit_code}" -gt 0 ]; then
                LogError "Failed to download new files"
-               LogError " - Can you log into iCloud.com without receiving pop-up notifications?"
+               LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
                LogError "Error debugging info:"
                LogError "$(cat /tmp/icloudpd/icloudpd_download_error)"
                LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
