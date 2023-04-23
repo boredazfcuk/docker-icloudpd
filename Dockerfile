@@ -1,15 +1,13 @@
 FROM alpine:3.17.3
 MAINTAINER boredazfcuk
 
-# Fix wheel to v0.38.4 for China iCloud due to incompatilbility when building cryptography on i386/arm platforms
-
 ENV config_dir="/config" TZ="UTC"
 
 ARG build_dependencies="git gcc python3-dev musl-dev rust cargo libffi-dev openssl-dev"
 ARG app_dependencies="py3-pip exiftool coreutils tzdata curl imagemagick shadow jq"
 ARG fix_repo="boredazfcuk/icloud_photos_downloader"
 
-RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** BUILD STARTED FOR ICLOUDPD *****" && \
+RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** Build started for boredazfcuk's docker-icloudpd *****" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install build dependencies" && \
   apk add --no-progress --no-cache --virtual=build-deps ${build_dependencies} && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install requirements" && \
@@ -25,7 +23,6 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clone ${fix_repo}" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install Python dependencies for China fix" && \
    pip3 install --upgrade pip && \
    pip3 install --no-cache-dir -r requirements.txt && \
-   pip3 install --no-cache-dir pytz wheel>=0.38.4 && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD v1.7.2_china_auth_fix" && \
    python3 setup.py install && \
    cd .. && \

@@ -252,10 +252,6 @@ This command line option will edit the config file so that debugging is enabled.
 **--DisableDebugging**
 This command line option will edit the config file so that debugging is disabled. This will automatically be picked up the next time a synchronisation takes place. There should be no need to restart the container
 
-**--ListLibraries**
-This command line option will list the shared libraries that are available for synchronisation. To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
-`docker exec -it icloudpd sync-icloud.sh --ListLibraries`
-
 ## HEALTH CHECK
 
 I have built in a health check for this container. If the script detects a download error the container will be marked as unhealthy. You can then configure this container: https://hub.docker.com/r/willfarrell/autoheal/ to monitor iCloudPD and restart the unhealthy container. Please note, if your 2FA cookie expires, the container will be marked as unhealthy, and will be restarted by the authoheal container every five minutes or so... This can lead to a lot of notifications if it happens while you're asleep!
