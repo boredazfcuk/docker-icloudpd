@@ -1,6 +1,7 @@
 2023_04_23
 
  - Change: Set the function to configure file ownership to use user and group ids (instead of names) as this was failing to set the correct permisisons prior to the accounts being created (brand new containers).
+
 202304022
 
  - Change: So, I messed up and accidentally pushed a version I was working on, to Dockerhub and to Github, which contained my Telegram API token. I had to delete the latest tag from Dockerhub, reset the master branch on GitHub and rotate my Telegram token. What a pain in the arse. That means this latest version is a little rushed, so don't be surprised if it's broken. It does bring within it a cracking new feature though... I've now coded it so it polls the Telegram chat (the one it normally sends notifications to), and if the latest message is the same as the **user** variable, it will force an immediate sync. That way, if you've taken a load of photos on your phone, you can tell your NAS at home to sync the queue once you're done.
