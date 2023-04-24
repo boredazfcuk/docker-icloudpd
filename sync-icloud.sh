@@ -446,7 +446,8 @@ ConfigureNotifications(){
                current_message_id="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq '.result[-1:][].message.message_id')"
                LogInfo "${notification_type} current message_id: ${current_message_id}"
             else
-               LogInfo "Bot has not been initialised. Please send a message to the bot from your iDevice"
+               LogInfo "Bot has not been initialised. Please send a message to the bot from your iDevice. Disabling remote wake"
+               sleep 10
                telegram_polling=false
             fi
          fi
