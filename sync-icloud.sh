@@ -80,7 +80,10 @@ initialise_config_file(){
    if [ "${download_notifications}" ]; then sed -i "s%^download_notifications=.*%download_notifications=${download_notifications}%" "${config_file}"; fi
    if [ "${download_path}" ]; then sed -i "s%^download_path=.*%download_path=${download_path}%" "${config_file}"; fi
    if [ "${file_permissions}" ]; then sed -i "s%^file_permissions=.*%file_permissions=${file_permissions}%" "${config_file}"; fi
-   if [ "${folder_structure}" ]; then sed -i "s%^folder_structure=.*%folder_structure=${folder_structure}%" "${config_file}"; fi
+   if [ "${folder_structure}" ]; then
+      sanitised_folder_structure="${folder_structure//\//\\/}"
+      sed -i "s@^folder_structure=.*@folder_structure=${sanitised_folder_structure}@" "${config_file}"
+   fi
    if [ "${gotify_app_token}" ]; then sed -i "s%^gotify_app_token=.*%gotify_app_token=${gotify_app_token}%" "${config_file}"; fi
    if [ "${group}" ]; then sed -i "s%^group=.*%group=${group}%" "${config_file}"; fi
    if [ "${group_id}" ]; then sed -i "s%^group_id=.*%group_id=${group_id}%" "${config_file}"; fi
@@ -124,8 +127,8 @@ initialise_config_file(){
    sort "${config_file}.tmp" --output="${config_file}"
    chmod --reference="${config_file}.tmp" "${config_file}"
    rm "${config_file}.tmp"
-   sed -i "s/=True/=true/g" "${config_file}"
-   sed -i "s/=False/=false/g" "${config_file}"
+   sed -i 's/=True/=true/g' "${config_file}"
+   sed -i 's/=False/=false/g' "${config_file}"
 }
 
 Initialise(){
@@ -145,15 +148,6 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
-
-   if [ "${dev_mode}" = true ]; then
-      if [ ! -e "/dev_apps_installed" ]; then
-         apk add nano
-         pip install Flask-WTF Flask-Bootstrap4
-         touch "/dev_apps_installed"
-      fi
-      nohup flask --app "${config_dir}/app/app.py" run --host=0.0.0.0 --port 58008 &
-   fi
 
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
