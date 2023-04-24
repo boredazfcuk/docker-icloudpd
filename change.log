@@ -1,4 +1,9 @@
-2023_04_23
+20230424
+
+ - Change: Bug fix for folder structure
+ - Change: Possible solution for Telegram polling issue
+
+20230423
 
  - Change: Set the function to configure file ownership to use user and group ids (instead of names) as this was failing to set the correct permisisons prior to the accounts being created (brand new containers).
 
