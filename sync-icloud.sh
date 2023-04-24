@@ -1428,7 +1428,7 @@ SyncUser(){
          LogInfo "Next synchronisation at $(date +%H:%M:%S -d "${sleep_time} seconds")"
          unset check_exit_code check_files_count download_exit_code
          unset new_files
-         if [ "${telegram_polling}" = true ]; then
+         if [ "${notification_type}" = "Telegram" ] && [ "${telegram_polling}" = true ]; then
             LogInfo "Monitoring ${notification_type} for remote wake command: ${user}"
             listen_counter=0
             while [ "${listen_counter}" -lt "${sleep_time}" ]; do
