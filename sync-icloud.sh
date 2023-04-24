@@ -447,6 +447,7 @@ ConfigureNotifications(){
                LogInfo "${notification_type} current message_id: ${current_message_id}"
             else
                LogInfo "Bot has not been initialised. Please send a message to the bot from your iDevice"
+               telegram_polling=false
             fi
          fi
          if [ "${telegram_silent_file_notifications}" ]; then telegram_silent_file_notifications=true; fi
