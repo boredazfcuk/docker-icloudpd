@@ -94,7 +94,7 @@ initialise_config_file(){
    if [ "${jpeg_quality}" ]; then sed -i "s%^jpeg_quality=.*%jpeg_quality=${jpeg_quality}%" "${config_file}"; fi
    if [ "${notification_days}" ]; then sed -i "s%^notification_days=.*%notification_days=${notification_days}%" "${config_file}"; fi
    if [ "${notification_type}" ]; then sed -i "s%^notification_type=.*%notification_type=${notification_type}%" "${config_file}"; fi
-   if [ "${photo_album}" ]; then sed -i "s%^photo_album=.*%photo_album=${photo_album}%" "${config_file}"; fi
+   if [ "${photo_album}" ]; then sed -i "s%^photo_album=.*%photo_album=\"${photo_album}\"%" "${config_file}"; fi
    #if [ "${photo_library}" ]; then sed -i "s%^photo_library=.*%photo_library=${photo_library}%" "${config_file}"; fi
    if [ "${photo_size}" ]; then sed -i "s%^photo_size=.*%photo_size=${photo_size}%" "${config_file}"; fi
    if [ "${prowl_api_key}" ]; then sed -i "s%^prowl_api_key=.*%prowl_api_key=${prowl_api_key}%" "${config_file}"; fi
@@ -151,6 +151,7 @@ Initialise(){
    login_counter="0"
    apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
+   older_structure="${folder_structure}"
 
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
@@ -286,7 +287,7 @@ Initialise(){
       LogInfo "Number of most recently added photos to download: Download All Photos"
    fi
    if [ "${photo_album}" ]; then
-      LogInfo "Downloading photos from album: ${photo_album}"
+      LogInfo "Downloading photos from album(s): ${photo_album}"
    # elif [ "${photo_library}" ]; then
       # LogInfo "Downloading photos from library: ${photo_library}"
    else
@@ -441,10 +442,10 @@ ConfigureNotifications(){
          fi
          if [ "${telegram_polling}" = true ]; then
             LogInfo "Check Telegram bot initialised"
-            bot_check="$(curl --silent -X POST -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[])"
+            bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[-1:])"
             if [ "${bot_check}" ]; then
                LogInfo "Bot has been initialised. Checking latest message"
-               current_message_id="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq '.result[-1:][].message.message_id')"
+               current_message_id="$(echo "${bot_check}" | jq .[].message.message_id)"
                LogInfo "${notification_type} current message_id: ${current_message_id}"
             else
                LogInfo "Bot has not been initialised. Please send a message to the bot from your iDevice. Disabling remote wake"
@@ -621,15 +622,28 @@ CreateUser(){
    fi
 }
 
-ListLibraries(){
-   LogInfo "Shared libraries available:"
+# ListLibraries(){
+   # LogInfo "Shared libraries available:"
+   # source /opt/icloudpd_latest/bin/activate
+   # LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
+   # shared_libraries="$(su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
+   # deactivate
+   # for library in ${shared_libraries}; do
+      # LogInfo " - ${library}"
+   # done
+# }
+
+ListAlbums(){
+   IFS=$'\n'
    source /opt/icloudpd_latest/bin/activate
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
-   shared_libraries="$(su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
+   available_albums="$(su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-albums | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
    deactivate
-   for library in ${shared_libraries}; do
-      LogInfo " - ${library}"
+   LogInfo "Albums available:"
+   for available_album in ${available_albums}; do
+      LogInfo " - ${available_album}"
    done
+   IFS="${save_ifs}"
 }
 
 DeletePassword(){
@@ -1315,7 +1329,7 @@ Notify(){
 }
 
 CommandLineBuilder(){
-   command_line="--directory ${download_path} --cookie-directory ${config_dir} --domain ${auth_domain} --folder-structure ${folder_structure} --username ${apple_id}"
+   command_line="--directory ${download_path} --cookie-directory ${config_dir} --domain ${auth_domain} --username ${apple_id}"
    if [ "${photo_size}" != "original"  ]; then
       command_line="${command_line} --size ${photo_size}"
    fi
@@ -1337,11 +1351,14 @@ CommandLineBuilder(){
    if [ "${skip_videos}" != false ]; then
       command_line="${command_line} --skip-videos"
    fi
-   if [ "${photo_album}" ]; then
-      command_line="${command_line} --album ${photo_album}"
+   if [ -z "${photo_album}" ]; then
+      command_line="${command_line} --folder-structure ${folder_structure}"
+   fi
+   # if [ "${photo_album}" ]; then
+      # command_line="${command_line} --album ${photo_album}"
    # elif [ "${photo_library}" ]; then
       # command_line="${command_line} --library ${photo_library}"
-   fi
+   # fi
    if [ "${until_found}" ]; then
       command_line="${command_line} --until-found ${until_found}"
    fi
@@ -1378,11 +1395,27 @@ SyncUser(){
             LogDebug "Starting download of new files for user: ${user}"
             synchronisation_time="$(date +%s -d '+15 minutes')"
             LogDebug "Downloading new files using password stored in keyring file..."
-            LogDebug "iCloudPD launch command: icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
             >/tmp/icloudpd/icloudpd_download_error
             source /opt/icloudpd_latest/bin/activate
             LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
-            su "${user}" -c '(icloudpd ${0} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
+            if [ "${photo_album}" ]; then
+               IFS=","
+               for album in ${photo_album}; do
+                  LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
+                  su "${user}" -c '(icloudpd ${0} --folder-structure "${1}" --album "${1}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}"
+                  if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]; then
+                     LogError "Failed downloading album: ${album}"
+                     IFS="${save_ifs}"
+                     sleep 10
+                     break
+                  fi
+               done
+               IFS="${save_ifs}"
+               folder_structure="${older_structure}"
+            else
+               LogDebug "iCloudPD launch command: icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
+               su "${user}" -c '(icloudpd ${0} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
+            fi
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             deactivate
             if [ "${download_exit_code}" -gt 0 ]; then
@@ -1441,7 +1474,9 @@ SyncUser(){
                latest_message="$(curl -X POST --silent "https://api.telegram.org/bot${telegram_token}/getUpdates?allowed_updates=message" | jq '.result[-1:][].message')"
                latest_message_id="$(echo "${latest_message}" | jq .message_id)"
                latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g'  | tr [:upper:] [:lower:])"
+               # LogDebug "Latest: ${latest_message_id}. Current: ${current_message_id}"
                if [ "${latest_message_id}" = "null" ]; then
+                  DebugLog "Latest message_id: null"
                   latest_message_id="${current_message_id}"
                fi
                if [ "${latest_message_id}" -gt "${current_message_id}" ]; then
@@ -1576,4 +1611,5 @@ fi
 CheckMount
 SetOwnerAndPermissionsConfig
 CommandLineBuilder
+ListAlbums
 SyncUser

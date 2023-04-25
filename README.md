@@ -36,7 +36,7 @@ When the container is first started, it will write a default configuration file 
 
 **file_permissions**: This specifies the permissions to set on the files in your download destination. Default: 640.
 
-**folder_structure**: This specifies the folder structure to use in your download destination directory. If this configuration option is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure. Use  **album** to store in folders with same name as on iCloud.com. Changing this value will not re-organise your currently downloaded files. It will leave your current folder structure intact and download your entire stream gain. I do not recommend using **none** or {:%Y} as these two may result in images nbot being downloaded. In iCloud, you can have two identically named files and it will be fine. Using this downloader, the first file downloaded will take that name and the second file will be ignored. Please note, this setting must be configured in /config/icloudpd.conf. If it is set as an environment variable, it will be ignored.
+**folder_structure**: This specifies the folder structure to use in your download destination directory. If this configuration option is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure. Changing this value will not re-organise your currently downloaded files. It will leave your current folder structure intact and download your entire stream gain. I do not recommend using **none** or {:%Y} as these two may result in images nbot being downloaded. In iCloud, you can have two identically named files and it will be fine. Using this downloader, the first file downloaded will take that name and the second file will be ignored.
 
 **skip_check**: Set this to **true** skip the check for new files. The check can have issues with large libraries, please set to **true** if you have more than a few thousand photos. Default: false.
 
@@ -52,7 +52,7 @@ When the container is first started, it will write a default configuration file 
 
 **auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). Default: false.
 
-**delete_after_downlaod**: After a file is successfully downloaded it is moved to the Recenlty Deleted folder. This configuration option cannot be used in conjunction with **auto_delete**. Default: false.
+**delete_after_download**: After a file is successfully downloaded it is moved to the Recenlty Deleted folder. This configuration option cannot be used in conjunction with **auto_delete**. Default: false.
 
 **photo_size**: Image size to download. Can be set to **original**, **medium** or **thumb**. Default: original.
 
@@ -66,7 +66,7 @@ When the container is first started, it will write a default configuration file 
 
 **until_found**: Set this to an integer number to only download the most recently added photos, until *n* number of previously downloaded consecutive photos are found. Default: download all photos.
 
-**photo_album**: Set this to the name of an album to only download photos from a single album.
+**photo_album**: Set this to a comma delimited field. Please note, if downloading from multiple albums, you need to enclose them in quotes in your /config/icloudpd.conf file e.g. photo_album="one,two,three and four" three albums named "one", "two" and "three and four". When downloading photo albums, the folder structure will be set to be the name of the album eg "/home/boredazfcuk/iCloud/one/IMG_0001.HEIC", "/home/boredazfcuk/iCloud/two/IMG_0002.HEIC" and "/home/boredazfcuk/iCloud/three and four/IMG_0003.HEIC".
 
 **photo_library**: Set this to the name of an iOS 16 shared library to only download photos from a single shared library.
 
