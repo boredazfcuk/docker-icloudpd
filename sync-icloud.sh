@@ -1444,7 +1444,6 @@ SyncUser(){
                if [ "${latest_message_id}" = "null" ]; then
                   latest_message_id="${current_message_id}"
                fi
-               LogDebug "Latest: ${latest_message_id}. Current: ${current_message_id}"
                if [ "${latest_message_id}" -gt "${current_message_id}" ]; then
                   LogDebug "New message received: ${latest_message_text}"
                   if [ "${latest_message_text}" = "$(echo ${user} | tr [:upper:] [:lower:])" ]; then
