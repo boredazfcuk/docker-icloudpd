@@ -32,7 +32,7 @@ initialise_config_file(){
       if [ "$(grep -c "notification_days=" "${config_file}")" -eq 0 ]; then echo notification_days="${notification_days:=7}"; fi
       if [ "$(grep -c "notification_type=" "${config_file}")" -eq 0 ]; then echo notification_type="${notification_type}"; fi
       if [ "$(grep -c "photo_album=" "${config_file}")" -eq 0 ]; then echo photo_album="${photo_album}"; fi
-      if [ "$(grep -c "photo_library=" "${config_file}")" -eq 0 ]; then echo photo_library="${photo_library}"; fi
+      #if [ "$(grep -c "photo_library=" "${config_file}")" -eq 0 ]; then echo photo_library="${photo_library}"; fi
       if [ "$(grep -c "photo_size=" "${config_file}")" -eq 0 ]; then echo photo_size="${photo_size:=original}"; fi
       if [ "$(grep -c "prowl_api_key=" "${config_file}")" -eq 0 ]; then echo prowl_api_key="${prowl_api_key}"; fi
       if [ "$(grep -c "pushover_sound=" "${config_file}")" -eq 0 ]; then echo pushover_sound="${pushover_sound}"; fi
@@ -95,7 +95,7 @@ initialise_config_file(){
    if [ "${notification_days}" ]; then sed -i "s%^notification_days=.*%notification_days=${notification_days}%" "${config_file}"; fi
    if [ "${notification_type}" ]; then sed -i "s%^notification_type=.*%notification_type=${notification_type}%" "${config_file}"; fi
    if [ "${photo_album}" ]; then sed -i "s%^photo_album=.*%photo_album=${photo_album}%" "${config_file}"; fi
-   if [ "${photo_library}" ]; then sed -i "s%^photo_library=.*%photo_library=${photo_library}%" "${config_file}"; fi
+   #if [ "${photo_library}" ]; then sed -i "s%^photo_library=.*%photo_library=${photo_library}%" "${config_file}"; fi
    if [ "${photo_size}" ]; then sed -i "s%^photo_size=.*%photo_size=${photo_size}%" "${config_file}"; fi
    if [ "${prowl_api_key}" ]; then sed -i "s%^prowl_api_key=.*%prowl_api_key=${prowl_api_key}%" "${config_file}"; fi
    if [ "${pushover_sound}" ]; then sed -i "s%^pushover_sound=.*%pushover_sound=${pushover_sound}%" "${config_file}"; fi
@@ -131,6 +131,7 @@ initialise_config_file(){
    rm "${config_file}.tmp"
    sed -i 's/=True/=true/g' "${config_file}"
    sed -i 's/=False/=false/g' "${config_file}"
+   sed -i '/photo_library=/d' "${config_file}"
 }
 
 Initialise(){
@@ -286,8 +287,8 @@ Initialise(){
    fi
    if [ "${photo_album}" ]; then
       LogInfo "Downloading photos from album: ${photo_album}"
-   elif [ "${photo_library}" ]; then
-      LogInfo "Downloading photos from library: ${photo_library}"
+   # elif [ "${photo_library}" ]; then
+      # LogInfo "Downloading photos from library: ${photo_library}"
    else
       LogInfo "Downloading photos from album: Download All Photos"
    fi
@@ -1338,8 +1339,8 @@ CommandLineBuilder(){
    fi
    if [ "${photo_album}" ]; then
       command_line="${command_line} --album ${photo_album}"
-   elif [ "${photo_library}" ]; then
-      command_line="${command_line} --library ${photo_library}"
+   # elif [ "${photo_library}" ]; then
+      # command_line="${command_line} --library ${photo_library}"
    fi
    if [ "${until_found}" ]; then
       command_line="${command_line} --until-found ${until_found}"
@@ -1437,9 +1438,13 @@ SyncUser(){
             LogInfo "Monitoring ${notification_type} for remote wake command: ${user}"
             listen_counter=0
             while [ "${listen_counter}" -lt "${sleep_time}" ]; do
-               latest_message="$(curl -X POST --silent -d "allowed_updates=message" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq '.result[-1:][].message')"
+               latest_message="$(curl -X POST --silent "https://api.telegram.org/bot${telegram_token}/getUpdates?allowed_updates=message" | jq '.result[-1:][].message')"
                latest_message_id="$(echo "${latest_message}" | jq .message_id)"
                latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g'  | tr [:upper:] [:lower:])"
+               if [ "${latest_message_id}" = "null" ]; then
+                  latest_message_id="${current_message_id}"
+               fi
+               LogDebug "Latest: ${latest_message_id}. Current: ${current_message_id}"
                if [ "${latest_message_id}" -gt "${current_message_id}" ]; then
                   LogDebug "New message received: ${latest_message_text}"
                   if [ "${latest_message_text}" = "$(echo ${user} | tr [:upper:] [:lower:])" ]; then
@@ -1515,9 +1520,9 @@ case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
    "--disabledebugging")
       disable_debugging=true
    ;;
-   "--listlibraries")
-      list_libraries=true
-   ;;
+   # "--listlibraries")
+      # list_libraries=true
+   # ;;
    *)
    ;;
 esac
@@ -1565,9 +1570,9 @@ elif [ "${correct_jpeg_time_stamps}" ]; then
    CorrectJPEGTimestamps
    LogInfo "JPEG timestamp correction complete"
    exit 0
-elif [ "${list_libraries}" ];then
-   ListLibraries
-   exit 0
+# elif [ "${list_libraries}" ];then
+   # ListLibraries
+   # exit 0
 fi
 CheckMount
 SetOwnerAndPermissionsConfig

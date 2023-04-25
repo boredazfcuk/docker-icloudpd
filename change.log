@@ -1,3 +1,7 @@
+20230425
+
+ - Change: Unexpected behaviour when latest message is an update about group membership. This change will set ${latest_message} to ${current_message} if ${latest_message} is empty
+
 20230424
 
  - Change: Bug fix for folder structure
