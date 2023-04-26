@@ -1418,6 +1418,7 @@ SyncUser(){
                fi
                IFS=","
                for album in ${albums_to_download}; do
+                  LogInfo "Downloading album: ${album}"
                   LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
                   su "${user}" -c '(icloudpd ${0} --folder-structure "${1}" --album "${1}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}"
                   if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]; then
