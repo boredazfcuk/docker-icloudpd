@@ -1,3 +1,7 @@
+20230504
+
+ - Change: Out of range issue polling for Telegram wake command
+
 20230426
 
  - Change: Added **skip_album** variable so that certain albums (such as the Apple default ones) can be excluded from the download.
