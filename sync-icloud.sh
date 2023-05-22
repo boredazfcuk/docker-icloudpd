@@ -445,7 +445,7 @@ ConfigureNotifications(){
             LogInfo "Check Telegram bot initialised"
             bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[-1:])"
             if [ "${bot_check}" ]; then
-               LogInfo "Bot has been initialised. Checking latest message"
+               LogInfo "Bot has been initialised."
                current_message_id="$(echo "${bot_check}" | jq .[].message.message_id)"
                LogInfo "${notification_type} current message_id: ${current_message_id}"
             else
@@ -561,7 +561,7 @@ ConfigureNotifications(){
          unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_server_url bark_device_key bark_server
       fi
       if [ -z "${icloud_china}" ]; then
-         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID ${apple_id}"
+         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID: ${apple_id}"
       else
          Notify "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
       fi
@@ -1189,6 +1189,10 @@ Notify(){
       notification_icon="\xE2\x96\xB6"
       # 启动成功通知封面/Image for Startup success
       thumb_media_id="$media_id_startup"
+   elif [ "${notification_classification}" = "remotesync" ];then
+      notification_icon="\xE2\x96\xB6"
+      # 启动成功通知封面/Image for Startup success
+      thumb_media_id="$media_id_startup"
    elif [ "${notification_classification}" = "downloaded files" ]; then
       notification_icon="\xE2\x8F\xAC"
       # 下载通知封面/Image for downloaded files
@@ -1443,7 +1447,7 @@ SyncUser(){
                LogError "$(cat /tmp/icloudpd/icloudpd_download_error)"
                LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
                if [ -z "${icloud_china}" ]; then
-                  Notify "failure" "iCloudPD container failure" "1" "iCloudPD failed to download new files for Apple ID ${apple_id}"
+                  Notify "failure" "iCloudPD container failure" "1" "iCloudPD failed to download new files for Apple ID: ${apple_id}"
                else
                   # 结束时间、下次同步时间
                   syn_end_time="$(date '+%H:%M:%S')"
@@ -1494,13 +1498,18 @@ SyncUser(){
                latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g'  | tr [:upper:] [:lower:])"
                LogDebug "Latest: ${latest_message_id}. Current: ${current_message_id}"
                if [ "${latest_message_id}" = "null" ] || [ -z "${latest_message_id}" ]; then
-                  DebugLog "Latest message_id: null"
+                  LogDebug "Latest message_id: null"
                   latest_message_id="${current_message_id}"
                fi
                if [ "${latest_message_id}" -gt "${current_message_id}" ]; then
                   LogDebug "New message received: ${latest_message_text}"
                   if [ "${latest_message_text}" = "$(echo ${user} | tr [:upper:] [:lower:])" ]; then
                      LogDebug "Remote sync initiated"
+                        if [ -z "${icloud_china}" ]; then
+                           Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote synchronisation request for Apple ID: ${apple_id}"
+                        else
+                           Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
+                        fi
                      current_message_id="${latest_message_id}"
                      break
                   fi

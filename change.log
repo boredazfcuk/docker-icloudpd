@@ -1,3 +1,7 @@
+20230522
+
+ - Change: Send notification when remote sync command received
+
 20230504
 
  - Change: Out of range issue polling for Telegram wake command
