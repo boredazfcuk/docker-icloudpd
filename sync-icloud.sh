@@ -442,14 +442,14 @@ ConfigureNotifications(){
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
          if [ "${telegram_polling}" = true ]; then
-            LogInfo "Check Telegram bot initialised"
+            LogInfo "Check Telegram bot initialised..."
             bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[-1:])"
             if [ "${bot_check}" ]; then
-               LogInfo "Bot has been initialised."
+               LogInfo " - Bot has been initialised."
                current_message_id="$(echo "${bot_check}" | jq .[].message.message_id)"
                LogInfo "${notification_type} current message_id: ${current_message_id}"
             else
-               LogInfo "Bot has not been initialised. Please send a message to the bot from your iDevice. Disabling remote wake"
+               LogInfo " - Bot has not been initialised. Please send a message to the bot from your iDevice. Disabling remote wake"
                sleep 10
                telegram_polling=false
             fi
