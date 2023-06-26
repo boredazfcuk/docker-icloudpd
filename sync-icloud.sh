@@ -441,6 +441,19 @@ ConfigureNotifications(){
             LogInfo "${notification_type} polling: ${telegram_polling}"
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
+         if [ "${telegram_polling}" = true ]; then
+            LogInfo "Check Telegram bot initialised..."
+            bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[-1:][])"
+            if [ "${bot_check:=0}" -gt 0]; then
+               LogInfo " - Bot has been initialised."
+               current_message_id="$(echo "${bot_check}" | jq .[].message.message_id)"
+               LogInfo "${notification_type} current message_id: ${current_message_id:=0}"
+            else
+               LogInfo " - Bot has not been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container. Disabling remote wake"
+               sleep 10
+               telegram_polling=false
+            fi
+         fi
          if [ "${telegram_silent_file_notifications}" ]; then telegram_silent_file_notifications=true; fi
          LogDebug "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=false}"
       elif [ "${notification_type}" = "openhab" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
