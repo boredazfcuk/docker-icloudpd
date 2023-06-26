@@ -2,6 +2,7 @@
 
  - Change: Just chown the tmp and configu folders as some people seem to be having issues with keyring file which is solved by moving the file from the true location to the /config dir location. Possibly a permissions issue. Not sure.
  - Change: The Telegram polling is still acting weird. Sometimes, the latest message reported by the telegram API will actually be an older message, then a second call to Telegram's API will return a higher number. Also, after a while, all messages will just disappear, meaning null values are passed back. Hopfully these should be fixed now.
+ - Change: New variable added **albums_with_dates** which should allow albums to be downloaded to folders with the album name, and then split by date.
 
 20230522
 

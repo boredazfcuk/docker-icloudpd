@@ -20,7 +20,7 @@ When the container is first started, it will write a default configuration file 
 
 **force_gid**: If this configuration option is set it will allow the group to be created with a pre-existing group id. This may be handy if your group id clashes with a system group insude the docker container, however, if may have undesired permissions issues. Please use with caution.
 
-**TZ**: Sets the local timezone and is required to calculate timestamps. Default: 'UTC'.
+**TZ**: Sets the local timezone and is required to calculate timestamps. Default: 'UTC'. If you are unsure of your timezone, the list can be found here: https://nodatime.org/TimeZones. The value you need to set is listed in the "Zone ID" column of the table.
 
 **download_path**: This is the directory to which files will be downloaded from iCloud. Default: "/home/${user}/iCloud".
 
@@ -37,6 +37,8 @@ When the container is first started, it will write a default configuration file 
 **file_permissions**: This specifies the permissions to set on the files in your download destination. Default: 640.
 
 **folder_structure**: This specifies the folder structure to use in your download destination directory. If this configuration option is not set, it will set {:%Y/%m/%d} as the default. Use **none** to download to a flat file structure. Changing this value will not re-organise your currently downloaded files. It will leave your current folder structure intact and download your entire stream again. I do not recommend using **none** or {:%Y} as these two may result in images not being downloaded. In iCloud, you can have two identically named files and it will be fine. Using this downloader, the first file downloaded will take that name and the second file will be ignored.
+
+**albums_with_dates**: When albums are downloaded, they are downloaded into directories of the same name as the album. Setting this variable to **True** will then create sub folders according to the **folder_structure** variable. Default: false
 
 **skip_check**: Set this to **true** skip the check for new files. The check can have issues with large libraries, please set to **true** if you have more than a few thousand photos. Default: false.
 

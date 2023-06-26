@@ -3,6 +3,7 @@
 ##### Functions #####
 initialise_config_file(){
    {
+      if [ "$(grep -c "albums_with_dates=" "${config_file}")" -eq 0 ]; then echo albums_with_dates="${albums_with_dates:=false}"; fi
       if [ "$(grep -c "apple_id=" "${config_file}")" -eq 0 ]; then echo apple_id="${apple_id}"; fi
       if [ "$(grep -c "authentication_type=" "${config_file}")" -eq 0 ]; then echo authentication_type="${authentication_type:=2FA}"; fi
       if [ "$(grep -c "auth_china=" "${config_file}")" -eq 0 ]; then echo auth_china="${auth_china:=false}"; fi
@@ -64,6 +65,7 @@ initialise_config_file(){
       if [ "$(grep -c "wecom_proxy=" "${config_file}")" -eq 0 ]; then echo wecom_proxy="${wecom_proxy}"; fi
       if [ "$(grep -c "wecom_secret=" "${config_file}")" -eq 0 ]; then echo wecom_secret="${wecom_secret}"; fi
    } >> "${config_file}"
+   if [ "${albums_with_dates}" ]; then sed -i "s%^albums_with_dates=.*%albums_with_dates=${albums_with_dates}%" "${config_file}"; fi
    if [ "${apple_id}" ]; then sed -i "s%^apple_id=.*%apple_id=${apple_id}%" "${config_file}"; fi
    if [ "${authentication_type}" ]; then sed -i "s%^authentication_type=.*%authentication_type=${authentication_type}%" "${config_file}"; fi
    if [ "${auth_china}" ]; then sed -i "s%^auth_china=.*%auth_china=${auth_china}%" "${config_file}"; fi
@@ -1420,8 +1422,13 @@ SyncUser(){
                IFS=","
                for album in ${albums_to_download}; do
                   LogInfo "Downloading album: ${album}"
-                  LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
-                  su "${user}" -c '(icloudpd ${0} --folder-structure "${1}" --album "${1}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}"
+                  if [ "${albums_with_dates}" = true ]; then
+                     LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album}/${older_structure} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
+                     su "${user}" -c '(icloudpd ${0} --folder-structure "${1}" --album "${2}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}/${older_structure}" "${album}"
+                  else
+                     LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
+                     su "${user}" -c '(icloudpd ${0} --folder-structure "${1}" --album "${1}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}"
+                  fi
                   if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]; then
                      LogError "Failed downloading album: ${album}"
                      IFS="${save_ifs}"
