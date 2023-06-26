@@ -269,12 +269,12 @@ Initialise(){
    LogInfo "Synchronisation delay (minutes): ${synchronisation_delay}"
    LogInfo "Set EXIF date/time: ${set_exif_datetime:=false}"
    LogInfo "Auto delete: ${auto_delete:=false}"
-   LogInfo "Delete after download: ${delete_after_download:=false}"
-   if [ "${auto_delete}" != false ] && [ "${delete_after_download}" != false ]; then
-      LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
-      sleep 120
-      exit 1
-   fi
+   # LogInfo "Delete after download: ${delete_after_download:=false}"
+   # if [ "${auto_delete}" != false ] && [ "${delete_after_download}" != false ]; then
+      # LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
+      # sleep 120
+      # exit 1
+   # fi
    LogInfo "Photo size: ${photo_size:=original}"
    LogInfo "Single pass mode: ${single_pass:=false}"
    if [ "${single_pass}" = true ]; then
@@ -440,19 +440,6 @@ ConfigureNotifications(){
             LogInfo "${notification_type} chat id: ${telegram_chat_id}"
             LogInfo "${notification_type} polling: ${telegram_polling}"
             LogInfo "${notification_type} notification URL: ${notification_url}"
-         fi
-         if [ "${telegram_polling}" = true ]; then
-            LogInfo "Check Telegram bot initialised..."
-            bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[-1:])"
-            if [ "${bot_check}" ]; then
-               LogInfo " - Bot has been initialised."
-               current_message_id="$(echo "${bot_check}" | jq .[].message.message_id)"
-               LogInfo "${notification_type} current message_id: ${current_message_id}"
-            else
-               LogInfo " - Bot has not been initialised. Please send a message to the bot from your iDevice. Disabling remote wake"
-               sleep 10
-               telegram_polling=false
-            fi
          fi
          if [ "${telegram_silent_file_notifications}" ]; then telegram_silent_file_notifications=true; fi
          LogDebug "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=false}"
@@ -759,18 +746,12 @@ CheckMount(){
 }
 
 SetOwnerAndPermissionsConfig(){
-   LogDebug "Correct owner on icloudpd temp directory, if required"
-   find "/tmp/icloudpd" ! -user "${user_id}" -exec chown "${user_id}" {} +
-   LogDebug "Correct group on icloudpd temp directory, if required"
-   find "/tmp/icloudpd" ! -group "${group_id}" -exec chgrp "${group}" {} +
-   LogDebug "Correct owner on config directory, if required"
-   find "${config_dir}" ! -user "${user_id}" -exec chown "${user_id}" {} +
-   LogDebug "Correct group on config directory, if required"
-   find "${config_dir}" ! -group "${group_id}" -exec chgrp "${group_id}" {} +
-   LogDebug "Correct owner on keyring directory, if required"
-   find "/home/${user}/.local" ! -user "${user_id}" -exec chown "${user_id}" {} +
-   LogDebug "Correct group on keyring directory, if required"
-   find "/home/${user}/.local" ! -group "${group_id}" -exec chgrp "${group_id}" {} +
+   LogDebug "Set owner and group on icloudpd temp directory"
+   chown -R "${user_id}:${group}" "/tmp/icloudpd"
+   LogDebug "Set owner and group on config directory"
+   chown -R "${user_id}:${group}" "${config_dir}"
+   LogDebug "Set owner and group on keyring directory"
+   chown -R "${user_id}:${group}" "/home/${user}/.local"
 }
 
 SetOwnerAndPermissionsDownloads(){
@@ -1343,8 +1324,8 @@ CommandLineBuilder(){
    fi
    if [ "${auto_delete}" != false ]; then
       command_line="${command_line} --auto-delete"
-   elif [ "${delete_after_download}" != false ]; then
-      command_line="${command_line} --delete-after-download"
+   # elif [ "${delete_after_download}" != false ]; then
+      # command_line="${command_line} --delete-after-download"
    fi
    if [ "${skip_live_photos}" = false ]; then
       if [ "${live_photo_size}" != "original" ]; then
@@ -1493,27 +1474,27 @@ SyncUser(){
             LogInfo "Monitoring ${notification_type} for remote wake command: ${user}"
             listen_counter=0
             while [ "${listen_counter}" -lt "${sleep_time}" ]; do
-               latest_message="$(curl -X POST --silent "https://api.telegram.org/bot${telegram_token}/getUpdates?allowed_updates=message" | jq '.result[-1:][].message')"
-               latest_message_id="$(echo "${latest_message}" | jq .message_id)"
-               latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g'  | tr [:upper:] [:lower:])"
-               LogDebug "Latest: ${latest_message_id}. Current: ${current_message_id}"
-               if [ "${latest_message_id}" = "null" ] || [ -z "${latest_message_id}" ]; then
-                  LogDebug "Latest message_id: null"
-                  latest_message_id="${current_message_id}"
-               fi
-               if [ "${latest_message_id}" -gt "${current_message_id}" ]; then
-                  LogDebug "New message received: ${latest_message_text}"
-                  if [ "${latest_message_text}" = "$(echo ${user} | tr [:upper:] [:lower:])" ]; then
-                     LogDebug "Remote sync initiated"
-                        if [ -z "${icloud_china}" ]; then
-                           Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote synchronisation request for Apple ID: ${apple_id}"
-                        else
-                           Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
-                        fi
-                     current_message_id="${latest_message_id}"
-                     break
+               if [ "${telegram_polling}" = true ]; then
+                  latest_message="$(curl -X POST --silent "https://api.telegram.org/bot${telegram_token}/getUpdates?allowed_updates=message" | jq '.result[-1:][].message')"
+                  latest_message_id="$(echo "${latest_message}" | jq .message_id)"
+                  latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g'  | tr [:upper:] [:lower:])"
+                  if [ "${latest_message_id}" = "null" ]; then
+                     unset latest_message_id
                   fi
-                  current_message_id="${latest_message_id}"
+                  LogDebug "Latest: ${latest_message_id:=0}. Current: ${current_message_id:=0}"
+                  if [ "${latest_message_id}" -gt "${current_message_id}" ]; then
+                     LogDebug "New message received: ${latest_message_text}"
+                     if [ "${latest_message_text}" = "$(echo ${user} | tr [:upper:] [:lower:])" ]; then
+                        LogDebug "Remote sync initiated"
+                           if [ -z "${icloud_china}" ]; then
+                              Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote synchronisation request for Apple ID: ${apple_id}"
+                           else
+                              Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
+                           fi
+                        current_message_id="${latest_message_id}"
+                        break
+                     fi
+                  fi
                fi
                listen_counter=$((listen_counter+60))
                sleep 60

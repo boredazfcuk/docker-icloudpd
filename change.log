@@ -1,3 +1,8 @@
+20230626
+
+ - Change: Just chown the tmp and configu folders as some people seem to be having issues with keyring file which is solved by moving the file from the true location to the /config dir location. Possibly a permissions issue. Not sure.
+ - Change: The Telegram polling is still acting weird. Sometimes, the latest message reported by the telegram API will actually be an older message, then a second call to Telegram's API will return a higher number. Also, after a while, all messages will just disappear, meaning null values are passed back. Hopfully these should be fixed now.
+
 20230522
 
  - Change: Send notification when remote sync command received
