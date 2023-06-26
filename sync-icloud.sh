@@ -447,6 +447,9 @@ ConfigureNotifications(){
             if [ "${bot_check}" ]; then
                LogInfo " - Bot has been initialised."
                current_message_id="$(echo "${bot_check}" | jq .[].message.message_id)"
+               if [ "${current_message_id}" = "null" ]; then
+                  current_message_id=0
+               fi
                LogInfo "${notification_type} current message_id: ${current_message_id:=0}"
             else
                LogInfo " - Bot has not been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container. Disabling remote wake"
