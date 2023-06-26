@@ -443,7 +443,7 @@ ConfigureNotifications(){
          fi
          if [ "${telegram_polling}" = true ]; then
             LogInfo "Check Telegram bot initialised..."
-            bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[-1:][])"
+            bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[-1:])"
             if [ "${bot_check}" ]; then
                LogInfo " - Bot has been initialised."
                current_message_id="$(echo "${bot_check}" | jq .[].message.message_id)"
