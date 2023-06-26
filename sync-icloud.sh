@@ -1511,6 +1511,7 @@ SyncUser(){
                         break
                      fi
                   fi
+                  current_message_id="${latest_message_id}"
                fi
                listen_counter=$((listen_counter+60))
                sleep 60
