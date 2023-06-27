@@ -4,11 +4,15 @@ volumes:
    config:
       name: icloudpd_config
 
+volumes:
+   icloudpd_user1_config:
+      name: icloudpd_user1_config
+   icloudpd_user2_config:
+      name: icloudpd_user2_config
+
 services:
-   icloudpd:
-      hostname: icloudpd
-      env_file:
-         - example.env
+   icloudpd_user1:
+      hostname: icloudpd_user1
       environment:
          - TZ=Europe/London
       image: boredazfcuk/icloudpd
@@ -17,5 +21,17 @@ services:
          start_period: 30s
       restart: always
       volumes:
-         - config:/config
-         - ./iCloud/:/home/${user}/iCloud/
+         - icloudpd_user1_config:/config
+         - ./iCloud/:/home/user1/iCloud/
+   icloudpd_user2:
+      hostname: icloudpd_user2
+      environment:
+         - TZ=Europe/London
+      image: boredazfcuk/icloudpd
+      healthcheck:
+         test: /usr/local/bin/healthcheck.sh
+         start_period: 30s
+      restart: always
+      volumes:
+         - icloudpd_user2_config:/config
+         - ./iCloud/:/home/user2/iCloud/

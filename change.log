@@ -1,3 +1,7 @@
+20230627
+
+ - Change: Rebuilt with Alpine Linux 3.18.2 and iCloud Photos Downloader 1.13.4
+
 20230626
 
  - Change: Just chown the tmp and configu folders as some people seem to be having issues with keyring file which is solved by moving the file from the true location to the /config dir location. Possibly a permissions issue. Not sure.
