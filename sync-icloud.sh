@@ -271,12 +271,12 @@ Initialise(){
    LogInfo "Synchronisation delay (minutes): ${synchronisation_delay}"
    LogInfo "Set EXIF date/time: ${set_exif_datetime:=false}"
    LogInfo "Auto delete: ${auto_delete:=false}"
-   # LogInfo "Delete after download: ${delete_after_download:=false}"
-   # if [ "${auto_delete}" != false ] && [ "${delete_after_download}" != false ]; then
-      # LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
-      # sleep 120
-      # exit 1
-   # fi
+   LogInfo "Delete after download: ${delete_after_download:=false}"
+   if [ "${auto_delete}" != false ] && [ "${delete_after_download}" != false ]; then
+      LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
+      sleep 120
+      exit 1
+   fi
    LogInfo "Photo size: ${photo_size:=original}"
    LogInfo "Single pass mode: ${single_pass:=false}"
    if [ "${single_pass}" = true ]; then
@@ -386,19 +386,23 @@ LogDebug(){
    fi
 }
 
+CleanNotificationTitle(){
+   if [ "${notification_title}" ]; then
+      notification_title="${notification_title//[^a-zA-Z0-9_ ]/}"
+      LogDebug "Cleaned notification title: ${notification_title}"
+   else
+      LogDebug "Notification title: ${notification_title:=boredazfcuk/iCloudPD}"
+   fi
+}
+
 ConfigureNotifications(){
    if [ -z "${prowl_api_key}" ] && [ -z "${pushover_token}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ] && [ -z "${dingtalk_token}" ] && [ -z "${discord_token}" ] && [ -z "${iyuu_token}" ] && [ -z "${wecom_secret}" ] && [ -z "${gotify_app_token}" ] && [ -z "${bark_device_key}" ]; then
       LogWarning "${notification_type} notifications enabled, but API key/token/secret not set - disabling notifications"
       unset notification_type
    else
-      if [ "${notification_title}" ]; then
-         notification_title="${notification_title//[^a-zA-Z0-9_ ]/}"
-         LogDebug "Cleaned notification title: ${notification_title}"
-      else
-         LogDebug "Notification title: ${notification_title:=boredazfcuk/iCloudPD}"
-      fi
       if [ "${notification_type}" = "Prowl" ] && [ "${prowl_api_key}" ]; then
          LogInfo "${notification_type} notifications enabled"
+         CleanNotificationTitle
          if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} api key: (hidden)"
          else
@@ -407,6 +411,7 @@ ConfigureNotifications(){
          notification_url="https://api.prowlapp.com/publicapi/add"
       elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
+         CleanNotificationTitle
          if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} user: (hidden)"
             LogDebug "${notification_type} token: (hidden)"
@@ -432,6 +437,7 @@ ConfigureNotifications(){
             notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
          fi
          LogInfo "${notification_type} notifications enabled"
+         CleanNotificationTitle
          if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} token: (hidden)"
             LogDebug "${notification_type} chat id: (hidden)"
@@ -481,6 +487,7 @@ ConfigureNotifications(){
             webhook_scheme="http"
          fi
          LogInfo "${notification_type} notifications enabled"
+         CleanNotificationTitle
          LogDebug "${notification_type} server: ${webhook_server}"
          LogDebug "${notification_type} port: ${webhook_port:=8123}"
          LogDebug "${notification_type} path: ${webhook_path:=/api/webhook/}"
@@ -490,6 +497,7 @@ ConfigureNotifications(){
          LogDebug "${notification_type} body keyword: ${webhook_body:=data}"
       elif [ "${notification_type}" = "Discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
+         CleanNotificationTitle
          if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} Discord ID: (hidden)"
             LogDebug "${notification_type} Discord token: (hidden)"
@@ -543,6 +551,7 @@ ConfigureNotifications(){
          fi
       elif [ "${notification_type}" = "Gotify" ] && [ "${gotify_app_token}" ] && [ "${gotify_server_url}" ]; then
          LogInfo "${notification_type} notifications enabled"
+         CleanNotificationTitle
          if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} token: (hidden)"
             LogDebug "${notification_type} server URL: (hidden)"
@@ -553,6 +562,7 @@ ConfigureNotifications(){
          notification_url="https://${gotify_server_url}/message?token=${gotify_app_token}"
       elif [ "${notification_type}" = "Bark" ] && [ "${bark_device_key}" ] && [ "${bark_server}" ]; then
          LogInfo "${notification_type} notifications enabled"
+         CleanNotificationTitle
          if [ "${debug_logging}" = true ]; then
             LogDebug "${notification_type} device key: (hidden)"
             LogDebug "${notification_type} server: (hidden)"
@@ -1342,8 +1352,8 @@ CommandLineBuilder(){
    fi
    if [ "${auto_delete}" != false ]; then
       command_line="${command_line} --auto-delete"
-   # elif [ "${delete_after_download}" != false ]; then
-      # command_line="${command_line} --delete-after-download"
+   elif [ "${delete_after_download}" != false ]; then
+      command_line="${command_line} --delete-after-download"
    fi
    if [ "${skip_live_photos}" = false ]; then
       if [ "${live_photo_size}" != "original" ]; then

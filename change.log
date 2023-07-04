@@ -1,3 +1,12 @@
+20230704
+
+ - Change: Re-enabled **delete_after_download* functionality as recent fix has been merged upstream
+ - Change: Altered the clean up of the *notification_title* so that it does not apply to the commonly used Chinese notification methods
+
+20230703
+
+ - Change: Rebuilt with iCloud Photos Downloader 1.14.2
+
 20230627
 
  - Change: Rebuilt with Alpine Linux 3.18.2 and iCloud Photos Downloader 1.13.4
