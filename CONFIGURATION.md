@@ -83,7 +83,21 @@ When the container is first started, it will write a default configuration file 
 
 **single_pass**: Set this to **true** to exit out after a single pass instead of looping as per the synchronisation_interval. If this option is used, it will automatically disable the download check. If using this configuration option, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
 
-**trigger_nextlcoudcli_synchronisation**: This creates a file in the download directory after a new files are downloaded. My NextcloudCLI container will detect this and force an immediate sync to the Nextcloud server.
+# NEXTCLOUD CONFIGURATION VARIABLES
+
+**trigger_nextlcoudcli_synchronisation**: ~This creates a file in the download directory after a new files are downloaded. My NextcloudCLI container will detect this and force an immediate sync to the Nextcloud server.~ This has been deprecated for the new direct upload function. The mentioned NextcloudCLI container is no longer being published.
+
+**nextcloud_delete**: Set this variable to **true** if you want to remove files from Nextcloud. This setting requires **auto_delete** to also be set to true. When a file is found in the 'Recently Deleted', the **auto_delete** function will remove the local file. If **nextcloud_delete** is also set to **true**, then it will remove that file from the Nextcloud server.
+
+**nextcloud_password**: This is the password for the Nextcloud account you are syncing to
+
+**nextcloud_target_dir**: This is the name of the root folder that you want to place files in. Please note, it is not possible to upload files to the root of a Nextcloud server at this time.
+
+**nextcloud_upload**: Set this to **true** to upload files to a Nextcloud server
+
+**nextcloud_url**: This is the URL of your Nextcloud server e.g. https://my.server.local/ or https://my.server.local/nextcloud/
+
+**nextcloud_username**: This is the user name of the account that you want to upload the files to.
 
 ## NOTIFICATION CONFIGURATION VARIABLES
 

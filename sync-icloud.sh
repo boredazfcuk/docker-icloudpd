@@ -30,6 +30,11 @@ initialise_config_file(){
       if [ "$(grep -c "iyuu_token=" "${config_file}")" -eq 0 ]; then echo iyuu_token="${iyuu_token}"; fi
       if [ "$(grep -c "jpeg_path=" "${config_file}")" -eq 0 ]; then echo jpeg_path="${jpeg_path}"; fi
       if [ "$(grep -c "jpeg_quality=" "${config_file}")" -eq 0 ]; then echo jpeg_quality="${jpeg_quality:=90}"; fi
+      if [ "$(grep -c "nextcloud_delete=" "${config_file}")" -eq 0 ]; then echo nextcloud_delete="${nextcloud_delete:=false}"; fi
+      if [ "$(grep -c "nextcloud_upload=" "${config_file}")" -eq 0 ]; then echo nextcloud_upload="${nextcloud_upload:=false}"; fi
+      if [ "$(grep -c "nextcloud_url=" "${config_file}")" -eq 0 ]; then echo nextcloud_url="${nextcloud_url}"; fi
+      if [ "$(grep -c "nextcloud_username=" "${config_file}")" -eq 0 ]; then echo nextcloud_username="${nextcloud_username}"; fi
+      if [ "$(grep -c "nextcloud_password=" "${config_file}")" -eq 0 ]; then echo nextcloud_password="${nextcloud_password}"; fi
       if [ "$(grep -c "notification_days=" "${config_file}")" -eq 0 ]; then echo notification_days="${notification_days:=7}"; fi
       if [ "$(grep -c "notification_type=" "${config_file}")" -eq 0 ]; then echo notification_type="${notification_type}"; fi
       if [ "$(grep -c "photo_album=" "${config_file}")" -eq 0 ]; then echo photo_album="${photo_album}"; fi
@@ -95,6 +100,11 @@ initialise_config_file(){
    if [ "${iyuu_token}" ]; then sed -i "s%^iyuu_token=.*%iyuu_token=${iyuu_token}%" "${config_file}"; fi
    if [ "${jpeg_path}" ]; then sed -i "s%^jpeg_path=.*%jpeg_path=${jpeg_path}%" "${config_file}"; fi
    if [ "${jpeg_quality}" ]; then sed -i "s%^jpeg_quality=.*%jpeg_quality=${jpeg_quality}%" "${config_file}"; fi
+   if [ "${nextcloud_delete}" ]; then sed -i "s%^nextcloud_delete=.*%nextcloud_delete=${nextcloud_delete}%" "${config_file}"; fi
+   if [ "${nextcloud_upload}" ]; then sed -i "s%^nextcloud_upload=.*%nextcloud_upload=${nextcloud_upload}%" "${config_file}"; fi
+   if [ "${nextcloud_url}" ]; then sed -i "s%^nextcloud_url=.*%nextcloud_url=${nextcloud_url}%" "${config_file}"; fi
+   if [ "${nextcloud_username}" ]; then sed -i "s%^nextcloud_username=.*%nextcloud_username=${nextcloud_username}%" "${config_file}"; fi
+   if [ "${nextcloud_password}" ]; then sed -i "s%^nextcloud_password=.*%nextcloud_password=${nextcloud_password}%" "${config_file}"; fi
    if [ "${notification_days}" ]; then sed -i "s%^notification_days=.*%notification_days=${notification_days}%" "${config_file}"; fi
    if [ "${notification_type}" ]; then sed -i "s%^notification_type=.*%notification_type=${notification_type}%" "${config_file}"; fi
    if [ "${photo_album}" ]; then sed -i "s%^photo_album=.*%photo_album=\"${photo_album}\"%" "${config_file}"; fi
@@ -190,7 +200,7 @@ Initialise(){
       sleep 120
       exit 1
    fi
-   if [ "${apple_password}" ] && [ "${apple_password}" != "usekeyring" ]; then
+   if [ "${apple_password}" -a "${apple_password}" != "usekeyring" ]; then
       LogError "Apple password configured with variable which is no longer supported. Please add password to system keyring - exiting"
       sleep 120
       exit 1
@@ -272,7 +282,7 @@ Initialise(){
    LogInfo "Set EXIF date/time: ${set_exif_datetime:=false}"
    LogInfo "Auto delete: ${auto_delete:=false}"
    LogInfo "Delete after download: ${delete_after_download:=false}"
-   if [ "${auto_delete}" != false ] && [ "${delete_after_download}" != false ]; then
+   if [ "${auto_delete}" != false -a "${delete_after_download}" != false ]; then
       LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
       sleep 120
       exit 1
@@ -317,7 +327,7 @@ Initialise(){
    if [ "${jpeg_path}" ]; then
       LogInfo "Converted JPEGs path: ${jpeg_path}"
    fi
-   if [ "${delete_accompanying:=false}" = true ] && [ -z "${warnings_acknowledged}" ]; then
+   if [ "${delete_accompanying:=false}" = true -a -z "${warnings_acknowledged}" ]; then
       LogInfo "Delete accompanying files (.JPG/.HEIC.MOV)"
       LogWarning "This feature deletes files from your local disk. Please use with caution. I am not responsible for any data loss."
       LogWarning "This feature cannot be used if the 'folder_structure' variable is set to 'none' and also, 'set_exif_datetime' must be 'False'"
@@ -346,6 +356,18 @@ Initialise(){
    else
       LogDebug "Nextcloud synchronisation trigger: Disabled"
    fi
+   if [ "${nextcloud_upload}" = true ]; then
+      if [ "${nextcloud_url}" -a "${nextcloud_username}" -a "${nextcloud_password}" ]; then
+         LogInfo "Nextcloud upload: Enabled"
+         LogInfo "Nextcloud URL: ${nextcloud_url}"
+         LogInfo "Nextcloud username: ${nextcloud_username}"
+      else
+         LogError "Nextcloud upload: Missing mandatory variables. Disabling."
+         unset nextlcoud_upload
+      fi
+   else
+      LogDebug "Nextcloud upload: Disabled"
+   fi
    if [ ! -d "/home/${user}/.local/share/" ]; then
       LogDebug "Creating directory: /home/${user}/.local/share/"
       mkdir --parents "/home/${user}/.local/share/"
@@ -364,6 +386,12 @@ LogInfo(){
    local log_message
    log_message="${1}"
    echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${log_message}"
+}
+
+LogInfoN(){
+   local log_message
+   log_message="${1}"
+   echo -n "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${log_message}... "
 }
 
 LogWarning(){
@@ -396,11 +424,11 @@ CleanNotificationTitle(){
 }
 
 ConfigureNotifications(){
-   if [ -z "${prowl_api_key}" ] && [ -z "${pushover_token}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ] && [ -z "${dingtalk_token}" ] && [ -z "${discord_token}" ] && [ -z "${iyuu_token}" ] && [ -z "${wecom_secret}" ] && [ -z "${gotify_app_token}" ] && [ -z "${bark_device_key}" ]; then
+   if [ -z "${prowl_api_key}" -a -z "${pushover_token}" -a -z "${telegram_token}" -a -z "${webhook_id}" -a -z "${dingtalk_token}" -a -z "${discord_token}" -a -z "${iyuu_token}" -a -z "${wecom_secret}" -a -z "${gotify_app_token}" -a -z "${bark_device_key}" ]; then
       LogWarning "${notification_type} notifications enabled, but API key/token/secret not set - disabling notifications"
       unset notification_type
    else
-      if [ "${notification_type}" = "Prowl" ] && [ "${prowl_api_key}" ]; then
+      if [ "${notification_type}" = "Prowl" -a "${prowl_api_key}" ]; then
          LogInfo "${notification_type} notifications enabled"
          CleanNotificationTitle
          if [ "${debug_logging}" = true ]; then
@@ -409,7 +437,7 @@ ConfigureNotifications(){
             LogInfo "${notification_type} api key: ${prowl_api_key}"
          fi
          notification_url="https://api.prowlapp.com/publicapi/add"
-      elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]; then
+      elif [ "${notification_type}" = "Pushover" -a "${pushover_user}" -a "${pushover_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
          CleanNotificationTitle
          if [ "${debug_logging}" = true ]; then
@@ -430,7 +458,7 @@ ConfigureNotifications(){
             esac
          fi
          notification_url="https://api.pushover.net/1/messages.json"
-      elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]; then
+      elif [ "${notification_type}" = "Telegram" -a "${telegram_token}" -a "${telegram_chat_id}" ]; then
          if [ "${telegram_server}" ] ; then
             notification_url="https://${telegram_server}/bot${telegram_token}/sendMessage"
          else
@@ -467,7 +495,7 @@ ConfigureNotifications(){
          fi
          if [ "${telegram_silent_file_notifications}" ]; then telegram_silent_file_notifications=true; fi
          LogDebug "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=false}"
-      elif [ "${notification_type}" = "openhab" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
+      elif [ "${notification_type}" = "openhab" -a "${webhook_server}" -a "${webhook_id}" ]; then
          if [ "${webhook_https}" = true ]; then
             webhook_scheme="https"
          else
@@ -480,7 +508,7 @@ ConfigureNotifications(){
          LogDebug "${notification_type} ID: ${webhook_id}"
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
          LogDebug "${notification_type} notification URL: ${notification_url}"
-      elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]; then
+      elif [ "${notification_type}" = "Webhook" -a "${webhook_server}" -a "${webhook_id}" ]; then
          if [ "${webhook_https}" = true ]; then
             webhook_scheme="https"
          else
@@ -495,7 +523,7 @@ ConfigureNotifications(){
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
          LogDebug "${notification_type} notification URL: ${notification_url}"
          LogDebug "${notification_type} body keyword: ${webhook_body:=data}"
-      elif [ "${notification_type}" = "Discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]; then
+      elif [ "${notification_type}" = "Discord" -a "${discord_id}" -a "${discord_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
          CleanNotificationTitle
          if [ "${debug_logging}" = true ]; then
@@ -509,7 +537,7 @@ ConfigureNotifications(){
             notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
-      elif [ "${notification_type}" = "Dingtalk" ] && [ "${dingtalk_token}" ]; then
+      elif [ "${notification_type}" = "Dingtalk" -a "${dingtalk_token}" ]; then
          notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
          LogInfo "${notification_type} notifications enabled"
          if [ "${debug_logging}" = true ]; then
@@ -519,7 +547,7 @@ ConfigureNotifications(){
             LogInfo "${notification_type} token: ${dingtalk_token}"
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
-      elif [ "${notification_type}" = "IYUU" ] && [ "${iyuu_token}" ]; then
+      elif [ "${notification_type}" = "IYUU" -a "${iyuu_token}" ]; then
          notification_url="http://iyuu.cn/${iyuu_token}.send?"
          LogInfo "${notification_type} notifications enabled"
          if [ "${debug_logging}" = true ]; then
@@ -529,7 +557,7 @@ ConfigureNotifications(){
             LogInfo "${notification_type} token: ${iyuu_token}"
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
-      elif [ "${notification_type}" = "WeCom" ] && [ "${wecom_id}" ] && [ "${wecom_secret}" ]; then
+      elif [ "${notification_type}" = "WeCom" -a "${wecom_id}" -a "${wecom_secret}" ]; then
          wecom_base_url="https://qyapi.weixin.qq.com"
          if [ "${wecom_proxy}" ]; then
             wecom_base_url="${wecom_proxy}"
@@ -549,7 +577,7 @@ ConfigureNotifications(){
             LogInfo "${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
-      elif [ "${notification_type}" = "Gotify" ] && [ "${gotify_app_token}" ] && [ "${gotify_server_url}" ]; then
+      elif [ "${notification_type}" = "Gotify" -a "${gotify_app_token}" -a "${gotify_server_url}" ]; then
          LogInfo "${notification_type} notifications enabled"
          CleanNotificationTitle
          if [ "${debug_logging}" = true ]; then
@@ -560,7 +588,7 @@ ConfigureNotifications(){
             LogInfo "${notification_type} server URL: ${gotify_server_url}"
          fi
          notification_url="https://${gotify_server_url}/message?token=${gotify_app_token}"
-      elif [ "${notification_type}" = "Bark" ] && [ "${bark_device_key}" ] && [ "${bark_server}" ]; then
+      elif [ "${notification_type}" = "Bark" -a "${bark_device_key}" -a "${bark_server}" ]; then
          LogInfo "${notification_type} notifications enabled"
          CleanNotificationTitle
          if [ "${debug_logging}" = true ]; then
@@ -678,7 +706,7 @@ DeletePassword(){
 
 ConfigurePassword(){
    LogDebug "Configure password"
-   if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ] && [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
+   if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" -a "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
       LogDebug "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing"
       rm "${config_dir}/python_keyring/keyring_pass.cfg"
    fi
@@ -989,6 +1017,61 @@ DeletedFilesNotification(){
       if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
          touch "${download_path}/.nextcloud_sync"
       fi
+   fi
+}
+
+NextcloudUpload(){
+   local new_files_count new_filename nextcloud_file_path curl_response
+   new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
+   if [ "${new_files_count:=0}" -gt 0 ]; then
+      IFS="$(echo -en "\n\b")"
+      LogInfo "Upload files to Nextcloud..."
+      for full_filename in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | awk '{print $5}'); do
+         base_filename="$(basename "${full_filename}")"
+         new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%")"
+         nextcloud_file_path="$(dirname ${new_filename})"
+         if [ ! -f "${full_filename}" ]; then
+            LogWarning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
+         else
+            LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
+            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}")"
+            if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
+               echo "Success"
+            else
+               echo "Unexpected response: ${curl_response}"
+            fi
+         fi
+      done
+      IFS="${save_ifs}"
+   fi
+}
+
+NextcloudDelete() {
+   local deleted_files_count new_filename nextcloud_file_path encoded_file_path curl_response
+   deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
+   if [ "${deleted_files_count:=0}" -gt 0 ]; then
+      IFS="$(echo -en "\n\b")"
+      LogInfo "Delete files from Nextcloud..."
+      for full_filename in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | awk '{print $5}'); do
+         new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%" | sed 's/!$//')"
+         base_filename="$(basename "${new_filename}")"
+         nextcloud_file_path="$(dirname ${new_filename})"
+         encoded_file_path="$(echo "${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}" | sed 's/\//%2F/g')"
+         curl_response="$(curl --silent --show-error --location --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${encoded_file_path}" --output /dev/null --write-out "%{http_code}")"
+         if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 200 ]; then
+            LogInfoN "Deleting: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
+            if curl --silent --show-error --location --request DELETE --user "${nextcloud_username}:${nextcloud_password}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${encoded_file_path}"; then
+               echo "Success"
+            else
+               echo "Error deleting file: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
+            fi
+         elif [ "${curl_response}" -eq 404 ]; then
+            echo "File not found: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
+         else
+            echo "Unexpected response: ${curl_response}"
+         fi
+      done
+      IFS="${save_ifs}"
    fi
 }
 
@@ -1391,7 +1474,7 @@ SyncUser(){
       synchronisation_start_time="$(date +'%s')"
       LogInfo "Synchronisation starting at $(date +%H:%M:%S -d "@${synchronisation_start_time}")"
       source <(grep debug_logging "${config_file}")
-      chown -R "${user}":"${group}" "${config_dir}"
+      chown -R "${user}:${group}" "${config_dir}"
       if [ "${authentication_type}" = "2FA" ]; then
          LogDebug "Check 2FA Cookie"
          valid_twofa_cookie=false
@@ -1470,16 +1553,18 @@ SyncUser(){
                fi
             else
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
+               if [ "${nextcloud_upload}" = true ]; then NextcloudUpload; fi
+               if [ "${nextcloud_delete}" = true ]; then NextcloudDelete; fi
                if [ "${synology_photos_app_fix}" ]; then SynologyPhotosAppFix; fi
                if [ "${convert_heic_to_jpeg}" != false ]; then
                   LogInfo "Convert HEIC files to JPEG"
                   ConvertDownloadedHEIC2JPEG
                fi
                if [ "${delete_notifications}" ]; then DeletedFilesNotification; fi
-               if [ "${delete_accompanying}" = true ] && [ "${folder_structure}" != "none" ] && [ "${set_exif_datetime}" = false ]; then
+               if [ "${delete_accompanying}" = true -a "${folder_structure}" != "none" -a "${set_exif_datetime}" = false ]; then
                   RemoveRecentlyDeletedAccompanyingFiles
                fi
-               if [ "${delete_empty_directories}" = true ] && [ "${folder_structure}" != "none" ]; then
+               if [ "${delete_empty_directories}" = true -a "${folder_structure}" != "none" ]; then
                   RemoveEmptyDirectories
                fi
                SetOwnerAndPermissionsDownloads
@@ -1503,7 +1588,7 @@ SyncUser(){
          LogInfo "Next synchronisation at $(date +%H:%M:%S -d "${sleep_time} seconds")"
          unset check_exit_code check_files_count download_exit_code
          unset new_files
-         if [ "${notification_type}" = "Telegram" ] && [ "${telegram_polling}" = true ]; then
+         if [ "${notification_type}" = "Telegram" -a "${telegram_polling}" = true ]; then
             LogInfo "Monitoring ${notification_type} for remote wake command: ${user}"
             listen_counter=0
             while [ "${listen_counter}" -lt "${sleep_time}" ]; do
