@@ -1,12 +1,13 @@
-20230705
+20230709
 
+ - Change: Rewrite of remot sync function. Should be a little bit more reliable, as the previous one would get differeing results back from the Telegram API. Now it goes by update ID and stores it's progress to a file, so that it doesn't fail to retrive a correct value at boot.
  - Change: Added function to remove deleted files from Nextcloud
 
 20230704
 
  - Change: Re-enabled **delete_after_download* functionality as recent fix has been merged upstream
  - Change: Altered the clean up of the *notification_title* so that it does not apply to the commonly used Chinese notification methods
- - Change: New function - upload to Nextcloud server. This allows uploading directly to a Nextcloud server, rather than just dropping a file for a different container to monitor and then start a manual sync
+ - Change: New function to Nextcloud server. This allows uploading directly to a Nextcloud server, rather than just dropping a file for a different container to monitor and then start a manual sync
 
 20230703
 

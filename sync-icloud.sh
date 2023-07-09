@@ -49,6 +49,7 @@ initialise_config_file(){
       if [ "$(grep -c "skip_album=" "${config_file}")" -eq 0 ]; then echo skip_album="${skip_album}"; fi
       if [ "$(grep -c "single_pass=" "${config_file}")" -eq 0 ]; then echo single_pass="${single_pass:=false}"; fi
       if [ "$(grep -c "skip_check=" "${config_file}")" -eq 0 ]; then echo skip_check="${skip_check:=false}"; fi
+      if [ "$(grep -c "skip_download=" "${config_file}")" -eq 0 ]; then echo skip_download="${skip_download:=false}"; fi
       if [ "$(grep -c "skip_live_photos=" "${config_file}")" -eq 0 ]; then echo skip_live_photos="${skip_live_photos:=false}"; fi
       if [ "$(grep -c "synchronisation_delay=" "${config_file}")" -eq 0 ]; then echo synchronisation_delay="${synchronisation_delay:=0}"; fi
       if [ "$(grep -c "synchronisation_interval=" "${config_file}")" -eq 0 ]; then echo synchronisation_interval="${synchronisation_interval:=86400}"; fi
@@ -119,6 +120,7 @@ initialise_config_file(){
    if [ "${single_pass}" ]; then sed -i "s%^single_pass=.*%single_pass=${single_pass}%" "${config_file}"; fi
    if [ "${skip_album}" ]; then sed -i "s%^skip_album=.*%skip_album=\"${skip_album}\"%" "${config_file}"; fi
    if [ "${skip_check}" ]; then sed -i "s%^skip_check=.*%skip_check=${skip_check}%" "${config_file}"; fi
+   if [ "${skip_download}" ]; then sed -i "s%^skip_download=.*%skip_download=${skip_download}%" "${config_file}"; fi
    if [ "${skip_live_photos}" ]; then sed -i "s%^skip_live_photos=.*%skip_live_photos=${skip_live_photos}%" "${config_file}"; fi
    if [ "${synchronisation_delay}" ]; then sed -i "s%^synchronisation_delay=.*%synchronisation_delay=${synchronisation_delay}%" "${config_file}"; fi
    if [ "${synchronisation_interval}" ]; then sed -i "s%^synchronisation_interval=.*%synchronisation_interval=${synchronisation_interval}%" "${config_file}"; fi
@@ -162,7 +164,7 @@ Initialise(){
    source "${config_file}"
    save_ifs="${IFS}"
    lan_ip="$(hostname -i)"
-   login_counter="0"
+   login_counter=0
    apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
    older_structure="${folder_structure}"
@@ -478,20 +480,21 @@ ConfigureNotifications(){
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
          if [ "${telegram_polling}" = true ]; then
+            telegram_update_id_offset_file="${config_dir}/telegram_update_id.num"
+            if [ ! -f "${telegram_update_id_offset_file}" ]; then
+               echo -n 0 > "${telegram_update_id_offset_file}"
+            fi
             LogInfo "Check Telegram bot initialised..."
-            bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[-1:])"
+            bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .ok)"
             if [ "${bot_check}" ]; then
                LogInfo " - Bot has been initialised."
-               current_message_id="$(echo "${bot_check}" | jq .[].message.message_id)"
-               if [ "${current_message_id}" = "null" ]; then
-                  current_message_id=0
-               fi
-               LogInfo "${notification_type} current message_id: ${current_message_id:=0}"
             else
                LogInfo " - Bot has not been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container. Disabling remote wake"
                sleep 10
                telegram_polling=false
             fi
+            telegram_update_id_offset="$(head -1 ${telegram_update_id_offset_file})"
+            LogInfo "Latest update id: ${telegram_update_id_offset}"
          fi
          if [ "${telegram_silent_file_notifications}" ]; then telegram_silent_file_notifications=true; fi
          LogDebug "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=false}"
@@ -681,7 +684,9 @@ ListAlbums(){
    IFS=$'\n'
    source /opt/icloudpd_latest/bin/activate
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
-   available_albums="$(su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-albums | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
+   if [ "${skip_download}" = false ]; then
+      available_albums="$(su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-albums | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
+   fi
    deactivate
    LogInfo "Albums available:"
    for available_album in ${available_albums}; do
@@ -753,7 +758,7 @@ GenerateCookie(){
    LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
    find "${config_dir}" ! -user "${user}" -exec chown "${user_id}" {} +
    LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
-   find "${config_dir}" ! -group "${group}" -exec chgrp "${group}" {} +
+   find "${config_dir}" ! -group "${group}" -exec chgrp "${group_id}" {} +
    if [ -f "${config_dir}/${cookie_file}" ]; then
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
@@ -803,11 +808,11 @@ CheckMount(){
 
 SetOwnerAndPermissionsConfig(){
    LogDebug "Set owner and group on icloudpd temp directory"
-   chown -R "${user_id}:${group}" "/tmp/icloudpd"
+   chown -R "${user_id}:${group_id}" "/tmp/icloudpd"
    LogDebug "Set owner and group on config directory"
-   chown -R "${user_id}:${group}" "${config_dir}"
+   chown -R "${user_id}:${group_id}" "${config_dir}"
    LogDebug "Set owner and group on keyring directory"
-   chown -R "${user_id}:${group}" "/home/${user}/.local"
+   chown -R "${user_id}:${group_id}" "/home/${user}/.local"
 }
 
 SetOwnerAndPermissionsDownloads(){
@@ -1036,9 +1041,18 @@ NextcloudUpload(){
             LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
             curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}")"
             if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
-               echo "Success"
+               echo "Success: ${curl_response}"
             else
                echo "Unexpected response: ${curl_response}"
+            fi
+            if [ -f "${full_filename%.HEIC}.JPG" ]; then
+               LogInfoN "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
+               curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename%.HEIC}.JPG" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG")"
+               if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
+                  echo "Success: ${curl_response}"
+               else
+                  echo "Unexpected response: ${curl_response}"
+               fi
             fi
          fi
       done
@@ -1053,7 +1067,8 @@ NextcloudDelete() {
       IFS="$(echo -en "\n\b")"
       LogInfo "Delete files from Nextcloud..."
       for full_filename in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | awk '{print $5}'); do
-         new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%" | sed 's/!$//')"
+         full_filename="$(echo "${full_filename}" | sed 's/!$//')"
+         new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%")"
          base_filename="$(basename "${new_filename}")"
          nextcloud_file_path="$(dirname ${new_filename})"
          encoded_file_path="$(echo "${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}" | sed 's/\//%2F/g')"
@@ -1061,7 +1076,7 @@ NextcloudDelete() {
          if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 200 ]; then
             LogInfoN "Deleting: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
             if curl --silent --show-error --location --request DELETE --user "${nextcloud_username}:${nextcloud_password}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${encoded_file_path}"; then
-               echo "Success"
+               echo "Success: ${curl_response}"
             else
                echo "Error deleting file: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
             fi
@@ -1069,6 +1084,25 @@ NextcloudDelete() {
             echo "File not found: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
          else
             echo "Unexpected response: ${curl_response}"
+         fi
+         if [ -f "${full_filename%.HEIC}.JPG" ]; then
+            full_filename="${full_filename%.HEIC}.JPG"
+            new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%")"
+            base_filename="$(basename "${new_filename}")"
+            encoded_file_path="$(echo "${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}" | sed 's/\//%2F/g')"
+            curl_response="$(curl --silent --show-error --location --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${encoded_file_path}" --output /dev/null --write-out "%{http_code}")"
+            if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 200 ]; then
+               LogInfoN "Deleting: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
+               if curl --silent --show-error --location --request DELETE --user "${nextcloud_username}:${nextcloud_password}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${encoded_file_path}"; then
+                  echo "Success"
+               else
+                  echo "Error deleting file: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
+               fi
+            elif [ "${curl_response}" -eq 404 ]; then
+               echo "File not found: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
+            else
+               echo "Unexpected response: ${curl_response}"
+            fi
          fi
       done
       IFS="${save_ifs}"
@@ -1094,7 +1128,7 @@ ConvertDownloadedHEIC2JPEG(){
          touch --reference="${heic_file}" "${jpeg_file}"
          LogDebug "Setting timestamp of ${jpeg_file} to ${heic_date}"
          LogDebug "Correct owner and group of ${jpeg_file} to ${user}:${group}"
-         chown "${user}:${group}" ${jpeg_file}
+         chown "${user}:${group}" "${jpeg_file}"
       fi
    done
    IFS="${save_ifs}"
@@ -1179,7 +1213,7 @@ ForceConvertAllHEICs(){
       touch --reference="${heic_file}" "${jpeg_file}"
       LogDebug "Setting timestamp of ${jpeg_file} to ${heic_date}"
       LogDebug "Correct owner and group of ${jpeg_file} to ${user}:${group}"
-      chown "${user}:${group}" "${jpeg_file}"
+      chown "${user_id}:${group_id}" "${jpeg_file}"
    done
    IFS="${save_ifs}"
 }
@@ -1474,7 +1508,7 @@ SyncUser(){
       synchronisation_start_time="$(date +'%s')"
       LogInfo "Synchronisation starting at $(date +%H:%M:%S -d "@${synchronisation_start_time}")"
       source <(grep debug_logging "${config_file}")
-      chown -R "${user}:${group}" "${config_dir}"
+      chown -R "${user_id}:${group_id}" "${config_dir}"
       if [ "${authentication_type}" = "2FA" ]; then
          LogDebug "Check 2FA Cookie"
          valid_twofa_cookie=false
@@ -1533,7 +1567,13 @@ SyncUser(){
                folder_structure="${older_structure}"
             else
                LogDebug "iCloudPD launch command: icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
-               su "${user}" -c '(icloudpd ${0} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
+               if [ "${skip_download}" = false ]; then
+                  su "${user}" -c '(icloudpd ${0} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
+               else
+                  LogDebug "Skip download: ${skip_download} - skipping"
+                  echo 0 >/tmp/icloudpd/icloudpd_download_exit_code
+                  touch /tmp/icloudpd/icloudpd_sync.log
+               fi
             fi
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             deactivate
@@ -1553,13 +1593,13 @@ SyncUser(){
                fi
             else
                if [ "${download_notifications}" ]; then DownloadedFilesNotification; fi
-               if [ "${nextcloud_upload}" = true ]; then NextcloudUpload; fi
-               if [ "${nextcloud_delete}" = true ]; then NextcloudDelete; fi
                if [ "${synology_photos_app_fix}" ]; then SynologyPhotosAppFix; fi
                if [ "${convert_heic_to_jpeg}" != false ]; then
                   LogInfo "Convert HEIC files to JPEG"
                   ConvertDownloadedHEIC2JPEG
                fi
+               if [ "${nextcloud_upload}" = true ]; then NextcloudUpload; fi
+               if [ "${nextcloud_delete}" = true ]; then NextcloudDelete; fi
                if [ "${delete_notifications}" ]; then DeletedFilesNotification; fi
                if [ "${delete_accompanying}" = true -a "${folder_structure}" != "none" -a "${set_exif_datetime}" = false ]; then
                   RemoveRecentlyDeletedAccompanyingFiles
@@ -1569,6 +1609,10 @@ SyncUser(){
                fi
                SetOwnerAndPermissionsDownloads
                LogInfo "Synchronisation complete for ${user}"
+               if [ "${notification_type}" -a "${remote_sync_complete_notification}" = true ]; then
+                  Notify "remotesync" "iCloudPD remote synchronisation complete" "0" "iCloudPD has completed a remote synchronisation request for Apple ID: ${apple_id}"
+                  unset remote_sync_complete_notification
+               fi
             fi
             login_counter=$((login_counter + 1))
          fi
@@ -1593,27 +1637,44 @@ SyncUser(){
             listen_counter=0
             while [ "${listen_counter}" -lt "${sleep_time}" ]; do
                if [ "${telegram_polling}" = true ]; then
-                  latest_message="$(curl -X POST --silent "https://api.telegram.org/bot${telegram_token}/getUpdates?allowed_updates=message" | jq '.result[-1:][].message')"
-                  latest_message_id="$(echo "${latest_message}" | jq .message_id)"
-                  latest_message_text="$(echo "${latest_message}" | jq .text | sed 's/"//g'  | tr [:upper:] [:lower:])"
-                  if [ "${latest_message_id}" = "null" ]; then
-                     unset latest_message_id
+                  unset latest_updates latest_update_ids break_while
+                  update_count=0
+                  telegram_update_id_offset="$(head -1 "${telegram_update_id_offset_file}")"
+                  LogDebug "Polling Telegram for updates newer than: ${telegram_update_id_offset}"
+                  telegram_update_id_offset_inc=$((telegram_update_id_offset + 1))
+                  latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[])"
+                  if [ "${latest_updates}" ]; then
+                     latest_update_ids="$(echo "${latest_updates}" | jq -r '.update_id')"
                   fi
-                  LogDebug "Latest: ${latest_message_id:=0}. Current: ${current_message_id:=0}"
-                  if [ "${latest_message_id}" -gt "${current_message_id}" ]; then
-                     LogDebug "New message received: ${latest_message_text}"
-                     if [ "${latest_message_text}" = "$(echo ${user} | tr [:upper:] [:lower:])" ]; then
-                        LogDebug "Remote sync initiated"
+                  if [ "${latest_update_ids}" ]; then
+                     update_count="$(echo "${latest_update_ids}" | wc --lines)"
+                     LogDebug "Updates to process: ${update_count}"
+                     if [ "${update_count} -gt 0 " ]; then
+                        for latest_update in ${latest_update_ids}; do
+                           LogDebug "Processing update: ${latest_update}"
+                           check_update="$(echo ${latest_updates} | jq ". | select(.update_id == ${latest_update}).message")"
+                           check_update_text="$(echo ${check_update} | jq -r .text)"
+                           LogDebug "New message received: ${check_update_text}"
+                           if [ "$(echo "${check_update_text}" | tr [:upper:] [:lower:])" = "$(echo "${user}" | tr [:upper:] [:lower:])" ]; then
+                              break_while=true
+                              LogDebug "Remote sync message match: ${check_update_text}"
+                           else
+                              LogDebug "Ignoring message: ${check_update_text}"
+                           fi
+                        done
+                        echo -n "${latest_update}" > "${telegram_update_id_offset_file}"
+                        if [ "${break_while}" ]; then
+                           LogDebug "Remote sync initiated"
                            if [ -z "${icloud_china}" ]; then
                               Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote synchronisation request for Apple ID: ${apple_id}"
+                              remote_sync_complete_notification=true
                            else
                               Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
                            fi
-                        current_message_id="${latest_message_id}"
-                        break
+                           break
+                        fi
                      fi
                   fi
-                  current_message_id="${latest_message_id}"
                fi
                listen_counter=$((listen_counter+60))
                sleep 60
