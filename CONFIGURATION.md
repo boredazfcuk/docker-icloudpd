@@ -81,6 +81,8 @@ When the container is first started, it will write a default configuration file 
 
 **synology_photos_app_fix**: Set this to **true** to touch files after download and trigger the Synology Photos app to index any newly created files.
 
+**synology_ignore_path**: Set this to "**\*/@eaDir\***" to avoid huge warnings when trying to change permissions under Synology system.
+
 **single_pass**: Set this to **true** to exit out after a single pass instead of looping as per the synchronisation_interval. If this option is used, it will automatically disable the download check. If using this configuration option, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
 
 # NEXTCLOUD CONFIGURATION VARIABLES

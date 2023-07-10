@@ -817,13 +817,13 @@ SetOwnerAndPermissionsConfig(){
 
 SetOwnerAndPermissionsDownloads(){
    LogDebug "Set owner on iCloud directory, if required"
-   find "${download_path}" ! -type l ! -user "${user_id}" -exec chown "${user_id}" {} +
+   find "${download_path}" ! -type l ! -user "${user_id}" ! -path "${synology_ignore_path}" -exec chown "${user_id}" {} +
    LogDebug "Set group on iCloud directory, if required"
-   find "${download_path}" ! -type l ! -group "${group_id}" -exec chgrp "${group_id}" {} +
+   find "${download_path}" ! -type l ! -group "${group_id}" ! -path "${synology_ignore_path}" -exec chgrp "${group_id}" {} +
    LogDebug "Set ${directory_permissions} permissions on iCloud directories, if required"
-   find "${download_path}" -type d ! -perm "${directory_permissions}" -exec chmod "${directory_permissions}" '{}' +
+   find "${download_path}" -type d ! -perm "${directory_permissions}" ! -path "${synology_ignore_path}" -exec chmod "${directory_permissions}" '{}' +
    LogDebug "Set ${file_permissions} permissions on iCloud files, if required"
-   find "${download_path}" -type f ! -perm "${file_permissions}" -exec chmod "${file_permissions}" '{}' +
+   find "${download_path}" -type f ! -perm "${file_permissions}" ! -path "${synology_ignore_path}" -exec chmod "${file_permissions}" '{}' +
 }
 
 CheckWebCookie(){
