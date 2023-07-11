@@ -1,9 +1,9 @@
-FROM alpine:3.18
+FROM alpine:3.18.2
 MAINTAINER boredazfcuk
 
 ENV config_dir="/config" TZ="UTC"
 
-ARG icloudpd_version="1.14.2"
+ARG icloudpd_version="1.14.5"
 ARG python_version="3.11"
 ARG build_dependencies="git gcc python3-dev musl-dev rust cargo libffi-dev openssl-dev"
 ARG app_dependencies="py3-pip exiftool coreutils tzdata curl imagemagick shadow jq"
