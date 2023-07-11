@@ -1,3 +1,7 @@
+20230711
+
+ - Change: Synology systems create multiple directories which contain extended attributes, such as thumbnails. These will be seen as "eaDir*" directories. New variable added to skip changing permissions on these directories. PR submitted by tsanie
+
 20230709
 
  - Change: Rewrite of remot sync function. Should be a little bit more reliable, as the previous one would get differeing results back from the Telegram API. Now it goes by update ID and stores it's progress to a file, so that it doesn't fail to retrive a correct value at boot.

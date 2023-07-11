@@ -53,6 +53,7 @@ initialise_config_file(){
       if [ "$(grep -c "skip_live_photos=" "${config_file}")" -eq 0 ]; then echo skip_live_photos="${skip_live_photos:=false}"; fi
       if [ "$(grep -c "synchronisation_delay=" "${config_file}")" -eq 0 ]; then echo synchronisation_delay="${synchronisation_delay:=0}"; fi
       if [ "$(grep -c "synchronisation_interval=" "${config_file}")" -eq 0 ]; then echo synchronisation_interval="${synchronisation_interval:=86400}"; fi
+      if [ "$(grep -c "synology_ignore_path=" "${config_file}")" -eq 0 ]; then echo synology_ignore_path="${synology_ignore_path:=false}"; fi     
       if [ "$(grep -c "telegram_chat_id=" "${config_file}")" -eq 0 ]; then echo telegram_chat_id="${telegram_chat_id}"; fi
       if [ "$(grep -c "telegram_polling=" "${config_file}")" -eq 0 ]; then echo telegram_polling="${telegram_polling:=true}"; fi
       if [ "$(grep -c "telegram_server=" "${config_file}")" -eq 0 ]; then echo telegram_server="${telegram_server}"; fi
@@ -124,6 +125,7 @@ initialise_config_file(){
    if [ "${skip_live_photos}" ]; then sed -i "s%^skip_live_photos=.*%skip_live_photos=${skip_live_photos}%" "${config_file}"; fi
    if [ "${synchronisation_delay}" ]; then sed -i "s%^synchronisation_delay=.*%synchronisation_delay=${synchronisation_delay}%" "${config_file}"; fi
    if [ "${synchronisation_interval}" ]; then sed -i "s%^synchronisation_interval=.*%synchronisation_interval=${synchronisation_interval}%" "${config_file}"; fi
+   if [ "${synology_ignore_path}" ]; then sed -i "s%^synology_ignore_path=.*%synology_ignore_path=${synology_ignore_path}%" "${config_file}"; fi
    if [ "${telegram_chat_id}" ]; then sed -i "s%^telegram_chat_id=.*%telegram_chat_id=${telegram_chat_id}%" "${config_file}"; fi
    if [ "${telegram_polling}" ]; then sed -i "s%^telegram_polling=.*%telegram_polling=${telegram_polling}%" "${config_file}"; fi
    if [ "${telegram_server}" ]; then sed -i "s%^telegram_server=.*%telegram_server=${telegram_server}%" "${config_file}"; fi
@@ -370,6 +372,15 @@ Initialise(){
    else
       LogDebug "Nextcloud upload: Disabled"
    fi
+
+   if [ "${synology_ignore_path}" = true ]; then
+      LogInfo "Ignore Synology extended attribute directories: Enabled"
+      ignore_path="*/@eaDir*"
+   else
+      LogInfo "Ignore Synology extended attribute directories: Disabled"
+      ignore_path=""
+   fi
+
    if [ ! -d "/home/${user}/.local/share/" ]; then
       LogDebug "Creating directory: /home/${user}/.local/share/"
       mkdir --parents "/home/${user}/.local/share/"
@@ -817,11 +828,6 @@ SetOwnerAndPermissionsConfig(){
 
 SetOwnerAndPermissionsDownloads(){
    LogDebug "Set owner on iCloud directory, if required"
-   if [ "${synology_ignore_path:=false}" = true ]; then
-      ignore_path="*/@eaDir*"
-   else
-      ignore_path=""
-   fi
    find "${download_path}" ! -type l ! -user "${user_id}" ! -path "${ignore_path}" -exec chown "${user_id}" {} +
    LogDebug "Set group on iCloud directory, if required"
    find "${download_path}" ! -type l ! -group "${group_id}" ! -path "${ignore_path}" -exec chgrp "${group_id}" {} +
