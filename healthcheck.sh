@@ -23,15 +23,15 @@ if [ ! -f "${config_dir}/${cookie}" ]; then
 	echo "Error: Cookie does not exist. Please generate new cookie"
 	exit 1
 fi
-if [ "${authentication_type:=2FA}" = "2FA" ]; then
+if [ "${authentication_type:=MFA}" = "MFA" ]; then
    twofa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    twofa_expire_seconds="$(date -d "${twofa_expire_date}" '+%s')"
    days_remaining="$(($((twofa_expire_seconds - $(date '+%s'))) / 86400))"
    if [ -z "${notification_days}" ]; then notification_days=7; fi
    if [ "${days_remaining}" -le "${notification_days}" ] && [ "${days_remaining}" -ge 1 ]; then
-      echo "Warning: Two-factor authentication cookie is due for renewal in ${notification_days} days"
+      echo "Warning: Multi-factor authentication cookie is due for renewal in ${notification_days} days"
    elif [ "${days_remaining}" -lt 1 ]; then
-      echo "Error: Two-factor authentication cookie has expired"
+      echo "Error: Multi-factor authentication cookie has expired"
       exit 1
    fi
 elif [ "${authentication_type}" = "Web" ]; then
