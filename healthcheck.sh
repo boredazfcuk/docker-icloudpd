@@ -24,9 +24,9 @@ if [ ! -f "${config_dir}/${cookie}" ]; then
 	exit 1
 fi
 if [ "${authentication_type:=MFA}" = "MFA" ]; then
-   twofa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
-   twofa_expire_seconds="$(date -d "${twofa_expire_date}" '+%s')"
-   days_remaining="$(($((twofa_expire_seconds - $(date '+%s'))) / 86400))"
+   mfa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   mfa_expire_seconds="$(date -d "${mfa_expire_date}" '+%s')"
+   days_remaining="$(($((mfa_expire_seconds - $(date '+%s'))) / 86400))"
    if [ -z "${notification_days}" ]; then notification_days=7; fi
    if [ "${days_remaining}" -le "${notification_days}" ] && [ "${days_remaining}" -ge 1 ]; then
       echo "Warning: Multi-factor authentication cookie is due for renewal in ${notification_days} days"

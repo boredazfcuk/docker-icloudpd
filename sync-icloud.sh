@@ -926,16 +926,16 @@ CheckMFACookie(){
       LogDebug "Multi-factor authentication authentication complete, checking expiry date..."
    fi 
    if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
-      twofa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
-      twofa_expire_seconds="$(date -d "${twofa_expire_date}" '+%s')"
-      days_remaining="$(($((twofa_expire_seconds - $(date '+%s'))) / 86400))"
+      mfa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+      mfa_expire_seconds="$(date -d "${mfa_expire_date}" '+%s')"
+      days_remaining="$(($((mfa_expire_seconds - $(date '+%s'))) / 86400))"
       echo "${days_remaining}" > "${config_dir}/DAYS_REMAINING"
       if [ "${days_remaining}" -gt 0 ]; then
-         valid_twofa_cookie=true
+         valid_mfa_cookie=true
          LogDebug "Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
       else
          rm -f "${config_dir}/${cookie_file}"
-         LogError "Cookie expired at: ${twofa_expire_date}"
+         LogError "Cookie expired at: ${mfa_expire_date}"
          LogError "Expired cookie file has been removed. Restarting container in 5 minutes"
          sleep 300
          exit 1
@@ -951,7 +951,7 @@ CheckMFACookie(){
 
 DisplayMFAExpiry(){
    local error_message
-   LogInfo "Two factor authentication cookie expires: ${twofa_expire_date/ / @ }"
+   LogInfo "Two factor authentication cookie expires: ${mfa_expire_date/ / @ }"
    LogInfo "Days remaining until expiration: ${days_remaining}"
    if [ "${days_remaining}" -le "${notification_days}" ]; then
       if [ "${days_remaining}" -eq 1 ]; then
@@ -1552,8 +1552,8 @@ SyncUser(){
       CheckKeyringExists
       if [ "${authentication_type}" = "MFA" ]; then
          LogDebug "Check MFA Cookie"
-         valid_twofa_cookie=false
-         while [ "${valid_twofa_cookie}" = false ]; do CheckMFACookie; done
+         valid_mfa_cookie=false
+         while [ "${valid_mfa_cookie}" = false ]; do CheckMFACookie; done
       fi
       CheckMount
       if [ "${skip_check}" = false ]; then

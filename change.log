@@ -2,6 +2,7 @@
 
  - Change: Did some stuff around cookie creation. Script would progress immediately after cookie file was created, however, this happens when the user is prompted to authenticate, so background script would continue as user is confirming 2FA.
  - Change: Changed 2FA to MFA. The correct term is Multi-Factor Authentication, not two factor authenticaion.
+ - Change: 
 
 20230721
 
