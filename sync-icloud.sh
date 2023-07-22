@@ -5,7 +5,7 @@ initialise_config_file(){
    {
       if [ "$(grep -c "albums_with_dates=" "${config_file}")" -eq 0 ]; then echo albums_with_dates="${albums_with_dates:=false}"; fi
       if [ "$(grep -c "apple_id=" "${config_file}")" -eq 0 ]; then echo apple_id="${apple_id}"; fi
-      if [ "$(grep -c "authentication_type=" "${config_file}")" -eq 0 ]; then echo authentication_type="${authentication_type:=2FA}"; fi
+      if [ "$(grep -c "authentication_type=" "${config_file}")" -eq 0 ]; then echo authentication_type="${authentication_type:=MFA}"; fi
       if [ "$(grep -c "auth_china=" "${config_file}")" -eq 0 ]; then echo auth_china="${auth_china:=false}"; fi
       if [ "$(grep -c "auto_delete=" "${config_file}")" -eq 0 ]; then echo auto_delete="${auto_delete:=false}"; fi
       if [ "$(grep -c "bark_device_key=" "${config_file}")" -eq 0 ]; then echo bark_device_key="${bark_device_key}"; fi
@@ -150,6 +150,8 @@ initialise_config_file(){
    sed -i 's/=True/=true/g' "${config_file}"
    sed -i 's/=False/=false/g' "${config_file}"
    sed -i '/photo_library=/d' "${config_file}"
+   sed -i 's/authentication_type=2FA/authentication_type=MFA/' "${config_file}"
+ 
 }
 
 Initialise(){
@@ -169,8 +171,7 @@ Initialise(){
    login_counter=0
    apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
-   older_structure="${folder_structure}"
-
+   
    local icloud_dot_com dns_counter
    if [ "${icloud_china}" ]; then
       icloud_domain="icloud.com.cn"
@@ -249,7 +250,7 @@ Initialise(){
    else
       LogInfo "Apple ID: ${apple_id}"
    fi
-   LogInfo "Authentication Type: ${authentication_type:=2FA}"
+   LogInfo "Authentication Type: ${authentication_type:=MFA}"
    if [ "${debug_logging}" = true ]; then
       LogDebug "Cookie path: ${config_dir}/(hidden)"
    else
@@ -393,6 +394,7 @@ Initialise(){
       LogDebug "Creating symbolic link: /home/${user}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
       ln --symbolic --force "${config_dir}/python_keyring/" "/home/${user}/.local/share/"
    fi
+
 }
 
 LogInfo(){
@@ -692,6 +694,11 @@ CreateUser(){
 # }
 
 ListAlbums(){
+   if [ "${authentication_type}" = "MFA" ]; then
+      CheckMFACookie
+   else
+      CheckWebCookie
+   fi
    IFS=$'\n'
    source /opt/icloudpd_latest/bin/activate
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
@@ -722,9 +729,11 @@ DeletePassword(){
 
 ConfigurePassword(){
    LogDebug "Configure password"
-   if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" -a "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
-      LogDebug "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing"
-      rm "${config_dir}/python_keyring/keyring_pass.cfg"
+   if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
+      if [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
+         LogDebug "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing"
+         rm "${config_dir}/python_keyring/keyring_pass.cfg"
+      fi
    fi
    if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
@@ -782,13 +791,13 @@ GenerateCookie(){
    LogDebug "Switched to icloudpd: $(icloudpd --version | awk '{print $3}')"
    su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --directory /dev/null --only-print-filenames --recent 0' -- "${apple_id}" "${config_dir}"
    deactivate
-   if [ "${authentication_type}" = "2FA" ]; then
+   if [ "${authentication_type}" = "MFA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
          LogInfo "Two factor authentication cookie generated. Sync should now be successful"
       else
-         LogError "2FA information missing from cookie. Authentication has failed"
+         LogError "Multi-factor authentication information missing from cookie. Authentication has failed"
          LogError " - Was the correct password entered?"
-         LogError " - Was the 2FA code mistyped?"
+         LogError " - Was the multi-factor authentication code mistyped?"
          LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
          if [ -z "${icloud_china}" ]; then
             LogError " - Are you based in China? You will need to set the icloud_china variable"
@@ -837,90 +846,110 @@ SetOwnerAndPermissionsDownloads(){
    find "${download_path}" -type f ! -perm "${file_permissions}" ! -path "${ignore_path}" -exec chmod "${file_permissions}" '{}' +
 }
 
-CheckWebCookie(){
-   if [ -f "${config_dir}/${cookie_file}" ]; then
-      web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+CheckKeyringExists(){
+   if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
+      LogInfo "Keyring file exists, continuing"
    else
-      LogError "Cookie does not exist"
-      LogError " - Please create your cookie using the --Initialise script command line option"
+      LogError "Keyring does not exist"
+      LogError " - Please add your password to the system keyring by using the --Initialise script command line option"
       LogError " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
       LogError " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-      LogError "Waiting for cookie file to be created..."
+      LogError "Waiting for keyring file to be created..."
       local counter
       counter="${counter:=0}"
-      while [ ! -f "${config_dir}/${cookie_file}" ]; do
+      while [ ! -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; do
          sleep 5
          counter=$((counter + 1))
          if [ "${counter}" -eq 360 ]; then
-            LogError "Cookie file has not appeared within 30 minutes. Restarting container..."
+            LogError "Keyring file has not appeared within 30 minutes. Restarting container..."
             exit 1
          fi
       done
+      LogInfo "Keyring file exists, continuing"
+   fi
+}
+
+WaitForCookie(){
+   if [ "${1}" = "DisplayMessage" ]; then
+      LogError "Waiting for valid cookie file to be created..."
+      LogError " - Please create your cookie using the --Initialise script command line option"
+      LogError " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
+      LogError " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
+   fi
+   local counter
+   counter="${counter:=0}"
+   while [ ! -f "${config_dir}/${cookie_file}" ]; do
+      sleep 5
+      counter=$((counter + 1))
+      if [ "${counter}" -eq 360 ]; then
+         LogError "Valid cookie file has not appeared within 30 minutes. Restarting container..."
+         exit 1
+      fi
+   done
+}
+
+WaitForAuthentication(){
+   local counter
+   counter="${counter:=0}"
+   while [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 0 ]; do
+      sleep 5
+      counter=$((counter + 1))
+      if [ "${counter}" -eq 360 ]; then
+         LogError "Valid cookie file has not appeared within 30 minutes. Restarting container..."
+         exit 1
+      fi
+   done
+}
+
+CheckWebCookie(){
+   if [ -f "${config_dir}/${cookie_file}" ]; then
+      LogDebug "Web cookie exists."
+      web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   else
+      LogError "Web cookie does not exist"
+      WaitForCookie DisplayMessage
       LogInfo "Cookie file exists, continuing"
    fi
 }
 
-Check2FACookie(){
+CheckMFACookie(){
    if [ -f "${config_dir}/${cookie_file}" ]; then
-      LogDebug "Cookie exists, check expiry date"
-      if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
-         twofa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
-         twofa_expire_seconds="$(date -d "${twofa_expire_date}" '+%s')"
-         days_remaining="$(($((twofa_expire_seconds - $(date '+%s'))) / 86400))"
-         echo "${days_remaining}" > "${config_dir}/DAYS_REMAINING"
-         if [ "${days_remaining}" -gt 0 ]; then
-            valid_twofa_cookie=true
-            LogDebug "Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
-         else
-            rm -f "${config_dir}/${cookie_file}"
-            LogError "Cookie expired at: ${twofa_expire_date}"
-            LogError "Expired cookie file has been removed"
-            LogError " - Please recreate your cookie using the --Initialise script command line option"
-            LogError " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-            LogError " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-            LogError "Waiting for cookie file to be created..."
-            local counter
-            counter="${counter:=0}"
-            while [ ! -f "${config_dir}/${cookie_file}" ]; do
-               sleep 5
-               counter=$((counter + 1))
-               if [ "${counter}" -eq 360 ]; then
-                  LogError "Cookie file has not appeared within 30 minutes. Restarting container..."
-                  exit 1
-               fi
-            done
-            LogDebug "Cookie file exists, continuing"
-         fi
+      LogDebug "Multi-factor authentication cookie exists."
+   else
+      LogError "Multi-factor authentication cookie does not exist"
+      WaitForCookie DisplayMessage
+      LogDebug "Multi-factor authentication cookie file exists, checking validity..."
+   fi
+   if [ "$(grep -c "X-APPLE-DS-WEB-SESSION-TOKEN" "${config_dir}/${cookie_file}")" -eq 1 -a "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 0 ]; then
+      LogDebug "Multi-factor authentication cookie exists, but not autenticated. Waiting for authentication to complete..."
+      WaitForAuthentication
+      LogDebug "Multi-factor authentication authentication complete, checking expiry date..."
+   fi 
+   if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
+      twofa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+      twofa_expire_seconds="$(date -d "${twofa_expire_date}" '+%s')"
+      days_remaining="$(($((twofa_expire_seconds - $(date '+%s'))) / 86400))"
+      echo "${days_remaining}" > "${config_dir}/DAYS_REMAINING"
+      if [ "${days_remaining}" -gt 0 ]; then
+         valid_twofa_cookie=true
+         LogDebug "Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
       else
-         LogError "Cookie is not 2FA capable, authentication type may have changed"
-         LogError " - Please recreate your cookie using the --Initialise script command line option"
-         LogError " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-         LogError " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-         LogError "Restarting in 5 minutes..."
+         rm -f "${config_dir}/${cookie_file}"
+         LogError "Cookie expired at: ${twofa_expire_date}"
+         LogError "Expired cookie file has been removed. Restarting container in 5 minutes"
          sleep 300
          exit 1
       fi
    else
-      LogError "Cookie does not exist"
-      LogError " - Please create your cookie using the --Initialise script command line option"
-      LogError " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
-      LogError " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
-      LogError "Waiting for cookie file to be created..."
-      local counter
-      counter="${counter:=0}"
-      while [ ! -f "${config_dir}/${cookie_file}" ]; do
-         sleep 5
-         counter=$((counter + 1))
-         if [ "${counter}" -eq 360 ]; then
-            LogError "Cookie file has not appeared within 30 minutes. Restarting container..."
-            exit 1
-         fi
-      done
-      LogDebug "Cookie file exists, continuing"
+      rm -f "${config_dir}/${cookie_file}"
+      LogError "Cookie is not multi-factor authentication capable, authentication type may have changed"
+      LogError "Invalid cookie file has been removed. Restarting container in 5 minutes"
+      sleep 300
+      exit 1
    fi
 }
 
-Display2FAExpiry(){
+DisplayMFAExpiry(){
    local error_message
    LogInfo "Two factor authentication cookie expires: ${twofa_expire_date/ / @ }"
    LogInfo "Days remaining until expiration: ${days_remaining}"
@@ -943,9 +972,9 @@ Display2FAExpiry(){
       LogWarning "${error_message}"
       if [ "${synchronisation_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]; then
          if [ -z "${icloud_china}" ]; then
-            Notify "${cookie_status}" "2FA Cookie Expiration" "2" "${error_message}"
+            Notify "${cookie_status}" "Multi-Factor Authentication Cookie Expiration" "2" "${error_message}"
          else
-            Notify "${cookie_status}" "2FA Cookie Expiration" "2" "${error_message}" "" "" "" "${days_remaining} 天后，${name} 的身份验证到期" "${error_message}"
+            Notify "${cookie_status}" "Multi-Factor Authentication Cookie Expiration" "2" "${error_message}" "" "" "" "${days_remaining} 天后，${name} 的身份验证到期" "${error_message}"
          fi
          next_notification_time="$(date +%s -d "+24 hour")"
          LogDebug "Next notification not before: $(date +%H:%M:%S -d "${next_notification_time} seconds")"
@@ -1520,10 +1549,11 @@ SyncUser(){
       LogInfo "Synchronisation starting at $(date +%H:%M:%S -d "@${synchronisation_start_time}")"
       source <(grep debug_logging "${config_file}")
       chown -R "${user_id}:${group_id}" "${config_dir}"
-      if [ "${authentication_type}" = "2FA" ]; then
-         LogDebug "Check 2FA Cookie"
+      CheckKeyringExists
+      if [ "${authentication_type}" = "MFA" ]; then
+         LogDebug "Check MFA Cookie"
          valid_twofa_cookie=false
-         while [ "${valid_twofa_cookie}" = false ]; do Check2FACookie; done
+         while [ "${valid_twofa_cookie}" = false ]; do CheckMFACookie; done
       fi
       CheckMount
       if [ "${skip_check}" = false ]; then
@@ -1561,8 +1591,8 @@ SyncUser(){
                for album in ${albums_to_download}; do
                   LogInfo "Downloading album: ${album}"
                   if [ "${albums_with_dates}" = true ]; then
-                     LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album}/${older_structure} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
-                     su "${user}" -c '(icloudpd ${0} --folder-structure "${1}" --album "${2}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}/${older_structure}" "${album}"
+                     LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album}/${folder_structure} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
+                     su "${user}" -c '(icloudpd ${0} --folder-structure "${1}" --album "${2}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}/${folder_structure}" "${album}"
                   else
                      LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
                      su "${user}" -c '(icloudpd ${0} --folder-structure "${1}" --album "${1}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}"
@@ -1575,7 +1605,6 @@ SyncUser(){
                   fi
                done
                IFS="${save_ifs}"
-               folder_structure="${older_structure}"
             else
                LogDebug "iCloudPD launch command: icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
                if [ "${skip_download}" = false ]; then
@@ -1630,7 +1659,7 @@ SyncUser(){
       fi
       CheckWebCookie
       LogInfo "Web cookie expires: ${web_cookie_expire_date/ / @ }"
-      if [ "${authentication_type}" = "2FA" ]; then Display2FAExpiry; fi
+      if [ "${authentication_type}" = "MFA" ]; then DisplayMFAExpiry; fi
       LogDebug "iCloud login counter = ${login_counter}"
       synchronisation_end_time="$(date +'%s')"
       LogInfo "Synchronisation ended at $(date +%H:%M:%S -d "@${synchronisation_end_time}")"
@@ -1810,5 +1839,6 @@ fi
 CheckMount
 SetOwnerAndPermissionsConfig
 CommandLineBuilder
+CheckKeyringExists
 ListAlbums
 SyncUser

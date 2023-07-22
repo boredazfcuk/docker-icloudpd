@@ -1,3 +1,12 @@
+20230722
+
+ - Change: Did some stuff around cookie creation. Script would progress immediately after cookie file was created, however, this happens when the user is prompted to authenticate, so background script would continue as user is confirming 2FA.
+ - Change: Changed 2FA to MFA. The correct term is Multi-Factor Authentication, not two factor authenticaion.
+
+20230721
+
+ - Change: Added a function to check if the cookie exists. Two of my containers' cookies expired and the auto-heal feature kept restaring them. This meant when they were starting up they were attempting to connect to iCloud so they could list the available abums. This was causing an MFA prompt. New function just pauses the script if a cookie does not exist.
+
 20230711
 
  - Change: Synology systems create multiple directories which contain extended attributes, such as thumbnails. These will be seen as "eaDir*" directories. New variable added to skip changing permissions on these directories. PR submitted by tsanie
