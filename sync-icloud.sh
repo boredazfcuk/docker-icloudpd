@@ -619,7 +619,7 @@ ConfigureNotifications(){
          LogWarning "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
          unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_server_url bark_device_key bark_server
       fi
-      if [ -z "${icloud_china}" ]; then
+      if [ "${icloud_china}" = false ]; then
          Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID: ${apple_id}"
       else
          Notify "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
@@ -738,7 +738,7 @@ ConfigurePassword(){
    if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
          LogDebug "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
-         if [ "${icloud_china}" ]; then
+         if [ "${icloud_china}" = true ]; then
             source /opt/icloudpd_v1.7.2_china/bin/activate
          else
             source /opt/icloudpd_latest/bin/activate
@@ -783,7 +783,7 @@ GenerateCookie(){
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
    LogDebug "Generate ${authentication_type} cookie using password stored in keyring file"
-   if [ "${icloud_china}" ]; then
+   if [ "${icloud_china}" = true ]; then
       source /opt/icloudpd_v1.7.2_china/bin/activate
    else
       source /opt/icloudpd_latest/bin/activate
@@ -799,7 +799,7 @@ GenerateCookie(){
          LogError " - Was the correct password entered?"
          LogError " - Was the multi-factor authentication code mistyped?"
          LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
-         if [ -z "${icloud_china}" ]; then
+         if [ "${icloud_china}" = true ]; then
             LogError " - Are you based in China? You will need to set the icloud_china variable"
          fi
       fi
@@ -956,14 +956,14 @@ DisplayMFAExpiry(){
    if [ "${days_remaining}" -le "${notification_days}" ]; then
       if [ "${days_remaining}" -eq 1 ]; then
          cookie_status="cookie expired"
-         if [ -z "${icloud_china}" ]; then
+         if [ "${icloud_china}" = false ]; then
             error_message="Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
          else
             error_message="今天是 ${name} 的 Apple ID 两步验证 cookie 到期前的最后一天 - 请立即重新初始化，这是最后的提醒"
          fi
       else
          cookie_status="cookie expiration"
-         if [ -z "${icloud_china}" ]; then
+         if [ "${icloud_china}" = false ]; then
             error_message="Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
          else
             error_message="${days_remaining} 天后 ${name} 的 Apple ID 两步验证将到期 - 请立即重新初始化"
@@ -971,7 +971,7 @@ DisplayMFAExpiry(){
       fi
       LogWarning "${error_message}"
       if [ "${synchronisation_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]; then
-         if [ -z "${icloud_china}" ]; then
+         if [ "${icloud_china}" = false ]; then
             Notify "${cookie_status}" "Multi-Factor Authentication Cookie Expiration" "2" "${error_message}"
          else
             Notify "${cookie_status}" "Multi-Factor Authentication Cookie Expiration" "2" "${error_message}" "" "" "" "${days_remaining} 天后，${name} 的身份验证到期" "${error_message}"
@@ -998,7 +998,7 @@ CheckFiles(){
       LogError "Error debugging info:"
       LogError "$(cat /tmp/icloudpd/icloudpd_check_error)"
       LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
-      if [ -z "${icloud_china}" ]; then
+      if [ "${icloud_china}" = false ]; then
          Notify "failure" "iCloudPD container failure" "0" "iCloudPD failed check for new files for Apple ID: ${apple_id}"
       else
          syn_end_time="$(date '+%H:%M:%S')"
@@ -1025,7 +1025,7 @@ DownloadedFilesNotification(){
       LogInfo "New files downloaded: ${new_files_count}"
       new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | head -10)"
       new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
-      if [ -z "${icloud_china}" ]; then
+      if [ "${icloud_china}" = false ]; then
          new_files_text="Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
          Notify "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "downloaded" "${new_files_preview}"
       else
@@ -1049,7 +1049,7 @@ DeletedFilesNotification(){
       LogInfo "Number of files deleted: ${deleted_files_count}"
       deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
       deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
-      if [ -z "${icloud_china}" ]; then
+      if [ "${icloud_china}" = false ]; then
          deleted_files_text="Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
          Notify "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "deleted" "${deleted_files_preview}"
       else
@@ -1460,14 +1460,14 @@ Notify(){
       syn_end_time="$(date '+%H:%M:%S')"
       syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
       if [ "${notification_files_preview_count}" ]; then
-         if [ -z "${icloud_china}" ]; then
+         if [ "${icloud_china}" = false ]; then
             wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
          else
             notification_files_preview_text="${notification_files_preview_text//$'\n'/'<br/>'}"
             wecom_text="$(echo -e "<font style="line-height:1.5"><center><b><big><big>同步日志</big></big></b></font></center><center><b>${notification_message}</b></center><center>···················  <small>最近 ${notification_files_preview_count} 条${notification_files_preview_type}记录如下</small>  ····················</center><code><small>${notification_files_preview_text}</small></code><center>···················  <small>下次同步时间为 ${syn_next_time}</small>  ··················</center>")"
          fi
       else
-         if [ -z "${icloud_china}" ]; then
+         if [ "${icloud_china}" = false ]; then
             wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
          else
             wecom_text="$(echo -e "${notification_message}")"
@@ -1627,7 +1627,7 @@ SyncUser(){
                LogError "Error debugging info:"
                LogError "$(cat /tmp/icloudpd/icloudpd_download_error)"
                LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
-               if [ -z "${icloud_china}" ]; then
+               if [ "${icloud_china}" = false ]; then
                   Notify "failure" "iCloudPD container failure" "1" "iCloudPD failed to download new files for Apple ID: ${apple_id}"
                else
                   # 结束时间、下次同步时间
@@ -1709,7 +1709,7 @@ SyncUser(){
                         echo -n "${latest_update}" > "${telegram_update_id_offset_file}"
                         if [ "${break_while}" ]; then
                            LogDebug "Remote sync initiated"
-                           if [ -z "${icloud_china}" ]; then
+                           if [ "${icloud_china}" = false ]; then
                               Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote synchronisation request for Apple ID: ${apple_id}"
                               remote_sync_complete_notification=true
                            else
