@@ -347,7 +347,7 @@ Initialise(){
       ConfigureNotifications
    fi
    LogInfo "Downloading from: ${icloud_domain}"
-   if [ "${icloud_china}" ]; then
+   if [ "${icloud_china}" = true ]; then
       if [ -z "${auth_china}" ] || [ "${auth_china}" = true ]; then
          auth_domain="cn"
       fi
