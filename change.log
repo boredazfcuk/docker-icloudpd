@@ -1,8 +1,13 @@
+20230723
+
+ - Change: Changed how the icloud_china variable is processed. I was just checking if the variable was present, so setting it to **false** was equivalent to **true**.
+
 20230722
 
  - Change: Did some stuff around cookie creation. Script would progress immediately after cookie file was created, however, this happens when the user is prompted to authenticate, so background script would continue as user is confirming 2FA.
  - Change: Changed 2FA to MFA. The correct term is Multi-Factor Authentication, not two factor authenticaion.
- - Change: Itroduced a bug as I forgot to change the healthcheck.sh... oops
+ - Change: Introduced a bug as I forgot to change the healthcheck.sh... oops
+ - Change: I'm not sure when I did this, but I scrapped the older_function thing as I'd changed how this process worked and it is no longer needed
 
 20230721
 

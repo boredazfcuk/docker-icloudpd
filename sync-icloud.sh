@@ -173,7 +173,7 @@ Initialise(){
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
    
    local icloud_dot_com dns_counter
-   if [ "${icloud_china}" ]; then
+   if [ "${icloud_china:=false}" = true ]; then
       icloud_domain="icloud.com.cn"
    else
       icloud_domain="icloud.com"
@@ -245,7 +245,7 @@ Initialise(){
    else
       LogDebug "Route check to ${icloud_domain} successful"
    fi
-   if [ "${debug_logging}" = true ]; then
+   if [ "${debug_logging:=false}" = true ]; then
       LogDebug "Apple ID: (hidden)"
    else
       LogInfo "Apple ID: ${apple_id}"
