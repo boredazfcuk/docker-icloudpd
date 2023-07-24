@@ -1460,6 +1460,7 @@ Notify(){
       syn_end_time="$(date '+%H:%M:%S')"
       syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
       if [ "${notification_files_preview_count}" ]; then
+         LogInfo "Attempting creating preview count message body"
          if [ "${icloud_china}" = false ]; then
             wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
          else
@@ -1467,15 +1468,16 @@ Notify(){
             wecom_text="$(echo -e "<font style="line-height:1.5"><center><b><big><big>同步日志</big></big></b></font></center><center><b>${notification_message}</b></center><center>···················  <small>最近 ${notification_files_preview_count} 条${notification_files_preview_type}记录如下</small>  ····················</center><code><small>${notification_files_preview_text}</small></code><center>···················  <small>下次同步时间为 ${syn_next_time}</small>  ··················</center>")"
          fi
       else
+         LogInfo "Attempting creating message body"
          if [ "${icloud_china}" = false ]; then
             wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
          else
             wecom_text="$(echo -e "${notification_message}")"
          fi
       fi
-      LogDebug "Attempting send..."
+      LogInfo "Attempting send..."
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
-      LogDebug "Send result: ${notification_result}"
+      LogInfo "Send result: ${notification_result}"
    elif [ "${notification_type}" = "Gotify" ]; then
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
          -F "title=${notification_title}" \

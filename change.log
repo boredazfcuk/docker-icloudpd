@@ -1,6 +1,7 @@
 20230723
 
  - Change: Changed how the icloud_china variable is processed. I was just checking if the variable was present, so setting it to **false** was equivalent to **true**.
+ - Change: Oops. Didn't test that one very thoroughly. Forgot that notifications check if the **icloud_china** variable is empty if they want to send English notifications. Pushed a new version to correct that
 
 20230722
 
