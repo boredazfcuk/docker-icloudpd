@@ -1,3 +1,20 @@
+20230802
+
+ - Change: Amended the code so that it now checks for, and removes empty folders from the Nextcloud server after it's removed stuff from Recently Deleted. Works on the test uns I've done. Not nuked my photo store, which is good.
+ - Change: Also amended the code which parses the download logs for downloaded/deleted files. I used to extract column 5 to know what files to process. This doesn't work for file paths with spaces in them. I've now amended it so that it cuts from column 9 upwards, which should give me the whole file path, including spaces. Haven't tested anything yet. Wish me luck. Wow. It worked first time! Tested downloads, deletes, uploads to Nextcloud, deletes from Nextcloud. Life is good. 
+
+20230801
+
+ - Change: Well, that's the code in to delete empty folders. It's a bit of a hack. Basically I parse the XML that is returned and count the number of links it contains, if it only has a single link (a reference to the folder itself) then the directory is removed. If there is more than one link, the directory is left in place. This is probably going to delete loads of stuff by mistake, but here goes.
+
+20230731
+
+ - Change: So, it turns out that when uploading to Nextcloud via WebDAV, the file paths are not automatically created when you 'put' a file. In addition to that, when you create a pathname, you can't automatically create all the folders in the path at once (e.g. mkdir --parents /folder1/folder2/folder3). New change now creates a unique list of the directory names from the list of newly downloaded files. It then checks if each directory in turn exists, and if not, creates it. I guess I need to look at pulling the properties of the folder, checking if it is empty, and if it is, removing it during the file removal function. Otherwise I may end up with empty folders on my Nextcloud server.
+
+20230724
+
+ - Change: Simplified the logic for auth_china. I want to eliminate chcking for the presence of a variable as being **true** and absence of a variable as **false*. This results in a tendancy towards **true*, because if it contains any value at all, it's considered **true**. Someone had configured a variable to be **false**, which means it is technically **true**. Logic is now that `if [ "${auth_china:=false}" = true ]`. This kinda flips it. Now, it's only true if it's set to **true**. If it's set to **motorboat** it's now technically **false**.
+
 20230723
 
  - Change: Changed how the icloud_china variable is processed. I was just checking if the variable was present, so setting it to **false** was equivalent to **true**.

@@ -348,10 +348,9 @@ Initialise(){
    fi
    LogInfo "Downloading from: ${icloud_domain}"
    if [ "${icloud_china}" = true ]; then
-      if [ -z "${auth_china}" ] || [ "${auth_china}" = true ]; then
+      if [ "${auth_china:=false}" = true ]; then
          auth_domain="cn"
-      fi
-      if [ "${auth_china}" = false ]; then
+      else
          LogWarning "You have the icloud_china variable set, but auth_china is false. Are you sure this is correct?"
       fi
    fi
@@ -833,6 +832,23 @@ SetOwnerAndPermissionsConfig(){
    chown -R "${user_id}:${group_id}" "${config_dir}"
    LogDebug "Set owner and group on keyring directory"
    chown -R "${user_id}:${group_id}" "/home/${user}/.local"
+
+   if [ "$(su "${user}" -c "test -w \"${config_dir}/python_keyring/\"; echo $?")" -eq 0 ]; then
+      LogInfo "Directory is writable: ${config_dir}/python_keyring/"
+   else
+      LogError "Directory is not writable: ${config_dir}/python_keyring/"
+      sleep 120
+      exit 1
+   fi
+
+   if [ "$(su "${user}" -c "test -w \"/home/${user}/.local/share/\"; echo $?")" -eq 0 ]; then
+      LogInfo "Directory is writable: /home/${user}/.local/share/"
+   else
+      LogError "Directory is not writable: /home/${user}/.local/share/"
+      sleep 120
+      exit 1
+   fi
+
 }
 
 SetOwnerAndPermissionsDownloads(){
@@ -1023,7 +1039,7 @@ DownloadedFilesNotification(){
    new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${new_files_count:=0}" -gt 0 ]; then
       LogInfo "New files downloaded: ${new_files_count}"
-      new_files_preview="$(echo "${new_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" | head -10)"
+      new_files_preview="$(echo "${new_files}" | cut -d " " -f 9- | sed -e "s%${download_path}/%%g" | head -10)"
       new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
       if [ "${icloud_china}" = false ]; then
          new_files_text="Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
@@ -1047,7 +1063,7 @@ DeletedFilesNotification(){
    deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${deleted_files_count:=0}" -gt 0 ]; then
       LogInfo "Number of files deleted: ${deleted_files_count}"
-      deleted_files_preview="$(echo "${deleted_files}" | awk '{print $5}' | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
+      deleted_files_preview="$(echo "${deleted_files}" | cut -d " " -f 9- | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
       deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
       if [ "${icloud_china}" = false ]; then
          deleted_files_text="Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
@@ -1069,12 +1085,48 @@ NextcloudUpload(){
    local new_files_count new_filename nextcloud_file_path curl_response
    new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${new_files_count:=0}" -gt 0 ]; then
+      LogInfo "Uploading files to Nextcloud"
+      LogInfo "Checking Nextcloud destination directories..."
+      destination_directories="$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log | cut -d " " -f 9- | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | uniq)"
+      for destination_directory in ${destination_directories}; do
+         SAVE_IFS="$IFS"
+         IFS='/'
+         unset build_path
+         for directory in ${destination_directory}; do
+            build_path="${build_path}/${directory}"
+            if [ "${build_path}" = "/" ]; then unset build_path; fi
+            if [ "${build_path}" ]; then
+               LogInfoN "Checking for Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path}/"
+               curl_response="$(curl --silent --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path}/")"
+               if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
+                  echo "Directory already exists: ${curl_response}"
+               else
+                  echo "Directory does not exist"
+                  LogInfoN "Creating Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path}"
+                  curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --request MKCOL "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path}/")"
+                  if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
+                     echo "Success: ${curl_response}"
+                  else
+                     echo "Unexpected response: ${curl_response}"
+                  fi
+               fi
+            fi
+         done
+         IFS="$SAVE_IFS"
+      done
+
+      LogInfo "Uploading files to Nextcloud"
       IFS="$(echo -en "\n\b")"
-      LogInfo "Upload files to Nextcloud..."
-      for full_filename in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | awk '{print $5}'); do
+      for full_filename in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | cut -d " " -f 9-); do
+         LogDebug "Full filename: ${full_filename}"
          base_filename="$(basename "${full_filename}")"
+         LogDebug "Base filename: ${base_filename}"
          new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%")"
+         LogDebug "New filename: ${new_filename}"
+         directory_name="$(echo "${new_filename}" | sed "s%${base_filename}%%")"
+         LogDebug "Directory name: ${directory_name}"
          nextcloud_file_path="$(dirname ${new_filename})"
+         LogDebug "Nextcloud file path: ${nextcloud_file_path}"
          if [ ! -f "${full_filename}" ]; then
             LogWarning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
          else
@@ -1106,7 +1158,7 @@ NextcloudDelete() {
    if [ "${deleted_files_count:=0}" -gt 0 ]; then
       IFS="$(echo -en "\n\b")"
       LogInfo "Delete files from Nextcloud..."
-      for full_filename in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | awk '{print $5}'); do
+      for full_filename in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | cut -d " " -f 9-); do
          full_filename="$(echo "${full_filename}" | sed 's/!$//')"
          new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%")"
          base_filename="$(basename "${new_filename}")"
@@ -1146,13 +1198,41 @@ NextcloudDelete() {
          fi
       done
       IFS="${save_ifs}"
+
+      LogInfo "Checking for empty Nextcloud destination directories to remove..."
+      directories_list="$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log | cut -d " " -f 9- | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | uniq)"
+      for target_directory in ${directories_list}; do
+         SAVE_IFS="$IFS"
+         IFS='/'
+         for directory in ${target_directory}; do
+            IFS="$SAVE_IFS"
+            if [ "${target_directory}" != '/' ]; then
+               LogDebug "Checking if Nextcloud directory is empty: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${target_directory}"
+               curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --request PROPFIND "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${target_directory}" | grep -ow '<d:href>' | wc -l)"
+               if [ "${curl_response}" -ge 2 ]; then
+                  LogDebug " - Not removing directory as it contains items: $((curl_response -1 ))"
+               else
+                  LogInfoN " - Removing empty Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${target_directory}"
+                  curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null --request DELETE "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${target_directory}")"
+                  if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
+                     echo "Success: ${curl_response}"
+                  else
+                     echo "Unexpected response: ${curl_response}"
+                  fi
+               fi
+               target_directory="$(echo ${target_directory} | sed 's%/$%%')"
+               target_directory="$(echo ${target_directory} | sed 's~\(.*/\).*~\1~')"
+            fi
+         done
+         IFS="$SAVE_IFS"
+      done
    fi
 }
 
 ConvertDownloadedHEIC2JPEG(){
    IFS="$(echo -en "\n\b")"
    LogInfo "Convert HEIC to JPEG..."
-   for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
+   for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut -d " " -f 9-); do
       if [ ! -f "${heic_file}" ]; then
          LogWarning "HEIC file ${heic_file} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
       else
@@ -1178,7 +1258,7 @@ SynologyPhotosAppFix(){
    # Works for onestix. Do not obsolete
    IFS="$(echo -en "\n\b")"
    LogInfo "Fixing Synology Photos App import issue..."
-   for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
+   for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut -d " " -f 9-); do
       LogDebug "Create empty date/time reference file ${heic_file%.HEIC}.TMP"
       su "${user}" -c 'touch --reference="${0}" "${1}"' -- "${heic_file}" "${heic_file%.HEIC}.TMP"
       LogDebug "Set time stamp for ${heic_file} to current: $(date)"
@@ -1309,7 +1389,7 @@ CorrectJPEGTimestamps(){
 RemoveRecentlyDeletedAccompanyingFiles(){
    IFS="$(echo -en "\n\b")"
    LogInfo "Deleting 'Recently Deleted' accompanying files (.JPG/_HEVC.MOV)..."
-   for heic_file in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | awk '{print $5}'); do
+   for heic_file in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut -d " " -f 9-); do
       heic_file_clean="${heic_file/!/}"
       jpeg_file_clean="${heic_file_clean%.HEIC}.JPG"
       if [ "${jpeg_path}" ]; then
