@@ -1297,6 +1297,73 @@ ConvertAllHEICs(){
    IFS="${save_ifs}"
 }
 
+UploadLibraryToNextcloud(){
+   LogInfo "Uploading entire library to Nextcloud. This may take a while..."
+
+   LogInfo "Checking Nextcloud destination directories..."
+   destination_directories="$(find "${download_path}" -type f ! -name '.*' 2>/dev/null | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | uniq)"
+   for destination_directory in ${destination_directories}; do
+      SAVE_IFS="$IFS"
+      IFS='/'
+      unset build_path
+      for directory in ${destination_directory}; do
+         build_path="${build_path}/${directory}"
+         if [ "${build_path}" = "/" ]; then unset build_path; fi
+         if [ "${build_path}" ]; then
+            LogInfoN "Checking for Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path}/"
+            curl_response="$(curl --silent --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path}/")"
+            if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
+               echo "Directory already exists: ${curl_response}"
+            else
+               echo "Directory does not exist"
+               LogInfoN "Creating Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path}"
+               curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --request MKCOL "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path}/")"
+               if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
+                  echo "Success: ${curl_response}"
+               else
+                  echo "Unexpected response: ${curl_response}"
+               fi
+            fi
+         fi
+      done
+      IFS="$SAVE_IFS"
+   done
+
+   IFS="$(echo -en "\n\b")"
+   for full_filename in $(find "${download_path}" -type f ! -name '.*' 2>/dev/null); do
+      LogDebug "Full filename: ${full_filename}"
+      base_filename="$(basename "${full_filename}")"
+      LogDebug "Base filename: ${base_filename}"
+      new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%")"
+      LogDebug "New filename: ${new_filename}"
+      directory_name="$(echo "${new_filename}" | sed "s%${base_filename}%%")"
+      LogDebug "Directory name: ${directory_name}"
+      nextcloud_file_path="$(dirname ${new_filename})"
+      LogDebug "Nextcloud file path: ${nextcloud_file_path}"
+      if [ ! -f "${full_filename}" ]; then
+         LogWarning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
+      else
+         LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
+         curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}")"
+         if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
+            echo "Success: ${curl_response}"
+         else
+            echo "Unexpected response: ${curl_response}"
+         fi
+         if [ -f "${full_filename%.HEIC}.JPG" ]; then
+            LogInfoN "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
+            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename%.HEIC}.JPG" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG")"
+            if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
+               echo "Success: ${curl_response}"
+            else
+               echo "Unexpected response: ${curl_response}"
+            fi
+         fi
+      fi
+   done
+   IFS="${save_ifs}"
+}
+
 RemoveAllJPGs(){
    IFS="$(echo -en "\n\b")"
    LogWarning "Remove all JPGs that have accompanying HEIC files. This could result in data loss if HEIC file name matches the JPG file name, but content does not."
@@ -1815,7 +1882,7 @@ SyncUser(){
 SanitiseLaunchParameters(){
    if [ "${script_launch_parameters}" ]; then
       case "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
-         "--initialise"|"--initialize"|"--init"|"--removekeyring"|"--convertallheics"|"--removealljpgs"|"--forceconvertallheics"|"--forceconvertallmntheics"|"--correctjpegtimestamps")
+         "--initialise"|"--initialize"|"--init"|"--removekeyring"|"--convertallheics"|"--removealljpgs"|"--forceconvertallheics"|"--forceconvertallmntheics"|"--correctjpegtimestamps"|"--upload-library-to-nextcloud")
             LogInfo "Script launch parameters: ${script_launch_parameters}"
          ;;
          *)
@@ -1844,31 +1911,34 @@ case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
    "--initialise"|"--initialize"|"--init")
       initialise_container=true
     ;;
-   "--removekeyring")
+   "--remove-keyring")
       delete_password=true
     ;;
-   "--convertallheics")
+   "--convert-all-heics")
       convert_all_heics=true
    ;;
-   "--removealljpgs")
+   "--remove-all-jpgs")
       remove_all_jpgs=true
    ;;
-   "--forceconvertallheics")
+   "--force-convert-all-heics")
       force_convert_all_heics=true
    ;;
-   "--forceconvertallmntheics")
+   "--force-convert-all-mnt-heics")
       force_convert_all_mnt_heics=true
    ;;
-   "--correctjpegtimestamps")
+   "--correct-jpeg-time-stamps")
       correct_jpeg_time_stamps=true
    ;;
-   "--enabledebugging")
+   "--enable-debugging")
       enable_debugging=true
    ;;
-   "--disabledebugging")
+   "--disable-debugging")
       disable_debugging=true
    ;;
-   # "--listlibraries")
+   "--upload-library-to-nextcloud")
+      upload_library_to_nextcloud=true
+   ;;
+   # "--list-libraries")
       # list_libraries=true
    # ;;
    *)
@@ -1879,46 +1949,49 @@ SanitiseLaunchParameters
 CreateGroup
 CreateUser
 SetOwnerAndPermissionsConfig
-if [ "${delete_password}" ]; then
+if [ "${delete_password:=false}" = true ]; then
    DeletePassword
    exit 0
 fi
 ConfigurePassword
-if [ "${initialise_container}" ]; then
+if [ "${initialise_container:=false}" = true ]; then
    GenerateCookie
    exit 0
-elif [ "${enable_debugging}" ]; then
+elif [ "${enable_debugging:=false}" = true ]; then
    enable_debug_logging
    exit 0
-elif [ "${disable_debugging}" ]; then
+elif [ "${disable_debugging:=false}" = true ]; then
    disable_debug_logging
    exit 0
-elif [ "${convert_all_heics}" ]; then
+elif [ "${convert_all_heics:=false}" = true ]; then
    ConvertAllHEICs
    SetOwnerAndPermissionsDownloads
    LogInfo "HEIC to JPG conversion complete"
    exit 0
-elif [ "${remove_all_jpgs}" ]; then
+elif [ "${remove_all_jpgs:=false}" = true ]; then
    RemoveAllJPGs
    SetOwnerAndPermissionsDownloads
    LogInfo "Forced remove JPG files if accompanying HEIC exists"
    exit 0
-elif [ "${force_convert_all_heics}" ]; then
+elif [ "${force_convert_all_heics:=false}" = true ]; then
    ForceConvertAllHEICs
    SetOwnerAndPermissionsDownloads
    LogInfo "Forced HEIC to JPG conversion complete"
    exit 0
-elif [ "${force_convert_all_mnt_heics}" ]; then
+elif [ "${force_convert_all_mnt_heics:=false}" = true ]; then
    ForceConvertAllmntHEICs
    SetOwnerAndPermissionsDownloads
    LogInfo "Forced HEIC to JPG conversion complete"
    exit 0
-elif [ "${correct_jpeg_time_stamps}" ]; then
+elif [ "${correct_jpeg_time_stamps:=false}" = true ]; then
    LogInfo "Correcting timestamps for JPEG files in ${download_path}"
    CorrectJPEGTimestamps
    LogInfo "JPEG timestamp correction complete"
    exit 0
-# elif [ "${list_libraries}" ];then
+elif [ "${upload_library_to_nextcloud:=false}" = true ]; then
+   UploadLibraryToNextcloud
+   exit 0
+# elif [ "${list_libraries:=false}" = true ];then
    # ListLibraries
    # exit 0
 fi

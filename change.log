@@ -2,6 +2,9 @@
 
  - Change: Amended the code so that it now checks for, and removes empty folders from the Nextcloud server after it's removed stuff from Recently Deleted. Works on the test uns I've done. Not nuked my photo store, which is good.
  - Change: Also amended the code which parses the download logs for downloaded/deleted files. I used to extract column 5 to know what files to process. This doesn't work for file paths with spaces in them. I've now amended it so that it cuts from column 9 upwards, which should give me the whole file path, including spaces. Haven't tested anything yet. Wish me luck. Wow. It worked first time! Tested downloads, deletes, uploads to Nextcloud, deletes from Nextcloud. Life is good. 
+ - Change: Written a function which allows uploading of the entire library to Nextcoud in one go... Invoke with sync-cloud.sh --upload-library-to-nextcloud
+ - Change: Amended the command line parameters so that ones that are multiple word, have spaces separated by hyphens like the command above.
+ - Change: Removed a few more checks to see if variables are present, over an acual value of true/false
 
 20230801
 

@@ -303,7 +303,7 @@ Dockerfile has a health check which will change the status of the container to '
 
 There are currently a number of command line parameters are available to use with the sync-icloud.sh script. These are:
 
-**--ConvertAllHEICs**
+**--Convert-All-HEICs**
 This command line option will check for HEIC files that do not have an accompanying JPEG file. If it finds a HEIC that does not have an accompaying JPEG file, it will create it. This can be used to add JPEGs for previously downloaded libraries. The easiest way to run this is to connect to the running container and executing the script.
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --ConvertAllHEICs`
