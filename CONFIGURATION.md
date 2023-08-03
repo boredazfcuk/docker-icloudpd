@@ -25,7 +25,7 @@ When the container is first started, it will write a default configuration file 
 
 **notification_days**: When your cookie is nearing expiration, this is the number of days in advance it should notify you. You will receive a single notification, per day, in the days running up to cookie expiration. Default: 7.
 
-**authentication_type**: This is the type of authentication that is enabled on your iCloud account. Valid values are '2FA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. Default: '2FA'.
+**authentication_type**: This is the type of authentication that is enabled on your iCloud account. Valid values are 'MFA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. Default: 'MFA'.
 
 **directory_permissions**: This specifies the permissions to set on the directories in your download destination. Default: 750.
 
@@ -255,7 +255,7 @@ Without this cookie, synchronisation cannot be started.
 As per the error, the container needs to be initialised by using the --Initialise command line option. With the first container still running, connect to it and launch the initialisation process by running the following at the terminal prompt (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --Initialise`
 
-After that, the script will log into the icloud.com website and save the 2FA cookie. Your iDevice will ask you if you want to allow or deny the login. When you allow the login, you will be give a 6-digit approval code. Enter the approval code when prompted.
+After that, the script will log into the icloud.com website and save the MFA cookie. Your iDevice will ask you if you want to allow or deny the login. When you allow the login, you will be give a 6-digit approval code. Enter the approval code when prompted.
 
 The process should look similar to this:
 
@@ -267,7 +267,7 @@ The process should look similar to this:
 2020-08-06 16:45:58 INFO     Local group: group:1000
 2020-08-06 16:45:58 INFO     LAN IP Address: 192.168.20.1
 2020-08-06 16:45:58 INFO     Apple ID: email@address.com
-2020-08-06 16:45:58 INFO     Authentication Type: 2FA
+2020-08-06 16:45:58 INFO     Authentication Type: MFA
 2020-08-06 16:45:58 INFO     Cookie path: /config/emailaddresscom
 2020-08-06 16:45:58 INFO     Cookie expiry notification period: 7
 2020-08-06 16:45:58 INFO     Download destination directory: /home/user/iCloud
@@ -284,7 +284,7 @@ Two-step authentication required. Your trusted devices are:
 Which device would you like to use? [0]: 0
 Please enter validation code: 123456
 2020-08-06 16:47:04 INFO     Using password stored in keyring
-2020-08-06 16:47:04 INFO     Generate 2FA cookie with password: usekeyring
+2020-08-06 16:47:04 INFO     Generate MFA cookie with password: usekeyring
 2020-08-06 16:47:04 INFO     Check for new files using password stored in keyring...
   0: SMS to 07********
   1: Enter two-factor authentication code
@@ -308,19 +308,19 @@ This command line option will check for HEIC files that do not have an accompany
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --ConvertAllHEICs`
 
-**--ForceConvertAllHEICs**
+**--Force-Convert-All-HEICs**
 This command line is the same as the above option but it will overwrite any JPEG files that are already there. This will result in data loss if the downloaded JPEG files have been edited. For this reason, there is a 2 minute delay before this option runs. This gives you time to stop the container, or cancel the script, before it runs. This option is required as the heif-tools conversion utility had a bug that over-rotates the JPEG files. This means the orientation does not match the HEIC file. The heif-tools package has now been replaced by the ImageMagick package which doesn't have this problem. This command line option can be used to re-convert all your HEIC files to JPEG, overwriting the incorrectly oriented files with correctly oriented ones.
 
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --ForceConvertAllHEICs`
 
-**--ForceConvertAllmntHEICs**
+**--Force-Convert-All-mnt-HEICs**
 This command line is the same as the above option but it will overwrite any JPEG files that it finds in the /mnt subdirectory. This will result in data loss if the downloaded JPEG files have been edited. For this reason, there is a 2 minute delay before this option runs. This gives you time to stop the container, or cancel the script, before it runs. This option is required as the heif-tools conversion utility had a bug that over-rotates the JPEG files. This means the orientation does not match the HEIC file. The heif-tools package has now been replaced by the ImageMagick package which doesn't have this problem. This command line option can be used to re-convert all your HEIC files to JPEG, overwriting the incorrectly oriented files with correctly oriented ones. This option can be used to correct JPG files that have been archived and removed from your iCloud photostream. Just mount the target directory (or directories) into the /mnt subdirectoy and the script with this command.
 
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --ForceConvertAllmntHEICs`
 
-**--CorrectJPEGTimestamps**
+**--Correct-JPEG-Time-stamps**
 This command line option will correct the timestamps of JPEG files that do not match their accompanying HEIC files. Due to an omission, previous versions of my script never set the time stamp. This command line option will correct this issue.
 
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
@@ -331,20 +331,23 @@ This command line option will allow you to add your password to the system keyri
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --Initialise`
 
-**--RemoveKeyring**
+**--Remove-Keyring**
 This command line option will delete the system keyring file. You will need to run this if you change your Apple ID password.
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --RemoveKeyring`
 
-**--EnableDebugging**
+**--Enable-Debugging**
 This command line option will edit the config file so that debugging is enabled. This will automatically be picked up the next time a synchronisation takes place. There should be no need to restart the container
 
-**--DisableDebugging**
+**--Disable-Debugging**
 This command line option will edit the config file so that debugging is disabled. This will automatically be picked up the next time a synchronisation takes place. There should be no need to restart the container
+
+**--Upload-Library-To-Nextcloud**
+This command line option will upload your entire library to the Nextcloud server. First, it will scan your download directory, then replicate the directory structure on the Nextcloud server. Once this is complete, it will proceed upload the files to these directories.
 
 ## HEALTH CHECK
 
-I have built in a health check for this container. If the script detects a download error the container will be marked as unhealthy. You can then configure this container: https://hub.docker.com/r/willfarrell/autoheal/ to monitor iCloudPD and restart the unhealthy container. Please note, if your 2FA cookie expires, the container will be marked as unhealthy, and will be restarted by the authoheal container every five minutes or so... This can lead to a lot of notifications if it happens while you're asleep!
+I have built in a health check for this container. If the script detects a download error the container will be marked as unhealthy. You can then configure this container: https://hub.docker.com/r/willfarrell/autoheal/ to monitor iCloudPD and restart the unhealthy container. Please note, if your MFA cookie expires, the container will be marked as unhealthy, and will be restarted by the authoheal container every five minutes or so... This can lead to a lot of notifications if it happens while you're asleep!
 
 ## TROUBLESHOOTING
 

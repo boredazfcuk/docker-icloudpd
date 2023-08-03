@@ -1950,38 +1950,48 @@ CreateGroup
 CreateUser
 SetOwnerAndPermissionsConfig
 if [ "${delete_password:=false}" = true ]; then
+   LogInfo "Deleting password from keyring"
    DeletePassword
+   Loginfo "Password deletion complete"
    exit 0
 fi
 ConfigurePassword
 if [ "${initialise_container:=false}" = true ]; then
+   LogInfo "Starting container initialisation"
    GenerateCookie
+   LogInfo "Container initialisation complete"
    exit 0
 elif [ "${enable_debugging:=false}" = true ]; then
+   LogInfo "Enabling debug logging"
    enable_debug_logging
    exit 0
 elif [ "${disable_debugging:=false}" = true ]; then
+   LogInfo "Disabling debug logging"
    disable_debug_logging
    exit 0
 elif [ "${convert_all_heics:=false}" = true ]; then
+   LogInfo "Converting all HEICs to JPG"
    ConvertAllHEICs
    SetOwnerAndPermissionsDownloads
    LogInfo "HEIC to JPG conversion complete"
    exit 0
 elif [ "${remove_all_jpgs:=false}" = true ]; then
+   LogInfo "Forcing removal of JPG files if accompanying HEIC exists"
    RemoveAllJPGs
    SetOwnerAndPermissionsDownloads
-   LogInfo "Forced remove JPG files if accompanying HEIC exists"
+   LogInfo "Forced removal of JPG files if accompanying HEIC exists complete"
    exit 0
 elif [ "${force_convert_all_heics:=false}" = true ]; then
+   LogInfo "Forcing HEIC to JPG conversion"
    ForceConvertAllHEICs
    SetOwnerAndPermissionsDownloads
    LogInfo "Forced HEIC to JPG conversion complete"
    exit 0
 elif [ "${force_convert_all_mnt_heics:=false}" = true ]; then
+   LogInfo "Forcing HEIC to JPG conversion of all files in mount path"
    ForceConvertAllmntHEICs
    SetOwnerAndPermissionsDownloads
-   LogInfo "Forced HEIC to JPG conversion complete"
+   LogInfo "Forced HEIC to JPG conversion of all files in mount path complete"
    exit 0
 elif [ "${correct_jpeg_time_stamps:=false}" = true ]; then
    LogInfo "Correcting timestamps for JPEG files in ${download_path}"
@@ -1989,7 +1999,9 @@ elif [ "${correct_jpeg_time_stamps:=false}" = true ]; then
    LogInfo "JPEG timestamp correction complete"
    exit 0
 elif [ "${upload_library_to_nextcloud:=false}" = true ]; then
+   LogInfo "Uploading library to Nextcloud"
    UploadLibraryToNextcloud
+   LogInfo "Uploading library to Nextcloud complete"
    exit 0
 # elif [ "${list_libraries:=false}" = true ];then
    # ListLibraries
