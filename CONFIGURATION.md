@@ -103,8 +103,6 @@ When the container is first started, it will write a default configuration file 
 
 ## NOTIFICATION CONFIGURATION VARIABLES
 
-The README on Dockerhub has a hard limit of 25,000 characters, and I'd hit this limit multiple times. I'd changed the wording of this README.md file time and time again to keep it under that limit, but I've finally conceeded and just moved this section to it's own file. Please see NOTIFICATIONS.md for further details. It is available here: https://github.com/boredazfcuk/docker-icloudpd/blob/master/NOTIFICATIONS.md
-
 **notification_type**: This specifies the method that is used to send notifications. These are the options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **openhab**, **Dingtalk**, **Discord**, **IYUU**, **WeCom**, **Gotify** and **Bark**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
 
 **notification_title**: This allows you to change the title which is sent on the notifications. This variable will default to **boredazfcuk/iCloudPD**.

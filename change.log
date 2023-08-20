@@ -1,3 +1,12 @@
+20230820
+
+ - Change: Added a bit to create some extra temporary files as some people are having issues with them
+ 
+20230814
+
+ - Change: Added Nextcloud connectivity check. My Nextcloud container was paused during a large offsite backup, so Nextcloud connectivity borked. This meant fails failed to upload and will not longer be retried. I can fix by running the function to upload the entire library, it's just a bit of a ballache, so I've added a connectivity check which will wait for the Nextcloud server to come back online. It will send a notification on the first failure, then again after an hour.
+ - Change: Added '--help' command line option which displays the configuration information. This is coz I couldn't remember the name of the function which uploads all files to Nextcloud when I was writing the above change log entry lol
+
 20230802
 
  - Change: Amended the code so that it now checks for, and removes empty folders from the Nextcloud server after it's removed stuff from Recently Deleted. Works on the test uns I've done. Not nuked my photo store, which is good.

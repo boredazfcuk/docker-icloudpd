@@ -54,6 +54,7 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
 
 COPY build_version.txt /
 COPY --chmod=0755 *.sh /usr/local/bin/
+COPY CONFIGURATION.md /opt
 
 HEALTHCHECK --start-period=10s --interval=1m --timeout=10s CMD /usr/local/bin/healthcheck.sh
   

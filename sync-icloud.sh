@@ -195,10 +195,14 @@ Initialise(){
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then rm "/tmp/icloudpd/icloudpd_download_exit_code"; fi
    if [ -f "/tmp/icloudpd/icloudpd_check_error" ]; then rm "/tmp/icloudpd/icloudpd_check_error"; fi
    if [ -f "/tmp/icloudpd/icloudpd_download_error" ]; then rm "/tmp/icloudpd/icloudpd_download_error"; fi
+   if [ -f "/tmp/icloudpd/icloudpd_sync.log" ]; then rm "/tmp/icloudpd/icloudpd_sync.log"; fi
+   if [ -f "/tmp/icloudpd/icloudpd_tracert.err" ]; then rm "/tmp/icloudpd/icloudpd_tracert.err"; fi
    touch "/tmp/icloudpd/icloudpd_check_exit_code"
    touch "/tmp/icloudpd/icloudpd_download_exit_code"
    touch "/tmp/icloudpd/icloudpd_check_error"
    touch "/tmp/icloudpd/icloudpd_download_error"
+   touch "/tmp/icloudpd/icloudpd_sync.log"
+   touch "/tmp/icloudpd/icloudpd_tracert.err"
 
    if [ -z "${apple_id}" ]; then
       LogError "Apple ID not set - exiting"
@@ -1081,11 +1085,33 @@ DeletedFilesNotification(){
    fi
 }
 
+CheckNextcloudConnectivity(){
+   local nextcloud_check_result
+   local counter=0
+   LogInfo "Checking Nextcloud connectivity..."
+   nextcloud_check_result="$(curl --silent --max-time 15 --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/")"
+   if [ "${nextcloud_check_result}" -ne 200 ]; then
+      LogError "Nextcloud connectivity check failed: ${nextcloud_check_result}"
+      fail_time="$(date "+%a %d %B %H:%M:%S (%Z) %Y")"
+      Notify "Nextcloud" "failed" "0" "Nextcloud connectivity check failed. Waiting for server to come back online..."
+      while [ "${nextcloud_check_result}" -ne 200 ]; do
+         sleep 45
+         counter=$((counter + 1))
+         if [ "${counter}" -eq 15 ] || [ "${counter}" -eq 60 ] || [ "${counter}" -eq 300 ]; then
+            Notify "Nextcloud" "failed" "0" "Nextcloud has been offline since ${fail_time}. Please take corrective action. icloudpd will remain paused until this issue is rectified."
+         fi
+         nextcloud_check_result="$(curl --silent --location --max-time 15 --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/")"
+      done
+      Notify "Nextcloud" "success" "0" "Nextcloud server is back online. Resuming operation"
+   fi
+}
+
 NextcloudUpload(){
    local new_files_count new_filename nextcloud_file_path curl_response
    new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${new_files_count:=0}" -gt 0 ]; then
-      LogInfo "Uploading files to Nextcloud"
+      LogInfo "Upload files to Nextcloud"
+      CheckNextcloudConnectivity
       LogInfo "Checking Nextcloud destination directories..."
       destination_directories="$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log | cut -d " " -f 9- | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | uniq)"
       for destination_directory in ${destination_directories}; do
@@ -1157,6 +1183,7 @@ NextcloudDelete() {
    deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${deleted_files_count:=0}" -gt 0 ]; then
       IFS="$(echo -en "\n\b")"
+      CheckNextcloudConnectivity
       LogInfo "Delete files from Nextcloud..."
       for full_filename in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | cut -d " " -f 9-); do
          full_filename="$(echo "${full_filename}" | sed 's/!$//')"
@@ -1299,7 +1326,7 @@ ConvertAllHEICs(){
 
 UploadLibraryToNextcloud(){
    LogInfo "Uploading entire library to Nextcloud. This may take a while..."
-
+   CheckNextcloudConnectivity
    LogInfo "Checking Nextcloud destination directories..."
    destination_directories="$(find "${download_path}" -type f ! -name '.*' 2>/dev/null | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | uniq)"
    for destination_directory in ${destination_directories}; do
@@ -1938,12 +1965,17 @@ case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
    "--upload-library-to-nextcloud")
       upload_library_to_nextcloud=true
    ;;
+   "--help")
+      "$(which more)" "/opt/CONFIGURATION.md"
+      exit 0
+   ;;
    # "--list-libraries")
       # list_libraries=true
    # ;;
    *)
    ;;
 esac
+
 Initialise
 SanitiseLaunchParameters
 CreateGroup
