@@ -1755,7 +1755,7 @@ SyncUser(){
                if [ "${photo_album}" = "all albums" ]; then
                   all_albums="$(su "${user}" -c 'icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-albums | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
                   albums_to_download=""
-                  for available_album in ${available_albums}; do
+                  for available_album in ${all_albums}; do
                      if [[ ! ${skip_album} =~ ${available_album} ]]; then
                         if [ -z "${albums_to_download}" ]; then
                            albums_to_download="${available_album}"
