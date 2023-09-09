@@ -1767,24 +1767,28 @@ SyncUser(){
                else
                   albums_to_download=${photo_album}
                fi
-               IFS=","
-               for album in ${albums_to_download}; do
-                  LogInfo "Downloading album: ${album}"
-                  if [ "${albums_with_dates}" = true ]; then
-                     LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album}/${folder_structure} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
-                     su "${user}" -c '(icloudpd ${0} --folder-structure "${1}" --album "${2}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}/${folder_structure}" "${album}"
-                  else
-                     LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
-                     su "${user}" -c '(icloudpd ${0} --folder-structure "${1}" --album "${1}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}"
-                  fi
-                  if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]; then
-                     LogError "Failed downloading album: ${album}"
-                     IFS="${save_ifs}"
-                     sleep 10
-                     break
-                  fi
-               done
-               IFS="${save_ifs}"
+               if [ -z "${albums_to_download}" ]; then
+                  LogError "Failed downloading albums ! Check photo_album and skip_album options in conf"
+               else
+                  IFS=","
+                  for album in ${albums_to_download}; do
+                     LogInfo "Downloading album: ${album}"
+                     if [ "${albums_with_dates}" = true ]; then
+                        LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album}/${folder_structure} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
+                        su "${user}" -c '(icloudpd ${0} --folder-structure "${1}" --album "${2}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}/${folder_structure}" "${album}"
+                     else
+                        LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
+                        su "${user}" -c '(icloudpd ${0} --folder-structure "${1}" --album "${1}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}"
+                     fi
+                     if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]; then
+                        LogError "Failed downloading album: ${album}"
+                        IFS="${save_ifs}"
+                        sleep 10
+                        break
+                     fi
+                  done
+                  IFS="${save_ifs}"
+               fi
             else
                LogDebug "iCloudPD launch command: icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
                if [ "${skip_download}" = false ]; then
