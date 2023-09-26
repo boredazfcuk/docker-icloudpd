@@ -67,7 +67,7 @@ When the container is first started, it will write a default configuration file 
 
 **skip_album**: Use this option in conjunction with **photo_album** to skip certain albums e.g. **skip_album="All Photos,Time-lapse,Videos,Slo-mo,Bursts,Favorites,Panoramas,Screenshots,Live,Recently Deleted,Hidden"**
 
-**photo_library**: Set this to the name of an iOS 16 shared library to only download photos from a single shared library.
+**photo_library**: Set this to the name of an iOS 16 shared library to download photos from that shared library.
 
 **convert_heic_to_jpeg**: Set this to **true** to convert downloaded HEIC files to JPEG, while also retaining the original.
 
@@ -342,6 +342,12 @@ This command line option will edit the config file so that debugging is disabled
 
 **--Upload-Library-To-Nextcloud**
 This command line option will upload your entire library to the Nextcloud server. First, it will scan your download directory, then replicate the directory structure on the Nextcloud server. Once this is complete, it will proceed upload the files to these directories.
+
+**--List-Albums**
+This commmand will list the names of the albums available to download
+
+**--List-Libraries**
+This command will list the names of the libraries available to download
 
 ## HEALTH CHECK
 

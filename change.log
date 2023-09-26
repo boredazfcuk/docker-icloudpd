@@ -1,3 +1,7 @@
+20230926
+
+ - Change: Re-enabled the libraries feature now upstream code has been merged to support shared libraries. Untested though, as I don't use libraries myself.
+
 20230820
 
  - Change: Added a bit to create some extra temporary files as some people are having issues with them
