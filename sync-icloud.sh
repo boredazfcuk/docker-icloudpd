@@ -277,7 +277,7 @@ Initialise(){
    if [ "${synchronisation_interval}" -lt 43200 ]; then
       LogWarning "Setting synchronisation_interval to less than 43200 (12 hours) may cause throttling by Apple."
       LogWarning "If you run into the following error: "
-      LogWarning " - private db access disabled for this account. Please wait a few minutes then try again. The remote servers might be trying to throttle requests. (ACCESS_DENIED)"
+      LogWarning " - private db access disabled for this account. Please wait a few hours then try again. The remote servers might be trying to throttle requests. (ACCESS_DENIED)"
       LogWarning "then please change your synchronisation_interval to 43200 or greater and switch the container off for 6-12 hours so Apple's throttling expires. Continuing in 2 minutes"
       if [ "${warnings_acknowledged:=false}" = true ]; then
          LogDebug "Throttle warning acknowledged"
@@ -1778,7 +1778,7 @@ SyncUser(){
                      LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure ${album}/${folder_structure} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
                      su "${user}" -c '(/opt/icloudpd_latest/bin/icloudpd ${0} --folder-structure "${1}" --album "${2}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}/${folder_structure}" "${album}"
                   else
-                     LogDebug "iCloudPD launch command: icloudpd ${command_line} --folder-structure ${album} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
+                     LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure ${album} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
                      su "${user}" -c '(/opt/icloudpd_latest/bin/icloudpd ${0} --folder-structure "${1}" --album "${1}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}"
                   fi
                   if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]; then
