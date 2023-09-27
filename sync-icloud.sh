@@ -689,6 +689,7 @@ ListLibraries(){
    LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
    shared_libraries="$(su "${user}" -c '/opt/icloudpd_latest/bin/icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
    deactivate
+   LogInfo "Albums available:"
    for library in ${shared_libraries}; do
       LogInfo " - ${library}"
    done
