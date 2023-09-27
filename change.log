@@ -1,3 +1,7 @@
+23030927
+
+ - Change: Thought I'd just commented out all the lines required for the shared library downloads. Turns out I'd removed the bit which validates command line options, so re-added those.
+ - Change: Also, realised that there was a mismatch between what the allowed command line variables were, and the actual variables. This affected all variables with more than one word in them, except for the latest one I added to upload Nextcloud files.
 20230926
 
  - Change: Re-enabled the libraries feature now upstream code has been merged to support shared libraries. Untested though, as I don't use libraries myself.
