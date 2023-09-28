@@ -30,6 +30,7 @@ initialise_config_file(){
       if [ "$(grep -c "iyuu_token=" "${config_file}")" -eq 0 ]; then echo iyuu_token="${iyuu_token}"; fi
       if [ "$(grep -c "jpeg_path=" "${config_file}")" -eq 0 ]; then echo jpeg_path="${jpeg_path}"; fi
       if [ "$(grep -c "jpeg_quality=" "${config_file}")" -eq 0 ]; then echo jpeg_quality="${jpeg_quality:=90}"; fi
+      # if [ "$(grep -c "libraries_with_dates=" "${config_file}")" -eq 0 ]; then echo libraries_with_dates="${libraries_with_dates:=false}"; fi
       if [ "$(grep -c "nextcloud_delete=" "${config_file}")" -eq 0 ]; then echo nextcloud_delete="${nextcloud_delete:=false}"; fi
       if [ "$(grep -c "nextcloud_upload=" "${config_file}")" -eq 0 ]; then echo nextcloud_upload="${nextcloud_upload:=false}"; fi
       if [ "$(grep -c "nextcloud_url=" "${config_file}")" -eq 0 ]; then echo nextcloud_url="${nextcloud_url}"; fi
@@ -47,6 +48,7 @@ initialise_config_file(){
       if [ "$(grep -c "recent_only=" "${config_file}")" -eq 0 ]; then echo recent_only="${recent_only}"; fi
       if [ "$(grep -c "set_exif_datetime=" "${config_file}")" -eq 0 ]; then echo set_exif_datetime="${set_exif_datetime:=false}"; fi
       if [ "$(grep -c "skip_album=" "${config_file}")" -eq 0 ]; then echo skip_album="${skip_album}"; fi
+      # if [ "$(grep -c "skip_library=" "${config_file}")" -eq 0 ]; then echo skip_library="${skip_library}"; fi
       if [ "$(grep -c "single_pass=" "${config_file}")" -eq 0 ]; then echo single_pass="${single_pass:=false}"; fi
       if [ "$(grep -c "skip_check=" "${config_file}")" -eq 0 ]; then echo skip_check="${skip_check:=false}"; fi
       if [ "$(grep -c "skip_download=" "${config_file}")" -eq 0 ]; then echo skip_download="${skip_download:=false}"; fi
@@ -102,6 +104,7 @@ initialise_config_file(){
    if [ "${iyuu_token}" ]; then sed -i "s%^iyuu_token=.*%iyuu_token=${iyuu_token}%" "${config_file}"; fi
    if [ "${jpeg_path}" ]; then sed -i "s%^jpeg_path=.*%jpeg_path=${jpeg_path}%" "${config_file}"; fi
    if [ "${jpeg_quality}" ]; then sed -i "s%^jpeg_quality=.*%jpeg_quality=${jpeg_quality}%" "${config_file}"; fi
+   # if [ "${libraries_with_dates}" ]; then sed -i "s%^librariess_with_dates=.*%librariess_with_dates=${librariess_with_dates}%" "${config_file}"; fi
    if [ "${nextcloud_delete}" ]; then sed -i "s%^nextcloud_delete=.*%nextcloud_delete=${nextcloud_delete}%" "${config_file}"; fi
    if [ "${nextcloud_upload}" ]; then sed -i "s%^nextcloud_upload=.*%nextcloud_upload=${nextcloud_upload}%" "${config_file}"; fi
    if [ "${nextcloud_url}" ]; then sed -i "s%^nextcloud_url=.*%nextcloud_url=${nextcloud_url}%" "${config_file}"; fi
@@ -120,6 +123,7 @@ initialise_config_file(){
    if [ "${set_exif_datetime}" ]; then sed -i "s%^set_exif_datetime=.*%set_exif_datetime=${set_exif_datetime}%" "${config_file}"; fi
    if [ "${single_pass}" ]; then sed -i "s%^single_pass=.*%single_pass=${single_pass}%" "${config_file}"; fi
    if [ "${skip_album}" ]; then sed -i "s%^skip_album=.*%skip_album=\"${skip_album}\"%" "${config_file}"; fi
+   # if [ "${skip_library}" ]; then sed -i "s%^skip_library=.*%skip_library=\"${skip_library}\"%" "${config_file}"; fi
    if [ "${skip_check}" ]; then sed -i "s%^skip_check=.*%skip_check=${skip_check}%" "${config_file}"; fi
    if [ "${skip_download}" ]; then sed -i "s%^skip_download=.*%skip_download=${skip_download}%" "${config_file}"; fi
    if [ "${skip_live_photos}" ]; then sed -i "s%^skip_live_photos=.*%skip_live_photos=${skip_live_photos}%" "${config_file}"; fi
@@ -312,21 +316,17 @@ Initialise(){
    elif [ "${photo_library}" ]; then
       LogInfo "Downloading photos from library: ${photo_library}"
    else
-      LogInfo "Downloading photos from album: Download All Photos"
+      LogInfo "Downloading photos from: Download All Photos"
    fi
    if [ "${until_found}" ]; then
       LogInfo "Stop downloading when prexisiting files count is: ${until_found}"
    else
       LogInfo "Stop downloading when prexisiting files count is: Download All Photos"
    fi
-   if [ "${skip_live_photos}" = false ]; then
+   if [ "${skip_live_photos:=false}" = false ]; then
       LogInfo "Live photo size: ${live_photo_size:=original}"
    fi
-   LogInfo "Skip videos: ${skip_videos:=false}"
-   if [ "${command_line_options}" ]; then
-      LogWarning "Additional command line options supplied: ${command_line_options}"
-      LogWarning "Additional command line options are no longer supported and will be ignored. Please specify all options using the dedicated variables."
-   fi
+   LogInfo "Skip videos: ${skip_videos}"
    LogInfo "Convert HEIC to JPEG: ${convert_heic_to_jpeg:=false}"
    if [ "${convert_heic_to_jpeg}" = true ]; then
       LogDebug "JPEG conversion quality: ${jpeg_quality:=90}"
@@ -689,7 +689,7 @@ ListLibraries(){
    LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
    shared_libraries="$(su "${user}" -c '/opt/icloudpd_latest/bin/icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
    deactivate
-   LogInfo "Albums available:"
+   LogInfo "Libraries available:"
    for library in ${shared_libraries}; do
       LogInfo " - ${library}"
    done
@@ -1087,6 +1087,89 @@ DeletedFilesNotification(){
       if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
          touch "${download_path}/.nextcloud_sync"
       fi
+   fi
+}
+
+DownloadAlbums(){
+   local albums_to_download
+   if [ "${photo_album}" = "all albums" ]; then
+      all_albums="$(su "${user}" -c '/opt/icloudpd_latest/bin/icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-albums | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
+      for album in ${all_albums}; do
+         if [[ ! ${skip_album} =~ ${album} ]]; then
+            if [ -z "${albums_to_download}" ]; then
+               albums_to_download="${album}"
+            else
+               albums_to_download="${albums_to_download},${album}"
+            fi
+         fi
+      done
+   else
+      albums_to_download="${photo_album}"
+   fi
+   IFS=","
+   for album in ${albums_to_download}; do
+      LogInfo "Downloading album: ${album}"
+      if [ "${albums_with_dates}" = true ]; then
+         LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure ${album}/${folder_structure} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
+         su "${user}" -c '(/opt/icloudpd_latest/bin/icloudpd ${0} --folder-structure "${1}" --album "${2}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}/${folder_structure}" "${album}"
+      else
+         LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure ${album} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
+         su "${user}" -c '(/opt/icloudpd_latest/bin/icloudpd ${0} --folder-structure "${1}" --album "${1}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}"
+      fi
+      if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]; then
+         LogError "Failed downloading album: ${album}"
+         IFS="${save_ifs}"
+         sleep 10
+         break
+      fi
+   done
+   IFS="${save_ifs}"
+}
+
+DownloadLibraries(){
+   local libraries_to_download
+   if [ "${photo_libraries}" = "all libraries" ]; then
+      all_libraries="$(su "${user}" -c '/opt/icloudpd_latest/bin/icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
+      for library in ${all_libraries}; do
+         if [[ ! ${skip_library} =~ ${library} ]]; then
+            if [ -z "${libraries_to_download}" ]; then
+               libraries_to_download="${library}"
+            else
+               libraries_to_download="${libraries_to_download},${library}"
+            fi
+         fi
+      done
+   else
+      libraries_to_download="${photo_library}"
+   fi
+   IFS=","
+   for library in ${libraries_to_download}; do
+      LogInfo "Downloading library: ${library}"
+      if [ "${libraries_with_dates}" = true ]; then
+         LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure ${library}/${folder_structure} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
+         su "${user}" -c '(/opt/icloudpd_latest/bin/icloudpd ${0} --folder-structure "${1}" --library "${2}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${library}/${folder_structure}" "${library}"
+      else
+         LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure ${library} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
+         su "${user}" -c '(/opt/icloudpd_latest/bin/icloudpd ${0} --folder-structure "${1}" --library "${1}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${library}"
+      fi
+      if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]; then
+         LogError "Failed downloading library: ${library}"
+         IFS="${save_ifs}"
+         sleep 10
+         break
+      fi
+   done
+   IFS="${save_ifs}"
+}
+
+DownloadPhotos(){
+   LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
+   if [ "${skip_download}" = false ]; then
+      su "${user}" -c '(/opt/icloudpd_latest/bin/icloudpd ${0} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
+   else
+      LogDebug "Skip download: ${skip_download} - skipping"
+      echo 0 >/tmp/icloudpd/icloudpd_download_exit_code
+      touch /tmp/icloudpd/icloudpd_sync.log
    fi
 }
 
@@ -1707,10 +1790,9 @@ CommandLineBuilder(){
    if [ "${skip_videos}" != false ]; then
       command_line="${command_line} --skip-videos"
    fi
-   if [ -z "${photo_album}" ] && [ "${photo_library}" ]; then
+   if [ -z "${photo_album}" ] && [ -z "${photo_library}" ]; then
       command_line="${command_line} --folder-structure ${folder_structure}"
-   fi
-   if [ "${photo_album}" ]; then
+   elif [ "${photo_album}" ]; then
       command_line="${command_line} --album ${photo_album}"
    elif [ "${photo_library}" ]; then
       command_line="${command_line} --library ${photo_library}"
@@ -1757,48 +1839,11 @@ SyncUser(){
             source /opt/icloudpd_latest/bin/activate
             LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
             if [ "${photo_album}" ]; then
-               if [ "${photo_album}" = "all albums" ]; then
-                  all_albums="$(su "${user}" -c '/opt/icloudpd_latest/bin/icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-albums | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
-                  albums_to_download=""
-                  for available_album in ${available_albums}; do
-                     if [[ ! ${skip_album} =~ ${available_album} ]]; then
-                        if [ -z "${albums_to_download}" ]; then
-                           albums_to_download="${available_album}"
-                        else
-                           albums_to_download="${albums_to_download},${available_album}"
-                        fi
-                     fi
-                  done
-               else
-                  albums_to_download=${photo_album}
-               fi
-               IFS=","
-               for album in ${albums_to_download}; do
-                  LogInfo "Downloading album: ${album}"
-                  if [ "${albums_with_dates}" = true ]; then
-                     LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure ${album}/${folder_structure} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
-                     su "${user}" -c '(/opt/icloudpd_latest/bin/icloudpd ${0} --folder-structure "${1}" --album "${2}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}/${folder_structure}" "${album}"
-                  else
-                     LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure ${album} --album ${album} 2>/tmp/icloudpd/icloudpd_download_error"
-                     su "${user}" -c '(/opt/icloudpd_latest/bin/icloudpd ${0} --folder-structure "${1}" --album "${1}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}" "${album}"
-                  fi
-                  if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]; then
-                     LogError "Failed downloading album: ${album}"
-                     IFS="${save_ifs}"
-                     sleep 10
-                     break
-                  fi
-               done
-               IFS="${save_ifs}"
+               DownloadAlbums
+            elif [ "${photo_library}" ]; then
+               DownloadLibraries
             else
-               LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
-               if [ "${skip_download}" = false ]; then
-                  su "${user}" -c '(/opt/icloudpd_latest/bin/icloudpd ${0} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log' -- "${command_line}"
-               else
-                  LogDebug "Skip download: ${skip_download} - skipping"
-                  echo 0 >/tmp/icloudpd/icloudpd_download_exit_code
-                  touch /tmp/icloudpd/icloudpd_sync.log
-               fi
+               DownloadPhotos
             fi
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             deactivate

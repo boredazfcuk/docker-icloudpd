@@ -63,9 +63,13 @@ When the container is first started, it will write a default configuration file 
 
 **until_found**: Set this to an integer number to only download the most recently added photos, until *n* number of previously downloaded consecutive photos are found. Default: download all photos.
 
-**photo_album**: Set this to a comma delimited field. Please note, if downloading from multiple albums, you need to enclose them in quotes in your /config/icloudpd.conf file e.g. photo_album="one,two,three and four" will download photos from three albums named "one", "two" and "three and four". When downloading photo albums, the folder structure will be set to be the name of the album eg "/home/boredazfcuk/iCloud/one/IMG_0001.HEIC", "/home/boredazfcuk/iCloud/two/IMG_0002.HEIC" and "/home/boredazfcuk/iCloud/three and four/IMG_0003.HEIC". Set  **photo_album="all albums"** in your configuration file /config/icloudpd.conf to download all albums.
+**photo_album**: Set this to a comma delimited field to download photos from a photo album. Please note, if downloading from multiple albums, you need to enclose them in quotes in your /config/icloudpd.conf file e.g. photo_album="one,two,three and four" will download photos from three albums named "one", "two" and "three and four". When downloading photo albums, the folder structure will be set to be the name of the album eg "/home/boredazfcuk/iCloud/one/IMG_0001.HEIC", "/home/boredazfcuk/iCloud/two/IMG_0002.HEIC" and "/home/boredazfcuk/iCloud/three and four/IMG_0003.HEIC". Set  **photo_album="all albums"** in your configuration file /config/icloudpd.conf to download all albums. Please note: Due to a limitation in an upstream package, downloading from multiple albums will trigger multiple download runs. When Apple detect this, they may force a multi-factor re-authentication. 
+
+**photo_library**: Set this to a comma delimited field to download photos from a shared library. Please note, if downloading from multiple libraries, you need to enclose them in quotes in your /config/icloudpd.conf file e.g. photo_library="one,two,three and four" will download photos from three libraries named "one", "two" and "three and four". When downloading photo libraries, the folder structure will be set to be the name of the library eg "/home/boredazfcuk/iCloud/one/IMG_0001.HEIC", "/home/boredazfcuk/iCloud/two/IMG_0002.HEIC" and "/home/boredazfcuk/iCloud/three and four/IMG_0003.HEIC". Set  **photo_library="all albums"** in your configuration file /config/icloudpd.conf to download all albums. Please note: Due to a limitation in an upstream package, downloading from multiple libraries will trigger multiple download runs, and Apple may force a multi-factor re-authentication.
 
 **skip_album**: Use this option in conjunction with **photo_album** to skip certain albums e.g. **skip_album="All Photos,Time-lapse,Videos,Slo-mo,Bursts,Favorites,Panoramas,Screenshots,Live,Recently Deleted,Hidden"**
+
+**skip_library**: Use this option in conjunction with **photo_library** to skip certain libraries e.g. **skip_libraries="All Photos,Time-lapse,Videos,Slo-mo,Bursts,Favorites,Panoramas,Screenshots,Live,Recently Deleted,Hidden"**
 
 **photo_library**: Set this to the name of an iOS 16 shared library to download photos from that shared library.
 
@@ -304,25 +308,22 @@ There are currently a number of command line parameters are available to use wit
 **--Convert-All-HEICs**
 This command line option will check for HEIC files that do not have an accompanying JPEG file. If it finds a HEIC that does not have an accompaying JPEG file, it will create it. This can be used to add JPEGs for previously downloaded libraries. The easiest way to run this is to connect to the running container and executing the script.
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
-`docker exec -it icloudpd sync-icloud.sh --ConvertAllHEICs`
+`docker exec -it icloudpd sync-icloud.sh --Convert-All-HEICs`
 
 **--Force-Convert-All-HEICs**
 This command line is the same as the above option but it will overwrite any JPEG files that are already there. This will result in data loss if the downloaded JPEG files have been edited. For this reason, there is a 2 minute delay before this option runs. This gives you time to stop the container, or cancel the script, before it runs. This option is required as the heif-tools conversion utility had a bug that over-rotates the JPEG files. This means the orientation does not match the HEIC file. The heif-tools package has now been replaced by the ImageMagick package which doesn't have this problem. This command line option can be used to re-convert all your HEIC files to JPEG, overwriting the incorrectly oriented files with correctly oriented ones.
-
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
-`docker exec -it icloudpd sync-icloud.sh --ForceConvertAllHEICs`
+`docker exec -it icloudpd sync-icloud.sh --Force-Convert-All-HEICs`
 
 **--Force-Convert-All-mnt-HEICs**
 This command line is the same as the above option but it will overwrite any JPEG files that it finds in the /mnt subdirectory. This will result in data loss if the downloaded JPEG files have been edited. For this reason, there is a 2 minute delay before this option runs. This gives you time to stop the container, or cancel the script, before it runs. This option is required as the heif-tools conversion utility had a bug that over-rotates the JPEG files. This means the orientation does not match the HEIC file. The heif-tools package has now been replaced by the ImageMagick package which doesn't have this problem. This command line option can be used to re-convert all your HEIC files to JPEG, overwriting the incorrectly oriented files with correctly oriented ones. This option can be used to correct JPG files that have been archived and removed from your iCloud photostream. Just mount the target directory (or directories) into the /mnt subdirectoy and the script with this command.
-
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
-`docker exec -it icloudpd sync-icloud.sh --ForceConvertAllmntHEICs`
+`docker exec -it icloudpd sync-icloud.sh --Force-Convert-All-mnt-HEICs`
 
-**--Correct-JPEG-Time-stamps**
+**--Correct-JPEG-Time-Stamps**
 This command line option will correct the timestamps of JPEG files that do not match their accompanying HEIC files. Due to an omission, previous versions of my script never set the time stamp. This command line option will correct this issue.
-
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
-`docker exec -it icloudpd sync-icloud.sh --CorrectJPEGTimestamps`
+`docker exec -it icloudpd sync-icloud.sh --Correct-JPEG-Time-Stamps`
 
 **--Initialise** | **--Initialize** | **--init**
 This command line option will allow you to add your password to the system keyring. It will also force the creation of a new two-factor authentication cookie.
@@ -332,22 +333,32 @@ To run the script inside the currently running container, issue this command (as
 **--Remove-Keyring**
 This command line option will delete the system keyring file. You will need to run this if you change your Apple ID password.
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
-`docker exec -it icloudpd sync-icloud.sh --RemoveKeyring`
+`docker exec -it icloudpd sync-icloud.sh --Remove-Keyring`
 
 **--Enable-Debugging**
 This command line option will edit the config file so that debugging is enabled. This will automatically be picked up the next time a synchronisation takes place. There should be no need to restart the container
+To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
+`docker exec -it icloudpd sync-icloud.sh --Enable-Degugging`
 
 **--Disable-Debugging**
 This command line option will edit the config file so that debugging is disabled. This will automatically be picked up the next time a synchronisation takes place. There should be no need to restart the container
+To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
+`docker exec -it icloudpd sync-icloud.sh --Disable-Degugging`
 
 **--Upload-Library-To-Nextcloud**
 This command line option will upload your entire library to the Nextcloud server. First, it will scan your download directory, then replicate the directory structure on the Nextcloud server. Once this is complete, it will proceed upload the files to these directories.
+To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
+`docker exec -it icloudpd sync-icloud.sh --Upload-Library-To-Nextcloud`
 
 **--List-Albums**
 This commmand will list the names of the albums available to download
+To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
+`docker exec -it icloudpd sync-icloud.sh --List-Albums`
 
 **--List-Libraries**
 This command will list the names of the libraries available to download
+To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
+`docker exec -it icloudpd sync-icloud.sh --List-Libraries`
 
 ## HEALTH CHECK
 
