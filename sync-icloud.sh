@@ -291,6 +291,9 @@ Initialise(){
    fi
    LogInfo "Synchronisation delay (minutes): ${synchronisation_delay}"
    LogInfo "Set EXIF date/time: ${set_exif_datetime:=false}"
+   if [ "${set_exif_datetime}" = true ]; then
+      LogWarning "This setting changes the files that are downloaded, so they will be downloaded a second time. Enabling this setting results in a lot of duplicate"
+   fi
    LogInfo "Auto delete: ${auto_delete:=false}"
    LogInfo "Delete after download: ${delete_after_download:=false}"
    if [ "${auto_delete}" != false -a "${delete_after_download}" != false ]; then
@@ -381,19 +384,6 @@ Initialise(){
    else
       LogInfo "Ignore Synology extended attribute directories: Disabled"
       ignore_path=""
-   fi
-
-   if [ ! -d "/home/${user}/.local/share/" ]; then
-      LogDebug "Creating directory: /home/${user}/.local/share/"
-      mkdir --parents "/home/${user}/.local/share/"
-   fi
-   if [ ! -d "${config_dir}/python_keyring/" ]; then
-      LogDebug "Creating directory: ${config_dir}/python_keyring/"
-      mkdir --parents "${config_dir}/python_keyring/"
-   fi
-   if [ ! -L "/home/${user}/.local/share/python_keyring" ]; then
-      LogDebug "Creating symbolic link: /home/${user}/.local/share/python_keyring/ to: ${config_dir}/python_keyring/ directory"
-      ln --symbolic --force "${config_dir}/python_keyring/" "/home/${user}/.local/share/"
    fi
 
 }
@@ -684,12 +674,11 @@ CreateUser(){
 }
 
 ListLibraries(){
-   LogInfo "Shared libraries available:"
    source /opt/icloudpd_latest/bin/activate
    LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
    shared_libraries="$(su "${user}" -c '/opt/icloudpd_latest/bin/icloudpd --username "${0}" --cookie-directory "${1}" --domain "${2}" --directory /dev/null --list-libraries | sed "1d"' -- "${apple_id}" "${config_dir}" "${auth_domain}")"
    deactivate
-   LogInfo "Libraries available:"
+   LogInfo "Shared libraries available:"
    for library in ${shared_libraries}; do
       LogInfo " - ${library}"
    done
@@ -738,7 +727,7 @@ ConfigurePassword(){
          rm "${config_dir}/python_keyring/keyring_pass.cfg"
       fi
    fi
-   if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
+   if [ ! -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
          LogDebug "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
          if [ "${icloud_china}" = true ]; then
@@ -759,7 +748,7 @@ ConfigurePassword(){
          LogError "Waiting for keyring file to be created..."
          local counter
          counter="${counter:=0}"
-         while [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; do
+         while [ ! -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; do
             sleep 5
             counter=$((counter + 1))
             if [ "${counter}" -eq 360 ]; then
@@ -772,7 +761,7 @@ ConfigurePassword(){
    else
       LogDebug "Using password stored in keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
    fi
-   if [ ! -f "/home/${user}/.local/share/python_keyring/keyring_pass.cfg" ]; then
+   if [ ! -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
       LogError "Keyring file does not exist. Please try again."
       sleep 120
       exit 1
@@ -839,23 +828,15 @@ SetOwnerAndPermissionsConfig(){
    chown -R "${user_id}:${group_id}" "/tmp/icloudpd"
    LogDebug "Set owner and group on config directory"
    chown -R "${user_id}:${group_id}" "${config_dir}"
-   LogDebug "Set owner and group on keyring directory"
-   chown -R "${user_id}:${group_id}" "/home/${user}/.local"
-
-   if [ "$(su "${user}" -c "test -w \"${config_dir}/python_keyring/\"; echo $?")" -eq 0 ]; then
-      LogInfo "Directory is writable: ${config_dir}/python_keyring/"
-   else
-      LogError "Directory is not writable: ${config_dir}/python_keyring/"
-      sleep 120
-      exit 1
-   fi
-
-   if [ "$(su "${user}" -c "test -w \"/home/${user}/.local/share/\"; echo $?")" -eq 0 ]; then
-      LogInfo "Directory is writable: /home/${user}/.local/share/"
-   else
-      LogError "Directory is not writable: /home/${user}/.local/share/"
-      sleep 120
-      exit 1
+   
+   if [ -d "${config_dir}/python_keyring/" ]; then
+      if [ "$(su "${user}" -c "test -w \"${config_dir}/python_keyring/\"; echo $?")" -eq 0 ]; then
+         LogInfo "Directory is writable: ${config_dir}/python_keyring/"
+      else
+         LogError "Directory is not writable: ${config_dir}/python_keyring/"
+         sleep 120
+         exit 1
+      fi
    fi
 
 }
@@ -1008,7 +989,9 @@ DisplayMFAExpiry(){
 }
 
 CheckFiles(){
-   if [ -f "/tmp/icloudpd/icloudpd_check.log" ]; then rm "/tmp/icloudpd/icloudpd_check.log"; fi
+   if [ -f "/tmp/icloudpd/icloudpd_check.log" ]; then
+      rm "/tmp/icloudpd/icloudpd_check.log"
+   fi
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
    >/tmp/icloudpd/icloudpd_check_error

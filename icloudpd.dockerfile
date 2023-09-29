@@ -1,7 +1,7 @@
 FROM alpine:3.18.3
 MAINTAINER boredazfcuk
 
-ENV config_dir="/config" TZ="UTC"
+ENV config_dir="/config" XDG_DATA_HOME="/config" TZ="UTC"
 
 ARG icloudpd_version="1.16.1"
 ARG python_version="3.11"
