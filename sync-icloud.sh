@@ -1054,8 +1054,8 @@ CheckFiles(){
 
 DownloadedFilesNotification(){
    local new_files_count new_files_preview new_files_text
-   new_files="$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
-   new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
+   new_files="$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)"
+   new_files_count="$(grep -c "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${new_files_count:=0}" -gt 0 ]; then
       LogInfo "New files downloaded: ${new_files_count}"
       new_files_preview="$(echo "${new_files}" | cut -d " " -f 9- | sed -e "s%${download_path}/%%g" | head -10)"
@@ -1070,16 +1070,16 @@ DownloadedFilesNotification(){
          new_files_text="iCloud 图库同步完成，新增 ${new_files_count} 张照片"
          Notify "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "下载" "${new_files_preview}" "新增 ${new_files_count} 张照片 - ${name}" "下次同步时间 ${syn_next_time}"
       fi
-      if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
-         touch "${download_path}/.nextcloud_sync"
-      fi
+      # if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
+      #    touch "${download_path}/.nextcloud_sync"
+      # fi
    fi
 }
 
 DeletedFilesNotification(){
    local deleted_files deleted_files_count deleted_files_preview deleted_files_text
-   deleted_files="$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
-   deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
+   deleted_files="$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log)"
+   deleted_files_count="$(grep -c "Deleted /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${deleted_files_count:=0}" -gt 0 ]; then
       LogInfo "Number of files deleted: ${deleted_files_count}"
       deleted_files_preview="$(echo "${deleted_files}" | cut -d " " -f 9- | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
@@ -1094,9 +1094,9 @@ DeletedFilesNotification(){
          deleted_files_text="iCloud 图库同步完成，删除 ${deleted_files_count} 张照片"
          Notify "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "删除" "${deleted_files_preview}" "删除 ${deleted_files_count} 张照片 - ${name}" "下次同步时间 ${syn_next_time}"
       fi
-      if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
-         touch "${download_path}/.nextcloud_sync"
-      fi
+      # if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
+      #    touch "${download_path}/.nextcloud_sync"
+      # fi
    fi
 }
 
@@ -1229,12 +1229,12 @@ CheckNextcloudConnectivity(){
 
 NextcloudUpload(){
    local new_files_count new_filename nextcloud_file_path curl_response
-   new_files_count="$(grep -c "Downloading /" /tmp/icloudpd/icloudpd_sync.log)"
+   new_files_count="$(grep -c "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${new_files_count:=0}" -gt 0 ]; then
       LogInfo "Upload files to Nextcloud"
       CheckNextcloudConnectivity
       LogInfo "Checking Nextcloud destination directories..."
-      destination_directories="$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log | cut -d " " -f 9- | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | uniq)"
+      destination_directories="$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | cut -d " " -f 9- | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | uniq)"
       for destination_directory in ${destination_directories}; do
          SAVE_IFS="$IFS"
          IFS='/'
@@ -1264,7 +1264,7 @@ NextcloudUpload(){
 
       LogInfo "Uploading files to Nextcloud"
       IFS="$(echo -en "\n\b")"
-      for full_filename in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | cut -d " " -f 9-); do
+      for full_filename in $(echo "$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)" | cut -d " " -f 9-); do
          LogDebug "Full filename: ${full_filename}"
          base_filename="$(basename "${full_filename}")"
          LogDebug "Base filename: ${base_filename}"
@@ -1301,12 +1301,12 @@ NextcloudUpload(){
 
 NextcloudDelete() {
    local deleted_files_count new_filename nextcloud_file_path encoded_file_path curl_response
-   deleted_files_count="$(grep -c "Deleting /" /tmp/icloudpd/icloudpd_sync.log)"
+   deleted_files_count="$(grep -c "Deleted /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${deleted_files_count:=0}" -gt 0 ]; then
       IFS="$(echo -en "\n\b")"
       CheckNextcloudConnectivity
       LogInfo "Delete files from Nextcloud..."
-      for full_filename in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | cut -d " " -f 9-); do
+      for full_filename in $(echo "$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log)" | cut -d " " -f 9-); do
          full_filename="$(echo "${full_filename}" | sed 's/!$//')"
          new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%")"
          base_filename="$(basename "${new_filename}")"
@@ -1348,7 +1348,7 @@ NextcloudDelete() {
       IFS="${save_ifs}"
 
       LogInfo "Checking for empty Nextcloud destination directories to remove..."
-      directories_list="$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log | cut -d " " -f 9- | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | uniq)"
+      directories_list="$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | cut -d " " -f 9- | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | uniq)"
       for target_directory in ${directories_list}; do
          SAVE_IFS="$IFS"
          IFS='/'
@@ -1380,7 +1380,7 @@ NextcloudDelete() {
 ConvertDownloadedHEIC2JPEG(){
    IFS="$(echo -en "\n\b")"
    LogInfo "Convert HEIC to JPEG..."
-   for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut -d " " -f 9-); do
+   for heic_file in $(echo "$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut -d " " -f 9-); do
       if [ ! -f "${heic_file}" ]; then
          LogWarning "HEIC file ${heic_file} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
       else
@@ -1406,7 +1406,7 @@ SynologyPhotosAppFix(){
    # Works for onestix. Do not obsolete
    IFS="$(echo -en "\n\b")"
    LogInfo "Fixing Synology Photos App import issue..."
-   for heic_file in $(echo "$(grep "Downloading /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut -d " " -f 9-); do
+   for heic_file in $(echo "$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut -d " " -f 9-); do
       LogDebug "Create empty date/time reference file ${heic_file%.HEIC}.TMP"
       #su "${user}" -c 'touch --reference="${0}" "${1}"' -- "${heic_file}" "${heic_file%.HEIC}.TMP"
       run_as "touch --reference=\"${heic_file}\" \"${heic_file%.HEIC}.TMP\""
@@ -1607,7 +1607,7 @@ CorrectJPEGTimestamps(){
 RemoveRecentlyDeletedAccompanyingFiles(){
    IFS="$(echo -en "\n\b")"
    LogInfo "Deleting 'Recently Deleted' accompanying files (.JPG/_HEVC.MOV)..."
-   for heic_file in $(echo "$(grep "Deleting /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut -d " " -f 9-); do
+   for heic_file in $(echo "$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut -d " " -f 9-); do
       heic_file_clean="${heic_file/!/}"
       jpeg_file_clean="${heic_file_clean%.HEIC}.JPG"
       if [ "${jpeg_path}" ]; then
