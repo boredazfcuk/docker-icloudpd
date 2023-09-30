@@ -1,3 +1,6 @@
+20230930
+
+ - Change: Found a bug which was causing videos to be skipped. Fixed it.
 20230929
 
  - Change: Found that the path of the python_keyring firectory can be configured by setting the XDG_DATA_HOME variable. Configured that and then removed a bunch of code relating to moving it from /home/${user}/.local
