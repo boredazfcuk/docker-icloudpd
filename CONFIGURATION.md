@@ -25,7 +25,7 @@ When the container is first started, it will write a default configuration file 
 
 **notification_days**: When your cookie is nearing expiration, this is the number of days in advance it should notify you. You will receive a single notification, per day, in the days running up to cookie expiration. Default: 7.
 
-**authentication_type**: This is the type of authentication that is enabled on your iCloud account. Valid values are 'MFA' if you have two factor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. Default: 'MFA'.
+**authentication_type**: This is the type of authentication that is enabled on your iCloud account. Valid values are 'MFA' if you have multifactor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. Default: 'MFA'.
 
 **directory_permissions**: This specifies the permissions to set on the directories in your download destination. Default: 750.
 
@@ -63,9 +63,9 @@ When the container is first started, it will write a default configuration file 
 
 **until_found**: Set this to an integer number to only download the most recently added photos, until *n* number of previously downloaded consecutive photos are found. Default: download all photos.
 
-**photo_album**: Set this to a comma delimited field to download photos from a photo album. Please note, if downloading from multiple albums, you need to enclose them in quotes in your /config/icloudpd.conf file e.g. photo_album="one,two,three and four" will download photos from three albums named "one", "two" and "three and four". When downloading photo albums, the folder structure will be set to be the name of the album eg "/home/boredazfcuk/iCloud/one/IMG_0001.HEIC", "/home/boredazfcuk/iCloud/two/IMG_0002.HEIC" and "/home/boredazfcuk/iCloud/three and four/IMG_0003.HEIC". Set  **photo_album="all albums"** in your configuration file /config/icloudpd.conf to download all albums. Please note: Due to a limitation in an upstream package, downloading from multiple albums will trigger multiple download runs. When Apple detect this, they may force a multi-factor re-authentication. 
+**photo_album**: Set this to a comma delimited field to download photos from a photo album. Please note, if downloading from multiple albums, you need to enclose them in quotes in your /config/icloudpd.conf file e.g. photo_album="one,two,three and four" will download photos from three albums named "one", "two" and "three and four". When downloading photo albums, the folder structure will be set to be the name of the album eg "/home/boredazfcuk/iCloud/one/IMG_0001.HEIC", "/home/boredazfcuk/iCloud/two/IMG_0002.HEIC" and "/home/boredazfcuk/iCloud/three and four/IMG_0003.HEIC". Set  **photo_album="all albums"** in your configuration file /config/icloudpd.conf to download all albums. Please note: Due to a limitation in an upstream package, downloading from multiple albums will trigger multiple download runs. When Apple detect this, they may force a multifactor re-authentication. 
 
-**photo_library**: Set this to a comma delimited field to download photos from a shared library. Please note, if downloading from multiple libraries, you need to enclose them in quotes in your /config/icloudpd.conf file e.g. photo_library="one,two,three and four" will download photos from three libraries named "one", "two" and "three and four". When downloading photo libraries, the folder structure will be set to be the name of the library eg "/home/boredazfcuk/iCloud/one/IMG_0001.HEIC", "/home/boredazfcuk/iCloud/two/IMG_0002.HEIC" and "/home/boredazfcuk/iCloud/three and four/IMG_0003.HEIC". Set  **photo_library="all albums"** in your configuration file /config/icloudpd.conf to download all albums. Please note: Due to a limitation in an upstream package, downloading from multiple libraries will trigger multiple download runs, and Apple may force a multi-factor re-authentication.
+**photo_library**: Set this to a comma delimited field to download photos from a shared library. Please note, if downloading from multiple libraries, you need to enclose them in quotes in your /config/icloudpd.conf file e.g. photo_library="one,two,three and four" will download photos from three libraries named "one", "two" and "three and four". When downloading photo libraries, the folder structure will be set to be the name of the library eg "/home/boredazfcuk/iCloud/one/IMG_0001.HEIC", "/home/boredazfcuk/iCloud/two/IMG_0002.HEIC" and "/home/boredazfcuk/iCloud/three and four/IMG_0003.HEIC". Set  **photo_library="all libraries"** in your configuration file /config/icloudpd.conf to download all libraries. Please note: Due to a limitation in an upstream package, downloading from multiple libraries will trigger multiple download runs, and Apple may force a multifactor re-authentication.
 
 **skip_album**: Use this option in conjunction with **photo_album** to skip certain albums e.g. **skip_album="All Photos,Time-lapse,Videos,Slo-mo,Bursts,Favorites,Panoramas,Screenshots,Live,Recently Deleted,Hidden"**
 
@@ -91,8 +91,6 @@ When the container is first started, it will write a default configuration file 
 
 # NEXTCLOUD CONFIGURATION VARIABLES
 
-**trigger_nextlcoudcli_synchronisation**: ~This creates a file in the download directory after a new files are downloaded. My NextcloudCLI container will detect this and force an immediate sync to the Nextcloud server.~ This has been deprecated for the new direct upload function. The mentioned NextcloudCLI container is no longer being published.
-
 **nextcloud_delete**: Set this variable to **true** if you want to remove files from Nextcloud. This setting requires **auto_delete** to also be set to true. When a file is found in the 'Recently Deleted', the **auto_delete** function will remove the local file. If **nextcloud_delete** is also set to **true**, then it will remove that file from the Nextcloud server.
 
 **nextcloud_password**: This is the password for the Nextcloud account you are syncing to
@@ -107,7 +105,7 @@ When the container is first started, it will write a default configuration file 
 
 ## NOTIFICATION CONFIGURATION VARIABLES
 
-**notification_type**: This specifies the method that is used to send notifications. These are the options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **openhab**, **Dingtalk**, **Discord**, **IYUU**, **WeCom**, **Gotify** and **Bark**. When the two factor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
+**notification_type**: This specifies the method that is used to send notifications. These are the options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **openhab**, **Dingtalk**, **Discord**, **IYUU**, **WeCom**, **Gotify** and **Bark**. When the multifactor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
 
 **notification_title**: This allows you to change the title which is sent on the notifications. This variable will default to **boredazfcuk/iCloudPD**.
 
@@ -237,13 +235,13 @@ INFO     Restarting in 5 minutes...
 As per the error, the container needs to be initialised by using the --Initialise command line option. With the first container still running, connect to it and launch the initialisation process by running the following at the terminal prompt (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --Initialise`
 
-You will then be asked to log in to icloud.com, with your current Apple ID and password, and will be prompted to enter a two factor authentication code which will be sent via SMS. Once that is confirmed, the password will be added to the keyring.
+You will then be asked to log in to icloud.com, with your current Apple ID and password, and will be prompted to enter a multifactor authentication code which will be sent via SMS. Once that is confirmed, the password will be added to the keyring.
 
-If you do not have an authentication cookie, and you have two factor authentication enabled on your account, you will be taken to the cookie generation process immediately after.
+If you do not have an authentication cookie, and you have multifactor authentication enabled on your account, you will be taken to the cookie generation process immediately after.
 
-## TWO FACTOR AUTHENTICATION
+## MULTIFACTOR AUTHENTICATION
 
-If your Apple ID account has two factor authentication enabled, you will see that the container waits for a two factor authentication cookie to be created:
+If your Apple ID account has multifactor authentication enabled, you will see that the container waits for a multifactor authentication cookie to be created:
 ```
 ERROR    Cookie does not exist."
 INFO      - Please create your cookie using the --Initialise script command line option."
@@ -292,10 +290,10 @@ Please enter validation code: 123456
   1: Enter two-factor authentication code
 Please choose an option: [0]: 1
 Please enter two-factor authentication code: 123456
-2020-08-06 16:47:30 INFO     Two factor authentication cookie generated. Sync should now be successful.
+2020-08-06 16:47:30 INFO     Multifactor authentication cookie generated. Sync should now be successful.
 ```
 
-This will then place a two factor authentication cookie into the /config folder of the container. This cookie will expire after three months. After it has expired, you will need to re-initialise the container again.
+This will then place a multifactor authentication cookie into the /config folder of the container. This cookie will expire after three months. After it has expired, you will need to re-initialise the container again.
 
 After this, the container should start downloading your photos.
 

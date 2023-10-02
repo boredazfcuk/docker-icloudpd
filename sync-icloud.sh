@@ -30,7 +30,7 @@ initialise_config_file(){
       if [ "$(grep -c "iyuu_token=" "${config_file}")" -eq 0 ]; then echo iyuu_token="${iyuu_token}"; fi
       if [ "$(grep -c "jpeg_path=" "${config_file}")" -eq 0 ]; then echo jpeg_path="${jpeg_path}"; fi
       if [ "$(grep -c "jpeg_quality=" "${config_file}")" -eq 0 ]; then echo jpeg_quality="${jpeg_quality:=90}"; fi
-      # if [ "$(grep -c "libraries_with_dates=" "${config_file}")" -eq 0 ]; then echo libraries_with_dates="${libraries_with_dates:=false}"; fi
+      if [ "$(grep -c "libraries_with_dates=" "${config_file}")" -eq 0 ]; then echo libraries_with_dates="${libraries_with_dates:=false}"; fi
       if [ "$(grep -c "nextcloud_delete=" "${config_file}")" -eq 0 ]; then echo nextcloud_delete="${nextcloud_delete:=false}"; fi
       if [ "$(grep -c "nextcloud_upload=" "${config_file}")" -eq 0 ]; then echo nextcloud_upload="${nextcloud_upload:=false}"; fi
       if [ "$(grep -c "nextcloud_url=" "${config_file}")" -eq 0 ]; then echo nextcloud_url="${nextcloud_url}"; fi
@@ -48,7 +48,7 @@ initialise_config_file(){
       if [ "$(grep -c "recent_only=" "${config_file}")" -eq 0 ]; then echo recent_only="${recent_only}"; fi
       if [ "$(grep -c "set_exif_datetime=" "${config_file}")" -eq 0 ]; then echo set_exif_datetime="${set_exif_datetime:=false}"; fi
       if [ "$(grep -c "skip_album=" "${config_file}")" -eq 0 ]; then echo skip_album="${skip_album}"; fi
-      # if [ "$(grep -c "skip_library=" "${config_file}")" -eq 0 ]; then echo skip_library="${skip_library}"; fi
+      if [ "$(grep -c "skip_library=" "${config_file}")" -eq 0 ]; then echo skip_library="${skip_library}"; fi
       if [ "$(grep -c "single_pass=" "${config_file}")" -eq 0 ]; then echo single_pass="${single_pass:=false}"; fi
       if [ "$(grep -c "skip_check=" "${config_file}")" -eq 0 ]; then echo skip_check="${skip_check:=false}"; fi
       if [ "$(grep -c "skip_download=" "${config_file}")" -eq 0 ]; then echo skip_download="${skip_download:=false}"; fi
@@ -105,7 +105,7 @@ initialise_config_file(){
    if [ "${iyuu_token}" ]; then sed -i "s%^iyuu_token=.*%iyuu_token=${iyuu_token}%" "${config_file}"; fi
    if [ "${jpeg_path}" ]; then sed -i "s%^jpeg_path=.*%jpeg_path=${jpeg_path}%" "${config_file}"; fi
    if [ "${jpeg_quality}" ]; then sed -i "s%^jpeg_quality=.*%jpeg_quality=${jpeg_quality}%" "${config_file}"; fi
-   # if [ "${libraries_with_dates}" ]; then sed -i "s%^librariess_with_dates=.*%librariess_with_dates=${librariess_with_dates}%" "${config_file}"; fi
+   if [ "${libraries_with_dates}" ]; then sed -i "s%^librariess_with_dates=.*%librariess_with_dates=${librariess_with_dates}%" "${config_file}"; fi
    if [ "${nextcloud_delete}" ]; then sed -i "s%^nextcloud_delete=.*%nextcloud_delete=${nextcloud_delete}%" "${config_file}"; fi
    if [ "${nextcloud_upload}" ]; then sed -i "s%^nextcloud_upload=.*%nextcloud_upload=${nextcloud_upload}%" "${config_file}"; fi
    if [ "${nextcloud_url}" ]; then sed -i "s%^nextcloud_url=.*%nextcloud_url=${nextcloud_url}%" "${config_file}"; fi
@@ -124,7 +124,7 @@ initialise_config_file(){
    if [ "${set_exif_datetime}" ]; then sed -i "s%^set_exif_datetime=.*%set_exif_datetime=${set_exif_datetime}%" "${config_file}"; fi
    if [ "${single_pass}" ]; then sed -i "s%^single_pass=.*%single_pass=${single_pass}%" "${config_file}"; fi
    if [ "${skip_album}" ]; then sed -i "s%^skip_album=.*%skip_album=\"${skip_album}\"%" "${config_file}"; fi
-   # if [ "${skip_library}" ]; then sed -i "s%^skip_library=.*%skip_library=\"${skip_library}\"%" "${config_file}"; fi
+   if [ "${skip_library}" ]; then sed -i "s%^skip_library=.*%skip_library=\"${skip_library}\"%" "${config_file}"; fi
    if [ "${skip_check}" ]; then sed -i "s%^skip_check=.*%skip_check=${skip_check}%" "${config_file}"; fi
    if [ "${skip_download}" ]; then sed -i "s%^skip_download=.*%skip_download=${skip_download}%" "${config_file}"; fi
    if [ "${skip_live_photos}" ]; then sed -i "s%^skip_live_photos=.*%skip_live_photos=${skip_live_photos}%" "${config_file}"; fi
@@ -686,24 +686,7 @@ CreateUser(){
 }
 
 ListLibraries(){
-   if [ "${authentication_type}" = "MFA" ]; then
-      CheckMFACookie
-   else
-      CheckWebCookie
-   fi
-   source /opt/icloudpd_latest/bin/activate
-   LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
-   if [ "${skip_download}" = false ]; then
-      shared_libraries="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
-   fi
-   deactivate
-   LogInfo "Shared libraries available:"
-   for library in ${shared_libraries}; do
-      LogInfo " - ${library}"
-   done
-}
-
-ListAlbums(){
+   local shared_libraries
    if [ "${authentication_type}" = "MFA" ]; then
       CheckMFACookie
    else
@@ -713,12 +696,33 @@ ListAlbums(){
    source /opt/icloudpd_latest/bin/activate
    LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
    if [ "${skip_download}" = false ]; then
-      available_albums="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d'")"
+      shared_libraries="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
    fi
    deactivate
-   LogInfo "Albums available:"
-   for available_album in ${available_albums}; do
-      LogInfo " - ${available_album}"
+   LogInfo "Shared libraries:"
+   for library in ${shared_libraries}; do
+      LogInfo " - ${library}"
+   done
+   IFS="${save_ifs}"
+}
+
+ListAlbums(){
+   local photo_albums
+   if [ "${authentication_type}" = "MFA" ]; then
+      CheckMFACookie
+   else
+      CheckWebCookie
+   fi
+   IFS=$'\n'
+   source /opt/icloudpd_latest/bin/activate
+   LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
+   if [ "${skip_download}" = false ]; then
+      photo_albums="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
+   fi
+   deactivate
+   LogInfo "Photo albums:"
+   for photo_album in ${photo_albums}; do
+      LogInfo " - ${photo_album}"
    done
    IFS="${save_ifs}"
 }
@@ -809,11 +813,11 @@ GenerateCookie(){
    deactivate
    if [ "${authentication_type}" = "MFA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
-         LogInfo "Two factor authentication cookie generated. Sync should now be successful"
+         LogInfo "Multifactor authentication cookie generated. Sync should now be successful"
       else
-         LogError "Multi-factor authentication information missing from cookie. Authentication has failed"
+         LogError "Multifactor authentication information missing from cookie. Authentication has failed"
          LogError " - Was the correct password entered?"
-         LogError " - Was the multi-factor authentication code mistyped?"
+         LogError " - Was the multifactor authentication code mistyped?"
          LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
          if [ "${icloud_china}" = true ]; then
             LogError " - Are you based in China? You will need to set the icloud_china variable"
@@ -939,16 +943,16 @@ CheckWebCookie(){
 
 CheckMFACookie(){
    if [ -f "${config_dir}/${cookie_file}" ]; then
-      LogDebug "Multi-factor authentication cookie exists."
+      LogDebug "Multifactor authentication cookie exists."
    else
-      LogError "Multi-factor authentication cookie does not exist"
+      LogError "Multifactor authentication cookie does not exist"
       WaitForCookie DisplayMessage
-      LogDebug "Multi-factor authentication cookie file exists, checking validity..."
+      LogDebug "Multifactor authentication cookie file exists, checking validity..."
    fi
    if [ "$(grep -c "X-APPLE-DS-WEB-SESSION-TOKEN" "${config_dir}/${cookie_file}")" -eq 1 -a "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 0 ]; then
-      LogDebug "Multi-factor authentication cookie exists, but not autenticated. Waiting for authentication to complete..."
+      LogDebug "Multifactor authentication cookie exists, but not autenticated. Waiting for authentication to complete..."
       WaitForAuthentication
-      LogDebug "Multi-factor authentication authentication complete, checking expiry date..."
+      LogDebug "Multifactor authentication authentication complete, checking expiry date..."
    fi 
    if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
       mfa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
@@ -957,7 +961,7 @@ CheckMFACookie(){
       echo "${days_remaining}" > "${config_dir}/DAYS_REMAINING"
       if [ "${days_remaining}" -gt 0 ]; then
          valid_mfa_cookie=true
-         LogDebug "Valid two factor authentication cookie found. Days until expiration: ${days_remaining}"
+         LogDebug "Valid multifactor authentication cookie found. Days until expiration: ${days_remaining}"
       else
          rm -f "${config_dir}/${cookie_file}"
          LogError "Cookie expired at: ${mfa_expire_date}"
@@ -967,7 +971,7 @@ CheckMFACookie(){
       fi
    else
       rm -f "${config_dir}/${cookie_file}"
-      LogError "Cookie is not multi-factor authentication capable, authentication type may have changed"
+      LogError "Cookie is not multifactor authentication capable, authentication type may have changed"
       LogError "Invalid cookie file has been removed. Restarting container in 5 minutes"
       sleep 300
       exit 1
@@ -976,20 +980,20 @@ CheckMFACookie(){
 
 DisplayMFAExpiry(){
    local error_message
-   LogInfo "Two factor authentication cookie expires: ${mfa_expire_date/ / @ }"
+   LogInfo "Multifactor authentication cookie expires: ${mfa_expire_date/ / @ }"
    LogInfo "Days remaining until expiration: ${days_remaining}"
    if [ "${days_remaining}" -le "${notification_days}" ]; then
       if [ "${days_remaining}" -eq 1 ]; then
          cookie_status="cookie expired"
          if [ "${icloud_china}" = false ]; then
-            error_message="Final day before two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
+            error_message="Final day before multifactor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
          else
             error_message="今天是 ${name} 的 Apple ID 两步验证 cookie 到期前的最后一天 - 请立即重新初始化，这是最后的提醒"
          fi
       else
          cookie_status="cookie expiration"
          if [ "${icloud_china}" = false ]; then
-            error_message="Only ${days_remaining} days until two factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
+            error_message="Only ${days_remaining} days until multifactor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
          else
             error_message="${days_remaining} 天后 ${name} 的 Apple ID 两步验证将到期 - 请立即重新初始化"
          fi
@@ -997,9 +1001,9 @@ DisplayMFAExpiry(){
       LogWarning "${error_message}"
       if [ "${synchronisation_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]; then
          if [ "${icloud_china}" = false ]; then
-            Notify "${cookie_status}" "Multi-Factor Authentication Cookie Expiration" "2" "${error_message}"
+            Notify "${cookie_status}" "Multifactor Authentication Cookie Expiration" "2" "${error_message}"
          else
-            Notify "${cookie_status}" "Multi-Factor Authentication Cookie Expiration" "2" "${error_message}" "" "" "" "${days_remaining} 天后，${name} 的身份验证到期" "${error_message}"
+            Notify "${cookie_status}" "Multifactor Authentication Cookie Expiration" "2" "${error_message}" "" "" "" "${days_remaining} 天后，${name} 的身份验证到期" "${error_message}"
          fi
          next_notification_time="$(date +%s -d "+24 hour")"
          LogDebug "Next notification not before: $(date +%H:%M:%S -d "${next_notification_time} seconds")"
@@ -1087,9 +1091,9 @@ DeletedFilesNotification(){
 }
 
 DownloadAlbums(){
-   local albums_to_download
+   local all_albums albums_to_download
    if [ "${photo_album}" = "all albums" ]; then
-      all_albums="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d'")"
+      all_albums="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
       for album in ${all_albums}; do
          if [[ ! ${skip_album} =~ ${album} ]]; then
             if [ -z "${albums_to_download}" ]; then
@@ -1123,7 +1127,7 @@ DownloadAlbums(){
 }
 
 DownloadLibraries(){
-   local libraries_to_download
+   local all_libraries libraries_to_download
    if [ "${photo_libraries}" = "all libraries" ]; then
       all_libraries="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
       for library in ${all_libraries}; do
@@ -1980,6 +1984,9 @@ disable_debug_logging(){
 
 ##### Script #####
 script_launch_parameters="${1}"
+if [ "${2}"]; then
+   LogWarning "Only a single command line parameter is supported at this time. Only processing: ${script_launch_parameters}"
+fi
 case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
    "--initialise"|"--initialize"|"--init")
       initialise_container=true
