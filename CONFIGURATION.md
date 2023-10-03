@@ -35,6 +35,8 @@ When the container is first started, it will write a default configuration file 
 
 **albums_with_dates**: When albums are downloaded, they are downloaded into directories of the same name as the album. Setting this variable to **true** will then create sub folders according to the **folder_structure** variable. Default: false
 
+**libraries_with_dates**: When libraries are downloaded, they are downloaded into directories of the same name as the library. Setting this variable to **true** will then create sub folders according to the **folder_structure** variable. Default: false
+
 **skip_check**: Set this to **true** skip the check for new files. The check can have issues with large libraries, please set to **true** if you have more than a few thousand photos. Default: false.
 
 **download_notifications**: specifies whether notifications with a short summary should be sent for file downloads. Default: true.
@@ -69,7 +71,7 @@ When the container is first started, it will write a default configuration file 
 
 **skip_album**: Use this option in conjunction with **photo_album** to skip certain albums e.g. **skip_album="All Photos,Time-lapse,Videos,Slo-mo,Bursts,Favorites,Panoramas,Screenshots,Live,Recently Deleted,Hidden"**
 
-**skip_library**: Use this option in conjunction with **photo_library** to skip certain libraries e.g. **skip_libraries="All Photos,Time-lapse,Videos,Slo-mo,Bursts,Favorites,Panoramas,Screenshots,Live,Recently Deleted,Hidden"**
+**skip_library**: Use this option in conjunction with **photo_library** to skip certain libraries e.g. **skip_libraries="PrimarySync,SharedSync-########-####-####-####-############"**
 
 **photo_library**: Set this to the name of an iOS 16 shared library to download photos from that shared library.
 
