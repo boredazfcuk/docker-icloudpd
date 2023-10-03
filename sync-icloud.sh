@@ -1959,7 +1959,7 @@ SyncUser(){
 SanitiseLaunchParameters(){
    if [ "${script_launch_parameters}" ]; then
       case "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
-         "--initialise"|"--initialize"|"--init"|"--remove-keyring"|"--convert-all-heics"|"--remove-all-jpgs"|"--force-convert-all-heics"|"--force-convert-all-mnt-heics"|"--correct-jpeg-time-stamps"|"--upload-library-to-nextcloud"|"--list-albums"|"--list-libraries")
+         "--initialise"|"--initialize"|"--init"|"--remove-keyring"|"--convert-all-heics"|"--remove-all-jpgs"|"--force-convert-all-heics"|"--force-convert-all-mnt-heics"|"--correct-jpeg-time-stamps"|"--upload-library-to-nextcloud"|"--list-albums"|"--list-libraries"|"--enable-debugging"|"--disable-debugging")
             LogInfo "Script launch parameters: ${script_launch_parameters}"
          ;;
          *)
