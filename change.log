@@ -1,3 +1,8 @@
+20231004
+
+ - Change: Just some logging stuff
+ - Change: Found a couple of bugs surrounding downloading from photo albums/libraries. Squished.
+
 20231002
 
  - Change: A bunch of stuff regarding the new shared library support

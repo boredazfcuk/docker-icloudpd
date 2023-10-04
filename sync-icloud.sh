@@ -1128,7 +1128,7 @@ DownloadAlbums(){
 
 DownloadLibraries(){
    local all_libraries libraries_to_download
-   if [ "${photo_libraries}" = "all libraries" ]; then
+   if [ "${photo_library}" = "all libraries" ]; then
       all_libraries="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
       for library in ${all_libraries}; do
          if [[ ! ${skip_library} =~ ${library} ]]; then
@@ -1147,7 +1147,7 @@ DownloadLibraries(){
       LogInfo "Downloading library: ${library}"
       if [ "${libraries_with_dates}" = true ]; then
          LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure ${library}/${folder_structure} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure "${library}/${folder_structure}" --library "${2}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         run_as "(/opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure "${library}/${folder_structure}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       else
          LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure ${library} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
          run_as "(/opt/icloudpd_latest/bin/icloudpd ${command_line} --folder-structure "${library}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
@@ -1792,10 +1792,6 @@ CommandLineBuilder(){
    fi
    if [ -z "${photo_album}" ] && [ -z "${photo_library}" ]; then
       command_line="${command_line} --folder-structure ${folder_structure}"
-   elif [ "${photo_album}" ]; then
-      command_line="${command_line} --album ${photo_album}"
-   elif [ "${photo_library}" ]; then
-      command_line="${command_line} --library ${photo_library}"
    fi
    if [ "${until_found}" ]; then
       command_line="${command_line} --until-found ${until_found}"
@@ -1973,13 +1969,13 @@ SanitiseLaunchParameters(){
 }
 
 enable_debug_logging(){
-   LogInfo "Enabling Debug Logging"
    sed -i 's/debug_logging=.*/debug_logging=true/' "${config_file}"
+   LogInfo "Debug logging enabled"
 }
 
 disable_debug_logging(){
-   LogInfo "Disabling Debug Logging"
    sed -i 's/debug_logging=.*/debug_logging=false/' "${config_file}"
+   LogInfo "Debug logging disabled"
 }
 
 ##### Script #####
