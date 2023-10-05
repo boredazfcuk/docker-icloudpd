@@ -224,7 +224,23 @@ Initialise(){
    fi
    LogDebug "Running user id: $(id --user)"
    LogDebug "Running group id: $(id --group)"
+   if [ "${user}" = "root" ]; then
+      LogWarning "The local user for synchronisation cannot be root"
+      unset user
+   fi
+   if [ "${user_id}" -eq 0 ]; then
+      LogWarning "The local user id for synchronisation cannot be 0"
+      unset user_id
+   fi
    LogDebug "Local user: ${user:=user}:${user_id:=1000}"
+   if [ "${group}" = "root" ]; then
+      LogWarning "The local group for synchronisation cannot be root"
+      unset group
+   fi
+   if [ "${group_id}" -eq 0 ]; then
+      LogWarning "The local group id for synchronisation cannot be 0"
+      unset group_id
+   fi
    LogDebug "Local group: ${group:=group}:${group_id:=1000}"
    LogDebug "Force GID: ${force_gid:=false}"
    LogDebug "LAN IP Address: ${lan_ip}"
@@ -387,7 +403,6 @@ Initialise(){
       LogInfo "Ignore Synology extended attribute directories: Disabled"
       ignore_path=""
    fi
-
 }
 
 LogInfo(){
