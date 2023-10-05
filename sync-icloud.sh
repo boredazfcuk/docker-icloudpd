@@ -426,7 +426,7 @@ run_as() {
    local command_to_run
    command_to_run="${1}"
    if [ "$(id -u)" = 0 ]; then
-      su "${user}" -c "${command_to_run}"
+      su "${user}" -s /bin/ash -c "${command_to_run}"
    else
       /bin/ash -c "${command_to_run}"
    fi
