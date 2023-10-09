@@ -1,3 +1,7 @@
+20231009
+
+ - Cahnge: Bug found in health check... Was using wrong filename for error checks
+
 20231005
 
  - Change: Some users attempting to set the user for sync to root. This breaks things as it can't create the local user account or switch users correctly, so now it will default to user:1000 group:1000 if root:0 is detected.
