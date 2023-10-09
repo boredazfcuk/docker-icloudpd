@@ -1038,7 +1038,7 @@ CheckFiles(){
    run_as "(/opt/icloudpd_latest/bin/icloudpd --directory ${download_path} --cookie-directory ${config_dir} --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log"
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    deactivate
-   if [ "${check_exit_code}" -ne 0 ]; then
+   if [ "${check_exit_code}" -ne 0 ] || [ -s /tmp/icloudpd/icloudpd_check_error ]; then
       LogError "Failed check for new files files"
       LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
       LogError "Error debugging info:"
@@ -1858,7 +1858,7 @@ SyncUser(){
             fi
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
             deactivate
-            if [ "${download_exit_code}" -gt 0 ]; then
+            if [ "${download_exit_code}" -gt 0 ] || [ -s /tmp/icloudpd/icloudpd_download_error ]; then
                LogError "Failed to download new files"
                LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
                LogError "Error debugging info:"

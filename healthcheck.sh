@@ -2,8 +2,8 @@
 
 source "${config_dir}/icloudpd.conf"
 
-if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ] || [ -f "/tmp/icloudpd/icloudpd_download_exit_code}" ]; then
-   if [ -f "/tmp/icloudpd/icloudpd_download_exit_code}" ]; then
+if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ] || [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then
+   if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then
       download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
       if [ "${download_exit_code}" -ne 0 ]; then
          echo "File download error: ${download_exit_code}"
@@ -21,6 +21,18 @@ else
    echo "Error check files missing."
    exit 1
 fi
+
+if [ -s "/tmp/icloudpd/icloudpd_check_error" ] || [ -s "/tmp/icloudpd/icloudpd_download_error" ]; then
+   if [ -f "/tmp/icloudpd/icloudpd_check_error" ]; then
+      echo "Errors reported during file check"
+      exit 1
+   fi
+   if [ -s "/tmp/icloudpd/icloudpd_download_error" ]; then
+      echo "Errors reported during file download"
+      exit 1
+   fi
+fi
+
 cookie="$(echo -n "${apple_id//[^a-zA-Z0-9_]}" | tr '[:upper:]' '[:lower:]')"
 if [ ! -f "${config_dir}/${cookie}" ]; then
 	echo "Error: Cookie does not exist. Please generate new cookie"

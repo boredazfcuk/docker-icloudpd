@@ -1,6 +1,8 @@
 20231009
 
- - Cahnge: Bug found in health check... Was using wrong filename for error checks
+ - Change: Bug found in health check... Was using wrong filename for error checks
+ - Change: Another bug in health check... Filename followed with a } making it invalid
+ - Change: icloudpd seems to error with an exit code of 0 when MFA is required but aborted due to being a non-interactive session. Have now added a check to see if the error report file has size.
 
 20231005
 
