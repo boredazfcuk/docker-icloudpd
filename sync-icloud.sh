@@ -74,6 +74,15 @@ initialise_config_file(){
       if [ "$(grep -c "wecom_id=" "${config_file}")" -eq 0 ]; then echo wecom_id="${wecom_id}"; fi
       if [ "$(grep -c "wecom_proxy=" "${config_file}")" -eq 0 ]; then echo wecom_proxy="${wecom_proxy}"; fi
       if [ "$(grep -c "wecom_secret=" "${config_file}")" -eq 0 ]; then echo wecom_secret="${wecom_secret}"; fi
+      if [ "$(grep -c "agentid=" "${config_file}")" -eq 0 ]; then echo agentid="${agentid}"; fi
+      if [ "$(grep -c "touser=" "${config_file}")" -eq 0 ]; then echo touser="${touser}"; fi
+      if [ "$(grep -c "content_source_url=" "${config_file}")" -eq 0 ]; then echo content_source_url="${content_source_url}"; fi
+      if [ "$(grep -c "name=" "${config_file}")" -eq 0 ]; then echo name="${name}"; fi
+      if [ "$(grep -c "media_id_startup=" "${config_file}")" -eq 0 ]; then echo media_id_startup="${media_id_startup}"; fi
+      if [ "$(grep -c "media_id_download=" "${config_file}")" -eq 0 ]; then echo media_id_download="${media_id_download}"; fi
+      if [ "$(grep -c "media_id_delete=" "${config_file}")" -eq 0 ]; then echo media_id_delete="${media_id_delete}"; fi
+      if [ "$(grep -c "media_id_expiration=" "${config_file}")" -eq 0 ]; then echo media_id_expiration="${media_id_expiration}"; fi
+      if [ "$(grep -c "media_id_warning=" "${config_file}")" -eq 0 ]; then echo media_id_warning="${media_id_warning}"; fi
    } >> "${config_file}"
    if [ "${albums_with_dates}" ]; then sed -i "s%^albums_with_dates=.*%albums_with_dates=${albums_with_dates}%" "${config_file}"; fi
    if [ "${apple_id}" ]; then sed -i "s%^apple_id=.*%apple_id=${apple_id}%" "${config_file}"; fi
@@ -149,6 +158,15 @@ initialise_config_file(){
    if [ "${wecom_id}" ]; then sed -i "s%^wecom_id=.*%wecom_id=${wecom_id}%" "${config_file}"; fi
    if [ "${wecom_proxy}" ]; then sed -i "s%^wecom_proxy=.*%wecom_proxy=${wecom_proxy}%" "${config_file}"; fi
    if [ "${wecom_secret}" ]; then sed -i "s%^wecom_secret=.*%wecom_secret=${wecom_secret}%" "${config_file}"; fi
+   if [ "${agentid}" ]; then sed -i "s%^agentid=.*%agentid=${agentid}%" "${config_file}"; fi
+   if [ "${touser}" ]; then sed -i "s%^touser=.*%touser=${touser}%" "${config_file}"; fi
+   if [ "${content_source_url}" ]; then sed -i "s%^content_source_url=.*%content_source_url=${content_source_url}%" "${config_file}"; fi
+   if [ "${name}" ]; then sed -i "s%^name=.*%name=${name}%" "${config_file}"; fi
+   if [ "${media_id_startup}" ]; then sed -i "s%^media_id_startup=.*%media_id_startup=${media_id_startup}%" "${config_file}"; fi
+   if [ "${media_id_download}" ]; then sed -i "s%^media_id_download=.*%media_id_download=${media_id_download}%" "${config_file}"; fi
+   if [ "${media_id_delete}" ]; then sed -i "s%^media_id_delete=.*%media_id_delete=${media_id_delete}%" "${config_file}"; fi
+   if [ "${media_id_expiration}" ]; then sed -i "s%^media_id_expiration=.*%media_id_expiration=${media_id_expiration}%" "${config_file}"; fi
+   if [ "${media_id_warning}" ]; then sed -i "s%^media_id_warning=.*%media_id_warning=${media_id_warning}%" "${config_file}"; fi
    mv "${config_file}" "${config_file}.tmp"
    sort "${config_file}.tmp" --output="${config_file}"
    chmod --reference="${config_file}.tmp" "${config_file}"
