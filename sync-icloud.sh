@@ -1108,7 +1108,7 @@ DeletedFilesNotification(){
 DownloadAlbums(){
    local all_albums albums_to_download
    if [ "${photo_album}" = "all albums" ]; then
-      LogDebug "Fetching album list..."
+      LogDebug "Launch command: /opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums"
       all_albums="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
       LogDebug "Buildling list of albums to download..."
       for album in ${all_albums}; do
@@ -1147,6 +1147,7 @@ DownloadLibraries(){
    local all_libraries libraries_to_download
    if [ "${photo_library}" = "all libraries" ]; then
       LogDebug "Fetching libraries list..."
+      LogDebug "Launch command: /opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries"
       all_libraries="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
       LogDebug "Building list of libraries to download..."
       for library in ${all_libraries}; do
