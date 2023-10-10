@@ -1158,11 +1158,21 @@ DownloadLibraries(){
    local all_libraries libraries_to_download
    if [ "${photo_library}" = "all libraries" ]; then
       LogDebug "Fetching libraries list..."
-      LogDebug "Launch command: /opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries"
       all_libraries="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
       LogDebug "Building list of libraries to download..."
+      IFS=$'\n'
       for library in ${all_libraries}; do
-         if [[ ! ${skip_library} =~ ${library} ]]; then
+         if [ "${skip_library}" ]; then
+            if [[ ! "${skip_library}" =~ "${library}" ]]; then
+               LogDebug " - ${library}"
+               if [ -z "${libraries_to_download}" ]; then
+                  libraries_to_download="${library}"
+               else
+                  libraries_to_download="${libraries_to_download},${library}"
+               fi
+            fi
+         else
+            LogDebug " - ${library}"
             if [ -z "${libraries_to_download}" ]; then
                libraries_to_download="${library}"
             else
