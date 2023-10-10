@@ -1108,7 +1108,9 @@ DeletedFilesNotification(){
 DownloadAlbums(){
    local all_albums albums_to_download
    if [ "${photo_album}" = "all albums" ]; then
+      LogDebug "Fetching album list..."
       all_albums="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
+      LogDebug "Buildling list of albums to download..."
       for album in ${all_albums}; do
          if [[ ! ${skip_album} =~ ${album} ]]; then
             if [ -z "${albums_to_download}" ]; then
@@ -1144,7 +1146,9 @@ DownloadAlbums(){
 DownloadLibraries(){
    local all_libraries libraries_to_download
    if [ "${photo_library}" = "all libraries" ]; then
+      LogDebug "Fetching libraries list..."
       all_libraries="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
+      LogDebug "Building list of libraries to download..."
       for library in ${all_libraries}; do
          if [[ ! ${skip_library} =~ ${library} ]]; then
             if [ -z "${libraries_to_download}" ]; then
@@ -1850,10 +1854,13 @@ SyncUser(){
             source /opt/icloudpd_latest/bin/activate
             LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
             if [ "${photo_album}" ]; then
+               LogDebug "Starting Photo Album download"
                DownloadAlbums
             elif [ "${photo_library}" ]; then
+               LogDebug "Starting Photo Library download"
                DownloadLibraries
             else
+               LogDebug "Starting Photo download"
                DownloadPhotos
             fi
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
