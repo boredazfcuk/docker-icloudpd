@@ -1109,11 +1109,8 @@ DownloadAlbums(){
    local all_albums albums_to_download
    if [ "${photo_album}" = "all albums" ]; then
       all_albums="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
-      for album in ${all_albums}; do
-         LogDebug " - ${album}"
-      done
       LogDebug "Buildling list of albums to download..."
-      for album in ${all_albums}; do
+      for album in "${all_albums}"; do
          if [[ ! ${skip_album} =~ ${album} ]]; then
             if [ -z "${albums_to_download}" ]; then
                albums_to_download="${album}"
