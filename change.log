@@ -1,3 +1,7 @@
+20231010
+
+ - Change: Downloading albums not working correctly. Fixed it up and added a bunch more logging. Probably needs sames for libraries section
+ 
 20231009
 
  - Change: Bug found in health check... Was using wrong filename for error checks
