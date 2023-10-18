@@ -1,3 +1,7 @@
+20231018
+
+ - Change: Trailing slashes on $download_path messes up Nextcloud uploads. Added a bit into the upload function which should account for this.
+
 20231010
 
  - Change: Downloading albums not working correctly. Fixed it up and added a bunch more logging. Probably needs sames for libraries function

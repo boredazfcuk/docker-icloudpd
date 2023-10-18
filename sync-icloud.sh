@@ -1293,7 +1293,7 @@ NextcloudUpload(){
          LogDebug "Full filename: ${full_filename}"
          base_filename="$(basename "${full_filename}")"
          LogDebug "Base filename: ${base_filename}"
-         new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%")"
+         new_filename="$(echo "${full_filename}" | sed "s%${download_path%/}%%")"
          LogDebug "New filename: ${new_filename}"
          directory_name="$(echo "${new_filename}" | sed "s%${base_filename}%%")"
          LogDebug "Directory name: ${directory_name}"
@@ -1804,7 +1804,7 @@ Notify(){
          -F "message=${notification_message}")"
    elif [ "${notification_type}" = "Bark" ]; then
       if [ "${notification_files_preview_count}" ]; then
-	     notification_files_preview_text="$(echo "${notification_files_preview_text}" | tr '\n' ',')"
+	      notification_files_preview_text="$(echo "${notification_files_preview_text}" | tr '\n' ',')"
          bark_text="$(echo -e "${notification_icon} ${notification_message} Most recent ${notification_files_preview_count} ${notification_files_preview_type} files: ${notification_files_preview_text}")"
       else
          bark_text="$(echo -e "${notification_icon} ${notification_message}")"
