@@ -1333,7 +1333,7 @@ NextcloudDelete() {
       LogInfo "Delete files from Nextcloud..."
       for full_filename in $(echo "$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log)" | cut -d " " -f 9-); do
          full_filename="$(echo "${full_filename}" | sed 's/!$//')"
-         new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%")"
+         new_filename="$(echo "${full_filename}" | sed "s%${download_path%/}%%")"
          base_filename="$(basename "${new_filename}")"
          nextcloud_file_path="$(dirname ${new_filename})"
          encoded_file_path="$(echo "${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}" | sed 's/\//%2F/g')"
@@ -1352,7 +1352,7 @@ NextcloudDelete() {
          fi
          if [ -f "${full_filename%.HEIC}.JPG" ]; then
             full_filename="${full_filename%.HEIC}.JPG"
-            new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%")"
+            new_filename="$(echo "${full_filename}" | sed "s%${download_path%/}%%")"
             base_filename="$(basename "${new_filename}")"
             encoded_file_path="$(echo "${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}" | sed 's/\//%2F/g')"
             curl_response="$(curl --silent --show-error --location --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${encoded_file_path}" --output /dev/null --write-out "%{http_code}")"
