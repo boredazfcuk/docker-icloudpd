@@ -1,3 +1,7 @@
+20231019
+
+ - Change: Added a new Nextcloud URL encode function. If a user is downloading to Photo Albums, or Shared Libraries, or even just has files with special characters (like spaces) in them, then the Nextcloud URL needs to be encoded.
+ 
 20231018
 
  - Change: Trailing slashes on $download_path messes up Nextcloud uploads. Added a bit into the upload function which should account for this.

@@ -1252,8 +1252,27 @@ CheckNextcloudConnectivity(){
    fi
 }
 
+NextcloudEncodeURL() {
+   s="${1//'%'/%25}"
+   s="${s//' '/%20}"
+   s="${s//'"'/%22}"
+   s="${s//'#'/%23}"
+   s="${s//'$'/%24}"
+   s="${s//'&'/%26}"
+   s="${s//'+'/%2B}"
+   s="${s//','/%2C}"
+   s="${s//':'/%3A}"
+   s="${s//';'/%3B}"
+   s="${s//'='/%3D}"
+   s="${s//'?'/%3F}"
+   s="${s//'@'/%40}"
+   s="${s//'['/%5B}"
+   s="${s//']'/%5D}"
+   printf %s "$s"
+}
+
 NextcloudUpload(){
-   local new_files_count new_filename nextcloud_file_path curl_response
+   local new_files_count new_filename nextcloud_file_path nextcloud_directory_path nextcloud_file_path curl_response
    new_files_count="$(grep -c "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)"
    if [ "${new_files_count:=0}" -gt 0 ]; then
       LogInfo "Upload files to Nextcloud"
@@ -1268,14 +1287,16 @@ NextcloudUpload(){
             build_path="${build_path}/${directory}"
             if [ "${build_path}" = "/" ]; then unset build_path; fi
             if [ "${build_path}" ]; then
-               LogInfoN "Checking for Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path}/"
-               curl_response="$(curl --silent --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path}/")"
+               nextcloud_file_path="$(NextcloudEncodeURL "${nextcloud_username}/${nextcloud_target_dir}${build_path}/")"
+               LogInfoN "Checking for Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}/"
+               curl_response="$(curl --silent --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}/")"
                if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
                   echo "Directory already exists: ${curl_response}"
                else
                   echo "Directory does not exist"
-                  LogInfoN "Creating Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path}"
-                  curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --request MKCOL "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path}/")"
+                  nextcloud_directory_path="$(NextcloudEncodeURL "${nextcloud_username}/${nextcloud_target_dir}${build_path}")"
+                  LogInfoN "Creating Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_directory_path}"
+                  curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --request MKCOL "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_directory_path}/")"
                   if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
                      echo "Success: ${curl_response}"
                   else
@@ -1302,16 +1323,20 @@ NextcloudUpload(){
          if [ ! -f "${full_filename}" ]; then
             LogWarning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
          else
-            LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
-            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}")"
+            nextcloud_file_path="$(NextcloudEncodeURL ${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename})"
+            LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
+            nextcloud_file_name="$(NextcloudEncodeURL "${full_filename}")"
+            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${nextcloud_file_name}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}")"
             if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
                echo "Success: ${curl_response}"
             else
                echo "Unexpected response: ${curl_response}"
             fi
             if [ -f "${full_filename%.HEIC}.JPG" ]; then
-               LogInfoN "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
-               curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename%.HEIC}.JPG" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG")"
+               nextcloud_file_path="$(NextcloudEncodeURL ${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG)"
+               LogInfoN "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
+               nextcloud_file_name="$(NextcloudEncodeURL "${full_filename%.HEIC}.JPG")"
+               curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${nextcloud_file_name}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}")"
                if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
                   echo "Success: ${curl_response}"
                else
