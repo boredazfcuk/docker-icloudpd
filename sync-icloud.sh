@@ -231,15 +231,6 @@ Initialise(){
       sleep 120
       exit 1
    fi
-   if [ "${apple_password}" -a "${apple_password}" != "usekeyring" ]; then
-      LogError "Apple password configured with variable which is no longer supported. Please add password to system keyring - exiting"
-      sleep 120
-      exit 1
-   fi
-   if [ "${apple_password}" = "usekeyring" ]; then
-      LogWarning "Apple password variable set to 'userkeyring'. This variable can now be removed as it is now the only supported option, so obsolete - continue in 2 minutes"
-      sleep 120
-   fi
    LogDebug "Running user id: $(id --user)"
    LogDebug "Running group id: $(id --group)"
    if [ "${user}" = "root" ]; then
@@ -257,7 +248,7 @@ Initialise(){
    fi
    if [ "${group_id}" -eq 0 ]; then
       LogWarning "The local group id for synchronisation cannot be 0"
-      unset group_id
+      unset group_id force_gid
    fi
    LogDebug "Local group: ${group:=group}:${group_id:=1000}"
    LogDebug "Force GID: ${force_gid:=false}"
