@@ -534,7 +534,12 @@ ConfigureNotifications(){
                echo -n 0 > "${telegram_update_id_offset_file}"
             fi
             LogInfo "Check Telegram bot initialised..."
-            bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .ok)"
+            if [ "${telegram_server}" ] ; then
+               bot_check="$(curl --silent -X POST "https://${telegram_server}/bot${telegram_token}/getUpdates" | jq .ok)"
+            else
+               bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .ok)"
+            fi
+            LogInfo bot_check
             if [ "${bot_check}" ]; then
                LogInfo " - Bot has been initialised."
             else
@@ -1994,7 +1999,11 @@ SyncUser(){
                   telegram_update_id_offset="$(head -1 "${telegram_update_id_offset_file}")"
                   LogDebug "Polling Telegram for updates newer than: ${telegram_update_id_offset}"
                   telegram_update_id_offset_inc=$((telegram_update_id_offset + 1))
-                  latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[])"
+                  if [ "${telegram_server}" ] ; then
+                     latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "https://${telegram_server}/bot${telegram_token}/getUpdates" | jq .result[])"
+                  else
+                     latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[])"
+                  fi
                   if [ "${latest_updates}" ]; then
                      latest_update_ids="$(echo "${latest_updates}" | jq -r '.update_id')"
                   fi
