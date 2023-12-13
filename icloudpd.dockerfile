@@ -50,8 +50,13 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD latest release" && \
       "/opt/icloudpd_latest/lib/python${python_version}/site-packages/pyicloud_ipd/services/photos.py" && \
    deactivate && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
-   apk del --no-progress --purge build-deps 
-
+   apk del --no-progress --purge build-deps && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Fix Auth" && \
+   wget https://github.com/scaraebeus/icloud_photos_downloader/archive/refs/heads/auth_fix.zip && \
+   unzip auth_fix.zip && \
+   cp -r ./icloud_photos_downloader-auth_fix/src/* /opt/icloudpd_latest/lib/python3.11/site-packages/ && \
+   rm -r ./auth_fix.zip && \
+   rm -r ./icloud_photos_downloader-auth_fix
 COPY build_version.txt /
 COPY --chmod=0755 *.sh /usr/local/bin/
 COPY CONFIGURATION.md /opt
