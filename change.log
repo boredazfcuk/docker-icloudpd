@@ -1,3 +1,7 @@
+20231220
+
+ - Change: Upgraded to use Apline Linux 3.19.0 and icloudpd 1.17.0 which now includes the authentication fix. Won't work for China as they were having to use an old version of iCloudpd which is packaged into my container. New version may work ok, but script will need significant re-write for that to occur. Probably look at it over Christmas.
+
 20231019
 
  - Change: Added a new Nextcloud URL encode function. If a user is downloading to Photo Albums, or Shared Libraries, or even just has files with special characters (like spaces) in them, then the Nextcloud URL needs to be encoded.

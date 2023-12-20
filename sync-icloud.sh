@@ -758,7 +758,7 @@ ListAlbums(){
 
 DeletePassword(){
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
-      LogWarning "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but --RemoveKeyring command line switch has been invoked. Removing in 30 seconds"
+      LogWarning "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but --remove-keyring command line switch has been invoked. Removing in 30 seconds"
       if [ -z "${warnings_acknowledged}" ]; then
          sleep 30
       else
@@ -2122,7 +2122,7 @@ SetOwnerAndPermissionsConfig
 if [ "${delete_password:=false}" = true ]; then
    LogInfo "Deleting password from keyring"
    DeletePassword
-   Loginfo "Password deletion complete"
+   LogInfo "Password deletion complete"
    exit 0
 fi
 ConfigurePassword
