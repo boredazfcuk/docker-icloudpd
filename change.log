@@ -1,3 +1,8 @@
+20231224
+
+ - Change: I think the upgrade to Alpine 3.19 may have broke Imagmagick. Adding the additional package, libheif-dev, got it working again.
+ - Change: Also, found that due to the newer version of ImageMagick, an error is generated when converting HEIC to JPEG. The conversion still works, so I've just silenced that error, specfically.
+
 20231220
 
  - Change: Upgraded to use Apline Linux 3.19.0 and icloudpd 1.17.0 which now includes the authentication fix. Won't work for China as they were having to use an old version of iCloudpd which is packaged into my container. New version may work ok, but script will need significant re-write for that to occur. Probably look at it over Christmas.

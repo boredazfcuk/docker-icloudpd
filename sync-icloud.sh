@@ -1436,7 +1436,7 @@ ConvertDownloadedHEIC2JPEG(){
             mkdir --parents "$(dirname "${jpeg_file}")"
          fi
          LogInfo "Converting ${heic_file} to ${jpeg_file}"
-         convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
+         convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}" 2>&1 | grep -v set_mempolicy
          heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
          LogDebug "Timestamp of HEIC file: ${heic_date}"
          touch --reference="${heic_file}" "${jpeg_file}"

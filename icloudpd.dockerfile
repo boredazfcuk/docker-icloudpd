@@ -6,7 +6,7 @@ ENV config_dir="/config" XDG_DATA_HOME="/config" TZ="UTC"
 ARG icloudpd_version="1.17.2"
 ARG python_version="3.11"
 ARG build_dependencies="git gcc python3-dev musl-dev rust cargo libffi-dev openssl-dev"
-ARG app_dependencies="py3-pip exiftool coreutils tzdata curl imagemagick shadow jq"
+ARG app_dependencies="py3-pip exiftool coreutils tzdata curl imagemagick shadow jq libheif"
 ARG fix_repo="boredazfcuk/icloud_photos_downloader"
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** Build started for boredazfcuk's docker-icloudpd *****" && \
