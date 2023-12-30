@@ -526,15 +526,15 @@ ConfigureNotifications(){
             fi
             LogInfo "Check Telegram bot initialised..."
             if [ "${telegram_server}" ] ; then
-               bot_check="$(curl --silent -X POST "https://${telegram_server}/bot${telegram_token}/getUpdates" | jq .ok)"
+               bot_check="$(curl --silent -X POST "https://${telegram_server}/bot${telegram_token}/getUpdates" | jq -r .ok)"
             else
-               bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .ok)"
+               bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq -r .ok)"
             fi
-            LogInfo bot_check
-            if [ "${bot_check}" ]; then
+            if [ "${bot_check}" = true ]; then
                LogInfo " - Bot has been initialised."
             else
                LogInfo " - Bot has not been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container. Disabling remote wake"
+               LogDebug " - bot_check = ${bot_check}"
                sleep 10
                telegram_polling=false
             fi

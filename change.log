@@ -1,3 +1,11 @@
+20231230
+
+ - Change: Removed a log entry which was malformed.
+ - Change: Output value of bot_check into debug log.
+ 
+20231227
+
+ - Change: Documented the --remove-all-jpgs command line option. It's been there ages, not sure why I never documented it. Probably because it could delete data that might be needed and I don't want people losing stuff.
 20231224
 
  - Change: I think the upgrade to Alpine 3.19 may have broke Imagmagick. Adding the additional package, libheif-dev, got it working again.
