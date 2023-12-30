@@ -525,6 +525,7 @@ ConfigureNotifications(){
                echo -n 0 > "${telegram_update_id_offset_file}"
             fi
             LogInfo "Check Telegram bot initialised..."
+            sleep "$((RANDOM % 15))"
             if [ "${telegram_server}" ] ; then
                bot_check="$(curl --silent -X POST "https://${telegram_server}/bot${telegram_token}/getUpdates" | jq -r .ok)"
             else

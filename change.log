@@ -2,6 +2,7 @@
 
  - Change: Removed a log entry which was malformed.
  - Change: Output value of bot_check into debug log.
+ - Change: Added random delay of 0-15 seconds (inclusive) if Telegram polling is enabled. I believe starting multiple containers at the same time and them all hitting the APi at the same time may cause some requests to be ignored.
  
 20231227
 
