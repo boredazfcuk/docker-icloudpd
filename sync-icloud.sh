@@ -1729,6 +1729,7 @@ Notify(){
          --form event="${notification_event}" \
          --form priority="${notification_prority}" \
          --form description="${notification_message}")"
+      curl_exit_code="$?"
    elif [ "${notification_type}" = "Pushover" ]; then
       if [ "${notification_prority}" = "2" ]; then notification_prority=1; fi
       if [ "${notification_files_preview_count}" ]; then
@@ -1743,6 +1744,7 @@ Notify(){
          --form-string "sound=${pushover_sound}" \
          --form-string "priority=${notification_prority}" \
          --form-string "message=${pushover_text}")"
+      curl_exit_code="$?"
    elif [ "${notification_type}" = "Telegram" ]; then
       if [ "${notification_files_preview_count}" ]; then
          telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message//_/\\_}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
@@ -1754,17 +1756,20 @@ Notify(){
          --data parse_mode="markdown" \
          --data disable_notification="${telegram_disable_notification:=false}" \
          --data text="${telegram_text}")"
-         unset telegram_disable_notification
+      curl_exit_code="$?"
+      unset telegram_disable_notification
    elif [ "${notification_type}" = "openhab" ]; then
       webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
       notification_result="$(curl -X 'PUT' --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
          --header 'content-type: text/plain' \
          --data "${webhook_payload}")"
+      curl_exit_code="$?"
    elif [ "${notification_type}" = "Webhook" ]; then
       webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
          --header 'content-type: application/json' \
          --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
+      curl_exit_code="$?"
    elif [ "${notification_type}" = "Discord" ]; then
       if [ "${notification_files_preview_count}" ]; then
          discord_text="${notification_message}\\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\\n${notification_files_preview_text//$'\n'/'\n'}"
@@ -1772,12 +1777,14 @@ Notify(){
          discord_text="$(echo -e "${notification_message}")"
       fi
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-            --header 'content-type: application/json' \
-            --data "{ \"username\" : \"${notification_title}\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_event}\" } , \"color\" : 2061822 , \"description\": \"${discord_text}\" } ] }")"
+         --header 'content-type: application/json' \
+         --data "{ \"username\" : \"${notification_title}\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_event}\" } , \"color\" : 2061822 , \"description\": \"${discord_text}\" } ] }")"
+      curl_exit_code="$?"
    elif [ "${notification_type}" = "Dingtalk" ]; then
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --header 'Content-Type: application/json' \
          --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${notification_message}'}}")"
+      curl_exit_code="$?"
    elif [ "${notification_type}" = "IYUU" ]; then
       if [ "${notification_files_preview_count}" ]; then
          iyuu_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
@@ -1787,6 +1794,7 @@ Notify(){
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --data text="${notification_title}" \
          --data desp="${iyuu_text}")"
+      curl_exit_code="$?"
    elif [ "${notification_type}" = "WeCom" ]; then
       if [ "$(date +'%s')" -ge "$(date +'%s' -d "${wecom_token_expiry}")" ]; then
          LogWarning "${notification_type} token has expired."
@@ -1822,11 +1830,13 @@ Notify(){
       fi
       LogInfo "Attempting send..."
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
+      curl_exit_code="$?"
       LogInfo "Send result: ${notification_result}"
    elif [ "${notification_type}" = "Gotify" ]; then
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
          -F "title=${notification_title}" \
          -F "message=${notification_message}")"
+      curl_exit_code="$?"
    elif [ "${notification_type}" = "Bark" ]; then
       if [ "${notification_files_preview_count}" ]; then
 	      notification_files_preview_text="$(echo "${notification_files_preview_text}" | tr '\n' ',')"
@@ -1837,12 +1847,13 @@ Notify(){
       notification_result="$(curl --location --silent --output /dev/null --write-out "%{http_code}" "http://${bark_server}/push" \
          -H 'Content-Type: application/json; charset=utf-8' \
          -d "{ \"device_key\": \"${bark_device_key}\", \"title\": \"${notification_title}\", \"body\": \"${bark_text}\", \"category\": \"category\" }")"
+      curl_exit_code="$?"
    fi
    if [ "${notification_type}" ]; then
       if [ "${notification_result:0:1}" -eq 2 ]; then
          LogDebug "${notification_type} ${notification_classification} notification sent successfully"
       else
-         LogError "${notification_type} ${notification_classification} notification failed with status code: ${notification_result}"
+         LogError "${notification_type} ${notification_classification} notification failed with http status code: ${notification_result} and curl exit code: ${curl_exit_code}"
          LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
          sleep 120
          exit 1
