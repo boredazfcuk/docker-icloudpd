@@ -522,20 +522,23 @@ ConfigureNotifications(){
          if [ "${telegram_polling}" = true ]; then
             telegram_update_id_offset_file="${config_dir}/telegram_update_id.num"
             if [ ! -f "${telegram_update_id_offset_file}" ]; then
+               LogDebug "Creating Telegram Update ID offset file"
                echo -n 0 > "${telegram_update_id_offset_file}"
             fi
             LogInfo "Check Telegram bot initialised..."
             sleep "$((RANDOM % 15))"
             if [ "${telegram_server}" ] ; then
+               LogDebug "Checking ${telegram_server} for updates"
                bot_check="$(curl --silent -X POST "https://${telegram_server}/bot${telegram_token}/getUpdates" | jq -r .ok)"
             else
+               LogDebug "Checking api.telegram.org for updates"
                bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq -r .ok)"
             fi
+            LogDebug "Bot check: ${bot_check}"
             if [ "${bot_check}" = true ]; then
                LogInfo " - Bot has been initialised."
             else
                LogInfo " - Bot has not been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container. Disabling remote wake"
-               LogDebug " - bot_check = ${bot_check}"
                sleep 10
                telegram_polling=false
             fi
