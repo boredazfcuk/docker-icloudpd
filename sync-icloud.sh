@@ -255,16 +255,16 @@ Initialise(){
    LogDebug "LAN IP Address: ${lan_ip}"
    LogDebug "Default gateway: $(ip route | grep default | awk '{print $3}')"
    LogDebug "DNS server: $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')"
-   icloud_dot_com="$(nslookup -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
+   icloud_dot_com="$(nslookup -vc -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
    while [ -z "${icloud_dot_com}" ]; do
       if [ "${dns_counter:=0}" = 0 ]; then
          LogWarning "Cannot find ${icloud_domain} IP address - retrying"
       fi
       sleep 10
-      icloud_dot_com="$(nslookup -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
+      icloud_dot_com="$(nslookup -vc -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
       dns_counter=$((dns_counter+1))
       if [ "${dns_counter}" = 12 ]; then
-         LogError "Cannot find ${icloud_domain} IP address. Please check your DNS settings - exiting"
+         LogError "Cannot find ${icloud_domain} IP address. Please check your DNS/Firewall settings. DNS server must be available using TCP port 53 - exiting"
          sleep 120
          exit 1
       fi
