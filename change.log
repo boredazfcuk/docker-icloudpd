@@ -1,9 +1,14 @@
+20240101
+
+ - Change: Altered how Nextcloud path is built. Seems there are double trailing slashes. Now removes the one in the variable and appends one manually.
+ - Change: Seems like deleting from Nextcloud wasn't working correctly. Was always coming up with "File not found" which is bizarre coz it defo worked when I first implemented it. I've changed it so it uses the same encoding method as uploads, instead of doing it using a standard file path (which wouldn't work for files/paths with spaces in their names). Anyway, seems to be deleting things OK again now.
+
 20231230
 
  - Change: Removed a log entry which was malformed.
  - Change: Output value of bot_check into debug log.
  - Change: Added random delay of 0-15 seconds (inclusive) if Telegram polling is enabled. I believe starting multiple containers at the same time and them all hitting the APi at the same time may cause some requests to be ignored.
- 
+
 20231227
 
  - Change: Documented the --remove-all-jpgs command line option. It's been there ages, not sure why I never documented it. Probably because it could delete data that might be needed and I don't want people losing stuff.
