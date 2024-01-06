@@ -1,4 +1,4 @@
-FROM alpine:3.19.0
+FROM alpine:3.18.5
 MAINTAINER boredazfcuk
 
 ENV config_dir="/config" XDG_DATA_HOME="/config" TZ="UTC"
