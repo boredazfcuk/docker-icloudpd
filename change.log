@@ -1,3 +1,8 @@
+20240107:
+
+ - Change: Merged PR from @timrettop which fixes HEIC to JPEG conversion in Alpine 3.19.0
+ - Change: Created option to disable the startup notification
+
 20240106
 
  - Change: Rebuild container to icloudpd 1.17.3

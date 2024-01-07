@@ -54,6 +54,7 @@ initialise_config_file(){
       if [ "$(grep -c "skip_download=" "${config_file}")" -eq 0 ]; then echo skip_download="${skip_download:=false}"; fi
       if [ "$(grep -c "skip_live_photos=" "${config_file}")" -eq 0 ]; then echo skip_live_photos="${skip_live_photos:=false}"; fi
       if [ "$(grep -c "skip_videos=" "${config_file}")" -eq 0 ]; then echo skip_videos="${skip_videos:=false}"; fi
+      if [ "$(grep -c "startup_notification=" "${config_file}")" -eq 0 ]; then echo startup_notification="${startup_notification:=true}"; fi
       if [ "$(grep -c "synchronisation_delay=" "${config_file}")" -eq 0 ]; then echo synchronisation_delay="${synchronisation_delay:=0}"; fi
       if [ "$(grep -c "synchronisation_interval=" "${config_file}")" -eq 0 ]; then echo synchronisation_interval="${synchronisation_interval:=86400}"; fi
       if [ "$(grep -c "synology_ignore_path=" "${config_file}")" -eq 0 ]; then echo synology_ignore_path="${synology_ignore_path:=false}"; fi     
@@ -95,7 +96,7 @@ initialise_config_file(){
    if [ "${debug_logging}" ]; then sed -i "s%^debug_logging=.*%debug_logging=${debug_logging}%" "${config_file}"; fi
    if [ "${delete_accompanying}" ]; then sed -i "s%^delete_accompanying=.*%delete_accompanying=${delete_accompanying}%" "${config_file}"; fi
    if [ "${delete_after_download}" ]; then sed -i "s%^delete_after_download=.*%delete_after_download=${delete_after_download}%" "${config_file}"; fi
-   if [ "${delete_notification}" ]; then sed -i "s%^delete_notification=.*%delete_notification=${delete_notification}%" "${config_file}"; fi
+   if [ "${delete_notifications}" ]; then sed -i "s%^delete_notifications=.*%delete_notifications=${delete_notifications}%" "${config_file}"; fi
    if [ "${dingtalk_token}" ]; then sed -i "s%^dingtalk_token=.*%dingtalk_token=${dingtalk_token}%" "${config_file}"; fi
    if [ "${directory_permissions}" ]; then sed -i "s%^directory_permissions=.*%directory_permissions=${directory_permissions}%" "${config_file}"; fi
    if [ "${discord_id}" ]; then sed -i "s%^discord_id=.*%discord_id=${discord_id}%" "${config_file}"; fi
@@ -138,6 +139,7 @@ initialise_config_file(){
    if [ "${skip_download}" ]; then sed -i "s%^skip_download=.*%skip_download=${skip_download}%" "${config_file}"; fi
    if [ "${skip_live_photos}" ]; then sed -i "s%^skip_live_photos=.*%skip_live_photos=${skip_live_photos}%" "${config_file}"; fi
    if [ "${skip_videos}" ]; then sed -i "s%^skip_videos=.*%skip_videos=${skip_videos}%" "${config_file}"; fi
+   if [ "${startup_notification}" ]; then sed -i "s%^startup_notification=.*%startup_notification=${startup_notification}%" "${config_file}"; fi
    if [ "${synchronisation_delay}" ]; then sed -i "s%^synchronisation_delay=.*%synchronisation_delay=${synchronisation_delay}%" "${config_file}"; fi
    if [ "${synchronisation_interval}" ]; then sed -i "s%^synchronisation_interval=.*%synchronisation_interval=${synchronisation_interval}%" "${config_file}"; fi
    if [ "${synology_ignore_path}" ]; then sed -i "s%^synology_ignore_path=.*%synology_ignore_path=${synology_ignore_path}%" "${config_file}"; fi
@@ -174,6 +176,7 @@ initialise_config_file(){
    sed -i 's/=True/=true/g' "${config_file}"
    sed -i 's/=False/=false/g' "${config_file}"
    sed -i 's/authentication_type=2FA/authentication_type=MFA/' "${config_file}"
+   sed -i '/delete_notification=/d' "${config_file}"
 }
 
 Initialise(){
@@ -658,11 +661,18 @@ ConfigureNotifications(){
          LogWarning "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
          unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_server_url bark_device_key bark_server
       fi
-      if [ "${icloud_china}" = false ]; then
-         Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID: ${apple_id}"
+
+      if [ "${startup_notifications:=true}" = true ]; then
+         LogDebug "Startup notifications: Enabled"
+         if [ "${icloud_china}" = false ]; then
+            Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID: ${apple_id}"
+         else
+            Notify "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
+         fi
       else
-         Notify "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
+         LogDebug "Startup notifications: Disabled"
       fi
+
       if [ "${download_notifications:=true}" = true ]; then
          LogDebug "Download notifications: Enabled"
       else
