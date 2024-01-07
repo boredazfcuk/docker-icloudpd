@@ -662,15 +662,15 @@ ConfigureNotifications(){
          unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_server_url bark_device_key bark_server
       fi
 
-      if [ "${startup_notifications:=true}" = true ]; then
-         LogDebug "Startup notifications: Enabled"
+      if [ "${startup_notification:=true}" = true ]; then
+         LogDebug "Startup notification: Enabled"
          if [ "${icloud_china}" = false ]; then
             Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID: ${apple_id}"
          else
             Notify "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
          fi
       else
-         LogDebug "Startup notifications: Disabled"
+         LogDebug "Startup notification: Disabled"
       fi
 
       if [ "${download_notifications:=true}" = true ]; then
