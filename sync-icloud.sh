@@ -1457,7 +1457,7 @@ ConvertDownloadedHEIC2JPEG(){
             mkdir --parents "$(dirname "${jpeg_file}")"
          fi
          LogInfo "Converting ${heic_file} to ${jpeg_file}"
-         convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}" 2>&1 | grep -v set_mempolicy
+         convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
          heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
          LogDebug "Timestamp of HEIC file: ${heic_date}"
          touch --reference="${heic_file}" "${jpeg_file}"
@@ -1491,7 +1491,7 @@ SynologyPhotosAppFix(){
 ConvertAllHEICs(){
    IFS="$(echo -en "\n\b")"
    LogInfo "Convert all HEICs to JPEG, if required..."
-   for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
+   for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null); do
       LogDebug "HEIC file found: ${heic_file}"
       jpeg_file="${heic_file%.HEIC}.JPG"
       if [ "${jpeg_path}" ]; then
@@ -1584,7 +1584,7 @@ RemoveAllJPGs(){
    LogWarning "Remove all JPGs that have accompanying HEIC files. This could result in data loss if HEIC file name matches the JPG file name, but content does not."
    LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
-   for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
+   for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null); do
       jpeg_file="${heic_file%.HEIC}.JPG"
       if [ "${jpeg_path}" ]; then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
@@ -1602,7 +1602,7 @@ ForceConvertAllHEICs(){
    LogWarning "Force convert all HEICs to JPEG. This could result in data loss if JPG files have been edited on disk"
    LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
-   for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
+   for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null); do
       jpeg_file="${heic_file%.HEIC}.JPG"
       if [ "${jpeg_path}" ]; then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
@@ -1625,7 +1625,7 @@ ForceConvertAllmntHEICs(){
    LogWarning "Force convert all HEICs in /mnt directory to JPEG. This could result in data loss if JPG files have been edited on disk"
    LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
-   for heic_file in $(find "/mnt" -type f -name *.HEIC 2>/dev/null); do
+   for heic_file in $(find "/mnt" -type f -iname *.HEIC 2>/dev/null); do
       jpeg_file="${heic_file%.HEIC}.JPG"
       if [ "${jpeg_path}" ]; then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
@@ -1646,7 +1646,7 @@ ForceConvertAllmntHEICs(){
 CorrectJPEGTimestamps(){
    IFS="$(echo -en "\n\b")"
    LogInfo "Check and correct converted HEIC timestamps..."
-   for heic_file in $(find "${download_path}" -type f -name *.HEIC 2>/dev/null); do
+   for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null); do
       jpeg_file="${heic_file%.HEIC}.JPG"
       if [ "${jpeg_path}" ]; then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"

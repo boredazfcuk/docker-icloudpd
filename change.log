@@ -2,6 +2,8 @@
 
  - Change: Merged PR from @timrettop which fixes HEIC to JPEG conversion in Alpine 3.19.0
  - Change: Created option to disable the startup notification
+ - Change: Removed the silencing of the set_mempolicy error. The convert application does not generate these errors any more after the jpeg package was installed in the container. It seems that the convert application was just converting the HEIC file to another HEIC file, but with the JPG file extension. Installing the package means the conversion processes a lot more quickly and correctly outputs the files.
+ - Change: Made the functions which convert HEIC files to JPEG, remove all HEIC files, etc do case insensitive searches. This should conver *.HEIC and *.heic to *.JPG.
 
 20240106
 
