@@ -1,3 +1,7 @@
+20240106
+
+ - Change: Rebuild container to icloudpd 1.17.3
+
 20240101
 
  - Change: Altered how Nextcloud path is built. Seems there are double trailing slashes. Now removes the one in the variable and appends one manually.

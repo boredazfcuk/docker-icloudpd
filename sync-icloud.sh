@@ -412,6 +412,9 @@ Initialise(){
       LogInfo "Ignore Synology extended attribute directories: Disabled"
       ignore_path=""
    fi
+
+   source /opt/icloudpd_latest/bin/activate
+   LogDebug "Activated Python virtual environment for icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
 }
 
 LogInfo(){
@@ -726,12 +729,12 @@ ListLibraries(){
       CheckWebCookie
    fi
    IFS=$'\n'
-   source /opt/icloudpd_latest/bin/activate
-   LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
+   # source /opt/icloudpd_latest/bin/activate
+   # LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
    if [ "${skip_download}" = false ]; then
       shared_libraries="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
    fi
-   deactivate
+   # deactivate
    LogInfo "Shared libraries:"
    for library in ${shared_libraries}; do
       LogInfo " - ${library}"
@@ -747,12 +750,12 @@ ListAlbums(){
       CheckWebCookie
    fi
    IFS=$'\n'
-   source /opt/icloudpd_latest/bin/activate
-   LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
+   # source /opt/icloudpd_latest/bin/activate
+   # LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
    if [ "${skip_download}" = false ]; then
       photo_albums="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
    fi
-   deactivate
+   # deactivate
    LogInfo "Photo albums:"
    for photo_album in ${photo_albums}; do
       LogInfo " - ${photo_album}"
@@ -786,16 +789,16 @@ ConfigurePassword(){
    if [ ! -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
          LogDebug "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
-         if [ "${icloud_china}" = true ]; then
-            source /opt/icloudpd_v1.7.2_china/bin/activate
-            icloudpd_path="/opt/icloudpd_v1.7.2_china/bin"
-         else
-            source /opt/icloudpd_latest/bin/activate
+         # if [ "${icloud_china}" = true ]; then
+            # source /opt/icloudpd_v1.7.2_china/bin/activate
+            # icloudpd_path="/opt/icloudpd_v1.7.2_china/bin"
+         # else
+            # source /opt/icloudpd_latest/bin/activate
             icloudpd_path="/opt/icloudpd_latest/bin"
-         fi
-         LogDebug "Switched to icloudpd: $(${icloudpd_path}/icloudpd --version | awk '{print $3}')"
+         # fi
+         # LogDebug "Switched to icloudpd: $(${icloudpd_path}/icloudpd --version | awk '{print $3}')"
          run_as "${icloudpd_path}/icloud --username ${apple_id}"
-         deactivate
+         # deactivate
       else
          LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
          LogError " - Please add the your password to the system keyring using the --Initialise script command line option"
@@ -834,16 +837,16 @@ GenerateCookie(){
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
    LogDebug "Generate ${authentication_type} cookie using password stored in keyring file"
-   if [ "${icloud_china}" = true ]; then
-      source /opt/icloudpd_v1.7.2_china/bin/activate
-      icloudpd_path="/opt/icloudpd_v1.7.2_china/bin"
-   else
-      source /opt/icloudpd_latest/bin/activate
+   # if [ "${icloud_china}" = true ]; then
+      # source /opt/icloudpd_v1.7.2_china/bin/activate
+      # icloudpd_path="/opt/icloudpd_v1.7.2_china/bin"
+   # else
+      # source /opt/icloudpd_latest/bin/activate
       icloudpd_path="/opt/icloudpd_latest/bin"
-   fi
-   LogDebug "Switched to icloudpd: $("${icloudpd_path}/icloudpd" --version | awk '{print $3}')"
+   # fi
+   # LogDebug "Switched to icloudpd: $("${icloudpd_path}/icloudpd" --version | awk '{print $3}')"
    run_as "${icloudpd_path}/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --directory /dev/null --only-print-filenames --recent 0"
-   deactivate
+   # deactivate
    if [ "${authentication_type}" = "MFA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
          LogInfo "Multifactor authentication cookie generated. Sync should now be successful"
@@ -1050,11 +1053,11 @@ CheckFiles(){
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
    >/tmp/icloudpd/icloudpd_check_error
-   source /opt/icloudpd_latest/bin/activate
-   LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
+   # source /opt/icloudpd_latest/bin/activate
+   # LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
    run_as "(/opt/icloudpd_latest/bin/icloudpd --directory ${download_path} --cookie-directory ${config_dir} --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log"
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
-   deactivate
+   # deactivate
    if [ "${check_exit_code}" -ne 0 ] || [ -s /tmp/icloudpd/icloudpd_check_error ]; then
       LogError "Failed check for new files files"
       LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
@@ -1324,23 +1327,25 @@ NextcloudUpload(){
             LogWarning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
          else
             nextcloud_file_path="$(NextcloudEncodeURL ${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename})"
-            LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}... "
+            LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
             nextcloud_file_name="$(NextcloudEncodeURL "${full_filename}")"
             curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${nextcloud_file_name}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}")"
             if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
                echo "Success"
             else
                echo "Unexpected response: ${curl_response}"
+               LogDebug "Encoded paths: ${nextcloud_file_name} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
             fi
             if [ -f "${full_filename%.HEIC}.JPG" ]; then
                nextcloud_file_path="$(NextcloudEncodeURL ${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG)"
-               LogInfoN "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}... "
+               LogInfoN "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
                nextcloud_file_name="$(NextcloudEncodeURL "${full_filename%.HEIC}.JPG")"
                curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${nextcloud_file_name}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}")"
                if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
                   echo "Success"
                else
                   echo "Unexpected response: ${curl_response}"
+                  LogDebug "Encoded paths: ${nextcloud_file_name} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
                fi
             fi
          fi
@@ -1513,9 +1518,9 @@ UploadLibraryToNextcloud(){
             LogInfoN "Checking for Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path%/}/"
             curl_response="$(curl --silent --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path%/}/")"
             if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
-               echo "Directory already exists: ${curl_response}"
+               echo "Exists: ${curl_response}"
             else
-               echo "Directory does not exist"
+               echo "Missing: ${curl_response}"
                LogInfoN "Creating Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path%/}"
                curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --request MKCOL "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path%/}/")"
                if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
@@ -1928,8 +1933,8 @@ SyncUser(){
             LogDebug "Downloading new files using password stored in keyring file..."
             >/tmp/icloudpd/icloudpd_download_error
             IFS=$'\n'
-            source /opt/icloudpd_latest/bin/activate
-            LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
+            # source /opt/icloudpd_latest/bin/activate
+            # LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
             if [ "${photo_album}" ]; then
                LogDebug "Starting Photo Album download"
                DownloadAlbums
@@ -1941,7 +1946,7 @@ SyncUser(){
                DownloadPhotos
             fi
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
-            deactivate
+            # deactivate
             if [ "${download_exit_code}" -gt 0 ] || [ -s /tmp/icloudpd/icloudpd_download_error ]; then
                LogError "Failed to download new files"
                LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
