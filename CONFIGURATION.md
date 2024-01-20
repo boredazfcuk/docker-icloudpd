@@ -180,6 +180,8 @@ When the container is first started, it will write a default configuration file 
 
 **gotify_server_url**: Mandatory if notification_type set to 'Gotify'. This is the server name of your Gotify server e.g. server.domain.tld
 
+**gotify_https**: If this is set to 'True' then the Gotify server URL will use HTTPS, otherwise it will default to HTTP.
+
 **bark_device_key**: Mandatory if notification_type set to 'Bark'. This is the device key associated with your device
 
 **bark_server**: Mandatory if notification_type set to 'Bark'. This is the name of your Bark server, including the port. Please note that inculding the port seems to be mandatory for Bark. e.g. https://server.domain.com:443: or http://127.16.0.1:80. Failure to include the http/https prefix with result in error code 400 and failure to include the port will result in a 000 error.
