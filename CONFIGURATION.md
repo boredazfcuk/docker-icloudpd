@@ -178,9 +178,9 @@ When the container is first started, it will write a default configuration file 
 
 **gotify_app_token**: Mandatory if notification_type set to 'Gotify'. This is the app_token associated with your account.
 
-**gotify_server_url**: Mandatory if notification_type set to 'Gotify'. This is the server name of your Gotify server e.g. server.domain.tld
-
 **gotify_https**: If this is set to 'True' then the Gotify server URL will use HTTPS, otherwise it will default to HTTP.
+
+**gotify_server_url**: Mandatory if notification_type set to 'Gotify'. This is the server name of your Gotify server e.g. server.domain.tld
 
 **bark_device_key**: Mandatory if notification_type set to 'Bark'. This is the device key associated with your device
 

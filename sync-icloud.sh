@@ -24,8 +24,8 @@ initialise_config_file(){
       if [ "$(grep -c "file_permissions=" "${config_file}")" -eq 0 ]; then echo file_permissions="${file_permissions:=640}"; fi
       if [ "$(grep -c "folder_structure=" "${config_file}")" -eq 0 ]; then echo folder_structure="${folder_structure:={:%Y/%m/%d\}}"; fi
       if [ "$(grep -c "gotify_app_token=" "${config_file}")" -eq 0 ]; then echo gotify_app_token="${gotify_app_token}"; fi
-      if [ "$(grep -c "gotify_server_url=" "${config_file}")" -eq 0 ]; then echo gotify_server_url="${gotify_server_url}"; fi
       if [ "$(grep -c "gotify_https=" "${config_file}")" -eq 0 ]; then echo gotify_https="${gotify_https}"; fi
+      if [ "$(grep -c "gotify_server_url=" "${config_file}")" -eq 0 ]; then echo gotify_server_url="${gotify_server_url}"; fi
       if [ "$(grep -c "group=" "${config_file}")" -eq 0 ]; then echo group="${group:=group}"; fi
       if [ "$(grep -c "group_id=" "${config_file}")" -eq 0 ]; then echo group_id="${group_id:=1000}"; fi
       if [ "$(grep -c "icloud_china=" "${config_file}")" -eq 0 ]; then echo icloud_china="${icloud_china}"; fi
@@ -111,8 +111,8 @@ initialise_config_file(){
       sed -i "s@^folder_structure=.*@folder_structure=${sanitised_folder_structure}@" "${config_file}"
    fi
    if [ "${gotify_app_token}" ]; then sed -i "s%^gotify_app_token=.*%gotify_app_token=${gotify_app_token}%" "${config_file}"; fi
-   if [ "${gotify_server_url}" ]; then sed -i "s%^gotify_server_url=.*%gotify_server_url=${gotify_server_url}%" "${config_file}"; fi
    if [ "${gotify_https}" ]; then sed -i "s%^gotify_https=.*%gotify_https=${gotify_https}%" "${config_file}"; fi
+   if [ "${gotify_server_url}" ]; then sed -i "s%^gotify_server_url=.*%gotify_server_url=${gotify_server_url}%" "${config_file}"; fi
    if [ "${group}" ]; then sed -i "s%^group=.*%group=${group}%" "${config_file}"; fi
    if [ "${group_id}" ]; then sed -i "s%^group_id=.*%group_id=${group_id}%" "${config_file}"; fi
    if [ "${icloud_china}" ]; then sed -i "s%^icloud_china=.*%icloud_china=${icloud_china}%" "${config_file}"; fi
@@ -652,7 +652,7 @@ ConfigureNotifications(){
             LogDebug "${notification_type} server URL: (hidden)"
          else
             LogInfo "${notification_type} token: ${gotify_app_token}"
-            LogInfo "${notification_type} server URL: ${gotify_server_url}"
+            LogInfo "${notification_type} server URL: ${gotify_scheme}://${gotify_server_url}"
          fi
          notification_url="${gotify_scheme}://${gotify_server_url}/message?token=${gotify_app_token}"
       elif [ "${notification_type}" = "Bark" -a "${bark_device_key}" -a "${bark_server}" ]; then
