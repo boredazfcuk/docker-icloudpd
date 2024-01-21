@@ -1,3 +1,7 @@
+20240120:
+
+ - Change: Gotify can now be configured for HTTP or HTTPS connections
+
 20240107:
 
  - Change: Merged PR from @timrettop which fixes HEIC to JPEG conversion in Alpine 3.19.0
