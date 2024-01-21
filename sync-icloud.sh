@@ -816,7 +816,7 @@ ConfigurePassword(){
             icloudpd_path="/opt/icloudpd_latest/bin"
          # fi
          # LogDebug "Switched to icloudpd: $(${icloudpd_path}/icloudpd --version | awk '{print $3}')"
-         run_as "${icloudpd_path}/icloud --username ${apple_id}"
+         run_as "${icloudpd_path}/icloud --username ${apple_id} --domain ${auth_domain}"
          # deactivate
       else
          LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
@@ -864,7 +864,7 @@ GenerateCookie(){
       icloudpd_path="/opt/icloudpd_latest/bin"
    # fi
    # LogDebug "Switched to icloudpd: $("${icloudpd_path}/icloudpd" --version | awk '{print $3}')"
-   run_as "${icloudpd_path}/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --directory /dev/null --only-print-filenames --recent 0"
+   run_as "${icloudpd_path}/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --directory /dev/null --only-print-filenames --recent 0 --domain ${auth_domain}"
    # deactivate
    if [ "${authentication_type}" = "MFA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
