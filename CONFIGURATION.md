@@ -303,7 +303,27 @@ This will then place a multifactor authentication cookie into the /config folder
 
 After this, the container should start downloading your photos.
 
-Dockerfile has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within a set number of days (notification_days) and also if the download fails. 
+Dockerfile has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within a set number of days (notification_days) and also if the download fails.
+
+## MULTIFACTOR RE-AUTHENTICATION
+Every 30 days, the cookie will expire and need to be re-authenticated. This can be done by running the re-authentication script:
+
+```
+docker container exec -it reauth.sh
+```
+
+It will then launch the re-authentication process, presenting you with an MFA code on your iDevice and asking for this new code on the command line. e.g:
+
+```
+2024-03-27 22:21:33 DEBUG    Authenticating...
+2024-03-27 22:21:35 INFO     Two-step/two-factor authentication is required (2fa)
+Please enter two-factor authentication code: 123456
+2024-03-27 22:21:55 WARNING  Failed to parse response with JSON mimetype
+2024-03-27 22:21:57 INFO     Great, you're all set up. The script can now be run without user interaction until 2SA expires.
+You can set up email notifications for when the two-step authentication expires.
+(Use --help to view information about SMTP options.)
+2024-03-27 22:21:57 INFO     Authentication completed successfully
+```
 
 # TELEGRAM 2-WAY COMMUNICATIONS
 ## Remote Synchronisation

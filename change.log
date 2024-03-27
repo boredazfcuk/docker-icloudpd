@@ -1,6 +1,7 @@
 20240327:
 
  - Change: Telgram messaging can now re-authenticate your icloud.com account
+ - Change: Added reauth.sh script so that re-initialising the cookie is easier
  
 20240120:
 
