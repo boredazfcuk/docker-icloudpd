@@ -1,4 +1,4 @@
-FROM alpine:3.19.0
+FROM alpine:3.19.1
 MAINTAINER boredazfcuk
 
 ENV config_dir="/config" XDG_DATA_HOME="/config" TZ="UTC"
@@ -6,7 +6,7 @@ ENV config_dir="/config" XDG_DATA_HOME="/config" TZ="UTC"
 ARG icloudpd_version="1.17.3"
 ARG python_version="3.11"
 ARG build_dependencies="git gcc python3-dev musl-dev rust cargo libffi-dev openssl-dev"
-ARG app_dependencies="py3-pip exiftool coreutils tzdata curl imagemagick shadow jq libheif jpeg bind-tools"
+ARG app_dependencies="py3-pip exiftool coreutils tzdata curl imagemagick shadow jq libheif jpeg bind-tools expect inotify-tools"
 ARG fix_repo="boredazfcuk/icloud_photos_downloader"
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** Build started for boredazfcuk's docker-icloudpd *****" && \
@@ -63,6 +63,7 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Clean up" && \
 
 COPY build_version.txt /
 COPY --chmod=0755 *.sh /usr/local/bin/
+COPY authenticate.exp /opt/authenticate.exp
 COPY CONFIGURATION.md /opt
 
 HEALTHCHECK --start-period=10s --interval=1m --timeout=10s CMD /usr/local/bin/healthcheck.sh

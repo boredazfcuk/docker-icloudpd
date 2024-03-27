@@ -1,3 +1,7 @@
+20240327:
+
+ - Change: Telgram messaging can now re-authenticate your icloud.com account
+ 
 20240120:
 
  - Change: Gotify can now be configured for HTTP or HTTPS connections

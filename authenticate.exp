@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+
+set force_conservative 0  ;# set to 1 to force conservative mode even if
+                          ;# script wasn't run conservatively originally
+if {$force_conservative} {
+        set send_slow {1 .1}
+        proc send {ignore arg} {
+                sleep .1
+                exp_send -s -- $arg
+        }
+}
+
+set timeout -1
+set APPLEID [lindex $argv 0]
+spawn /opt/icloudpd_latest/bin/icloudpd --username ${APPLEID} --auth-only
+match_max 100000
+expect "Please enter two-factor authentication code: " {
+    exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/mfacode.txt
+    set MFACODE [exec cat /tmp/icloudpd/mfacode.txt]
+    send -- "${MFACODE}\r"
+}
+expect eof

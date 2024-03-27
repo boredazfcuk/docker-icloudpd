@@ -1016,8 +1016,8 @@ CheckMFACookie(){
       WaitForAuthentication
       LogDebug "Multifactor authentication authentication complete, checking expiry date..."
    fi 
-   if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
-      mfa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   if [ "$(grep -c "X-APPLE-WEBAUTH-PCS-Photos" "${config_dir}/${cookie_file}")" -eq 1 ]; then
+      mfa_expire_date="$(grep "X-APPLE-WEBAUTH-PCS-Photos" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
       mfa_expire_seconds="$(date -d "${mfa_expire_date}" '+%s')"
       days_remaining="$(($((mfa_expire_seconds - $(date '+%s'))) / 86400))"
       echo "${days_remaining}" > "${config_dir}/DAYS_REMAINING"
@@ -2030,7 +2030,7 @@ SyncUser(){
          unset check_exit_code check_files_count download_exit_code
          unset new_files
          if [ "${notification_type}" = "Telegram" -a "${telegram_polling}" = true ]; then
-            LogInfo "Monitoring ${notification_type} for remote wake command: ${user}"
+            LogInfo "Monitoring ${notification_type} for remote wake command prefix: ${user}"
             listen_counter=0
             while [ "${listen_counter}" -lt "${sleep_time}" ]; do
                if [ "${telegram_polling}" = true ]; then
@@ -2056,9 +2056,27 @@ SyncUser(){
                            check_update="$(echo ${latest_updates} | jq ". | select(.update_id == ${latest_update}).message")"
                            check_update_text="$(echo ${check_update} | jq -r .text)"
                            LogDebug "New message received: ${check_update_text}"
+
+
                            if [ "$(echo "${check_update_text}" | tr [:upper:] [:lower:])" = "$(echo "${user}" | tr [:upper:] [:lower:])" ]; then
                               break_while=true
                               LogDebug "Remote sync message match: ${check_update_text}"
+                           elif [ "$(echo "${check_update_text}" | tr [:upper:] [:lower:])" = "$(echo "${user} auth" | tr [:upper:] [:lower:])" ]; then
+                              LogDebug "Remote authentication message match: ${check_update_text}"
+                              if [ "${icloud_china}" = false ]; then
+                                 Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id} - please reply with ${user} <6-digit code> in the next 10mins"
+                                 >/tmp/icloudpd/mfacode.txt
+                                 /usr/bin/expect /opt/authenticate.exp "${apple_id}" &
+                              else
+                                 Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id} - please reply with ${user} <6-digit code>"
+                              fi
+                           elif [[ "$(echo "${check_update_text}" | tr [:upper:] [:lower:])" =~ "$(echo "${user}" | tr [:upper:] [:lower:]) [0-9][0-9][0-9][0-9][0-9][0-9]$" ]]; then
+                              LogDebug "Remote authentication MFA code received: $(echo ${check_update_text} | sed 's/[^0-9]//g')"
+                              mfa_code="$(echo ${check_update_text} | sed 's/[^0-9]//g')"
+                              echo "${mfa_code}" > /tmp/icloudpd/mfacode.txt
+                              sleep 2
+                              >/tmp/icloudpd/mfacode.txt
+                              unset mfa_code
                            else
                               LogDebug "Ignoring message: ${check_update_text}"
                            fi
