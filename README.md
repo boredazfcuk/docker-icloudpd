@@ -15,7 +15,7 @@ Just configure the Nextcloud settings and every file downloaded will be uploaded
 
 ## CONFIGURING ICLOUDPD
 
-The README on Dockerhub has a hard limit of 25,000 characters, and I've hit this limit too many times now. All in all, I'm up at about 35k characters for the documentation, so this README is just a placeholder. Please see CONFIGURATION.md for info on how to configure this container. It is available here: https://github.com/boredazfcuk/docker-icloudpd/blob/master/CONFIGURATION.md
+The README on Dockerhub has a hard limit of 25,000 characters, and I've hit this limit too many times now. All in all, I'm up at about 37k characters for the documentation, so this README is just a placeholder. Please see CONFIGURATION.md for info on how to configure this container. It is available here: https://github.com/boredazfcuk/docker-icloudpd/blob/master/CONFIGURATION.md
 
 Litecoin: LfmogjcqJXHnvqGLTYri5M8BofqqXQttk4
 
