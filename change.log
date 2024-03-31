@@ -1,3 +1,7 @@
+20240331:
+
+ - Change: reauth.sh script now checks for auth_china variable and configures authentication domain
+ 
 20240327:
 
  - Change: Telgram messaging can now re-authenticate your icloud.com account
