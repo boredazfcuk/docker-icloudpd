@@ -1,3 +1,6 @@
+20240405
+
+ - Change: Amended logic for remote authentication coz the first way I did it was pretty stupid. This allows for users to have numbers in their Apple ID, which is nice.
 20240331:
 
  - Change: reauth.sh script now checks for auth_china variable and configures authentication domain

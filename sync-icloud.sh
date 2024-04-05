@@ -2066,15 +2066,17 @@ SyncUser(){
                               if [ "${icloud_china}" = false ]; then
                                  Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id} - please reply with ${user} <6-digit code> in the next 10mins"
                                  >/tmp/icloudpd/mfacode.txt
-                                 /usr/bin/expect /opt/authenticate.exp "${apple_id}" &
+                                 DebugLog "Starting authentication process"
+                                 /usr/bin/expect /opt/authenticate.exp "${apple_id}" >/dev/null &
                               else
                                  Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id} - please reply with ${user} <6-digit code>"
                               fi
                            elif [[ "$(echo "${check_update_text}" | tr [:upper:] [:lower:])" =~ "$(echo "${user}" | tr [:upper:] [:lower:]) [0-9][0-9][0-9][0-9][0-9][0-9]$" ]]; then
-                              LogDebug "Remote authentication MFA code received: $(echo ${check_update_text} | sed 's/[^0-9]//g')"
-                              mfa_code="$(echo ${check_update_text} | sed 's/[^0-9]//g')"
+                              LogDebug "Remote authentication MFA code received: $(echo ${check_update_text} | awk '{print $2}')"
+                              mfa_code="$(echo ${check_update_text} | awk '{print $2}')"
                               echo "${mfa_code}" > /tmp/icloudpd/mfacode.txt
                               sleep 2
+                              DebugLog "Using MFA code to re-authenticate"
                               >/tmp/icloudpd/mfacode.txt
                               unset mfa_code
                            else
