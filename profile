@@ -35,7 +35,8 @@ alias install='apk add'
 alias remove='apk del'
 alias update='apk update'
 alias listupdates='apk list --upgradable'
-alias upgrade=' apk update && apk upgrade'
+alias upgrade='apk update && apk upgrade'
+alias editconfig='nano /config/icloudpd.conf'
 alias whatsmyip='wget -qO- icanhazip.com'
 
 function __setprompt

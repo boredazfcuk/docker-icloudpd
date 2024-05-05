@@ -1,3 +1,6 @@
+20240505
+
+ - Change: Added nano, nano-syntax and findutils to the container. BusyBox fnd doesn't support -printf and I need that to add the nano syntax highlighting stuff to /etc/nanorc
 20240504
 
  - Change: Some stuff to make command line life easier
