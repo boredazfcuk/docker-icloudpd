@@ -1,6 +1,9 @@
 20240505
 
  - Change: Added nano, nano-syntax and findutils to the container. BusyBox fnd doesn't support -printf and I need that to add the nano syntax highlighting stuff to /etc/nanorc
+ - Change: Altered the script to add some delays in where people attempting to run as root. Running as root is not supported as this script expects to switch user at times and it breaks the su command
+ - Change: Added /opt/icloudpd_latest to path so icloudpd and icloud can be run without having to cd to their locations
+ 
 20240504
 
  - Change: Some stuff to make command line life easier

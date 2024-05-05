@@ -58,21 +58,25 @@ Initialise(){
    LogDebug "Running user id: $(id --user)"
    LogDebug "Running group id: $(id --group)"
    if [ "${user}" = "root" ]; then
-      LogWarning "The local user for synchronisation cannot be root"
+      LogWarning "The local user for synchronisation cannot be root, resetting to 'user'"
       unset user
+      sleep 120
    fi
    if [ "${user_id}" -eq 0 ]; then
-      LogWarning "The local user id for synchronisation cannot be 0"
+      LogWarning "The local user id for synchronisation cannot be 0, resetting to '1000'"
       unset user_id
+      sleep 120
    fi
    LogDebug "Local user: ${user:=user}:${user_id:=1000}"
    if [ "${group}" = "root" ]; then
-      LogWarning "The local group for synchronisation cannot be root"
+      LogWarning "The local group for synchronisation cannot be root, resetting to 'group'"
       unset group
+      sleep 120
    fi
    if [ "${group_id}" -eq 0 ]; then
-      LogWarning "The local group id for synchronisation cannot be 0"
+      LogWarning "The local group id for synchronisation cannot be 0, resetting to '1000'"
       unset group_id force_gid
+      sleep 120
    fi
    LogDebug "Local group: ${group:=group}:${group_id:=1000}"
    LogDebug "Force GID: ${force_gid:=false}"
