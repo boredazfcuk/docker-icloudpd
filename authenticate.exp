@@ -1,5 +1,7 @@
 #!/usr/bin/expect -f
 
+exp_internal 1
+
 set force_conservative 0  ;# set to 1 to force conservative mode even if
                           ;# script wasn't run conservatively originally
 if {$force_conservative} {
@@ -11,12 +13,27 @@ if {$force_conservative} {
 }
 
 set timeout -1
-set APPLEID [lindex $argv 0]
-spawn /opt/icloudpd_latest/bin/icloudpd --username ${APPLEID} --auth-only
+spawn -noecho /usr/local/bin/reauth.sh
 match_max 100000
-expect "Please enter two-factor authentication code: " {
-    exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/mfacode.txt
-    set MFACODE [exec cat /tmp/icloudpd/mfacode.txt]
-    send -- "${MFACODE}\r"
+#sleep 5
+expect {
+    "Please enter two-factor authentication code: " {
+        exec /usr/local/bin/sendmessage.sh mfacode
+        exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/mfacode.txt
+        set MFACODE [exec cat /tmp/icloudpd/mfacode.txt]
+        send -- "${MFACODE}\r"
+    }
+    "Please enter two-factor authentication code or device index * to send SMS with a code: " {
+        exec /usr/local/bin/sendmessage.sh smschoice
+        exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/smschoice.txt
+        set SMSCHOICE [exec cat /tmp/icloudpd/smschoice.txt]
+        send -- "${SMSCHOICE}\r"
+        expect "Please enter two-factor authentication code that you received over SMS: " {
+            exec /usr/local/bin/sendmessage.sh mfacode
+            exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/mfacode.txt
+            set MFACODE [exec cat /tmp/icloudpd/mfacode.txt]
+            send -- "${MFACODE}\r"
+        }
+    }
 }
 expect eof

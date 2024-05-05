@@ -1,6 +1,18 @@
+20240504
+
+ - Change: Some stuff to make command line life easier
+ - Change: Removed a bunch of redundant stuff from the Dockerfile
+
+20240428
+
+ - Change: I got rid of the bit which attempts to detect TCP connectivity to a DNS server which curl has been found to use. It seems that for some people, curl works just fine with UDP lookups. The people who are having problems with curl can firgure out their issue instead.
+ - Change: The reauth script wasn't setting the cookie directory, so the re-authed cookie would land in the root user's home directory instead. Also, the re-auth command would be run as root, so permissions could get messy. Changed script to use a run_as function, so it's runs as the configured user
+ - Change: Have modified the script so that it handles the new behaviour for remotely authenticating when using SMS based MFA. Haven't tested it much yet, so probably broken lol. I need to push to Dockerhub so I can test on the accounts I do SMS MFA from, as these don't run my testing builds.
+
 20240405
 
  - Change: Amended logic for remote authentication coz the first way I did it was pretty stupid. This allows for users to have numbers in their Apple ID, which is nice.
+
 20240331:
 
  - Change: reauth.sh script now checks for auth_china variable and configures authentication domain
