@@ -182,9 +182,10 @@ When the container is first started, it will write a default configuration file 
 
 **gotify_server_url**: Mandatory if notification_type set to 'Gotify'. This is the server name of your Gotify server e.g. server.domain.tld
 
-**bark_device_key**: Mandatory if notification_type set to 'Bark'. This is the device key associated with your device
+**bark_device_key**: Mandatory if notification_type set to 'Bark'. This is the device key associated with your device.
 
-**bark_server**: Mandatory if notification_type set to 'Bark'. This is the name of your Bark server, including the port. Please note that inculding the port seems to be mandatory for Bark. e.g. https://server.domain.com:443: or http://127.16.0.1:80. Failure to include the http/https prefix with result in error code 400 and failure to include the port will result in a 000 error.
+**bark_server**: Mandatory if notification_type set to 'Bark'. This is the name of your Bark server. Please note that the port should not be included and currently the project only supports http.
+If you use the official Bark server, please fill the field with `api.day.app`.
 
 ## VOLUME CONFIGURATION
 
