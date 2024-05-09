@@ -750,6 +750,19 @@ SetOwnerAndPermissionsDownloads(){
    find "${download_path}" -type f ! -perm "${file_permissions}" ! -path "${ignore_path}" -exec chmod "${file_permissions}" '{}' +
 }
 
+check_permissions(){
+   if [ "$(run_as ${user} "if ! test -w \"${download_path}\"; then echo false; fi")" = false ]; then
+      LogWarning "User ${user}:${user_id} cannot write to directory: ${download_path} - Attempting to set permissions"
+      SetOwnerAndPermissionsDownloads
+      if [ "$(run_as ${user} "if ! test -w \"${download_path}\"; then echo false; fi")" = false ]; then
+         LogError "User ${user}:${user_id} still cannot write to directory: ${download_path}"
+         LogError " - Fixing permissions failed - Cannot continue, exiting"
+         sleep 120
+         exit 1
+      fi
+   fi
+}
+
 CheckKeyringExists(){
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
       LogInfo "Keyring file exists, continuing"

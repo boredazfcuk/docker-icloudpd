@@ -1,9 +1,13 @@
+20240509
+
+ - Change: Added a check to see if the download path is writable. A lot of users have reported seeing the error: "Invalid value for '-d' / '--directory': Path '/download_path' is not readable" and although some users it appears to be due to SMB file mounts, I suspect it is the age old issue that their permissions are just inadequate... like SMB permissions don't just have file permissions, they have user permissions via the share itself, and it's likely just that. I now check that the download directory is writable. If not, then I attempt to set the permissions as root for the configured user, then re-test. If it fails, I just bail and kick out an error. 
+
 20240505
 
  - Change: Added nano, nano-syntax and findutils to the container. BusyBox fnd doesn't support -printf and I need that to add the nano syntax highlighting stuff to /etc/nanorc
  - Change: Altered the script to add some delays in where people attempting to run as root. Running as root is not supported as this script expects to switch user at times and it breaks the su command
  - Change: Added /opt/icloudpd_latest to path so icloudpd and icloud can be run without having to cd to their locations
- 
+
 20240504
 
  - Change: Some stuff to make command line life easier
