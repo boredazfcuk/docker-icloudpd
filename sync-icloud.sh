@@ -1094,12 +1094,12 @@ DownloadLibraries(){
 
 DownloadPhotos(){
    local log_level
-   LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd --log-level \"${log_level}\" ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
    if [ "${debug_logging}" = true ]; then
       log_level="debug"
    else
       log_level="info"
    fi
+   LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd --log-level \"${log_level}\" ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
    if [ "${skip_download}" = false ]; then
       run_as "(/opt/icloudpd_latest/bin/icloudpd ${command_line} --log-level ${log_level} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
    else
