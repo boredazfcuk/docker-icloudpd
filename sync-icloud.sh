@@ -1912,7 +1912,7 @@ SyncUser(){
                   if [ "${latest_update_ids}" ]; then
                      update_count="$(echo "${latest_update_ids}" | wc --lines)"
                      LogDebug "Updates to process: ${update_count}"
-                     if [ "${update_count} -gt 0 " ]; then
+                     if [ "${update_count}" -gt 0 ]; then
                         for latest_update in ${latest_update_ids}; do
                            LogDebug "Processing update: ${latest_update}"
                            check_update="$(echo ${latest_updates} | jq ". | select(.update_id == ${latest_update}).message")"
