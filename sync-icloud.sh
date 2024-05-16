@@ -905,6 +905,7 @@ CheckFiles(){
    fi
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
+   LogDebug "Launch command: /opt/icloudpd_latest/bin/icloudpd --directory ${download_path} --cookie-directory ${config_dir} --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames"
    >/tmp/icloudpd/icloudpd_check_error
    # source /opt/icloudpd_latest/bin/activate
    # LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
@@ -916,7 +917,12 @@ CheckFiles(){
       LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
       LogError "Error debugging info:"
       LogError "$(cat /tmp/icloudpd/icloudpd_check_error)"
-      LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
+      if [ "${debug_logging}" != true ]; then
+         LogError "Please set debug_logging=true in your icloudpd.conf file then reproduce the error."
+         LogError "***** Once you have captured this log file, please post it along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
+      else
+         LogError "***** Please post the above debug log, along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
+      fi
       if [ "${icloud_china}" = false ]; then
          Notify "failure" "iCloudPD container failure" "0" "iCloudPD failed check for new files for Apple ID: ${apple_id}"
       else
@@ -1088,7 +1094,7 @@ DownloadLibraries(){
 
 DownloadPhotos(){
    local log_level
-   LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
+   LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd --log-level \"${log_level}\" ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
    if [ "${debug_logging}" = true ]; then
       log_level="debug"
    else
@@ -1733,7 +1739,12 @@ Notify(){
          if [ "${notification_result}" = "000" -a "${curl_exit_code}" = "6" ]; then
             LogError " - HTTP status code '000' and curl exit code '6' means it cannot connect to the server. Please check your network settings."
          else
-            LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
+            if [ "${debug_logging}" != true ]; then
+               LogError "Please set debug_logging=true in your icloudpd.conf file then reproduce the error."
+               LogError "***** Once you have captured this log file, please post it along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
+            else
+               LogError "***** Please post the above debug log, along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
+            fi
          fi
          sleep 120
          exit 1
@@ -1825,7 +1836,12 @@ SyncUser(){
                LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
                LogError "Error debugging info:"
                LogError "$(cat /tmp/icloudpd/icloudpd_download_error)"
-               LogError "***** Please report problems here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
+               if [ "${debug_logging}" != true ]; then
+                  LogError "Please set debug_logging=true in your icloudpd.conf file then reproduce the error."
+                  LogError "***** Once you have captured this log file, please post it along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
+               else
+                  LogError "***** Please post the above debug log, along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
+               fi
                if [ "${icloud_china}" = false ]; then
                   Notify "failure" "iCloudPD container failure" "1" "iCloudPD failed to download new files for Apple ID: ${apple_id}"
                else

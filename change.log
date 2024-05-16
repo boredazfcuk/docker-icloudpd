@@ -1,3 +1,7 @@
+20240516
+
+ - Change: Amended the log output for when an error is detected to instruct the end user to gather a debug log before posting the issue to GitHub. Too many muppets posting a single line of error message and expecting me to know what they've messed up to break it in that way.
+ 
 20240509
 
  - Change: Added a check to see if the download path is writable. A lot of users have reported seeing the error: "Invalid value for '-d' / '--directory': Path '/download_path' is not readable" and although some users it appears to be due to SMB file mounts, I suspect it is the age old issue that their permissions are just inadequate... like SMB permissions don't just have file permissions, they have user permissions via the share itself, and it's likely just that. I now check that the download directory is writable. If not, then I attempt to set the permissions as root for the configured user, then re-test. If it fails, I just bail and kick out an error. 
