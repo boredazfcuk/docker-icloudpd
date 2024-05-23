@@ -1,9 +1,9 @@
-FROM alpine:3.19.1
+FROM alpine:latest
 MAINTAINER boredazfcuk
 
 ENV config_dir="/config" XDG_DATA_HOME="/config" TZ="UTC" ENV="/etc/profile"
 
-ARG icloudpd_version="1.17.5"
+ARG icloudpd_version="1.17.6"
 ARG python_version="3.11"
 ARG app_dependencies="findutils nano nano-syntax py3-pip exiftool coreutils tzdata curl imagemagick shadow jq libheif jpeg bind-tools expect inotify-tools"
 ARG fix_repo="boredazfcuk/icloud_photos_downloader"
