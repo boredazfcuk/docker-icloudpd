@@ -3,7 +3,7 @@ MAINTAINER boredazfcuk
 
 ENV config_dir="/config" XDG_DATA_HOME="/config" TZ="UTC" ENV="/etc/profile"
 
-ARG icloudpd_version="1.17.6"
+ARG icloudpd_version="1.17.7"
 ARG python_version="3.11"
 ARG app_dependencies="findutils nano nano-syntax py3-pip exiftool coreutils tzdata curl imagemagick shadow jq libheif jpeg bind-tools expect inotify-tools"
 ARG fix_repo="boredazfcuk/icloud_photos_downloader"
@@ -13,8 +13,8 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install requirements" && \
    apk add --no-progress --no-cache ${app_dependencies} && \
    find /usr/share/nano -name '*.nanorc' -printf "include %p\n" >>/etc/nanorc && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD latest release" && \
-   python -m venv /opt/icloudpd_latest && \
-   source /opt/icloudpd_latest/bin/activate && \
+   python -m venv /opt/icloudpd && \
+   source /opt/icloudpd/bin/activate && \
    pip3 install --upgrade pip && \
    pip3 install --no-cache-dir wheel && \
    pip3 install --no-cache-dir icloudpd && \

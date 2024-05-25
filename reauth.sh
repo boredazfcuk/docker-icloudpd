@@ -27,6 +27,6 @@ if [ -f "${config_dir}/${cookie_file}.session" ]; then
    rm "${config_dir}/${cookie_file}.session"
 fi
 
-run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --auth-only --domain ${auth_domain:=com} | tee /tmp/icloudpd/reauth.log"
+run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --auth-only --domain ${auth_domain:=com} | tee /tmp/icloudpd/reauth.log"
 
 rm /tmp/icloudpd/reauth.log

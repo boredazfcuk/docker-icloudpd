@@ -1,3 +1,7 @@
+2024-05025
+
+ - Change: Bumped to v1.7.7 and relocated python venv from /opt/icloudpd_latest to /opt/icloudpd as I'm no longer installing two versions into the container. Also... noticed Alpine is now at version 3.20
+ 
 2024-05-24
 
  - Change: Bumped to v1.7.6

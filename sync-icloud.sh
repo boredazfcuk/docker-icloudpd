@@ -241,8 +241,8 @@ Initialise(){
       ignore_path=""
    fi
 
-   source /opt/icloudpd_latest/bin/activate
-   LogDebug "Activated Python virtual environment for icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
+   source /opt/icloudpd/bin/activate
+   LogDebug "Activated Python virtual environment for icloudpd: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
 }
 
 LogInfo(){
@@ -569,10 +569,10 @@ ListLibraries(){
       CheckWebCookie
    fi
    IFS=$'\n'
-   # source /opt/icloudpd_latest/bin/activate
-   # LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
+   # source /opt/icloudpd/bin/activate
+   # LogDebug "Switched to icloudpd: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
    if [ "${skip_download}" = false ]; then
-      shared_libraries="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
+      shared_libraries="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
    fi
    # deactivate
    LogInfo "Shared libraries:"
@@ -590,10 +590,10 @@ ListAlbums(){
       CheckWebCookie
    fi
    IFS=$'\n'
-   # source /opt/icloudpd_latest/bin/activate
-   # LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
+   # source /opt/icloudpd/bin/activate
+   # LogDebug "Switched to icloudpd: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
    if [ "${skip_download}" = false ]; then
-      photo_albums="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
+      photo_albums="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
    fi
    # deactivate
    LogInfo "Photo albums:"
@@ -633,8 +633,8 @@ ConfigurePassword(){
             # source /opt/icloudpd_v1.7.2_china/bin/activate
             # icloudpd_path="/opt/icloudpd_v1.7.2_china/bin"
          # else
-            # source /opt/icloudpd_latest/bin/activate
-            icloudpd_path="/opt/icloudpd_latest/bin"
+            # source /opt/icloudpd/bin/activate
+            icloudpd_path="/opt/icloudpd/bin"
          # fi
          # LogDebug "Switched to icloudpd: $(${icloudpd_path}/icloudpd --version | awk '{print $3}')"
          run_as "${icloudpd_path}/icloud --username ${apple_id} --domain ${auth_domain}"
@@ -681,8 +681,8 @@ GenerateCookie(){
       # source /opt/icloudpd_v1.7.2_china/bin/activate
       # icloudpd_path="/opt/icloudpd_v1.7.2_china/bin"
    # else
-      # source /opt/icloudpd_latest/bin/activate
-      icloudpd_path="/opt/icloudpd_latest/bin"
+      # source /opt/icloudpd/bin/activate
+      icloudpd_path="/opt/icloudpd/bin"
    # fi
    # LogDebug "Switched to icloudpd: $("${icloudpd_path}/icloudpd" --version | awk '{print $3}')"
    run_as "${icloudpd_path}/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --directory /dev/null --only-print-filenames --recent 0 --domain ${auth_domain}"
@@ -905,11 +905,11 @@ CheckFiles(){
    fi
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
-   LogDebug "Launch command: /opt/icloudpd_latest/bin/icloudpd --directory ${download_path} --cookie-directory ${config_dir} --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames"
+   LogDebug "Launch command: /opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory ${config_dir} --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames"
    >/tmp/icloudpd/icloudpd_check_error
-   # source /opt/icloudpd_latest/bin/activate
-   # LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
-   run_as "(/opt/icloudpd_latest/bin/icloudpd --directory ${download_path} --cookie-directory ${config_dir} --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log"
+   # source /opt/icloudpd/bin/activate
+   # LogDebug "Switched to icloudpd: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
+   run_as "(/opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory ${config_dir} --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log"
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    # deactivate
    if [ "${check_exit_code}" -ne 0 ] || [ -s /tmp/icloudpd/icloudpd_check_error ]; then
@@ -987,7 +987,7 @@ DeletedFilesNotification(){
 DownloadAlbums(){
    local all_albums albums_to_download log_level
    if [ "${photo_album}" = "all albums" ]; then
-      all_albums="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
+      all_albums="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
       LogDebug "Buildling list of albums to download..."
       IFS=$'\n'
       for album in ${all_albums}; do
@@ -1022,11 +1022,11 @@ DownloadAlbums(){
    for album in ${albums_to_download}; do
       LogInfo "Downloading album: ${album}"
       if [ "${albums_with_dates}" = true ]; then
-         LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd_latest/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         LogDebug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       else
-         LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd_latest/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         LogDebug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       fi
       if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]; then
          LogError "Failed downloading album: ${album}"
@@ -1042,7 +1042,7 @@ DownloadLibraries(){
    local all_libraries libraries_to_download log_level
    if [ "${photo_library}" = "all libraries" ]; then
       LogDebug "Fetching libraries list..."
-      all_libraries="$(run_as "/opt/icloudpd_latest/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
+      all_libraries="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
       LogDebug "Building list of libraries to download..."
       IFS=$'\n'
       for library in ${all_libraries}; do
@@ -1076,11 +1076,11 @@ DownloadLibraries(){
          log_level="info"
       fi
       if [ "${libraries_with_dates}" = true ]; then
-         LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure ${library}/${folder_structure} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd_latest/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}/${folder_structure}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         LogDebug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure ${library}/${folder_structure} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}/${folder_structure}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       else
-         LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure ${library} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd_latest/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         LogDebug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure ${library} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       fi
       if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]; then
          LogError "Failed downloading library: ${library}"
@@ -1099,9 +1099,9 @@ DownloadPhotos(){
    else
       log_level="info"
    fi
-   LogDebug "iCloudPD launch command: /opt/icloudpd_latest/bin/icloudpd --log-level ${log_level} ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
+   LogDebug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd --log-level ${log_level} ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
    if [ "${skip_download}" = false ]; then
-      run_as "(/opt/icloudpd_latest/bin/icloudpd ${command_line} --log-level ${log_level} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+      run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
    else
       LogDebug "Skip download: ${skip_download} - skipping"
       echo 0 >/tmp/icloudpd/icloudpd_download_exit_code
@@ -1817,8 +1817,8 @@ SyncUser(){
             LogDebug "Downloading new files using password stored in keyring file..."
             >/tmp/icloudpd/icloudpd_download_error
             IFS=$'\n'
-            # source /opt/icloudpd_latest/bin/activate
-            # LogDebug "Switched to icloudpd: $(/opt/icloudpd_latest/bin/icloudpd --version | awk '{print $3}')"
+            # source /opt/icloudpd/bin/activate
+            # LogDebug "Switched to icloudpd: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
             if [ "${photo_album}" ]; then
                LogDebug "Starting Photo Album download"
                DownloadAlbums
