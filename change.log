@@ -1,4 +1,9 @@
-2024-05025
+2024-05-26
+
+ - Change: Just removed some obsolete stuff from the dockerfile
+ - Change: Added date to build number. Some dude was running a version that was 3 years old. I removed the date from the build number a year or two ago, coz I thought most people would be fairly up to date. Obviously not, so I've put it back. Will help identifiy people doing the same thing.
+
+2024-05-25
 
  - Change: Bumped to v1.7.7 and relocated python venv from /opt/icloudpd_latest to /opt/icloudpd as I'm no longer installing two versions into the container. Also... noticed Alpine is now at version 3.20
  

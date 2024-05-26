@@ -4,10 +4,11 @@
 Initialise(){
 
    echo
-   LogInfo "***** boredazfcuk/icloudpd container for icloud_photo_downloader v1.0.$(cat /opt/build_version.txt) started *****"
+   LogInfo "***** boredazfcuk/icloudpd container v1.0.$(cat /opt/build_version.txt) started *****"
    LogInfo "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
+   LogInfo "icloud-photos-downloader version: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
 
    config_file="${config_dir}/icloudpd.conf"
    LogInfo "Loading configuration from: ${config_file}"
@@ -17,7 +18,7 @@ Initialise(){
    login_counter=0
    apple_id="$(echo -n ${apple_id} | tr '[:upper:]' '[:lower:]')"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
-   
+
    local icloud_dot_com dns_counter
    if [ "${icloud_china:=false}" = true ]; then
       icloud_domain="icloud.com.cn"
@@ -727,7 +728,7 @@ SetOwnerAndPermissionsConfig(){
    chown -R "${user_id}:${group_id}" "/tmp/icloudpd"
    LogDebug "Set owner and group on config directory"
    chown -R "${user_id}:${group_id}" "${config_dir}"
-   
+
    if [ -d "${config_dir}/python_keyring/" ]; then
       if [ "$(run_as "test -w ${config_dir}/python_keyring/; echo $?")" -eq 0 ]; then
          LogInfo "Directory is writable: ${config_dir}/python_keyring/"
@@ -841,7 +842,7 @@ CheckMFACookie(){
       LogDebug "Multifactor authentication cookie exists, but not autenticated. Waiting for authentication to complete..."
       WaitForAuthentication
       LogDebug "Multifactor authentication authentication complete, checking expiry date..."
-   fi 
+   fi
    if [ "$(grep -c "X-APPLE-WEBAUTH-PCS-Photos" "${config_dir}/${cookie_file}")" -eq 1 ]; then
       mfa_expire_date="$(grep "X-APPLE-WEBAUTH-PCS-Photos" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
       mfa_expire_seconds="$(date -d "${mfa_expire_date}" '+%s')"
