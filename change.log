@@ -1,153 +1,158 @@
-2024-05-26
+28/05/2024
+
+ - Change: Bumped to v1.18.0
+ 
+26/05/2024
 
  - Change: Just removed some obsolete stuff from the dockerfile
  - Change: Added date to build number. Some dude was running a version that was 3 years old. I removed the date from the build number a year or two ago, coz I thought most people would be fairly up to date. Obviously not, so I've put it back. Will help identifiy people doing the same thing.
+ - Change: Changed the date format due to the change above, and also coz it's just easier to read when units go from smallest to largest. Reverse dates work best on filenames so they are automatically stored chronoligically, but that's not really needed here.
 
-2024-05-25
+25/05/2024
 
- - Change: Bumped to v1.7.7 and relocated python venv from /opt/icloudpd_latest to /opt/icloudpd as I'm no longer installing two versions into the container. Also... noticed Alpine is now at version 3.20
+ - Change: Bumped to v1.17.7 and relocated python venv from /opt/icloudpd_latest to /opt/icloudpd as I'm no longer installing two versions into the container. Also... noticed Alpine is now at version 3.20
  
-2024-05-24
+24/05/2024
 
- - Change: Bumped to v1.7.6
+ - Change: Bumped to v1.17.6
 
-2024-05-16
+16/05/2024
 
  - Change: Amended the log output for when an error is detected to instruct the end user to gather a debug log before posting the issue to GitHub. Too many muppets posting a single line of error message and expecting me to know what they've messed up to break it in that way.
  
-2024-05-09
+09/05/2024
 
  - Change: Added a check to see if the download path is writable. A lot of users have reported seeing the error: "Invalid value for '-d' / '--directory': Path '/download_path' is not readable" and although some users it appears to be due to SMB file mounts, I suspect it is the age old issue that their permissions are just inadequate... like SMB permissions don't just have file permissions, they have user permissions via the share itself, and it's likely just that. I now check that the download directory is writable. If not, then I attempt to set the permissions as root for the configured user, then re-test. If it fails, I just bail and kick out an error. 
 
-2024-05-05
+05/05/2024
 
  - Change: Added nano, nano-syntax and findutils to the container. BusyBox fnd doesn't support -printf and I need that to add the nano syntax highlighting stuff to /etc/nanorc
  - Change: Altered the script to add some delays in where people attempting to run as root. Running as root is not supported as this script expects to switch user at times and it breaks the su command
  - Change: Added /opt/icloudpd_latest to path so icloudpd and icloud can be run without having to cd to their locations
 
-2024-05-04
+04/05/2024
 
  - Change: Some stuff to make command line life easier
  - Change: Removed a bunch of redundant stuff from the Dockerfile
 
-2024-04-28
+28/04/2024
 
  - Change: I got rid of the bit which attempts to detect TCP connectivity to a DNS server which curl has been found to use. It seems that for some people, curl works just fine with UDP lookups. The people who are having problems with curl can firgure out their issue instead.
  - Change: The reauth script wasn't setting the cookie directory, so the re-authed cookie would land in the root user's home directory instead. Also, the re-auth command would be run as root, so permissions could get messy. Changed script to use a run_as function, so it's runs as the configured user
  - Change: Have modified the script so that it handles the new behaviour for remotely authenticating when using SMS based MFA. Haven't tested it much yet, so probably broken lol. I need to push to Dockerhub so I can test on the accounts I do SMS MFA from, as these don't run my testing builds.
 
-2024-04-05
+05/04/2024
 
  - Change: Amended logic for remote authentication coz the first way I did it was pretty stupid. This allows for users to have numbers in their Apple ID, which is nice.
 
-2024-03-31
+31/03/2024
 
  - Change: reauth.sh script now checks for auth_china variable and configures authentication domain
  
-2024-03-27
+27/03/2024
 
  - Change: Telgram messaging can now re-authenticate your icloud.com account
  - Change: Added reauth.sh script so that re-initialising the cookie is easier
  
-2024-01-20
+20/01/2024
 
  - Change: Gotify can now be configured for HTTP or HTTPS connections
 
-2024-01-07
+07/01/2024
 
  - Change: Merged PR from @timrettop which fixes HEIC to JPEG conversion in Alpine 3.19.0
  - Change: Created option to disable the startup notification
  - Change: Removed the silencing of the set_mempolicy error. The convert application does not generate these errors any more after the jpeg package was installed in the container. It seems that the convert application was just converting the HEIC file to another HEIC file, but with the JPG file extension. Installing the package means the conversion processes a lot more quickly and correctly outputs the files.
  - Change: Made the functions which convert HEIC files to JPEG, remove all HEIC files, etc do case insensitive searches. This should conver *.HEIC and *.heic to *.JPG.
 
-2024-01-06
+06/01/2024
 
  - Change: Rebuild container to icloudpd 1.17.3
 
-2024-01-01
+01/01/2024
 
  - Change: Altered how Nextcloud path is built. Seems there are double trailing slashes. Now removes the one in the variable and appends one manually.
  - Change: Seems like deleting from Nextcloud wasn't working correctly. Was always coming up with "File not found" which is bizarre coz it defo worked when I first implemented it. I've changed it so it uses the same encoding method as uploads, instead of doing it using a standard file path (which wouldn't work for files/paths with spaces in their names). Anyway, seems to be deleting things OK again now.
  - Change: The curl command performs TCP DNS lookups, whereas everything else like ping and nslookup uses UDP. If TCP requests are blocked to the DNS server, the container will pass the DNS checks, but then the curl commands to send the startup notifications will hang/fail. Bind-tools has been installed so that the full version of nslookup can be used and force the requests over TVP (using the -vc parameter)
 
-2023-12-30
+30/12/2023
 
  - Change: Removed a log entry which was malformed.
  - Change: Output value of bot_check into debug log.
  - Change: Added random delay of 0-15 seconds (inclusive) if Telegram polling is enabled. I believe starting multiple containers at the same time and them all hitting the APi at the same time may cause some requests to be ignored.
 
-2023-12-27
+27/12/2023
 
  - Change: Documented the --remove-all-jpgs command line option. It's been there ages, not sure why I never documented it. Probably because it could delete data that might be needed and I don't want people losing stuff.
-2023-12-24
+24/12/2023
 
  - Change: I think the upgrade to Alpine 3.19 may have broke Imagmagick. Adding the additional package, libheif-dev, got it working again.
  - Change: Also, found that due to the newer version of ImageMagick, an error is generated when converting HEIC to JPEG. The conversion still works, so I've just silenced that error, specfically.
 
-2023-12-20
+20/12/2023
 
  - Change: Upgraded to use Apline Linux 3.19.0 and icloudpd 1.17.0 which now includes the authentication fix. Won't work for China as they were having to use an old version of iCloudpd which is packaged into my container. New version may work ok, but script will need significant re-write for that to occur. Probably look at it over Christmas.
 
-2023-10-19
+19/10/2023
 
  - Change: Added a new Nextcloud URL encode function. If a user is downloading to Photo Albums, or Shared Libraries, or even just has files with special characters (like spaces) in them, then the Nextcloud URL needs to be encoded.
  
-2023-10-18
+18/10/2023
 
  - Change: Trailing slashes on $download_path messes up Nextcloud uploads. Added a bit into the upload function which should account for this.
 
-2023-10-10
+10/10/2023
 
  - Change: Downloading albums not working correctly. Fixed it up and added a bunch more logging. Probably needs sames for libraries function
  - Change: Done the libraries function too
 
-2023-10-09
+09/10/2023
 
  - Change: Bug found in health check... Was using wrong filename for error checks
  - Change: Another bug in health check... Filename followed with a } making it invalid
  - Change: icloudpd seems to error with an exit code of 0 when MFA is required but aborted due to being a non-interactive session. Have now added a check to see if the error report file has size.
 
-2023-10-05
+05/10/2023
 
  - Change: Some users attempting to set the user for sync to root. This breaks things as it can't create the local user account or switch users correctly, so now it will default to user:1000 group:1000 if root:0 is detected.
 
-2023-10-04
+04/10/2023
 
  - Change: Just some logging stuff
  - Change: Found a couple of bugs surrounding downloading from photo albums/libraries. Squished.
 
-2023-10-02
+02/10/2023
 
  - Change: A bunch of stuff regarding the new shared library support
  - Change: Fixed missing --enable-debugging and --disabled-debugging launch parameter validation
 
-2023-09-30
+30/09/2023
 
  - Change: Found a bug which was causing videos to be skipped. Fixed it.
 
-2023-09-29
+29/09/2023
 
  - Change: Found that the path of the python_keyring firectory can be configured by setting the XDG_DATA_HOME variable. Configured that and then removed a bunch of code relating to moving it from /home/${user}/.local
 
-2023-09-27
+27/09/2023
 
  - Change: Thought I'd just commented out all the lines required for the shared library downloads. Turns out I'd removed the bit which validates command line options, so re-added those.
  - Change: Also, realised that there was a mismatch between what the allowed command line variables were, and the actual variables. This affected all variables with more than one word in them, except for the latest one I added to upload Nextcloud files.
 
-2023-09-26
+26/09/2023
 
  - Change: Re-enabled the libraries feature now upstream code has been merged to support shared libraries. Untested though, as I don't use libraries myself.
 
-2023-08-20
+20/08/2023
 
  - Change: Added a bit to create some extra temporary files as some people are having issues with them
  
-2023-08-14
+14/08/2023
 
  - Change: Added Nextcloud connectivity check. My Nextcloud container was paused during a large offsite backup, so Nextcloud connectivity borked. This meant fails failed to upload and will not longer be retried. I can fix by running the function to upload the entire library, it's just a bit of a ballache, so I've added a connectivity check which will wait for the Nextcloud server to come back online. It will send a notification on the first failure, then again after an hour.
  - Change: Added '--help' command line option which displays the configuration information. This is coz I couldn't remember the name of the function which uploads all files to Nextcloud when I was writing the above change log entry lol
 
-2023-08-02
+02/08/2023
 
  - Change: Amended the code so that it now checks for, and removes empty folders from the Nextcloud server after it's removed stuff from Recently Deleted. Works on the test uns I've done. Not nuked my photo store, which is good.
  - Change: Also amended the code which parses the download logs for downloaded/deleted files. I used to extract column 5 to know what files to process. This doesn't work for file paths with spaces in them. I've now amended it so that it cuts from column 9 upwards, which should give me the whole file path, including spaces. Haven't tested anything yet. Wish me luck. Wow. It worked first time! Tested downloads, deletes, uploads to Nextcloud, deletes from Nextcloud. Life is good. 
@@ -155,86 +160,86 @@
  - Change: Amended the command line parameters so that ones that are multiple word, have spaces separated by hyphens like the command above.
  - Change: Removed a few more checks to see if variables are present, over an acual value of true/false
 
-2023-08-01
+01/08/2023
 
  - Change: Well, that's the code in to delete empty folders. It's a bit of a hack. Basically I parse the XML that is returned and count the number of links it contains, if it only has a single link (a reference to the folder itself) then the directory is removed. If there is more than one link, the directory is left in place. This is probably going to delete loads of stuff by mistake, but here goes.
 
-2023-07-31
+31/07/2023
 
  - Change: So, it turns out that when uploading to Nextcloud via WebDAV, the file paths are not automatically created when you 'put' a file. In addition to that, when you create a pathname, you can't automatically create all the folders in the path at once (e.g. mkdir --parents /folder1/folder2/folder3). New change now creates a unique list of the directory names from the list of newly downloaded files. It then checks if each directory in turn exists, and if not, creates it. I guess I need to look at pulling the properties of the folder, checking if it is empty, and if it is, removing it during the file removal function. Otherwise I may end up with empty folders on my Nextcloud server.
 
-2023-07-24
+24/07/2023
 
  - Change: Simplified the logic for auth_china. I want to eliminate chcking for the presence of a variable as being **true** and absence of a variable as **false*. This results in a tendancy towards **true*, because if it contains any value at all, it's considered **true**. Someone had configured a variable to be **false**, which means it is technically **true**. Logic is now that `if [ "${auth_china:=false}" = true ]`. This kinda flips it. Now, it's only true if it's set to **true**. If it's set to **motorboat** it's now technically **false**.
 
-2023-07-23
+23/07/2023
 
  - Change: Changed how the icloud_china variable is processed. I was just checking if the variable was present, so setting it to **false** was equivalent to **true**.
  - Change: Oops. Didn't test that one very thoroughly. Forgot that notifications check if the **icloud_china** variable is empty if they want to send English notifications. Pushed a new version to correct that
 
-2023-07-22
+22/07/2023
 
  - Change: Did some stuff around cookie creation. Script would progress immediately after cookie file was created, however, this happens when the user is prompted to authenticate, so background script would continue as user is confirming 2FA.
  - Change: Changed 2FA to MFA. The correct term is Multi-Factor Authentication, not two factor authenticaion.
  - Change: Introduced a bug as I forgot to change the healthcheck.sh... oops
  - Change: I'm not sure when I did this, but I scrapped the older_function thing as I'd changed how this process worked and it is no longer needed
 
-2023-07-21
+21/07/2023
 
  - Change: Added a function to check if the cookie exists. Two of my containers' cookies expired and the auto-heal feature kept restaring them. This meant when they were starting up they were attempting to connect to iCloud so they could list the available abums. This was causing an MFA prompt. New function just pauses the script if a cookie does not exist.
 
-2023-07-11
+11/07/2023
 
  - Change: Synology systems create multiple directories which contain extended attributes, such as thumbnails. These will be seen as "eaDir*" directories. New variable added to skip changing permissions on these directories. PR submitted by tsanie
 
-2023-07-09
+09/07/2023
 
  - Change: Rewrite of remot sync function. Should be a little bit more reliable, as the previous one would get differeing results back from the Telegram API. Now it goes by update ID and stores it's progress to a file, so that it doesn't fail to retrive a correct value at boot.
  - Change: Added function to remove deleted files from Nextcloud
 
-2023-07-04
+04/07/2023
 
  - Change: Re-enabled **delete_after_download* functionality as recent fix has been merged upstream
  - Change: Altered the clean up of the *notification_title* so that it does not apply to the commonly used Chinese notification methods
  - Change: New function to Nextcloud server. This allows uploading directly to a Nextcloud server, rather than just dropping a file for a different container to monitor and then start a manual sync
 
-2023-07-03
+03/07/2023
 
  - Change: Rebuilt with iCloud Photos Downloader 1.14.2
 
-2023-06-27
+27/06/2023
 
  - Change: Rebuilt with Alpine Linux 3.18.2 and iCloud Photos Downloader 1.13.4
 
-2023-06-26
+26/06/2023
 
  - Change: Just chown the tmp and configu folders as some people seem to be having issues with keyring file which is solved by moving the file from the true location to the /config dir location. Possibly a permissions issue. Not sure.
  - Change: The Telegram polling is still acting weird. Sometimes, the latest message reported by the telegram API will actually be an older message, then a second call to Telegram's API will return a higher number. Also, after a while, all messages will just disappear, meaning null values are passed back. Hopfully these should be fixed now.
  - Change: New variable added **albums_with_dates** which should allow albums to be downloaded to folders with the album name, and then split by date.
 
-2023-05-22
+22/05/2023
 
  - Change: Send notification when remote sync command received
 
-2023-05-04
+04/05/2023
 
  - Change: Out of range issue polling for Telegram wake command
 
-2023-04-26
+26/04/2023
 
  - Change: Added **skip_album** variable so that certain albums (such as the Apple default ones) can be excluded from the download.
 
-2023-04-25
+25/04/2023
 
  - Change: Unexpected behaviour when latest message is an update about group membership. This change will set ${latest_message} to ${current_message} if ${latest_message} is empty
  - Change: Now supports downloading from multiple folder albums, and saving them into folders named accordingly.
 
-2023-04-24
+24/04/2023
 
  - Change: Bug fix for folder structure
  - Change: Possible solution for Telegram polling issue
 
-2023-04-23
+23/04/2023
 
  - Change: Set the function to configure file ownership to use user and group ids (instead of names) as this was failing to set the correct permisisons prior to the accounts being created (brand new containers).
 
@@ -245,164 +250,164 @@
  - Change: I've re-enabled the **delete_after_download** option as it's been implemented correctly upstream and newly released.
  - Change: I've also removed the i386 build platform from my images. They're failing to compile as they can't build a wheel for cryptography. I'm hoping nobody complains, but it they do I'll look at trying to re-add it in.
 
-2023-04-10
+10/04/2023
 
  - Change: So many changes, I've forgotten most of them... Um... now I use Python virtual environments to install mutliple versions of icloud-photos-downloader... It incorporates v1.12.0, which is used for downloading photos globally. It also uses a modified version of v1.7.3 which allows authentication against the China servers. Also rebased the image to use Alpine 3.17.3. 
 
-2023-04-03
+03/04/2023
 
  - Change: Changed any "True/False" variable to "true/false" and also find/replace title cased variables in icloudpd.conf to lower case
 
-2023-04-01
+01/04/2023
 
  - Change: Some stuff around how build tags are handled in docker buildx. Mainly so that I have versioning in Dockerhub, instead of only a single "latest" container
  - Change: Delete after download option removed due to bug where it deletes files from iCloud that have not been downloaded yet
 
-2023-04-01
+01/04/2023
 
  - Change: New build refers to --china-mainland rather than --domain cn
  - Change: FFS, I typo'd it as --china_mainland
 
-2023-03-31
+31/03/2023
  - Change: Rebuilt using icloudpd and integrating PR 608 https://github.com/icloud-photos-downloader/icloud_photos_downloader/pull/608 in an attempt to fix the on going China authentication issue
 
-2023-03-30
+30/03/2023
 
  - Change: Got rid of auth_china variable, as it doesn't work.
 
-2023-03-29
+29/03/2023
 
  - Change: Altered the way the log file creation works so that it can add missing/future variables and sort it into alphabetical order. 
 
-2023-03-28
+28/03/2023
 
  - Change: Urgh. It's filth, but it might just work... Docker container downloads a forked copy of icloud_photos_downloader which has been customised to work with China's authentication servers. The cookie generation function will now swap out/in these versions of the files if the auth_china variable is set to True, or just set really, I'm not fussy on this one
  - Change: Added a --enabledebugging and a --disabledebugging command line option which will edit the config file to enable/disable debugging for people who may find editing a file a little trickier on some systems... I'm thinking NAS devices may not make this so easy
  - Change: Made it so that the script reads the value of the debug_logging variable prior to each sync. That way debug logging can be switched on using the command line and it will apply on the next run
 
-2023-03-26
+26/03/2023
 
  - Change: Complete overhaul of logging system. A DEBUG log now introduced which removes a lot of the standard logging and puts it behind this option. When it's enabled, it will hide some of the sensitive data such as e-mail address, Apple ID and tokens
  - Change: Complete overhaul of variables. Docker variables are now pushed into the icloudpd.conf log file stored in the config directory. This allows users to toggle options by just changing the log file and restarting the container. This will allow people to switch on/off deug logging, or change the notification method without having to remove and recreate the container
  - Change: The --ConvertAllHEICs function was missing a command to create the destination folders. This broke the cuntion is being used in conjunction with the jpeg_path variable
 
-2023-03-15
+15/03/2023
 
  - Change: Rebuild to Apline Linux 3.17.2 and icloudpd 1.12.0
  - Change: Added delete_after_download variable. This moves all downloaded files to 'Recently Deleted'. Cannot be used with auto_delete variable
  - Change: Added support for Telgram proxy server using the variable telegram_server
 
-2023-02-08
+08/02/2023
 
  - Change: Added function to delete all JPGs that have an accompanying HEIC. Use --RemoveAllJPGs to remove that data. Be warned, JPGs that have matching names with a HEIC file in the same folder will be removed. They may not necessarily be the same photo. Use with car and only if you know what you are doing
 
-2022-12-28
+28/12/2022
 
  - Change: Added details in readme warning users about enabling Apple's new Advanced Data Protection feature in iOS 16.2
  - Change: Changed the way permissions and ownership is applied so that it it only applies permissions to the download directory after a sync, rather than at multiple different times.
  - Change: Slight change needed to user creation due to rebase to Alpine 3.17
 
-2022-12-03
+03/12/2022
  - Change: Added --Init so I'm less likely to typo it
  - Change: When downloading from libraries it now lists available libraries to the log file
  - Change: The iOS16 shared libraries patches have been moved to a new container tagged as "testing", something isn't quite right as many people are reporting errors.
 
-2022-11-21
+21/11/2022
 
  - Change: iOS 16 shared libaries can now be downloaded with the --library option. PR courtesy of Patrice Neff  https://github.com/pneff
  - Change: Added support for WeCom proxy via PR submitted by Alano-i and Sowevo
 
-2022-10-08
+08/10/2022
 
  - Change: Incorrectly named variable. changed bark_key to bark_device_key
 
-2022-09-26
+26/09/2022
 
  - Change: Amended the log entries so that the warning about setting icloud_china variable only appears if it's not already set. Also changed it to prompt the user to log into iCloud.com and make sure there are no pop-up notifications.
 
-2022-09-23
+23/09/2022
 
  - Change: Bug in --RemoveKeyring preventing it from launching
 
-2022-09-12
+12/09/2022
 
  - Change: Documentation updated, changed --DeleteKeyring to --RemoveKeyring
  - Change: Added feature to place converted JPEGs into different folder from the download location
 
-2022-09-08
+08/09/2022
 
  - Change: Keyring file wasn't actually being removed during container initialisation... Bizarre. Always thought it was. Maybe I removed it while ago, but forgot. Added a --DeleteKeying command line switch to remove the keyring file, if it exists.
 
-2022-08-28
+28/08/2022
 
  - Change: Bark modifications
 
-2022-08-27
+27/08/2022
 
  - Change: Amended error relating to unindexed an library. Error says to wait minutes, it should say hours.
 
-2022-08-24
+24/08/2022
 
  - Change: Added Bark notifications (untested)
  - Change: Two fixes required for Python 3.10+ support
  - Pull request: Merged PR from rmlanghopto to add Gotify notifications
 
-2022-07-28
+28/07/2022
 
  - Change: Set the function, which corrects the owner and permissions, to run after a successful download. Now permissions are corrected immediately after files are downloaded, rather than at the start of the next scheduled synchronisation.
  - Change: Moved the Nextcloud trigger to the donwloaded/deleted files notification sections (as it's essentially notifying Nextcloud that it needs to sync), but also because where it was currently executing, meant that it would only trigger a sync on successful downloads, not if files had simply been removed. Now it will trigger a Nextcloud oneither of those two events.
 
-2022-07-27
+27/07/2022
 
  - Change: Added trigger_nextlcoudcli_synchronisation variable.
 
-2022-07-20
+20/07/2022
 
  - Change: Changed the notification events so that they can have a larger range of icons and different ones too.
  - Change: Gone live with some changes to WeCom notifications.
  - Change: Amended the find command to ignore symbolic links when changing the group on downloaded files and their folders. This is due to the Synology Photos app creating symlinks in the download folders.
 
-2022-07-19
+19/07/2022
 
  - Change: Partially added some Chinese translations, still a few questions about some other changest that have been requested, so holding off on all of them.
  - Change: Cookie expiration is not working for expired cookies, only the notifications about expiry. This change should change the icon in the notification to the alert symbol when cookie has actually expired.
  - Change: Reverted the changes that were put in place to support root user. Running as root user is really bad, and I probably should have just sacked it off when it was requested, so I'm putting it back to how it was because some people using unRAID devices have seen a load of issues, because they're actually running the thing as root... Why even is that?
 
-2022-07-17
+17/07/2022
 
  - Change: Evaluate the home directory location of the user... If user is root, home is located at /root. On CoreElec/LibreElec/OpenElec, then the user's home directory is in /storage. This change should work for either of those scenarios.
 
-2022-07-16
+16/07/2022
 
  - Change: Allow badnames when creating user id.
  - Change: UNTESTED BETA: Added WeCom, the official method of WeChat notifications.
 
-2022-05-20
+20/05/2022
 
  - Change: Add option to download from single album.
 
-2022-05-18
+18/05/2022
 
  - Change: Bug in logic about 2FA renewal reminders means they aren't being sent out daily. I've changed logging to help identify where the problem lies.
 
-2022-04-30
+30/04/2022
 
  - Change: Added single_pass variable which runs the sync process once before exiting out.
 
-2022-04-28
+28/04/2022
 
  - Change: Merged PR from  eliempje (https://github.com/boredazfcuk/docker-icloudpd/pull/155) which adds Openhab functionality.
 
-2022-04-11
+11/04/2022
  - Change: Apparently Synology devices have a Photos app which doesn't update when a download takes place. The newly created files need to be touched for it to trigger a re-index. I've added a new variable which will touch a file to trigger the update, then set it back to what it was to maintain integrity.
 
-2022-03-04
+04/03/2022
 
  - Change: Added a check for the IP address lookup performed during initialisation. Previously this could fail if the DNS server was not available (due to container starting on same system as a DNS container). It will now retry the lookup for 2mins before failing.
  - Change: Changed cookie generation name from Generate2FACookie to GenerateCookie as it generates both types of cookie and is run no matter what cookie type you use. Also, changed the log output so it doesn't say "Generating 2FA Cookie" when generating a Web cookie.
  - Change: Urgh. I dunno about you, but sometimes I delete a bunch of stupid memes off my phone and it ends up leaving my folder_structure with empty directories. I've now added a variable delete_empty_directories which will tidy those up.
 
-2022-02-20
+20/02/2022
 
  - Change: The timezone variable is not being set globally if it's not specified, so the underlying Python script generates a warning. The TZ variable is now defaulted to UTC in the Dockerfile which should take care of this.
  - Change: Added an extra synchronisation interval of 21600, which synchronises every 6 hours. This generates a warning message detailing the potential issue and fix, and includes a 2 minute wait on container start time to make the warning prominent.
@@ -411,124 +416,124 @@
  - Change: Bug found with sending Telegram notifications if e-mail address has an _ character in it. The _ character wasn't escaped correctly when passing the text to the Telegram API.
  - Change: The Notify function is always called, even if notifications aren't configured. A log entry was still being processed and the logic for determining a success/failure of the sent message was being performed too, resulting in an 'out of range' error, as an empty variable was being processsed.
 
-2022-02-18
+18/02/2022
 
  - Change: Cookie expiry notification period was being defaulted in the Initialise function and also for every notification type configured in the ConfigureNotifications function. Removed these as they're just duplicates. Also corrected a bug which would override user configured period, configuring it to 7.
  - Change: Logic for skipping the file check was checking if value it true, then following two if statements had to check if it was set to false. Don't really like the OR tests that needed to be done so adjusted the logic two set the check_exit code and check_files_count to values that will always perform a sync, as they should never change due to CheckFiles function never being run.
  - Change: Script doesn't seem to reliably send the "once per day" notifications during the nofitication expiry period. So have added a log entry which details the next notification time
  - Change: Huge overhaul of notification system. Probably broken everything lol. I've tested Telegra, Prowl, Discord and Pushover. I don't have any of the other methods to test though, so can't guarantee they work, or are formatted correctly. I've standardised the way notifications are sent to the Notify function. This way, only one notification command is needed to send notifications for all types and the formatting of the messages is now handled by the Notify function.
 
-2022-02-11
+11/02/2022
 
  - Change: Introduced a bug with my error handling from the last update. Now I create the error and exit_code log files in the Initialisation function of the script so that the correct permisions are applied. Problem was that the files were being created as root, and then the python script didn't have permission to them.
  - Change: Status code checking for the curl command when sending notifications would only accept 200 as a success. Discord reports 204. I've amended the checking code to just accept 2xx.
 
-2022-02-10
+10/02/2022
 
  - Change: Handle errors differently. Added suggestions for authentication failure issues.
  - Change: Eliminated full stops from log entries. Some lines had them, others didn't, so standardised on not having them. We don't need them. They take up precious bytes. They giving me flashbacks to COBOL.
 
-2022-02-09
+09/02/2022
 
  - Change: Broke out logging into three separate functions. Just because. I dunno. Having tonnes of $(date '+%Y-%m-%d %H:%M:%S') commands in the script just looked a bit weird. Plus if I even need to change it, it's three lines instead of a find/replace of a bazillion.
  - Change: Set ConfigureNotifications function to check for presence of Dingtalk token, instead of ID, to decide whether to fail or not. Same as the other methods (except webhook, which doesn't use tokens).
  - Change: Altered priority for Pushover warning/error notifications. Previously they were set to -2, which gives no alert, only changes the icon badge number. Now it sends a standard priority alert for all notification types, except the one that alerts you that your cookie will run out that day, which is a "quiet hours breaking" notification (same for Prowl).
 
-2022-02-06
+06/02/2022
 
  - Change: Amended the code which sends to Pushover notifications. Originally this was two separate commands, depending on whether the pushover_sound variable was sent. This is not needed, as Pushover will use the default sound is a blank value is sent for the "sound" argument
 
-2022-02-04
+04/02/2022
 
  - Change: Changed notification failure log messages to be more accurate and display http status code.
  - Change: Prowl notifications logging not quite right.
  - Change: Standard notification log message.
  - Change: Moved some stuff to prevent duplication of code.
 
-2022-01-23
+23/01/2022
 
  - Change: Added variable to set custom sounds for Pushover notification type. This can be used to silence notifications.
 
-2021-12-12
+12/12/2021
 
  - Change: Fix bug introduced by moving to useradd/groupadd.
 
-2021-12-11
+11/12/2021
 
  - Change: Amended domain and route checks to be compatible with icloud_china variable. No point checking the route to icloud.com is OK when the container downloads from icloud.com.cn.
  - Change: Change to IYUU notifications, which should now get these working, and integrated changes to live.
  - Change: Users and Groups now created with useradd/groupadd instead of adduser/addgroup to allow the creation of users/group with an id greater than 256,000.
 
-2021-11-30
+30/11/2021
 
  - Change: Final text alert for cookie expiration not received. Made a couple of changes. Will check again in 3 months time.
 
-2021-11-27
+27/11/2021
 
  - Change: Added the IYUU notification type. This is a 3rd party service which supports forwarding messages to WeChat.
 
-2021-11-25
+25/11/2021
 
  - Change: Added variable icloud_china so that photos are downloaded from icloud.com.cn instead of icloud.com 
  - Change: Removed readme information about obsolete variable interavtive_only. The readme is nearing it's maximum size on Dockerhub, so this helps keep tthe number of characters down.
 
-2021-11-21
+21/11/2021
 
  - Change: Amended healthcheck so that it does not set the status to unhealthy if notification days is less than 7. This was causing my auto-heal container to automatically restart it every 5mins. This behaviour now only occurs when the cookie has actually expired.
  - Change: Made script launch parameters case insensitive and also allowed for non-English spelling of Initialise.
 
-2021-00-24
+24/00/2021
 
  - Change: Set icloud.com DNS query type to 'a' records only so that it returns the IPv4 IP address and not IPv6. Also, removed the local loopback addresses, just to remove more unwanted data
 
-2021-10-20
+20/10/2021
 
  - Change: Discord notifications added by @ibtvt
 
-2021-10-17
+17/10/2021
 
  - Change: Added detection for when a file has been downloaded, but also exists in 'Recently Deleted', so gets removed post download. In these cases, it should get rid of the missing file errors.
 
-2021-09-21
+21/09/2021
 
  - Change: Added DNS lookup and traceroute to check network connectivity to icloud.com
 
-2021-09-15
+15/09/2021
 
  - Change: Removed the code which removes hyphen characters from the Telegram chat ID. The hyphen character is used to denote the bot has been added to a group to send messages, rather than a standard user chat.
 
-2021-09-13
+13/09/2021
 
  - Change: Replicated recent whitespace changes to additional functions for completeness
  - Change: Force convert HEICs functions now remove pre-existing JPG files as I don't think the convertion tool is overwriting pre-existing files
 
-2021-09-12
+12/09/2021
 
  - Change: Bug introduced by recent HEIC to JPEG change. Fixed.
  - Change: Added set owner and permissions function to run after HEIC to JPEG conversion functions
  - Change: Added --ForceConvertAllmntHEICs
  - Change: Fixed bug in above new command line option as it wasn't handling spaces safely
 
-2021-09-06
+06/09/2021
 
  - Change: HEIC to JPEG coversion utility has a bug and rotates JPEG files when it shouldn't. Replaced with ImageMagick which doesn't have this problem.
  - Change: Added --ForceConvertAllHEICs command line option to overwrite JPEG files. This is so over-rotated files can be replaced with crorrectly oriented versions.
 
-2021-09-02
+02/09/2021
 
  - Change: Added a log entry to show the UID of the account that is running the script. It seems some users are having permissions issues and this will help with debugging
  - Change: Also changed the symbolic link command to force linking of python_keyring directory if something that isn't a link exists in its place.
 
-2021-09-01
+01/09/2021
 
  - Change: Added logging for --ConvertAllHEICs function
  - Change: Amended way script handles expired cookies
 
-2021-08-30
+30/08/2021
 
  - Change: Amended script to wait for the cookie file to be created, then continuing once it's appeared. Container will auto restart after 30mins if file does not appear, just in case something has gone wrong.
 
-2021-08-27
+27/08/2021
 
  - Change: Better way of calculating elapsed time.
  - Change: Amended the logging so it lists the expiry time of expired 2FA cookies for clarity.
@@ -537,128 +542,128 @@
  - PR Merge: Changed how the webhook notification is handled for compatibility across more notification platforms.
  - Change: Script now records time taken per synchronisation and subtracts this from the synchronisation_interval. This means a sync with a 12 hour interval will start 12 hours later and not skew by the amount of time it takes the sync to complete.
 
-2021-08-27
+27/08/2021
 
  - Change: Locked version of tzlocal to 2.1 as lateat version introduces dependency which is not available in Python 3.8
  - Change: Added variable manipulation on the Telegram chat ID to remove minus sign if it's included in the variable. It needs to be omitted when posting the data to the API.
 
-2021-08-01
+01/08/2021
 
  - Change: Added some extra logging info
 
-2021-07-24
+24/07/2021
 
  - Change: Added function to sanitise command line parameters passed to script.
 
-2021-07-19
+19/07/2021
 
  - Change: Download and Delete notification webhook payload JSON fix
  - Change: Remove ambiguity in DownloadedFilesNotification
 
-2021-07-16
+16/07/2021
 
  - Change: Sanitise notification_title variable
  - Change: Rebase to Alpine Linux 3.14.0
 
-2021-07-13
+13/07/2021
 
  - Change: Modify 20210709 JSON escaping and fix minor change.log text
 
-2021-07-12
+12/07/2021
 
  - Change: Removed apple_password variable. Password must now be added to the system keyring.
  - Change: Default mode now to download, interactive_only variable removed. This process was far more complex than it needed to be for Synology/QNAP devices, so a small change to the default operation makes things easier for everyone.
  - Change: --Generate2FACookie command line option changed to --Initialise as it is also used for saving the password to the system keyring. Not just cookie generation
 
-2021-07-09
+09/07/2021
 
  - Change: Changed JSON escaping to prevent further issues.
 
-2021-07-08
+08/07/2021
 
  - Change: Download check and actual download functions both exit with same error message. Changed for clarity about which section is failing.
 
-2021-07-05
+05/07/2021
 
  - Change: JPEG quality mismatch in documentation and script. Default JPEG quality now referred to correctly in README.MD as 90.
 
-2021-06-17
+17/06/2021
 
  - Change: Added script hash to make sure that the sync-icloud.sh file is correct file as date stamp seems to be affected by timezone.
  - Change: Oddities occuring when creating password/cookie on devices which always run interactively
 
-2021-06-14
+14/06/2021
 
  - Change: Accurate health check output when approaching cookie expiration date.
  - Change: Cookie expiration date checking improved.
  - Change: Wasn't setting notification period for some of the notification options.
  - Change: Notifications weren't firing in the notification period. Should now be fixed.
 
-2021-06-07
+07/06/2021
 
  - Change: Code to remove empty keyring file requires logic to detect f file actually exists, otherwise brand new containers enter a file deletion loop. Logic amended.
 
-2021-05-22
+22/05/2021
 
  - Change: Rebase to Alpine Linux 3.13.5
  - Change: Now logs full version ID rather than just major/minor version.
  - Change: Reddit user Vinnipinni made a comment that the documentation was great... so I've revisited it again to make sure it's up to date, corrected some spellings and grammar, and made a few improvements for clarity.
 
-2021-05-22
+22/05/2021
 
  - Change: --size parameter was incorrectly set as --photo-size.
 
-2021-05-19
+19/05/2021
 
  - Change: Added code to remove keyring file if it doesn't contain credentials
 
-2021-05-15
+15/05/2021
 
  - Change: New download link for Boost source as location changed
 
-2021-05-15
+15/05/2021
 
  - Change: Amended log output for when attempting to add a user to a pre-existing system group.
 
-2021-03-22
+22/03/2021
 
  - Change: Amended log text after cookie generation. Script no longer claims 2FA cookie generated for all cases, but states 2FA/Web based on which was actually generated.
  - Chnage: Add Litecoin address. BTC network fees are expensive AF!
 
-2021-03-04
+04/03/2021
 
  - Change: Added notification_title variable.
  - Change: Readme changes to add full stops on lines where they were missing.
 
-2021-01-28
+28/01/2021
 
  - Change: Added logging of $TERM variable.
 
-2021-01-27
+27/01/2021
 
  - Change: Modified when the script check for the the --Generate2FACookie so that it can be invoked from NAS devices such a Synology and QNAP.
 
-2021-01-19
+19/01/2021
 
  - Change: Added the --Generate2FACookie command line option.
 
-2021-01-18
+18/01/2021
 
  - Change: Rebuilt on Alpine 3.13
 
-2020-12-21
+21/12/2020
 
  - Change: Convert HEIC to JPEG functions now allow specifying the quality with and integer value from 0 to 100.
 
-2020-12-16
+16/12/2020
 
  - Change: Sanitise apple_id variable so all letters are lower case. This prevents a case mismatch between the cookie file name that is saved, and the name that the icloudpd Python script creates the cookie file with, due to it respecting case.
 
-2020-12-04
+04/12/2020
 
  - Change: Removed Pushbullet notifications. The Pushbullet service has introduced version 2 of its API so notifications no longer work. Pushbullet have also removed their app from the iOS App Store, so if it's no longer supported on iOS, there's no way to realistically support it here.
 
-2020-12-03
+03/12/2020
 
  - Change: Upgraded pip
  - Change: Pushover notification bugfix. PR courtesy of @larstomas
@@ -666,11 +671,11 @@
  - Change: Altered failure piority for pushover notifications from -2 to 2 so they become emergency level notifications rather than silent. Change recommended by @larstomas
  - Change: Added variable to allow skipping of the new file check. On large photo collections, this can significantly increase the time taken to download.
 
-2020-11-28
+28/11/2020
 
  - Change: Added log line to show the exact command line used to invole iCloudPD
 
-2020-11-21
+21/11/2020
 
  - Change: Due to changes in iOS14 the 2FA synchronisation interval is now limited to a maximum of once every 12 hours. It seems that 2FA authentication is now restricted to a maximum of 26 logins before re-authentication is required. Synchronisation is now restricted to specific time periods with the shortest being 12 hours.
  - Change: New variable synchronisation_delay added. This is so that the first synchronisation can be dalayed for a number of minutes. This is so that multiple containers can stagger their downloads
@@ -679,32 +684,32 @@
 
  - Change: Bugfix. Convert HEIC to JPEG function would only run if download notifications were enabled.
 
-2020-11-11
+11/11/2020
 
  - Change: Additional changes required for Pushover notifications.
 
-2020-11-10
+10/11/2020
 
  - Change: Added Pushover notifications
  - Change: Failsafe file mount checking changed slightly regarding logging
  - Change: Added variable for the --until-found option as must have missed this on the 20201024 update.
  - Removed: Checking downloaded files list against files stored on the server is no longer required. Issue has been fixed upstream.
 
-2020-04-11
+11/04/2020
 
  - Change: Bugfix on healthcheck not detecting non-zero exit code.
 
-2020-11-01
+01/11/2020
 
  - Removed: Multi-thread capability has been removed from upstream so removed capability to specify number of threads
  - Removed: Speed test capability. Was put in to test speed differences between mutli-thread and single-thread download options. No longer possible due to previous change.
  - Change: Bugfix. Convert HEIC to JPEG function - missed a bit.
 
-2020-10-30
+30/10/2020
 
  - Change: Bugfix. Convert HEIC to JPEG function failing to set correct timestamp.
 
-2020-10-29
+29/10/2020
 
  - Change: Remove pip cache folder /root/.cache during container build.
  - Removed: Recently files only doesn't work as expected. Removed.
@@ -713,27 +718,27 @@
  - Change: Default to downloading new files only by checking what files exist vs what needs downloading. This prevents it attempting to download all files upon every synchronisation.
  - Change: Typo for Synchronisation Interval variable. This change will break users configurations that set the old variable name, so default to 24hr sync period for these users.
 
-2020-10-27
+27/10/2020
 
  - Change: Silence warning about depreceated command_line_options varaible if it's actually blank to begin with.
  - Change: Remove Python package Future. This is for Python 2 to Python 3 compatibility, however, upstream application now fully Python 3 compatible.
  - Change: Python keyring and keyrings.alt no longer version restricted. Upstream application is now compatible with newer Python versions than before so these older packages no longer need to be installed.
 
-2020-10-27
+27/10/2020
 
  - Change: Bugfix relating to Prowl & Pushbullet notifications.
 
-2020-10-24
+24/10/2020
 
  - Change: Added new variables: set_exif_datetime, auto_delete, photo_size, skip_live_photos, live_photo_size & skip_videos. Eventually command_line_options variable will be removed.
  - Change: Added a new "CommandLineBuilder" function to create the command line options list to be passed to the download command.
 
-2020-10-22
+22/10/2020
 
  - Change: Added a speed test mode which ignores the requirement for a mounted filesystem. It limits the download to last 500 files.
  - Change: Multi-threaded mode can now be enabled by setting the multi_thread variable. This will set the thread count to the number of available processors, multipled by five. If the variable is not configured, it will default to single threaded node. Please note: Multithreaded mode has known issues withe files that have duplicate file names. Use with caution.
 
-2020-10-12
+12/10/2020
 
  - Change: Lowered 60 second delay for warning about password not being stored in keyring to 15 seconds as 60's a bit long.
  - Change: Removed the check for files that have been downloaded already, as new icloudpd version uses photo fingerprinting to allow downloading of different pictures with identical names.
@@ -743,77 +748,77 @@
  - Change: Noted that folder structure can now be set to 'none' to download to flat file structure.
  - Remove: diff file that applies the patch to skip incorrectly named files. Pull request has now been merged.
 
-2020-09-09
+09/09/2020
 
  - Change: Undersocres now being used in cookie file name. Amended to reflect change.
 
-2020-09-05
+05/09/2020
 
  - Change: Made the webhook path configurable.
 
-2020-08-25
+25/08/2020
 
  - Change: Removed the Powershell script to build separate images for ARM architectures as I'm now producing a single multi-arch image without using Windows.
 
-2020-08-23
+23/08/2020
 
  - Change: Version is now date and time of last modification of the sync-icloud.sh script.
 
-2020-08-22
+22/08/2020
 
  - Change: Added force_gid variable so that user can be added to system groups to maintain consistency with host OS.
  - Change: Rewrote the functions to create the user/group as it would fails if a system reseved group id is chosen.
 
-2020-08-15
+15/08/2020
 
  - Change: Amended the interactive terminal check to see if /dev/stdin is a pipe. Odd issue seen on some systems.
 
-2020-08-08
+08/08/2020
 
  - Change: Updated READ.ME.
 
-2020-08-07
+07/08/2020
 
  - Change: Updated READ.ME.
  - Change: Apply diff patch to fix album naming issue raised here: https://github.com/ndbroadbent/icloud_photos_downloader/issues/150.
 
-2020-08-06
+06/08/2020
 
  - Change: Removed manual versioning in Dockerfile in favour of MD5 script hash. Means I don't need to track version numbers, or remember to increment them, but latest version can be confirmed quite easily from the log.
  - Change: Added owner change to /config dir at start of ConfigurePassword function so password is successfully stored first time around.
 
-2020-08-03
+03/08/2020
 
  - Change: Converted docker-compose.yml file to be 3.8 compatible. Removed networking configuration.
 
-2020-08-03
+03/08/2020
 
  - Change: When using keyring it was claiming plaintext password was in use and vice versa.
  - Change: Added a version number in Dockerfile to display when script first starts up.
 
-2020-08-02
+02/08/2020
 
  - Change: Found that the --directory option is required. I wasn't including it when doing the 2FA authentication cookie generation which lead to an error.
 
-2020-06-08
+08/06/2020
 
  - Change: Rebased to Alpine 3.12.
  - Change: Display IP Address in log.
 
-2020-05-28
+28/05/2020
 
  - Alpha change: Changed Webhook notification messages.
  - Alpha change: Forgot to add webhook_id to the check which validates that the API keys have been set.
 
-2020-05-27
+27/05/2020
 
  - Alpha change: Webhook host_ip_address variable changed to webhook_server. Added webhook_port so a non-default port can be added.
 
-2020-05-26
+26/05/2020
 
  - Alpha: Webhook notifications implemented for Home Assistant. Based on Telegram notifications, but implemented without testing. Using them will probably break things as I'm unsure as to the format of the webhook payload.
 
-2020-05-19
+19/05/2020
 
  - Change: Prefixed some of the files stored in /tmp/icloudpd with icloudpd_, just for consistency. Plus it's easier to remove them all with `rm icloudpd*` instead of multiple arguments to rm.
  - New: Keyring password saving. Previously, the Apple ID user's password could be seen in the Docker logs, the variables (docker inspect) and disturbingly, if any user did `ps -ef | grep password", it would be seen in the command line of any running connection to iCloud. Script now heavily pushes users towards saving credentials into the secure encrypted keyring.
@@ -823,11 +828,11 @@
  - Change: Telegram notification success/failure messages now confirm message type (startup, download, delete, failure).
  - Change: Cookie checking function would hang system without error if 2FA cookie does not exist.
 
-2020-05-18
+18/05/2020
 
  - Change: Container now saves the Apple ID password to a file located in the /config volume. Once this has been done, the apple_password variable not longer needs to be passed to the container and should be removed.
 
-2020-05-17
+17/05/2020
 
  - Change: Moved some of the logging commands so they triggered in more appropriate places.
  - Change: File download check error notification incorrectly labelled as a startup notification.
@@ -835,57 +840,57 @@
  - Change: Amended the failsafe error message so that the name and path of the file it is looking for is visible. Makes it easier for people to spot the capitalisation in iCloud.
  - Change: File check exit code grabbing logic was flawed. Was actually grabbing the exit code of su, which was always 0.
 
-2020-05-14
+14/05/2020
 
  - Change: Previous change didn't work. This actually fixes the issue that the list of files is no longer growing. However, it's only highlighted a different issue. A number of files are exhibiting weird behaviour. 5 files are being listed as downloaded, but only 3 filenames are unique. These files are then also being listed as having been deleted from the system. They are all stil in my photostream on iCloud.com and not in recently deleted. Coincidentally, they all start with camphoto_ but that may not be indicitive of anything.
 
-2020-05-08
+08/05/2020
 
  - Change: My list of downloaded/deleted files seemed to be getting longer without me actively using my phone's camera. Guessing some variable isn't being cleared, so have localised a fair few variables to the functions they run in.
 
-2020-04-30
+30/04/2020
 
  - Change: Added $debug_logging variable, which outputs errors to the screen instead of hiding them.
 
-2020-04-13
+13/04/2020
 
  - Remove: Removed PR 132. PR 132 was based off PR 110, which was raised in 2018. Neither had been merged. Obviously, after I spent an hour or so chainging my Dockerfile to incorporate the patch, it was merged upstream!
 
-2020-04-12
+12/04/2020
 
  - New: Added PR 132: "Multi-threaded downloads and caching" from https://github.com/ndbroadbent/icloud_photos_downloader/pull/132.
  - New: Added quotes to variables to prevent globbing in download check and photo download functions.
 
-2020-03-13
+13/03/2020
 
  - New: Added interactive_only variable. Some hosts only run containers interactively (looking at you Synology) and this means the script gets stuck attempting to create a 2FA cookie every time. Setting interactive_only will force the script to bypass the cookie generation function and sync files instead.
 
-2020-03-13
+13/03/2020
 
  - New: Log now displays OS version.
 
-2020-03-09
+09/03/2020
 
  - Removal: Removed feature to delete JPG file if the HEIC has been removed. Floored logic in that all files exist in a single location, which doesn't match their original location. Also, JPG files received by WhatsApp would be removed as would JPG files saved from Safari. Can't work in practice.
  - New: Script now has a command line parameter that can be run from an interactive session. --ConvertAllHEICs will scan all HEIC files and convert them to JPG, provided the JPG doesn't exist already.
  - Change: Convert HEIC to JPEG not working correctly.
 
-2020-02-17
+17/02/2020
 
  - Change: Running the sync client with "--only-print-filenames" actually creates folders too. File check now run as user account instead of root to avoid ownership issues.
 
-2020-02-11
+11/02/2020
 
  - Change: Fancy Telegram notifications caused the underscore characters in the file previews to be displayed in italics. Should be correctly escaped now.
 
-2020-02-09
+09/02/2020
 
  - Change: Odd issue where owner on config directoy changed to root. Added chown at start of sync to fix this, and also to Owner/Permissions setting function.
  - New: Fancy pants Telegram notifications with emojis.
  - Removal: Telegram URL Encoding function. Now sending markdown text and UTF-8 for special characters.
  - Change: Renamed $syncronisation_interval variable to $synchronisation_interval.
 
-2020-01-23
+23/01/2020
 
  - Update: Now based on Alpine Linux 3.11.
  - New: Apple ID displayed on push notifications.
@@ -898,7 +903,7 @@
  - Change: Code changes for readability and simplicity.
  - New: Added example docker-compose.yaml.
 
-2020-01-18
+18/01/2020
 
  - Change: Variable name changes for readability and naming accuracy.
  - New: Pre-download check for new files so a download run will only occur if new files exist.
