@@ -1,7 +1,11 @@
+01/06/2024
+
+ - Change: Bumped to v1.19.0
+
 28/05/2024
 
  - Change: Bumped to v1.18.0
- 
+
 26/05/2024
 
  - Change: Just removed some obsolete stuff from the dockerfile
