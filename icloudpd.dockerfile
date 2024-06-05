@@ -4,7 +4,7 @@ MAINTAINER boredazfcuk
 ENV config_dir="/config" XDG_DATA_HOME="/config" TZ="UTC" ENV="/etc/profile"
 
 ARG icloudpd_version="1.19.0"
-ARG app_dependencies="findutils nano nano-syntax py3-pip exiftool coreutils tzdata curl imagemagick shadow jq libheif jpeg bind-tools expect inotify-tools"
+ARG app_dependencies="findutils nano nano-syntax py3-pip exiftool coreutils tzdata curl imagemagick shadow jq libheif jpeg bind-tools expect inotify-tools msmtp"
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** Build started for boredazfcuk's docker-icloudpd *****" && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install requirements" && \

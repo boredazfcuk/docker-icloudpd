@@ -298,7 +298,7 @@ CleanNotificationTitle(){
 }
 
 ConfigureNotifications(){
-   if [ -z "${prowl_api_key}" -a -z "${pushover_token}" -a -z "${telegram_token}" -a -z "${webhook_id}" -a -z "${dingtalk_token}" -a -z "${discord_token}" -a -z "${iyuu_token}" -a -z "${wecom_secret}" -a -z "${gotify_app_token}" -a -z "${bark_device_key}" ]; then
+   if [ -z "${prowl_api_key}" -a -z "${pushover_token}" -a -z "${telegram_token}" -a -z "${webhook_id}" -a -z "${dingtalk_token}" -a -z "${discord_token}" -a -z "${iyuu_token}" -a -z "${wecom_secret}" -a -z "${gotify_app_token}" -a -z "${bark_device_key}" -a -z "${msmtp_pass}" ]; then
       LogWarning "${notification_type} notifications enabled, but API key/token/secret not set - disabling notifications"
       unset notification_type
    else
@@ -488,6 +488,8 @@ ConfigureNotifications(){
             LogInfo "${notification_type} server: ${bark_server}"
          fi
          notification_url="http://${bark_server}/push"
+      elif [ "${notification_type}" = "msmtp" -a "${msmtp_host}" -a "${msmtp_port}" -a "${msmtp_user}" -a "${msmtp_pass}" ]; then
+         LogInfo "${notification_type} notifications enabled"
       else
          LogWarning "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
          unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_scheme gotify_server_url bark_device_key bark_server
@@ -1731,8 +1733,17 @@ Notify(){
          -H 'Content-Type: application/json; charset=utf-8' \
          -d "{ \"device_key\": \"${bark_device_key}\", \"title\": \"${notification_title}\", \"body\": \"${bark_text}\", \"category\": \"category\" }")"
       curl_exit_code="$?"
+   elif [ "${notification_type}" = "msmtp" ]; then
+      if [ "${notification_files_preview_count}" ]; then
+	      notification_files_preview_text="$(echo "${notification_files_preview_text}" | tr '\n' ',')"
+         mail_text="$(echo -e "${notification_icon} ${notification_message} Most recent ${notification_files_preview_count} ${notification_files_preview_type} files: ${notification_files_preview_text}")"
+      else
+         mail_text="$(echo -e "${notification_icon} ${notification_message}")"
+      fi
+      printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --user=$msmtp_user --passwordeval="echo -n $msmtp_pass" --from=$msmtp_from --auth=on --tls=$msmtp_tls "$msmtp_args" -- "$msmtp_to"
    fi
-   if [ "${notification_type}" ]; then
+   echo notification_type $notification_type
+   if [ "${notification_type}" != "msmtp" ]; then
       if [ "${notification_result:0:1}" -eq 2 ]; then
          LogDebug "${notification_type} ${notification_classification} notification sent successfully"
       else
