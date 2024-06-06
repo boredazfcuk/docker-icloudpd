@@ -109,7 +109,7 @@ When the container is first started, it will write a default configuration file 
 
 ## NOTIFICATION CONFIGURATION VARIABLES
 
-**notification_type**: This specifies the method that is used to send notifications. These are the options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **openhab**, **Dingtalk**, **Discord**, **IYUU**, **WeCom**, **Gotify** and **Bark**. When the multifactor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
+**notification_type**: This specifies the method that is used to send notifications. These are the options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **openhab**, **Dingtalk**, **Discord**, **IYUU**, **WeCom**, **Gotify**, **Bark**, **msmtp**. When the multifactor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
 
 **notification_title**: This allows you to change the title which is sent on the notifications. This variable will default to **boredazfcuk/iCloudPD**.
 
@@ -186,6 +186,20 @@ When the container is first started, it will write a default configuration file 
 
 **bark_server**: Mandatory if notification_type set to 'Bark'. This is the name of your Bark server. Please note that the port should not be included and currently the project only supports http.
 If you use the official Bark server, please fill the field with `api.day.app`.
+
+**msmtp_host**: Mandatory if notification_type set to `msmtp`. The domain of your smtp server
+
+**msmtp_port**: Mandatory if notification_type set to `msmtp`. The port of the smtp service. Normally 465 or 587
+
+**msmtp_tls**: Mandatory if notification_type set to `msmtp`. Set to `on` or `off` to enable or disable TLS encryption.
+
+**msmtp_from**: Mandatory if notification_type set to `msmtp`. The sender's email address
+
+**msmtp_user**: Mandatory if notification_type set to `msmtp`. The login username for your SMTP provider.
+
+**msmtp_pass**: Mandatory if notification_type set to `msmtp`. The password for the login user
+
+**msmtp_args**: Optional extra arguments for `msmtp` in case your mail provider has specific requirements. For example, `--tls-starttls=off`.
 
 ## VOLUME CONFIGURATION
 
