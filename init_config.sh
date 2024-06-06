@@ -77,6 +77,14 @@ config_file="${config_dir}/icloudpd.conf"
     if [ "$(grep -c "wecom_id=" "${config_file}")" -eq 0 ]; then echo wecom_id="${wecom_id}"; fi
     if [ "$(grep -c "wecom_proxy=" "${config_file}")" -eq 0 ]; then echo wecom_proxy="${wecom_proxy}"; fi
     if [ "$(grep -c "wecom_secret=" "${config_file}")" -eq 0 ]; then echo wecom_secret="${wecom_secret}"; fi
+    if [ "$(grep -c "msmtp_host=" "${config_file}")" -eq 0 ]; then echo msmtp_host="${msmtp_host}"; fi
+    if [ "$(grep -c "msmtp_port=" "${config_file}")" -eq 0 ]; then echo msmtp_port="${msmtp_port}"; fi
+    if [ "$(grep -c "msmtp_user=" "${config_file}")" -eq 0 ]; then echo msmtp_user="${msmtp_user}"; fi
+    if [ "$(grep -c "msmtp_from=" "${config_file}")" -eq 0 ]; then echo msmtp_from="${msmtp_from}"; fi
+    if [ "$(grep -c "msmtp_pass=" "${config_file}")" -eq 0 ]; then echo msmtp_pass="${msmtp_pass}"; fi
+    if [ "$(grep -c "msmtp_tls=" "${config_file}")" -eq 0 ]; then echo msmtp_tls="${msmtp_tls:=on}"; fi
+    if [ "$(grep -c "msmtp_to=" "${config_file}")" -eq 0 ]; then echo msmtp_to="${msmtp_to}"; fi
+    if [ "$(grep -c "msmtp_args=" "${config_file}")" -eq 0 ]; then echo msmtp_args="${msmtp_args:=--tls-starttls=off}"; fi
     if [ "$(grep -c "agentid=" "${config_file}")" -eq 0 ]; then echo agentid="${agentid}"; fi
     if [ "$(grep -c "touser=" "${config_file}")" -eq 0 ]; then echo touser="${touser}"; fi
     if [ "$(grep -c "content_source_url=" "${config_file}")" -eq 0 ]; then echo content_source_url="${content_source_url}"; fi
@@ -165,6 +173,14 @@ if [ "${webhook_server}" ]; then sed -i "s%^webhook_server=.*%webhook_server=${w
 if [ "${wecom_id}" ]; then sed -i "s%^wecom_id=.*%wecom_id=${wecom_id}%" "${config_file}"; fi
 if [ "${wecom_proxy}" ]; then sed -i "s%^wecom_proxy=.*%wecom_proxy=${wecom_proxy}%" "${config_file}"; fi
 if [ "${wecom_secret}" ]; then sed -i "s%^wecom_secret=.*%wecom_secret=${wecom_secret}%" "${config_file}"; fi
+if [ "${msmtp_host}" ]; then sed -i "s%^msmtp_host=.*%msmtp_host=${msmtp_host}%" "${config_file}"; fi
+if [ "${msmtp_port}" ]; then sed -i "s%^msmtp_port=.*%msmtp_port=${msmtp_port}%" "${config_file}"; fi
+if [ "${msmtp_user}" ]; then sed -i "s%^msmtp_user=.*%msmtp_user=${msmtp_user}%" "${config_file}"; fi
+if [ "${msmtp_from}" ]; then sed -i "s%^msmtp_from=.*%msmtp_from=${msmtp_from}%" "${config_file}"; fi
+if [ "${msmtp_pass}" ]; then sed -i "s%^msmtp_pass=.*%msmtp_pass=${msmtp_pass}%" "${config_file}"; fi
+if [ "${msmtp_to}" ]; then sed -i "s%^msmtp_to=.*%msmtp_to=${msmtp_to}%" "${config_file}"; fi
+if [ "${msmtp_tls}" ]; then sed -i "s%^msmtp_tls=.*%msmtp_tls=${msmtp_tls}%" "${config_file}"; fi
+if [ "${msmtp_args}" ]; then sed -i "s%^msmtp_args=.*%msmtp_args=${msmtp_args}%" "${config_file}"; fi
 if [ "${agentid}" ]; then sed -i "s%^agentid=.*%agentid=${agentid}%" "${config_file}"; fi
 if [ "${touser}" ]; then sed -i "s%^touser=.*%touser=${touser}%" "${config_file}"; fi
 if [ "${content_source_url}" ]; then sed -i "s%^content_source_url=.*%content_source_url=${content_source_url}%" "${config_file}"; fi
