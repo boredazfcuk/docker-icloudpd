@@ -1742,7 +1742,6 @@ Notify(){
       fi
       printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --user=$msmtp_user --passwordeval="echo -n $msmtp_pass" --from=$msmtp_from --auth=on --tls=$msmtp_tls "$msmtp_args" -- "$msmtp_to"
    fi
-   echo notification_type $notification_type
    if [ "${notification_type}" != "msmtp" ]; then
       if [ "${notification_result:0:1}" -eq 2 ]; then
          LogDebug "${notification_type} ${notification_classification} notification sent successfully"
