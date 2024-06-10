@@ -1,6 +1,7 @@
 10/06/2024
 
  - Change: Fixed bug introduced by SMTP notifcation
+ - Change: Fixed bug in config file initilisation script
 
 06/06/2024
 
