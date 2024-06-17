@@ -3,100 +3,105 @@
 config_file="${config_dir}/icloudpd.conf"
 
 {
-    if [ "$(grep -c "albums_with_dates=" "${config_file}")" -eq 0 ]; then echo albums_with_dates="${albums_with_dates:=false}"; fi
-    if [ "$(grep -c "apple_id=" "${config_file}")" -eq 0 ]; then echo apple_id="${apple_id}"; fi
-    if [ "$(grep -c "authentication_type=" "${config_file}")" -eq 0 ]; then echo authentication_type="${authentication_type:=MFA}"; fi
-    if [ "$(grep -c "auth_china=" "${config_file}")" -eq 0 ]; then echo auth_china="${auth_china:=false}"; fi
-    if [ "$(grep -c "auto_delete=" "${config_file}")" -eq 0 ]; then echo auto_delete="${auto_delete:=false}"; fi
-    if [ "$(grep -c "bark_device_key=" "${config_file}")" -eq 0 ]; then echo bark_device_key="${bark_device_key}"; fi
-    if [ "$(grep -c "bark_server=" "${config_file}")" -eq 0 ]; then echo bark_server="${bark_server}"; fi
-    if [ "$(grep -c "convert_heic_to_jpeg=" "${config_file}")" -eq 0 ]; then echo convert_heic_to_jpeg="${convert_heic_to_jpeg:=false}"; fi
-    if [ "$(grep -c "debug_logging=" "${config_file}")" -eq 0 ]; then echo debug_logging="${debug_logging:=false}"; fi
-    if [ "$(grep -c "delete_accompanying=" "${config_file}")" -eq 0 ]; then echo delete_accompanying="${delete_accompanying:=false}"; fi
-    if [ "$(grep -c "delete_after_download=" "${config_file}")" -eq 0 ]; then echo delete_after_download="${delete_after_download:=false}"; fi
-    if [ "$(grep -c "delete_notifications=" "${config_file}")" -eq 0 ]; then echo delete_notifications="${delete_notifications:=true}"; fi
-    if [ "$(grep -c "dingtalk_token=" "${config_file}")" -eq 0 ]; then echo dingtalk_token="${dingtalk_token}"; fi
-    if [ "$(grep -c "directory_permissions=" "${config_file}")" -eq 0 ]; then echo directory_permissions="${directory_permissions:=750}"; fi
-    if [ "$(grep -c "discord_id=" "${config_file}")" -eq 0 ]; then echo discord_id="${discord_id}"; fi
-    if [ "$(grep -c "discord_token=" "${config_file}")" -eq 0 ]; then echo discord_token="${discord_token}"; fi
-    if [ "$(grep -c "download_notifications=" "${config_file}")" -eq 0 ]; then echo download_notifications="${download_notifications:=true}"; fi
-    if [ "$(grep -c "download_path=" "${config_file}")" -eq 0 ]; then echo download_path="${download_path}"; fi
-    if [ "$(grep -c "file_permissions=" "${config_file}")" -eq 0 ]; then echo file_permissions="${file_permissions:=640}"; fi
-    if [ "$(grep -c "folder_structure=" "${config_file}")" -eq 0 ]; then echo folder_structure="${folder_structure:={:%Y/%m/%d\}}"; fi
-    if [ "$(grep -c "gotify_app_token=" "${config_file}")" -eq 0 ]; then echo gotify_app_token="${gotify_app_token}"; fi
-    if [ "$(grep -c "gotify_https=" "${config_file}")" -eq 0 ]; then echo gotify_https="${gotify_https}"; fi
-    if [ "$(grep -c "gotify_server_url=" "${config_file}")" -eq 0 ]; then echo gotify_server_url="${gotify_server_url}"; fi
-    if [ "$(grep -c "group=" "${config_file}")" -eq 0 ]; then echo group="${group:=group}"; fi
-    if [ "$(grep -c "group_id=" "${config_file}")" -eq 0 ]; then echo group_id="${group_id:=1000}"; fi
-    if [ "$(grep -c "icloud_china=" "${config_file}")" -eq 0 ]; then echo icloud_china="${icloud_china}"; fi
-    if [ "$(grep -c "iyuu_token=" "${config_file}")" -eq 0 ]; then echo iyuu_token="${iyuu_token}"; fi
-    if [ "$(grep -c "jpeg_path=" "${config_file}")" -eq 0 ]; then echo jpeg_path="${jpeg_path}"; fi
-    if [ "$(grep -c "jpeg_quality=" "${config_file}")" -eq 0 ]; then echo jpeg_quality="${jpeg_quality:=90}"; fi
-    if [ "$(grep -c "libraries_with_dates=" "${config_file}")" -eq 0 ]; then echo libraries_with_dates="${libraries_with_dates:=false}"; fi
-    if [ "$(grep -c "nextcloud_delete=" "${config_file}")" -eq 0 ]; then echo nextcloud_delete="${nextcloud_delete:=false}"; fi
-    if [ "$(grep -c "nextcloud_upload=" "${config_file}")" -eq 0 ]; then echo nextcloud_upload="${nextcloud_upload:=false}"; fi
-    if [ "$(grep -c "nextcloud_url=" "${config_file}")" -eq 0 ]; then echo nextcloud_url="${nextcloud_url}"; fi
-    if [ "$(grep -c "nextcloud_username=" "${config_file}")" -eq 0 ]; then echo nextcloud_username="${nextcloud_username}"; fi
-    if [ "$(grep -c "nextcloud_password=" "${config_file}")" -eq 0 ]; then echo nextcloud_password="${nextcloud_password}"; fi
-    if [ "$(grep -c "notification_days=" "${config_file}")" -eq 0 ]; then echo notification_days="${notification_days:=7}"; fi
-    if [ "$(grep -c "notification_type=" "${config_file}")" -eq 0 ]; then echo notification_type="${notification_type}"; fi
-    if [ "$(grep -c "photo_album=" "${config_file}")" -eq 0 ]; then echo photo_album="${photo_album}"; fi
-    if [ "$(grep -c "photo_library=" "${config_file}")" -eq 0 ]; then echo photo_library="${photo_library}"; fi
-    if [ "$(grep -c "photo_size=" "${config_file}")" -eq 0 ]; then echo photo_size="${photo_size:=original}"; fi
-    if [ "$(grep -c "prowl_api_key=" "${config_file}")" -eq 0 ]; then echo prowl_api_key="${prowl_api_key}"; fi
-    if [ "$(grep -c "pushover_sound=" "${config_file}")" -eq 0 ]; then echo pushover_sound="${pushover_sound}"; fi
-    if [ "$(grep -c "pushover_token=" "${config_file}")" -eq 0 ]; then echo pushover_token="${pushover_token}"; fi
-    if [ "$(grep -c "pushover_user=" "${config_file}")" -eq 0 ]; then echo pushover_user="${pushover_user}"; fi
-    if [ "$(grep -c "recent_only=" "${config_file}")" -eq 0 ]; then echo recent_only="${recent_only}"; fi
-    if [ "$(grep -c "set_exif_datetime=" "${config_file}")" -eq 0 ]; then echo set_exif_datetime="${set_exif_datetime:=false}"; fi
-    if [ "$(grep -c "skip_album=" "${config_file}")" -eq 0 ]; then echo skip_album="${skip_album}"; fi
-    if [ "$(grep -c "skip_library=" "${config_file}")" -eq 0 ]; then echo skip_library="${skip_library}"; fi
-    if [ "$(grep -c "single_pass=" "${config_file}")" -eq 0 ]; then echo single_pass="${single_pass:=false}"; fi
-    if [ "$(grep -c "skip_check=" "${config_file}")" -eq 0 ]; then echo skip_check="${skip_check:=false}"; fi
-    if [ "$(grep -c "skip_download=" "${config_file}")" -eq 0 ]; then echo skip_download="${skip_download:=false}"; fi
-    if [ "$(grep -c "skip_live_photos=" "${config_file}")" -eq 0 ]; then echo skip_live_photos="${skip_live_photos:=false}"; fi
-    if [ "$(grep -c "skip_videos=" "${config_file}")" -eq 0 ]; then echo skip_videos="${skip_videos:=false}"; fi
-    if [ "$(grep -c "startup_notification=" "${config_file}")" -eq 0 ]; then echo startup_notification="${startup_notification:=true}"; fi
-    if [ "$(grep -c "synchronisation_delay=" "${config_file}")" -eq 0 ]; then echo synchronisation_delay="${synchronisation_delay:=0}"; fi
-    if [ "$(grep -c "synchronisation_interval=" "${config_file}")" -eq 0 ]; then echo synchronisation_interval="${synchronisation_interval:=86400}"; fi
-    if [ "$(grep -c "synology_ignore_path=" "${config_file}")" -eq 0 ]; then echo synology_ignore_path="${synology_ignore_path:=false}"; fi     
-    if [ "$(grep -c "telegram_chat_id=" "${config_file}")" -eq 0 ]; then echo telegram_chat_id="${telegram_chat_id}"; fi
-    if [ "$(grep -c "telegram_polling=" "${config_file}")" -eq 0 ]; then echo telegram_polling="${telegram_polling:=true}"; fi
-    if [ "$(grep -c "telegram_server=" "${config_file}")" -eq 0 ]; then echo telegram_server="${telegram_server}"; fi
-    if [ "$(grep -c "telegram_silent_file_notifications=" "${config_file}")" -eq 0 ]; then echo telegram_silent_file_notifications="${telegram_silent_file_notifications}"; fi
-    if [ "$(grep -c "telegram_token=" "${config_file}")" -eq 0 ]; then echo telegram_token="${telegram_token}"; fi
-    if [ "$(grep -c "trigger_nextlcoudcli_synchronisation=" "${config_file}")" -eq 0 ]; then echo trigger_nextlcoudcli_synchronisation="${trigger_nextlcoudcli_synchronisation}"; fi
-    if [ "$(grep -c "until_found=" "${config_file}")" -eq 0 ]; then echo until_found="${until_found}"; fi
+    if [ "$(grep -c "^albums_with_dates=" "${config_file}")" -eq 0 ]; then echo albums_with_dates="${albums_with_dates:=false}"; fi
+    if [ "$(grep -c "^align_raw=" "${config_file}")" -eq 0 ]; then echo align_raw="${align_raw:=as-is}"; fi
+    if [ "$(grep -c "^apple_id=" "${config_file}")" -eq 0 ]; then echo apple_id="${apple_id}"; fi
+    if [ "$(grep -c "^authentication_type=" "${config_file}")" -eq 0 ]; then echo authentication_type="${authentication_type:=MFA}"; fi
+    if [ "$(grep -c "^auth_china=" "${config_file}")" -eq 0 ]; then echo auth_china="${auth_china:=false}"; fi
+    if [ "$(grep -c "^auto_delete=" "${config_file}")" -eq 0 ]; then echo auto_delete="${auto_delete:=false}"; fi
+    if [ "$(grep -c "^bark_device_key=" "${config_file}")" -eq 0 ]; then echo bark_device_key="${bark_device_key}"; fi
+    if [ "$(grep -c "^bark_server=" "${config_file}")" -eq 0 ]; then echo bark_server="${bark_server}"; fi
+    if [ "$(grep -c "^convert_heic_to_jpeg=" "${config_file}")" -eq 0 ]; then echo convert_heic_to_jpeg="${convert_heic_to_jpeg:=false}"; fi
+    if [ "$(grep -c "^debug_logging=" "${config_file}")" -eq 0 ]; then echo debug_logging="${debug_logging:=false}"; fi
+    if [ "$(grep -c "^delete_accompanying=" "${config_file}")" -eq 0 ]; then echo delete_accompanying="${delete_accompanying:=false}"; fi
+    if [ "$(grep -c "^delete_after_download=" "${config_file}")" -eq 0 ]; then echo delete_after_download="${delete_after_download:=false}"; fi
+    if [ "$(grep -c "^delete_notifications=" "${config_file}")" -eq 0 ]; then echo delete_notifications="${delete_notifications:=true}"; fi
+    if [ "$(grep -c "^dingtalk_token=" "${config_file}")" -eq 0 ]; then echo dingtalk_token="${dingtalk_token}"; fi
+    if [ "$(grep -c "^directory_permissions=" "${config_file}")" -eq 0 ]; then echo directory_permissions="${directory_permissions:=750}"; fi
+    if [ "$(grep -c "^discord_id=" "${config_file}")" -eq 0 ]; then echo discord_id="${discord_id}"; fi
+    if [ "$(grep -c "^discord_token=" "${config_file}")" -eq 0 ]; then echo discord_token="${discord_token}"; fi
+    if [ "$(grep -c "^download_notifications=" "${config_file}")" -eq 0 ]; then echo download_notifications="${download_notifications:=true}"; fi
+    if [ "$(grep -c "^download_path=" "${config_file}")" -eq 0 ]; then echo download_path="${download_path}"; fi
+    if [ "$(grep -c "^file_match_policy=" "${config_file}")" -eq 0 ]; then echo file_match_policy="${file_match_policy:=name-size-dedup-with-suffix}"; fi
+    if [ "$(grep -c "^file_permissions=" "${config_file}")" -eq 0 ]; then echo file_permissions="${file_permissions:=640}"; fi
+    if [ "$(grep -c "^folder_structure=" "${config_file}")" -eq 0 ]; then echo folder_structure="${folder_structure:={:%Y/%m/%d\}}"; fi
+    if [ "$(grep -c "^gotify_app_token=" "${config_file}")" -eq 0 ]; then echo gotify_app_token="${gotify_app_token}"; fi
+    if [ "$(grep -c "^gotify_https=" "${config_file}")" -eq 0 ]; then echo gotify_https="${gotify_https}"; fi
+    if [ "$(grep -c "^gotify_server_url=" "${config_file}")" -eq 0 ]; then echo gotify_server_url="${gotify_server_url}"; fi
+    if [ "$(grep -c "^group=" "${config_file}")" -eq 0 ]; then echo group="${group:=group}"; fi
+    if [ "$(grep -c "^group_id=" "${config_file}")" -eq 0 ]; then echo group_id="${group_id:=1000}"; fi
+    if [ "$(grep -c "^icloud_china=" "${config_file}")" -eq 0 ]; then echo icloud_china="${icloud_china}"; fi
+    if [ "$(grep -c "^iyuu_token=" "${config_file}")" -eq 0 ]; then echo iyuu_token="${iyuu_token}"; fi
+    if [ "$(grep -c "^jpeg_path=" "${config_file}")" -eq 0 ]; then echo jpeg_path="${jpeg_path}"; fi
+    if [ "$(grep -c "^jpeg_quality=" "${config_file}")" -eq 0 ]; then echo jpeg_quality="${jpeg_quality:=90}"; fi
+    if [ "$(grep -c "^keep_unicode=" "${config_file}")" -eq 0 ]; then echo keep_unicode="${keep_unicode:=false}"; fi
+    if [ "$(grep -c "^libraries_with_dates=" "${config_file}")" -eq 0 ]; then echo libraries_with_dates="${libraries_with_dates:=false}"; fi
+    if [ "$(grep -c "^live_photo_mov_filename_policy=" "${config_file}")" -eq 0 ]; then echo live_photo_mov_filename_policy="${live_photo_mov_filename_policy:=suffix}"; fi
+    if [ "$(grep -c "^nextcloud_delete=" "${config_file}")" -eq 0 ]; then echo nextcloud_delete="${nextcloud_delete:=false}"; fi
+    if [ "$(grep -c "^nextcloud_upload=" "${config_file}")" -eq 0 ]; then echo nextcloud_upload="${nextcloud_upload:=false}"; fi
+    if [ "$(grep -c "^nextcloud_url=" "${config_file}")" -eq 0 ]; then echo nextcloud_url="${nextcloud_url}"; fi
+    if [ "$(grep -c "^nextcloud_username=" "${config_file}")" -eq 0 ]; then echo nextcloud_username="${nextcloud_username}"; fi
+    if [ "$(grep -c "^nextcloud_password=" "${config_file}")" -eq 0 ]; then echo nextcloud_password="${nextcloud_password}"; fi
+    if [ "$(grep -c "^notification_days=" "${config_file}")" -eq 0 ]; then echo notification_days="${notification_days:=7}"; fi
+    if [ "$(grep -c "^notification_type=" "${config_file}")" -eq 0 ]; then echo notification_type="${notification_type}"; fi
+    if [ "$(grep -c "^photo_album=" "${config_file}")" -eq 0 ]; then echo photo_album="${photo_album}"; fi
+    if [ "$(grep -c "^photo_library=" "${config_file}")" -eq 0 ]; then echo photo_library="${photo_library}"; fi
+    if [ "$(grep -c "^photo_size=" "${config_file}")" -eq 0 ]; then echo photo_size="${photo_size:=original}"; fi
+    if [ "$(grep -c "^prowl_api_key=" "${config_file}")" -eq 0 ]; then echo prowl_api_key="${prowl_api_key}"; fi
+    if [ "$(grep -c "^pushover_sound=" "${config_file}")" -eq 0 ]; then echo pushover_sound="${pushover_sound}"; fi
+    if [ "$(grep -c "^pushover_token=" "${config_file}")" -eq 0 ]; then echo pushover_token="${pushover_token}"; fi
+    if [ "$(grep -c "^pushover_user=" "${config_file}")" -eq 0 ]; then echo pushover_user="${pushover_user}"; fi
+    if [ "$(grep -c "^recent_only=" "${config_file}")" -eq 0 ]; then echo recent_only="${recent_only}"; fi
+    if [ "$(grep -c "^set_exif_datetime=" "${config_file}")" -eq 0 ]; then echo set_exif_datetime="${set_exif_datetime:=false}"; fi
+    if [ "$(grep -c "^skip_album=" "${config_file}")" -eq 0 ]; then echo skip_album="${skip_album}"; fi
+    if [ "$(grep -c "^skip_library=" "${config_file}")" -eq 0 ]; then echo skip_library="${skip_library}"; fi
+    if [ "$(grep -c "^single_pass=" "${config_file}")" -eq 0 ]; then echo single_pass="${single_pass:=false}"; fi
+    if [ "$(grep -c "^skip_check=" "${config_file}")" -eq 0 ]; then echo skip_check="${skip_check:=false}"; fi
+    if [ "$(grep -c "^skip_download=" "${config_file}")" -eq 0 ]; then echo skip_download="${skip_download:=false}"; fi
+    if [ "$(grep -c "^skip_live_photos=" "${config_file}")" -eq 0 ]; then echo skip_live_photos="${skip_live_photos:=false}"; fi
+    if [ "$(grep -c "^skip_videos=" "${config_file}")" -eq 0 ]; then echo skip_videos="${skip_videos:=false}"; fi
+    if [ "$(grep -c "^startup_notification=" "${config_file}")" -eq 0 ]; then echo startup_notification="${startup_notification:=true}"; fi
+    if [ "$(grep -c "^synchronisation_delay=" "${config_file}")" -eq 0 ]; then echo synchronisation_delay="${synchronisation_delay:=0}"; fi
+    if [ "$(grep -c "^synchronisation_interval=" "${config_file}")" -eq 0 ]; then echo synchronisation_interval="${synchronisation_interval:=86400}"; fi
+    if [ "$(grep -c "^synology_ignore_path=" "${config_file}")" -eq 0 ]; then echo synology_ignore_path="${synology_ignore_path:=false}"; fi     
+    if [ "$(grep -c "^telegram_chat_id=" "${config_file}")" -eq 0 ]; then echo telegram_chat_id="${telegram_chat_id}"; fi
+    if [ "$(grep -c "^telegram_polling=" "${config_file}")" -eq 0 ]; then echo telegram_polling="${telegram_polling:=true}"; fi
+    if [ "$(grep -c "^telegram_server=" "${config_file}")" -eq 0 ]; then echo telegram_server="${telegram_server}"; fi
+    if [ "$(grep -c "^telegram_silent_file_notifications=" "${config_file}")" -eq 0 ]; then echo telegram_silent_file_notifications="${telegram_silent_file_notifications}"; fi
+    if [ "$(grep -c "^telegram_token=" "${config_file}")" -eq 0 ]; then echo telegram_token="${telegram_token}"; fi
+    if [ "$(grep -c "^trigger_nextlcoudcli_synchronisation=" "${config_file}")" -eq 0 ]; then echo trigger_nextlcoudcli_synchronisation="${trigger_nextlcoudcli_synchronisation}"; fi
+    if [ "$(grep -c "^until_found=" "${config_file}")" -eq 0 ]; then echo until_found="${until_found}"; fi
     if [ "$(grep -c "^user=" "${config_file}")" -eq 0 ]; then echo user="${user:=user}"; fi
-    if [ "$(grep -c "user_id=" "${config_file}")" -eq 0 ]; then echo user_id="${user_id:=1000}"; fi
-    if [ "$(grep -c "webhook_https=" "${config_file}")" -eq 0 ]; then echo webhook_https="${webhook_https:=false}"; fi
-    if [ "$(grep -c "webhook_id=" "${config_file}")" -eq 0 ]; then echo webhook_id="${webhook_id}"; fi
-    if [ "$(grep -c "webhook_path=" "${config_file}")" -eq 0 ]; then echo webhook_path="${webhook_path:=/api/webhook/}"; fi
-    if [ "$(grep -c "webhook_port=" "${config_file}")" -eq 0 ]; then echo webhook_port="${webhook_port:=8123}"; fi
-    if [ "$(grep -c "webhook_server=" "${config_file}")" -eq 0 ]; then echo webhook_server="${webhook_server}"; fi
-    if [ "$(grep -c "wecom_id=" "${config_file}")" -eq 0 ]; then echo wecom_id="${wecom_id}"; fi
-    if [ "$(grep -c "wecom_proxy=" "${config_file}")" -eq 0 ]; then echo wecom_proxy="${wecom_proxy}"; fi
-    if [ "$(grep -c "wecom_secret=" "${config_file}")" -eq 0 ]; then echo wecom_secret="${wecom_secret}"; fi
-    if [ "$(grep -c "msmtp_host=" "${config_file}")" -eq 0 ]; then echo msmtp_host="${msmtp_host}"; fi
-    if [ "$(grep -c "msmtp_port=" "${config_file}")" -eq 0 ]; then echo msmtp_port="${msmtp_port}"; fi
-    if [ "$(grep -c "msmtp_user=" "${config_file}")" -eq 0 ]; then echo msmtp_user="${msmtp_user}"; fi
-    if [ "$(grep -c "msmtp_from=" "${config_file}")" -eq 0 ]; then echo msmtp_from="${msmtp_from}"; fi
-    if [ "$(grep -c "msmtp_pass=" "${config_file}")" -eq 0 ]; then echo msmtp_pass="${msmtp_pass}"; fi
-    if [ "$(grep -c "msmtp_tls=" "${config_file}")" -eq 0 ]; then echo msmtp_tls="${msmtp_tls:=on}"; fi
-    if [ "$(grep -c "msmtp_to=" "${config_file}")" -eq 0 ]; then echo msmtp_to="${msmtp_to}"; fi
-    if [ "$(grep -c "msmtp_args=" "${config_file}")" -eq 0 ]; then echo msmtp_args="${msmtp_args:=--tls-starttls=off}"; fi
-    if [ "$(grep -c "agentid=" "${config_file}")" -eq 0 ]; then echo agentid="${agentid}"; fi
-    if [ "$(grep -c "touser=" "${config_file}")" -eq 0 ]; then echo touser="${touser}"; fi
+    if [ "$(grep -c "^user_id=" "${config_file}")" -eq 0 ]; then echo user_id="${user_id:=1000}"; fi
+    if [ "$(grep -c "^webhook_https=" "${config_file}")" -eq 0 ]; then echo webhook_https="${webhook_https:=false}"; fi
+    if [ "$(grep -c "^webhook_id=" "${config_file}")" -eq 0 ]; then echo webhook_id="${webhook_id}"; fi
+    if [ "$(grep -c "^webhook_path=" "${config_file}")" -eq 0 ]; then echo webhook_path="${webhook_path:=/api/webhook/}"; fi
+    if [ "$(grep -c "^webhook_port=" "${config_file}")" -eq 0 ]; then echo webhook_port="${webhook_port:=8123}"; fi
+    if [ "$(grep -c "^webhook_server=" "${config_file}")" -eq 0 ]; then echo webhook_server="${webhook_server}"; fi
+    if [ "$(grep -c "^wecom_id=" "${config_file}")" -eq 0 ]; then echo wecom_id="${wecom_id}"; fi
+    if [ "$(grep -c "^wecom_proxy=" "${config_file}")" -eq 0 ]; then echo wecom_proxy="${wecom_proxy}"; fi
+    if [ "$(grep -c "^wecom_secret=" "${config_file}")" -eq 0 ]; then echo wecom_secret="${wecom_secret}"; fi
+    if [ "$(grep -c "^msmtp_host=" "${config_file}")" -eq 0 ]; then echo msmtp_host="${msmtp_host}"; fi
+    if [ "$(grep -c "^msmtp_port=" "${config_file}")" -eq 0 ]; then echo msmtp_port="${msmtp_port}"; fi
+    if [ "$(grep -c "^msmtp_user=" "${config_file}")" -eq 0 ]; then echo msmtp_user="${msmtp_user}"; fi
+    if [ "$(grep -c "^msmtp_from=" "${config_file}")" -eq 0 ]; then echo msmtp_from="${msmtp_from}"; fi
+    if [ "$(grep -c "^msmtp_pass=" "${config_file}")" -eq 0 ]; then echo msmtp_pass="${msmtp_pass}"; fi
+    if [ "$(grep -c "^msmtp_tls=" "${config_file}")" -eq 0 ]; then echo msmtp_tls="${msmtp_tls:=on}"; fi
+    if [ "$(grep -c "^msmtp_to=" "${config_file}")" -eq 0 ]; then echo msmtp_to="${msmtp_to}"; fi
+    if [ "$(grep -c "^msmtp_args=" "${config_file}")" -eq 0 ]; then echo msmtp_args="${msmtp_args:=--tls-starttls=off}"; fi
+    if [ "$(grep -c "^agentid=" "${config_file}")" -eq 0 ]; then echo agentid="${agentid}"; fi
+    if [ "$(grep -c "^touser=" "${config_file}")" -eq 0 ]; then echo touser="${touser}"; fi
     if [ "$(grep -c "content_source_url=" "${config_file}")" -eq 0 ]; then echo content_source_url="${content_source_url}"; fi
-    if [ "$(grep -c "name=" "${config_file}")" -eq 0 ]; then echo name="${name}"; fi
-    if [ "$(grep -c "media_id_startup=" "${config_file}")" -eq 0 ]; then echo media_id_startup="${media_id_startup}"; fi
-    if [ "$(grep -c "media_id_download=" "${config_file}")" -eq 0 ]; then echo media_id_download="${media_id_download}"; fi
-    if [ "$(grep -c "media_id_delete=" "${config_file}")" -eq 0 ]; then echo media_id_delete="${media_id_delete}"; fi
-    if [ "$(grep -c "media_id_expiration=" "${config_file}")" -eq 0 ]; then echo media_id_expiration="${media_id_expiration}"; fi
-    if [ "$(grep -c "media_id_warning=" "${config_file}")" -eq 0 ]; then echo media_id_warning="${media_id_warning}"; fi
+    if [ "$(grep -c "^name=" "${config_file}")" -eq 0 ]; then echo name="${name}"; fi
+    if [ "$(grep -c "^media_id_startup=" "${config_file}")" -eq 0 ]; then echo media_id_startup="${media_id_startup}"; fi
+    if [ "$(grep -c "^media_id_download=" "${config_file}")" -eq 0 ]; then echo media_id_download="${media_id_download}"; fi
+    if [ "$(grep -c "^media_id_delete=" "${config_file}")" -eq 0 ]; then echo media_id_delete="${media_id_delete}"; fi
+    if [ "$(grep -c "^media_id_expiration=" "${config_file}")" -eq 0 ]; then echo media_id_expiration="${media_id_expiration}"; fi
+    if [ "$(grep -c "^media_id_warning=" "${config_file}")" -eq 0 ]; then echo media_id_warning="${media_id_warning}"; fi
 } >> "${config_file}"
 
 if [ "${albums_with_dates}" ]; then sed -i "s%^albums_with_dates=.*%albums_with_dates=${albums_with_dates}%" "${config_file}"; fi
+if [ "${align_raw}" ]; then sed -i "s%^align_raw=.*%align_raw=${align_raw}%" "${config_file}"; fi
 if [ "${apple_id}" ]; then sed -i "s%^apple_id=.*%apple_id=${apple_id}%" "${config_file}"; fi
 if [ "${authentication_type}" ]; then sed -i "s%^authentication_type=.*%authentication_type=${authentication_type}%" "${config_file}"; fi
 if [ "${auth_china}" ]; then sed -i "s%^auth_china=.*%auth_china=${auth_china}%" "${config_file}"; fi
@@ -114,6 +119,7 @@ if [ "${discord_id}" ]; then sed -i "s%^discord_id=.*%discord_id=${discord_id}%"
 if [ "${discord_token}" ]; then sed -i "s%^discord_token=.*%discord_token=${discord_token}%" "${config_file}"; fi
 if [ "${download_notifications}" ]; then sed -i "s%^download_notifications=.*%download_notifications=${download_notifications}%" "${config_file}"; fi
 if [ "${download_path}" ]; then sed -i "s%^download_path=.*%download_path=${download_path}%" "${config_file}"; fi
+if [ "${file_match_policy}" ]; then sed -i "s%^file_match_policy=.*%file_match_policy=${file_match_policy}%" "${config_file}"; fi
 if [ "${file_permissions}" ]; then sed -i "s%^file_permissions=.*%file_permissions=${file_permissions}%" "${config_file}"; fi
 if [ "${folder_structure}" ]; then
     sanitised_folder_structure="${folder_structure//\//\\/}"
@@ -128,7 +134,9 @@ if [ "${icloud_china}" ]; then sed -i "s%^icloud_china=.*%icloud_china=${icloud_
 if [ "${iyuu_token}" ]; then sed -i "s%^iyuu_token=.*%iyuu_token=${iyuu_token}%" "${config_file}"; fi
 if [ "${jpeg_path}" ]; then sed -i "s%^jpeg_path=.*%jpeg_path=${jpeg_path}%" "${config_file}"; fi
 if [ "${jpeg_quality}" ]; then sed -i "s%^jpeg_quality=.*%jpeg_quality=${jpeg_quality}%" "${config_file}"; fi
+if [ "${keep_unicode}" ]; then sed -i "s%^keep_unicode=.*%keep_unicode=${keep_unicode}%" "${config_file}"; fi
 if [ "${libraries_with_dates}" ]; then sed -i "s%^libraries_with_dates=.*%libraries_with_dates=${libraries_with_dates}%" "${config_file}"; fi
+if [ "${live_photo_mov_filename_policy}" ]; then sed -i "s%^live_photo_mov_filename_policy=.*%live_photo_mov_filename_policy=${live_photo_mov_filename_policy}%" "${config_file}"; fi
 if [ "${nextcloud_delete}" ]; then sed -i "s%^nextcloud_delete=.*%nextcloud_delete=${nextcloud_delete}%" "${config_file}"; fi
 if [ "${nextcloud_upload}" ]; then sed -i "s%^nextcloud_upload=.*%nextcloud_upload=${nextcloud_upload}%" "${config_file}"; fi
 if [ "${nextcloud_url}" ]; then sed -i "s%^nextcloud_url=.*%nextcloud_url=${nextcloud_url}%" "${config_file}"; fi

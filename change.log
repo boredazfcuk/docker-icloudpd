@@ -1,3 +1,15 @@
+17/06/2024
+
+ - Change: Bumped to v1.20.0
+ - Change: Amended init_config.sh so that it won't match two search results when searching for variables e.g. 'name=' previously matched 'name=' and 'nextcloud_username='
+ - Change: Amended the profile so that the path variable now includes the new location for icloudpd
+ - Change: Amended startup part of main script to get rid of default values in script. All these should now be set by the init script and pulled from the icldoupd.conf file
+ - Change: Implemented the --keep-unicode-in-filenames functionality
+ - Change: Implemented the --live-photo-mov-filename-policy functionality
+ - Change: Implemented the --file-match-policy functionality
+ - Change: Implemented the --align-raw functionality
+ - Change: Was counting lines of the download check with grep. Swapped to wc, just in case something iffy is happening with "grep -c ^"
+
 10/06/2024
 
  - Change: Fixed bug introduced by SMTP notifcation

@@ -68,7 +68,7 @@ Initialise(){
       unset user_id
       sleep 120
    fi
-   LogDebug "Local user: ${user:=user}:${user_id:=1000}"
+   LogDebug "Local user: ${user}:${user_id}"
    if [ "${group}" = "root" ]; then
       LogWarning "The local group for synchronisation cannot be root, resetting to 'group'"
       unset group
@@ -79,8 +79,8 @@ Initialise(){
       unset group_id force_gid
       sleep 120
    fi
-   LogDebug "Local group: ${group:=group}:${group_id:=1000}"
-   LogDebug "Force GID: ${force_gid:=false}"
+   LogDebug "Local group: ${group}:${group_id}"
+   LogDebug "Force GID: ${force_gid}"
    LogDebug "LAN IP Address: ${lan_ip}"
    LogDebug "Default gateway: $(ip route | grep default | awk '{print $3}')"
    LogDebug "DNS server: $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')"
@@ -107,18 +107,18 @@ Initialise(){
    else
       LogDebug "Route check to ${icloud_domain} successful"
    fi
-   if [ "${debug_logging:=false}" = true ]; then
+   if [ "${debug_logging}" = true ]; then
       LogDebug "Apple ID: (hidden)"
    else
       LogInfo "Apple ID: ${apple_id}"
    fi
-   LogInfo "Authentication Type: ${authentication_type:=MFA}"
+   LogInfo "Authentication Type: ${authentication_type}"
    if [ "${debug_logging}" = true ]; then
       LogDebug "Cookie path: ${config_dir}/(hidden)"
    else
       LogInfo "Cookie path: ${config_dir}/${cookie_file}"
    fi
-   LogInfo "Cookie expiry notification period: ${notification_days:=7}"
+   LogInfo "Cookie expiry notification period: ${notification_days}"
    LogInfo "Download destination directory: ${download_path:=/home/${user}/iCloud}"
    if [ ! -d "${download_path}" ]; then
       LogInfo "Download directory does not exist."
@@ -126,13 +126,16 @@ Initialise(){
       mkdir --parents "${download_path}"
       SetOwnerAndPermissionsDownloads
    fi
-   LogInfo "Folder structure: ${folder_structure:={:%Y/%m/%d\}}"
-   LogDebug "Directory permissions: ${directory_permissions:=750}"
-   LogDebug "File permissions: ${file_permissions:=640}"
+   LogInfo "Folder structure: ${folder_structure}"
+   LogDebug "Directory permissions: ${directory_permissions}"
+   LogDebug "File permissions: ${file_permissions}"
    if [ "${syncronisation_interval}" ]; then
       LogWarning "The syncronisation_interval variable contained a typo. This has now been corrected to synchronisation_interval. Please update your container. Defaulting to one sync per 24 hour period"
       synchronisation_interval="86400"
    fi
+   LogInfo "Keep Unicode: ${keep_unicode}"
+   LogInfo "Live Photo MOV Filename Policy: ${live_photo_mov_filename_policy}"
+   LogInfo "File Match Policy: ${file_match_policy}"
    LogInfo "Synchronisation interval: ${synchronisation_interval}"
    if [ "${synchronisation_interval}" -lt 43200 ]; then
       if [ "${warnings_acknowledged:=false}" = true ]; then
@@ -146,25 +149,26 @@ Initialise(){
       fi
    fi
    LogInfo "Synchronisation delay (minutes): ${synchronisation_delay}"
-   LogInfo "Set EXIF date/time: ${set_exif_datetime:=false}"
+   LogInfo "Set EXIF date/time: ${set_exif_datetime}"
    if [ "${set_exif_datetime}" = true ]; then
       LogWarning "This setting changes the files that are downloaded, so they will be downloaded a second time. Enabling this setting results in a lot of duplicate"
    fi
-   LogInfo "Auto delete: ${auto_delete:=false}"
-   LogInfo "Delete after download: ${delete_after_download:=false}"
+   LogInfo "Auto delete: ${auto_delete}"
+   LogInfo "Delete after download: ${delete_after_download}"
    if [ "${auto_delete}" != false -a "${delete_after_download}" != false ]; then
       LogError "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
       sleep 120
       exit 1
    fi
-   LogInfo "Photo size: ${photo_size:=original}"
-   LogInfo "Single pass mode: ${single_pass:=false}"
+   LogInfo "Photo size: ${photo_size}"
+   LogInfo "Align RAW: ${align_raw}"
+   LogInfo "Single pass mode: ${single_pass}"
    if [ "${single_pass}" = true ]; then
       LogDebug "Single pass mode enabled. Disabling download check"
       skip_check=true
    fi
-   LogInfo "Skip download check: ${skip_check:=false}"
-   LogInfo "Skip live photos: ${skip_live_photos:=false}"
+   LogInfo "Skip download check: ${skip_check}"
+   LogInfo "Skip live photos: ${skip_live_photos}"
    if [ "${recent_only}" ]; then
       LogInfo "Number of most recently added photos to download: ${recent_only}"
    else
@@ -182,18 +186,18 @@ Initialise(){
    else
       LogInfo "Stop downloading when prexisiting files count is: Download All Photos"
    fi
-   if [ "${skip_live_photos:=false}" = false ]; then
+   if [ "${skip_live_photos}" = false ]; then
       LogInfo "Live photo size: ${live_photo_size:=original}"
    fi
-   LogInfo "Skip videos: ${skip_videos:=false}"
-   LogInfo "Convert HEIC to JPEG: ${convert_heic_to_jpeg:=false}"
+   LogInfo "Skip videos: ${skip_videos}"
+   LogInfo "Convert HEIC to JPEG: ${convert_heic_to_jpeg}"
    if [ "${convert_heic_to_jpeg}" = true ]; then
-      LogDebug "JPEG conversion quality: ${jpeg_quality:=90}"
+      LogDebug "JPEG conversion quality: ${jpeg_quality}"
    fi
    if [ "${jpeg_path}" ]; then
       LogInfo "Converted JPEGs path: ${jpeg_path}"
    fi
-   if [ "${delete_accompanying:=false}" = true -a -z "${warnings_acknowledged}" ]; then
+   if [ "${delete_accompanying}" = true -a -z "${warnings_acknowledged}" ]; then
       LogInfo "Delete accompanying files (.JPG/.HEIC.MOV)"
       LogWarning "This feature deletes files from your local disk. Please use with caution. I am not responsible for any data loss."
       LogWarning "This feature cannot be used if the 'folder_structure' variable is set to 'none' and also, 'set_exif_datetime' must be 'False'"
@@ -209,7 +213,7 @@ Initialise(){
    fi
    LogInfo "Downloading from: ${icloud_domain}"
    if [ "${icloud_china}" = true ]; then
-      if [ "${auth_china:=false}" = true ]; then
+      if [ "${auth_china}" = true ]; then
          auth_domain="cn"
       else
          LogWarning "You have the icloud_china variable set, but auth_china is false. Are you sure this is correct?"
@@ -935,7 +939,7 @@ CheckFiles(){
       fi
    else
       LogInfo "Check successful"
-      check_files_count="$(grep -c ^ /tmp/icloudpd/icloudpd_check.log)"
+      check_files_count="$(wc --lines /tmp/icloudpd/icloudpd_check.log | awk '{print $1}')"
       if [ "${check_files_count}" -gt 0 ]; then
          LogInfo "New files detected: ${check_files_count}"
       else
@@ -1770,6 +1774,18 @@ CommandLineBuilder(){
    fi
    if [ "${set_exif_datetime}" != false ]; then
       command_line="${command_line} --set-exif-datetime"
+   fi
+   if [ "${keep_unicode}" != false ]; then
+      command_line="${command_line} --keep-unicode-in-filenames ${keep_unicode}"
+   fi
+   if [ "${live_photo_mov_filename_policy}" != "suffix" ]; then
+      command_line="${command_line} --live-photo-mov-filename-policy ${live_photo_mov_filename_policy}"
+   fi
+   if [ "${align_raw}" != "as-is" ]; then
+      command_line="${command_line} --align-raw ${align_raw}"
+   fi
+   if [ "${file_match_policy}" != "name-size-dedup-with-suffix" ]; then
+      command_line="${command_line} --file-match-policy ${file_match_policy}"
    fi
    if [ "${auto_delete}" != false ]; then
       command_line="${command_line} --auto-delete"
