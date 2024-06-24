@@ -160,6 +160,7 @@ Initialise(){
       sleep 120
       exit 1
    fi
+   LogInfo "Delete empty directories: ${delete_empty_directories}"
    LogInfo "Photo size: ${photo_size}"
    LogInfo "Align RAW: ${align_raw}"
    LogInfo "Single pass mode: ${single_pass}"
@@ -229,6 +230,7 @@ Initialise(){
       if [ "${nextcloud_url}" -a "${nextcloud_username}" -a "${nextcloud_password}" ]; then
          LogInfo "Nextcloud upload: Enabled"
          LogInfo "Nextcloud URL: ${nextcloud_url}"
+         LogInfo "Nextcloud Target Directory: ${nextcloud_target_dir}"
          LogInfo "Nextcloud username: ${nextcloud_username}"
       else
          LogError "Nextcloud upload: Missing mandatory variables. Disabling."
@@ -1199,6 +1201,8 @@ NextcloudUpload(){
          LogDebug "Full filename: ${full_filename}"
          base_filename="$(basename "${full_filename}")"
          LogDebug "Base filename: ${base_filename}"
+         encoded_filename="$(NextcloudEncodeURL "${base_filename}")"
+         LogDebug "Encoded filename: ${encoded_filename}"
          new_filename="$(echo "${full_filename}" | sed "s%${download_path%/}%%")"
          LogDebug "New filename: ${new_filename}"
          directory_name="$(echo "${new_filename}" | sed "s%${base_filename}%%")"
@@ -1208,10 +1212,10 @@ NextcloudUpload(){
          if [ ! -f "${full_filename}" ]; then
             LogWarning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
          else
-            nextcloud_file_path="$(NextcloudEncodeURL "${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}")"
-            LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
-            nextcloud_file_name="$(NextcloudEncodeURL "${full_filename}")"
-            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${nextcloud_file_name}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}")"
+#            nextcloud_file_path="$(NextcloudEncodeURL "${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}")"
+#            LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
+             LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
+             curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename}")"
             if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
                echo "Success"
             else
@@ -1219,10 +1223,10 @@ NextcloudUpload(){
                LogDebug "Encoded paths: ${nextcloud_file_name} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
             fi
             if [ -f "${full_filename%.HEIC}.JPG" ]; then
-               nextcloud_file_path="$(NextcloudEncodeURL "${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG")"
-               LogInfoN "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
-               nextcloud_file_name="$(NextcloudEncodeURL "${full_filename%.HEIC}.JPG")"
-               curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${nextcloud_file_name}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}")"
+#               nextcloud_file_path="$(NextcloudEncodeURL "${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}")"
+#               LogInfoN "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
+               LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
+               curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename%.HEIC}.JPG")"
                if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
                   echo "Success"
                else
@@ -1421,6 +1425,8 @@ UploadLibraryToNextcloud(){
       LogDebug "Full filename: ${full_filename}"
       base_filename="$(basename "${full_filename}")"
       LogDebug "Base filename: ${base_filename}"
+      encoded_filename="$(NextcloudEncodeURL "${base_filename}")"
+      LogDebug "Encoded filename: ${encoded_filename}"
       new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%")"
       LogDebug "New filename: ${new_filename}"
       directory_name="$(echo "${new_filename}" | sed "s%${base_filename}%%")"
@@ -1431,7 +1437,7 @@ UploadLibraryToNextcloud(){
          LogWarning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
       else
          LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
-         curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}")"
+         curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename}")"
          if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
             echo "Success: ${curl_response}"
          else
@@ -1439,7 +1445,7 @@ UploadLibraryToNextcloud(){
          fi
          if [ -f "${full_filename%.HEIC}.JPG" ]; then
             LogInfoN "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
-            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename%.HEIC}.JPG" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG")"
+            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename%.HEIC}.JPG" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename%.HEIC}.JPG")"
             if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
                echo "Success: ${curl_response}"
             else

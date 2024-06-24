@@ -1,3 +1,13 @@
+24/06/2024
+
+ - Change: Think I fixed an issue where files with spaces in the name won't upload to Nextcloud
+
+23/06/2024
+
+ - Change: Not uploading to Nextcloud if the filename has a space in it. Made amendments to see if I can work out why. Seems that spaces are not being changed to %20. Made some logging changes to to check
+ - Change: Found and fixed the Nextcloud upload issue
+ - Change: Just found that the function which deletes empty directories wasn't actually implemented correctly. Noe fixed.
+
 17/06/2024
 
  - Change: Bumped to v1.20.0

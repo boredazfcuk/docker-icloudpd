@@ -2,6 +2,12 @@
 
 config_file="${config_dir}/icloudpd.conf"
 
+if test -w "${config_file}" = 1; then
+    echo "Cannot write to ${config_file} - Please correct your permissions"
+    sleep 120
+    exit 1
+fi
+
 {
     if [ "$(grep -c "^albums_with_dates=" "${config_file}")" -eq 0 ]; then echo albums_with_dates="${albums_with_dates:=false}"; fi
     if [ "$(grep -c "^align_raw=" "${config_file}")" -eq 0 ]; then echo align_raw="${align_raw:=as-is}"; fi
@@ -15,6 +21,7 @@ config_file="${config_dir}/icloudpd.conf"
     if [ "$(grep -c "^debug_logging=" "${config_file}")" -eq 0 ]; then echo debug_logging="${debug_logging:=false}"; fi
     if [ "$(grep -c "^delete_accompanying=" "${config_file}")" -eq 0 ]; then echo delete_accompanying="${delete_accompanying:=false}"; fi
     if [ "$(grep -c "^delete_after_download=" "${config_file}")" -eq 0 ]; then echo delete_after_download="${delete_after_download:=false}"; fi
+    if [ "$(grep -c "^delete_empty_directories=" "${config_file}")" -eq 0 ]; then echo delete_empty_directories="${delete_empty_directories:=false}"; fi
     if [ "$(grep -c "^delete_notifications=" "${config_file}")" -eq 0 ]; then echo delete_notifications="${delete_notifications:=true}"; fi
     if [ "$(grep -c "^dingtalk_token=" "${config_file}")" -eq 0 ]; then echo dingtalk_token="${dingtalk_token}"; fi
     if [ "$(grep -c "^directory_permissions=" "${config_file}")" -eq 0 ]; then echo directory_permissions="${directory_permissions:=750}"; fi
@@ -112,6 +119,7 @@ if [ "${convert_heic_to_jpeg}" ]; then sed -i "s%^convert_heic_to_jpeg=.*%conver
 if [ "${debug_logging}" ]; then sed -i "s%^debug_logging=.*%debug_logging=${debug_logging}%" "${config_file}"; fi
 if [ "${delete_accompanying}" ]; then sed -i "s%^delete_accompanying=.*%delete_accompanying=${delete_accompanying}%" "${config_file}"; fi
 if [ "${delete_after_download}" ]; then sed -i "s%^delete_after_download=.*%delete_after_download=${delete_after_download}%" "${config_file}"; fi
+if [ "${delete_empty_directories}" ]; then sed -i "s%^delete_empty_directories=.*%delete_empty_directories=${delete_empty_directories}%" "${config_file}"; fi
 if [ "${delete_notifications}" ]; then sed -i "s%^delete_notifications=.*%delete_notifications=${delete_notifications}%" "${config_file}"; fi
 if [ "${dingtalk_token}" ]; then sed -i "s%^dingtalk_token=.*%dingtalk_token=${dingtalk_token}%" "${config_file}"; fi
 if [ "${directory_permissions}" ]; then sed -i "s%^directory_permissions=.*%directory_permissions=${directory_permissions}%" "${config_file}"; fi
