@@ -1,6 +1,10 @@
+29/06/2024
+
+ - Change: Bumped to v1.20.3
+
 24/06/2024
 
- - Change: Think I fixed an issue where files with spaces in the name won't upload to Nextcloud
+ - Change: Think I fixed an issue where files with spaces in the name won't upload to Nextcloud... edit: yeah, pretty much sorted it
 
 23/06/2024
 
