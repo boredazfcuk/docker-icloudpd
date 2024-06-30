@@ -33,6 +33,7 @@ fi
     if [ "$(grep -c "^file_match_policy=" "${config_file}")" -eq 0 ]; then echo file_match_policy="${file_match_policy:=name-size-dedup-with-suffix}"; fi
     if [ "$(grep -c "^file_permissions=" "${config_file}")" -eq 0 ]; then echo file_permissions="${file_permissions:=640}"; fi
     if [ "$(grep -c "^folder_structure=" "${config_file}")" -eq 0 ]; then echo folder_structure="${folder_structure:={:%Y/%m/%d\}}"; fi
+    if [ "$(grep -c "^force_gid=" "${config_file}")" -eq 0 ]; then echo force_gid="${force_gid:=false}"; fi
     if [ "$(grep -c "^gotify_app_token=" "${config_file}")" -eq 0 ]; then echo gotify_app_token="${gotify_app_token}"; fi
     if [ "$(grep -c "^gotify_https=" "${config_file}")" -eq 0 ]; then echo gotify_https="${gotify_https}"; fi
     if [ "$(grep -c "^gotify_server_url=" "${config_file}")" -eq 0 ]; then echo gotify_server_url="${gotify_server_url}"; fi
@@ -125,6 +126,7 @@ if [ -z "$(grep "^download_notifications=" "${config_file}" | awk -F= '{print $2
 if [ -z "$(grep "^file_match_policy=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^file_match_policy=$%file_match_policy=name-size-dedup-with-suffix%" "${config_file}"; fi
 if [ -z "$(grep "^file_permissions=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^file_permissions=$%file_permissions=640%" "${config_file}"; fi
 if [ -z "$(grep "^folder_structure=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^folder_structure=$%folder_structure={:\%Y/\%m/\%d\}%" "${config_file}"; fi
+if [ -z "$(grep "^force_gid=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^force_gid=$%force_gid=false%" "${config_file}"; fi
 if [ -z "$(grep "^group=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^group=$%group=group%" "${config_file}"; fi
 if [ -z "$(grep "^group_id=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^group_id=$%group_id=group%" "${config_file}"; fi
 if [ -z "$(grep "^icloud_china=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^icloud_china=$%icloud_china=false%" "${config_file}"; fi
@@ -181,6 +183,7 @@ if [ "${folder_structure}" ]; then
     sanitised_folder_structure="${folder_structure//\//\\/}"
     sed -i "s@^folder_structure=.*@folder_structure=${sanitised_folder_structure}@" "${config_file}"
 fi
+if [ "${force_gid}" ]; then sed -i "s%^force_gid=.*%force_gid=${force_gid}%" "${config_file}"; fi
 if [ "${gotify_app_token}" ]; then sed -i "s%^gotify_app_token=.*%gotify_app_token=${gotify_app_token}%" "${config_file}"; fi
 if [ "${gotify_https}" ]; then sed -i "s%^gotify_https=.*%gotify_https=${gotify_https}%" "${config_file}"; fi
 if [ "${gotify_server_url}" ]; then sed -i "s%^gotify_server_url=.*%gotify_server_url=${gotify_server_url}%" "${config_file}"; fi
