@@ -221,11 +221,6 @@ Initialise(){
       fi
    fi
    LogInfo "Authentication domain: ${auth_domain:=com}"
-   if [ "${trigger_nextlcoudcli_synchronisation}" ]; then
-      LogDebug "Nextcloud synchronisation trigger: Enabled"
-   else
-      LogDebug "Nextcloud synchronisation trigger: Disabled"
-   fi
    if [ "${nextcloud_upload}" = true ]; then
       if [ "${nextcloud_url}" -a "${nextcloud_username}" -a "${nextcloud_password}" ]; then
          LogInfo "Nextcloud upload: Enabled"

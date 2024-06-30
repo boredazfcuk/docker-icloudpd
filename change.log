@@ -3,6 +3,7 @@
  - Change: Added a bunch of stuff to set defaults for empty variables in icloudpd.conf
  - Change: Added force_gid to config file as it was missing
  - Change: Added live_photo_size too
+ - Change: Removed some code relating to the old NextcloudCLI container 
 
 29/06/2024
 
