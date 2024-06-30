@@ -2,6 +2,7 @@
 
  - Change: Added a bunch of stuff to set defaults for empty variables in icloudpd.conf
  - Change: Added force_gid to config file as it was missing
+ - Change: Added live_photo_size too
 
 29/06/2024
 

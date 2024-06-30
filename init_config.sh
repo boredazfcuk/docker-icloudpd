@@ -46,6 +46,7 @@ fi
     if [ "$(grep -c "^keep_unicode=" "${config_file}")" -eq 0 ]; then echo keep_unicode="${keep_unicode:=false}"; fi
     if [ "$(grep -c "^libraries_with_dates=" "${config_file}")" -eq 0 ]; then echo libraries_with_dates="${libraries_with_dates:=false}"; fi
     if [ "$(grep -c "^live_photo_mov_filename_policy=" "${config_file}")" -eq 0 ]; then echo live_photo_mov_filename_policy="${live_photo_mov_filename_policy:=suffix}"; fi
+    if [ "$(grep -c "^live_photo_size=" "${config_file}")" -eq 0 ]; then echo live_photo_size="${live_photo_size:=original}"; fi
     if [ "$(grep -c "^nextcloud_delete=" "${config_file}")" -eq 0 ]; then echo nextcloud_delete="${nextcloud_delete:=false}"; fi
     if [ "$(grep -c "^nextcloud_upload=" "${config_file}")" -eq 0 ]; then echo nextcloud_upload="${nextcloud_upload:=false}"; fi
     if [ "$(grep -c "^nextcloud_url=" "${config_file}")" -eq 0 ]; then echo nextcloud_url="${nextcloud_url}"; fi
@@ -134,6 +135,7 @@ if [ -z "$(grep "^jpeg_quality=" "${config_file}" | awk -F= '{print $2}')" ]; th
 if [ -z "$(grep "^keep_unicode=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^keep_unicode=$%keep_unicode=false%" "${config_file}"; fi
 if [ -z "$(grep "^libraries_with_dates=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^libraries_with_dates=$%libraries_with_dates=false%" "${config_file}"; fi
 if [ -z "$(grep "^live_photo_mov_filename_policy=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^live_photo_mov_filename_policy=$%live_photo_mov_filename_policy=suffix%" "${config_file}"; fi
+if [ -z "$(grep "^live_photo_size=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^live_photo_size=$%live_photo_size=original%" "${config_file}"; fi
 if [ -z "$(grep "^nextcloud_delete=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^nextcloud_delete=$%nextcloud_delete=false%" "${config_file}"; fi
 if [ -z "$(grep "^nextcloud_upload=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^nextcloud_upload=$%nextcloud_upload=false%" "${config_file}"; fi
 if [ -z "$(grep "^notification_days=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^notification_days=$%notification_days=7%" "${config_file}"; fi
@@ -196,6 +198,7 @@ if [ "${jpeg_quality}" ]; then sed -i "s%^jpeg_quality=.*%jpeg_quality=${jpeg_qu
 if [ "${keep_unicode}" ]; then sed -i "s%^keep_unicode=.*%keep_unicode=${keep_unicode}%" "${config_file}"; fi
 if [ "${libraries_with_dates}" ]; then sed -i "s%^libraries_with_dates=.*%libraries_with_dates=${libraries_with_dates}%" "${config_file}"; fi
 if [ "${live_photo_mov_filename_policy}" ]; then sed -i "s%^live_photo_mov_filename_policy=.*%live_photo_mov_filename_policy=${live_photo_mov_filename_policy}%" "${config_file}"; fi
+if [ "${live_photo_size}" ]; then sed -i "s%^live_photo_size=.*%live_photo_size=${live_photo_size}%" "${config_file}"; fi
 if [ "${nextcloud_delete}" ]; then sed -i "s%^nextcloud_delete=.*%nextcloud_delete=${nextcloud_delete}%" "${config_file}"; fi
 if [ "${nextcloud_upload}" ]; then sed -i "s%^nextcloud_upload=.*%nextcloud_upload=${nextcloud_upload}%" "${config_file}"; fi
 if [ "${nextcloud_url}" ]; then sed -i "s%^nextcloud_url=.*%nextcloud_url=${nextcloud_url}%" "${config_file}"; fi
