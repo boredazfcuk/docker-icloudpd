@@ -2,12 +2,13 @@
 
 config_file="${config_dir}/icloudpd.conf"
 
-if test -w "${config_file}" = 1; then
+if ! test -w "${config_file}"; then
     echo "Cannot write to ${config_file} - Please correct your permissions"
-    sleep 120
+    sleep 600
     exit 1
 fi
 
+# Add missing options and set their default value
 {
     if [ "$(grep -c "^albums_with_dates=" "${config_file}")" -eq 0 ]; then echo albums_with_dates="${albums_with_dates:=false}"; fi
     if [ "$(grep -c "^align_raw=" "${config_file}")" -eq 0 ]; then echo align_raw="${align_raw:=as-is}"; fi
@@ -37,7 +38,7 @@ fi
     if [ "$(grep -c "^gotify_server_url=" "${config_file}")" -eq 0 ]; then echo gotify_server_url="${gotify_server_url}"; fi
     if [ "$(grep -c "^group=" "${config_file}")" -eq 0 ]; then echo group="${group:=group}"; fi
     if [ "$(grep -c "^group_id=" "${config_file}")" -eq 0 ]; then echo group_id="${group_id:=1000}"; fi
-    if [ "$(grep -c "^icloud_china=" "${config_file}")" -eq 0 ]; then echo icloud_china="${icloud_china}"; fi
+    if [ "$(grep -c "^icloud_china=" "${config_file}")" -eq 0 ]; then echo icloud_china="${icloud_china:=false}"; fi
     if [ "$(grep -c "^iyuu_token=" "${config_file}")" -eq 0 ]; then echo iyuu_token="${iyuu_token}"; fi
     if [ "$(grep -c "^jpeg_path=" "${config_file}")" -eq 0 ]; then echo jpeg_path="${jpeg_path}"; fi
     if [ "$(grep -c "^jpeg_quality=" "${config_file}")" -eq 0 ]; then echo jpeg_quality="${jpeg_quality:=90}"; fi
@@ -107,6 +108,53 @@ fi
     if [ "$(grep -c "^media_id_warning=" "${config_file}")" -eq 0 ]; then echo media_id_warning="${media_id_warning}"; fi
 } >> "${config_file}"
 
+# Set default values if missing from config file
+if [ -z "$(grep "^authentication_type=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^authentication_type=$%authentication_type=MFA" "${config_file}"; fi
+if [ -z "$(grep "^auth_china=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^auth_china=$%auth_china=false%" "${config_file}"; fi
+if [ -z "$(grep "^auto_delete=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^auto_delete=$%auto_delete=false%" "${config_file}"; fi
+if [ -z "$(grep "^albums_with_dates=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^albums_with_dates=$%albums_with_dates=false%" "${config_file}"; fi
+if [ -z "$(grep "^align_raw=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^align_raw=$%align_raw=as-is%" "${config_file}"; fi
+if [ -z "$(grep "^convert_heic_to_jpeg=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^convert_heic_to_jpeg=$%convert_heic_to_jpeg=false%" "${config_file}"; fi
+if [ -z "$(grep "^debug_logging=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^debug_logging=$%debug_logging=AAAAA%" "${config_file}"; fi
+if [ -z "$(grep "^delete_accompanying=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^delete_accompanying=$%delete_accompanying=false%" "${config_file}"; fi
+if [ -z "$(grep "^delete_after_download=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^delete_after_download=$%delete_after_download=false%" "${config_file}"; fi
+if [ -z "$(grep "^delete_empty_directories=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^delete_empty_directories=$%delete_empty_directories=false%" "${config_file}"; fi
+if [ -z "$(grep "^delete_notifications=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^delete_notifications=$%delete_notifications=true%" "${config_file}"; fi
+if [ -z "$(grep "^directory_permissions=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^directory_permissions=$%directory_permissions=750%" "${config_file}"; fi
+if [ -z "$(grep "^download_notifications=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^download_notifications=$%download_notifications=true%" "${config_file}"; fi
+if [ -z "$(grep "^file_match_policy=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^file_match_policy=$%file_match_policy=name-size-dedup-with-suffix%" "${config_file}"; fi
+if [ -z "$(grep "^file_permissions=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^file_permissions=$%file_permissions=640%" "${config_file}"; fi
+if [ -z "$(grep "^folder_structure=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^folder_structure=$%folder_structure={:\%Y/\%m/\%d\}%" "${config_file}"; fi
+if [ -z "$(grep "^group=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^group=$%group=group%" "${config_file}"; fi
+if [ -z "$(grep "^group_id=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^group_id=$%group_id=group%" "${config_file}"; fi
+if [ -z "$(grep "^icloud_china=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^icloud_china=$%icloud_china=false%" "${config_file}"; fi
+if [ -z "$(grep "^jpeg_quality=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^jpeg_quality=$%jpeg_quality=90%" "${config_file}"; fi
+if [ -z "$(grep "^keep_unicode=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^keep_unicode=$%keep_unicode=false%" "${config_file}"; fi
+if [ -z "$(grep "^libraries_with_dates=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^libraries_with_dates=$%libraries_with_dates=false%" "${config_file}"; fi
+if [ -z "$(grep "^live_photo_mov_filename_policy=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^live_photo_mov_filename_policy=$%live_photo_mov_filename_policy=suffix%" "${config_file}"; fi
+if [ -z "$(grep "^nextcloud_delete=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^nextcloud_delete=$%nextcloud_delete=false%" "${config_file}"; fi
+if [ -z "$(grep "^nextcloud_upload=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^nextcloud_upload=$%nextcloud_upload=false%" "${config_file}"; fi
+if [ -z "$(grep "^notification_days=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^notification_days=$%notification_days=7%" "${config_file}"; fi
+if [ -z "$(grep "^photo_size=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^photo_size=$%photo_size=original%" "${config_file}"; fi
+if [ -z "$(grep "^set_exif_datetime=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^set_exif_datetime=$%set_exif_datetime=false%" "${config_file}"; fi
+if [ -z "$(grep "^single_pass=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^single_pass=$%single_pass=false%" "${config_file}"; fi
+if [ -z "$(grep "^skip_check=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^skip_check=$%skip_check=false%" "${config_file}"; fi
+if [ -z "$(grep "^skip_download=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^skip_download=$%skip_download=false%" "${config_file}"; fi
+if [ -z "$(grep "^skip_live_photos=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^skip_live_photos=$%skip_live_photos=false%" "${config_file}"; fi
+if [ -z "$(grep "^skip_videos=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^skip_videos=$%skip_videos=false%" "${config_file}"; fi
+if [ -z "$(grep "^startup_notification=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^startup_notification=$%startup_notification=true%" "${config_file}"; fi
+if [ -z "$(grep "^synchronisation_delay=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^synchronisation_delay=$%synchronisation_delay=0%" "${config_file}"; fi
+if [ -z "$(grep "^synchronisation_interval=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^synchronisation_interval=$%synchronisation_interval=86400%" "${config_file}"; fi
+if [ -z "$(grep "^synology_ignore_path=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^synology_ignore_path=$%synology_ignore_path=false%" "${config_file}"; fi
+if [ -z "$(grep "^user=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^user=$%user=user%" "${config_file}"; fi
+if [ -z "$(grep "^user_id=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^user_id=$%user_id=1000%" "${config_file}"; fi
+if [ -z "$(grep "^webhook_https=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^webhook_https=$%webhook_https=false%" "${config_file}"; fi
+if [ -z "$(grep "^webhook_path=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^webhook_path=$%webhook_path=/api/webhook/%" "${config_file}"; fi
+if [ -z "$(grep "^webhook_port=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^webhook_port=$%webhook_port=8123%" "${config_file}"; fi
+if [ -z "$(grep "^msmtp_tls=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^msmtp_tls=$%msmtp_tls=on%" "${config_file}"; fi
+if [ -z "$(grep "^msmtp_args=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^msmtp_args=$%msmtp_args=--tls-starttls=off%" "${config_file}"; fi
+
+# Update configuration file with currently set Docker environment variables
 if [ "${albums_with_dates}" ]; then sed -i "s%^albums_with_dates=.*%albums_with_dates=${albums_with_dates}%" "${config_file}"; fi
 if [ "${align_raw}" ]; then sed -i "s%^align_raw=.*%align_raw=${align_raw}%" "${config_file}"; fi
 if [ "${apple_id}" ]; then sed -i "s%^apple_id=.*%apple_id=${apple_id}%" "${config_file}"; fi
