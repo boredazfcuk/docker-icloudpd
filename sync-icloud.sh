@@ -17,10 +17,10 @@ Initialise(){
       LogError " - Check for updates failed. Continuing in 2 minutes..."
       sleep 120
    elif [ "${current_version}" -lt "${latest_version}" ]; then
-      LogInfo " - Current version ${current_version} is out of date. Please upgrade to latest version. Continuing in 2 minutes..."
+      LogInfo " - Current version (v${current_version}) is out of date. Please upgrade to latest version (v${latest_version}). Continuing in 2 minutes..."
       sleep 120
    elif [ "${current_version}" -gt "${latest_version}" ]; then
-      LogInfo " - Current version ${current_version} is newer than latest build. Good luck!"
+      LogInfo " - Current version (v${current_version}) is newer than latest build (v${latest_version}). Good luck!"
    elif [ "${current_version}" -eq "${latest_version}" ]; then
       LogInfo " - Current version is up to date."
    else
