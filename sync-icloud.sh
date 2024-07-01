@@ -11,6 +11,11 @@ Initialise(){
    LogInfo "icloud-photos-downloader version: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
 
    config_file="${config_dir}/icloudpd.conf"
+   if [ ! -f "${config_file}" ]; then
+      LogError "Failed to create configuration file: ${config_file} - Cannot continue, exiting."
+      sleep 600
+      exit 1
+   fi
    LogInfo "Loading configuration from: ${config_file}"
    source "${config_file}"
    save_ifs="${IFS}"
@@ -244,7 +249,8 @@ Initialise(){
    fi
 
    source /opt/icloudpd/bin/activate
-   LogDebug "Activated Python virtual environment for icloudpd: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
+   LogDebug "Activated Python virtual environment for icloudpd"
+   LogInfo "Container initialisation complete"
 }
 
 LogInfo(){
@@ -573,12 +579,9 @@ ListLibraries(){
       CheckWebCookie
    fi
    IFS=$'\n'
-   # source /opt/icloudpd/bin/activate
-   # LogDebug "Switched to icloudpd: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
    if [ "${skip_download}" = false ]; then
       shared_libraries="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
    fi
-   # deactivate
    LogInfo "Shared libraries:"
    for library in ${shared_libraries}; do
       LogInfo " - ${library}"
@@ -594,12 +597,9 @@ ListAlbums(){
       CheckWebCookie
    fi
    IFS=$'\n'
-   # source /opt/icloudpd/bin/activate
-   # LogDebug "Switched to icloudpd: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
    if [ "${skip_download}" = false ]; then
       photo_albums="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
    fi
-   # deactivate
    LogInfo "Photo albums:"
    for photo_album in ${photo_albums}; do
       LogInfo " - ${photo_album}"
@@ -623,7 +623,6 @@ DeletePassword(){
 
 ConfigurePassword(){
    LogDebug "Configure password"
-   local icloudpd_path
    if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
       if [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
          LogDebug "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing"
@@ -633,16 +632,7 @@ ConfigurePassword(){
    if [ ! -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
          LogDebug "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
-         # if [ "${icloud_china}" = true ]; then
-            # source /opt/icloudpd_v1.7.2_china/bin/activate
-            # icloudpd_path="/opt/icloudpd_v1.7.2_china/bin"
-         # else
-            # source /opt/icloudpd/bin/activate
-            icloudpd_path="/opt/icloudpd/bin"
-         # fi
-         # LogDebug "Switched to icloudpd: $(${icloudpd_path}/icloudpd --version | awk '{print $3}')"
-         run_as "${icloudpd_path}/icloud --username ${apple_id} --domain ${auth_domain}"
-         # deactivate
+         run_as "/opt/icloudpd/bin/icloud --username ${apple_id} --domain ${auth_domain}"
       else
          LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
          LogError " - Please add the your password to the system keyring using the --Initialise script command line option"
@@ -672,7 +662,6 @@ ConfigurePassword(){
 }
 
 GenerateCookie(){
-   local icloudpd_path
    LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
    find "${config_dir}" ! -user "${user}" -exec chown "${user_id}" {} +
    LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
@@ -680,17 +669,12 @@ GenerateCookie(){
    if [ -f "${config_dir}/${cookie_file}" ]; then
       mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
    fi
+   if [ -f "${config_dir}/${cookie_file}.session" ]; then
+      mv "${config_dir}/${cookie_file}.session" "${config_dir}/${cookie_file}session.bak"
+   fi
    LogDebug "Generate ${authentication_type} cookie using password stored in keyring file"
-   # if [ "${icloud_china}" = true ]; then
-      # source /opt/icloudpd_v1.7.2_china/bin/activate
-      # icloudpd_path="/opt/icloudpd_v1.7.2_china/bin"
-   # else
-      # source /opt/icloudpd/bin/activate
-      icloudpd_path="/opt/icloudpd/bin"
-   # fi
-   # LogDebug "Switched to icloudpd: $("${icloudpd_path}/icloudpd" --version | awk '{print $3}')"
-   run_as "${icloudpd_path}/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --directory /dev/null --only-print-filenames --recent 0 --domain ${auth_domain}"
-   # deactivate
+#  run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --directory /dev/null --only-print-filenames --recent 0 --domain ${auth_domain}"
+   run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --auth-only --domain ${auth_domain}"
    if [ "${authentication_type}" = "MFA" ]; then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
          LogInfo "Multifactor authentication cookie generated. Sync should now be successful"
@@ -911,11 +895,8 @@ CheckFiles(){
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
    LogDebug "Launch command: /opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory ${config_dir} --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames"
    >/tmp/icloudpd/icloudpd_check_error
-   # source /opt/icloudpd/bin/activate
-   # LogDebug "Switched to icloudpd: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
    run_as "(/opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory ${config_dir} --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log"
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
-   # deactivate
    if [ "${check_exit_code}" -ne 0 ] || [ -s /tmp/icloudpd/icloudpd_check_error ]; then
       LogError "Failed check for new files files"
       LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
@@ -1845,8 +1826,6 @@ SyncUser(){
             LogDebug "Downloading new files using password stored in keyring file..."
             >/tmp/icloudpd/icloudpd_download_error
             IFS=$'\n'
-            # source /opt/icloudpd/bin/activate
-            # LogDebug "Switched to icloudpd: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
             if [ "${photo_album}" ]; then
                LogDebug "Starting Photo Album download"
                DownloadAlbums
@@ -1858,7 +1837,6 @@ SyncUser(){
                DownloadPhotos
             fi
             download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
-            # deactivate
             if [ "${download_exit_code}" -gt 0 ] || [ -s /tmp/icloudpd/icloudpd_download_error ]; then
                LogError "Failed to download new files"
                LogError " - Can you log into ${icloud_domain} without receiving pop-up notifications?"

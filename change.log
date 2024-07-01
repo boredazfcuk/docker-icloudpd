@@ -1,9 +1,16 @@
+01/07/2024
+
+ - Change: Bumped to v1.20.4
+ - Change: Script now checks for presence of config file before running. Exits if it doesn't exist as it indicates failure to write to /config, the directory where the container keeps its config files/cookies/keyring etc
+ - Change: Removed some commented out code relating to different virtual environments when china_fix branch was also implemented
+ - Change: Changed the cookie creation command from performing a dry-run and downloading 0 recent photos, to just performing the authentication only option.
+
 30/06/2024
 
  - Change: Added a bunch of stuff to set defaults for empty variables in icloudpd.conf
  - Change: Added force_gid to config file as it was missing
  - Change: Added live_photo_size too
- - Change: Removed some code relating to the old NextcloudCLI container 
+ - Change: Removed some code relating to the old NextcloudCLI container I've deprecated a long while back
 
 29/06/2024
 
