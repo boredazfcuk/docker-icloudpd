@@ -10,6 +10,24 @@ Initialise(){
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
    LogInfo "icloud-photos-downloader version: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
 
+   LogInfo "Checking for updates..."
+   current_version="$(cat /opt/build_version.txt | awk -F_ '{print $1}')"
+   latest_version="$(curl --silent --max-time 5 https://raw.githubusercontent.com/boredazfcuk/docker-icloudpd/master/build_version.txt | awk -F_ '{print $1}')"
+   if [ "${current_version:=99}" -eq "99" ] || [ "${latest_version:=98}" -eq "98" ]; then
+      LogError " - Check for updates failed. Continuing in 2 minutes..."
+      sleep 120
+   elif [ "${current_version}" -lt "${latest_version}" ]; then
+      LogInfo " - Current version ${current_version} is out of date. Please upgrade to latest version. Continuing in 2 minutes..."
+      sleep 120
+   elif [ "${current_version}" -gt "${latest_version}" ]; then
+      LogInfo " - Current version ${current_version} is newer than latest build. Good luck!"
+   elif [ "${current_version}" -eq "${latest_version}" ]; then
+      LogInfo " - Current version is up to date."
+   else
+      LogError " - Check for updates failed. Continuing in 2 minutes..."
+      sleep 120
+   fi
+
    config_file="${config_dir}/icloudpd.conf"
    if [ ! -f "${config_file}" ]; then
       LogError "Failed to create configuration file: ${config_file} - Cannot continue, exiting."
@@ -153,7 +171,7 @@ Initialise(){
          LogWarning "Setting synchronisation_interval to less than 43200 (12 hours) may cause throttling by Apple."
          LogWarning "If you run into the following error: "
          LogWarning " - private db access disabled for this account. Please wait a few hours then try again. The remote servers might be trying to throttle requests. (ACCESS_DENIED)"
-         LogWarning "Then check your synchronisation_interval is 43200 or greater and switch the container off for 6-12 hours so Apple's throttling expires. Continuing in 2 minutes"
+         LogWarning "Then check your synchronisation_interval is 43200 or greater and switch the container off for 6-12 hours so Apple's throttling expires. Continuing in 3 minutes"
          sleep 120
       fi
    fi

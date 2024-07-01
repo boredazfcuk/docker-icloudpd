@@ -5,6 +5,7 @@
  - Change: Removed some commented out code relating to different virtual environments when china_fix branch was also implemented
  - Change: Changed the cookie creation command from performing a dry-run and downloading 0 recent photos, to just performing the authentication only option.
  - Change: Added an extra test to init_config.sh as changes made on 24th June did not account for first run.
+ - Change: Added an update check to startup
 
 30/06/2024
 
