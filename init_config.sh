@@ -2,10 +2,13 @@
 
 config_file="${config_dir}/icloudpd.conf"
 
-if ! test -w "${config_file}"; then
-    echo "Cannot write to ${config_file} - Please correct your permissions"
-    sleep 600
-    exit 1
+if [ ! -f "${config_file}" ]; then
+    touch "${config_file}" >/dev/null 2>&1
+    if [ ! -f "${config_file}" ]; then
+        echo "Cannot create ${config_file} - Please correct your permissions"
+        sleep 600
+        exit 1
+    fi
 fi
 
 # Add missing options and set their default value

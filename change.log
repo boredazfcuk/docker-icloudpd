@@ -4,6 +4,7 @@
  - Change: Script now checks for presence of config file before running. Exits if it doesn't exist as it indicates failure to write to /config, the directory where the container keeps its config files/cookies/keyring etc
  - Change: Removed some commented out code relating to different virtual environments when china_fix branch was also implemented
  - Change: Changed the cookie creation command from performing a dry-run and downloading 0 recent photos, to just performing the authentication only option.
+ - Change: Added an extra test to init_config.sh as changes made on 24th June did not account for first run.
 
 30/06/2024
 
@@ -19,6 +20,7 @@
 24/06/2024
 
  - Change: Think I fixed an issue where files with spaces in the name won't upload to Nextcloud... edit: yeah, pretty much sorted it
+ - Change: Added a test to init_config.sh to check file permissions before launch.
 
 23/06/2024
 
