@@ -9,6 +9,10 @@ if [ ! -f "${config_file}" ]; then
         sleep 600
         exit 1
     fi
+elif [ ! -w "${config_file}" ]; then
+    echo "Cannot write to ${config_file} - Please correct your permissions"
+    sleep 600
+    exit 1
 fi
 
 # Add missing options and set their default value
