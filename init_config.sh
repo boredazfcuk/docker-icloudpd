@@ -2,19 +2,6 @@
 
 config_file="${config_dir}/icloudpd.conf"
 
-if [ ! -f "${config_file}" ]; then
-    touch "${config_file}" >/dev/null 2>&1
-    if [ ! -f "${config_file}" ]; then
-        echo "Cannot create ${config_file} - Please correct your permissions"
-        sleep 600
-        exit 1
-    fi
-elif [ ! -w "${config_file}" ]; then
-    echo "Cannot write to ${config_file} - Please correct your permissions"
-    sleep 600
-    exit 1
-fi
-
 # Add missing options and set their default value
 {
     if [ "$(grep -c "^albums_with_dates=" "${config_file}")" -eq 0 ]; then echo albums_with_dates="${albums_with_dates:=false}"; fi

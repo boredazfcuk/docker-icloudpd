@@ -15,6 +15,10 @@ Initialise(){
       LogError "Failed to create configuration file: ${config_file} - Cannot continue, exiting."
       sleep 600
       exit 1
+   elif [ ! -w "${config_file}" ]; then
+      LogError "Cannot write to configuration file: ${config_file} - Cannot continue, exiting."
+      sleep 600
+      exit 1
    fi
    LogInfo "Loading configuration from: ${config_file}"
    source "${config_file}"
