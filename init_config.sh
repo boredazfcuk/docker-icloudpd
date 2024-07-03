@@ -23,7 +23,10 @@ config_file="${config_dir}/icloudpd.conf"
     if [ "$(grep -c "^discord_id=" "${config_file}")" -eq 0 ]; then echo discord_id="${discord_id}"; fi
     if [ "$(grep -c "^discord_token=" "${config_file}")" -eq 0 ]; then echo discord_token="${discord_token}"; fi
     if [ "$(grep -c "^download_notifications=" "${config_file}")" -eq 0 ]; then echo download_notifications="${download_notifications:=true}"; fi
-    if [ "$(grep -c "^download_path=" "${config_file}")" -eq 0 ]; then echo download_path="${download_path}"; fi
+    if [ "$(grep -c "^download_path=" "${config_file}")" -eq 0 ]; then
+        user="$(grep "^user=" "${config_file}" | awk -F= '{print $2}')"
+        echo download_path="${download_path:=/home/${user:=user}/iCloud}"
+    fi
     if [ "$(grep -c "^file_match_policy=" "${config_file}")" -eq 0 ]; then echo file_match_policy="${file_match_policy:=name-size-dedup-with-suffix}"; fi
     if [ "$(grep -c "^file_permissions=" "${config_file}")" -eq 0 ]; then echo file_permissions="${file_permissions:=640}"; fi
     if [ "$(grep -c "^folder_structure=" "${config_file}")" -eq 0 ]; then echo folder_structure="${folder_structure:={:%Y/%m/%d\}}"; fi
@@ -118,6 +121,10 @@ if [ -z "$(grep "^delete_empty_directories=" "${config_file}" | awk -F= '{print 
 if [ -z "$(grep "^delete_notifications=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^delete_notifications=$%delete_notifications=true%" "${config_file}"; fi
 if [ -z "$(grep "^directory_permissions=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^directory_permissions=$%directory_permissions=750%" "${config_file}"; fi
 if [ -z "$(grep "^download_notifications=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^download_notifications=$%download_notifications=true%" "${config_file}"; fi
+if [ -z "$(grep "^download_path=" "${config_file}" | awk -F= '{print $2}')" ]; then
+    user="$(grep "^user=" "${config_file}" | awk -F= '{print $2}')"
+    sed -i "s%^download_path=$%download_path=${download_path:=/home/${user:=user}/iCloud}%" "${config_file}"
+fi
 if [ -z "$(grep "^file_match_policy=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^file_match_policy=$%file_match_policy=name-size-dedup-with-suffix%" "${config_file}"; fi
 if [ -z "$(grep "^file_permissions=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^file_permissions=$%file_permissions=640%" "${config_file}"; fi
 if [ -z "$(grep "^folder_structure=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^folder_structure=$%folder_structure={:\%Y/\%m/\%d\}%" "${config_file}"; fi

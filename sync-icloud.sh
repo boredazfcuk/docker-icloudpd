@@ -146,7 +146,7 @@ Initialise(){
       LogInfo "Cookie path: ${config_dir}/${cookie_file}"
    fi
    LogInfo "Cookie expiry notification period: ${notification_days}"
-   LogInfo "Download destination directory: ${download_path:=/home/${user}/iCloud}"
+   LogInfo "Download destination directory: ${download_path}"
    if [ ! -d "${download_path}" ]; then
       LogInfo "Download directory does not exist"
       LogInfo "Creating ${download_path} and configuring permissions"
