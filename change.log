@@ -2,6 +2,7 @@
 
  - Change: Seems one of the error logs was not using the error log function, but debug log function... fixed.
  - Change: Got rid of full stops on ends of some log lines. What moron puts full stops at the end of lines nowadays?
+ - Change: Couple of issues in the init config file. debug_logging=AAAAA was one of them. No idea how that got there. Plus group_id=group. That's prob gonna break things
 
 01/07/2024
 

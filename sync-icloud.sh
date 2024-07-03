@@ -215,7 +215,7 @@ Initialise(){
       LogInfo "Stop downloading when prexisiting files count is: Download All Photos"
    fi
    if [ "${skip_live_photos}" = false ]; then
-      LogInfo "Live photo size: ${live_photo_size:=original}"
+      LogInfo "Live photo size: ${live_photo_size}"
    fi
    LogInfo "Skip videos: ${skip_videos}"
    LogInfo "Convert HEIC to JPEG: ${convert_heic_to_jpeg}"
@@ -245,6 +245,7 @@ Initialise(){
          auth_domain="cn"
       else
          LogWarning "You have the icloud_china variable set, but auth_china is false. Are you sure this is correct?"
+         sleep 120
       fi
    fi
    LogInfo "Authentication domain: ${auth_domain:=com}"
@@ -524,7 +525,7 @@ ConfigureNotifications(){
          unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_scheme gotify_server_url bark_device_key bark_server
       fi
 
-      if [ "${startup_notification:=true}" = true ]; then
+      if [ "${startup_notification}" = true ]; then
          LogDebug "Startup notification: Enabled"
          if [ "${icloud_china}" = false ]; then
             Notify "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID: ${apple_id}"
@@ -535,13 +536,13 @@ ConfigureNotifications(){
          LogDebug "Startup notification: Disabled"
       fi
 
-      if [ "${download_notifications:=true}" = true ]; then
+      if [ "${download_notifications}" = true ]; then
          LogDebug "Download notifications: Enabled"
       else
          LogDebug "Download notifications: Disabled"
          unset download_notifications
       fi
-      if [ "${delete_notifications:=true}" = true ]; then
+      if [ "${delete_notifications}" = true ]; then
          LogDebug "Delete notifications: Enabled"
       else
          LogDebug "Delete notifications: Disabled"

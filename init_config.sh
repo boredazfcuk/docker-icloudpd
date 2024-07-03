@@ -111,7 +111,7 @@ if [ -z "$(grep "^auto_delete=" "${config_file}" | awk -F= '{print $2}')" ]; the
 if [ -z "$(grep "^albums_with_dates=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^albums_with_dates=$%albums_with_dates=false%" "${config_file}"; fi
 if [ -z "$(grep "^align_raw=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^align_raw=$%align_raw=as-is%" "${config_file}"; fi
 if [ -z "$(grep "^convert_heic_to_jpeg=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^convert_heic_to_jpeg=$%convert_heic_to_jpeg=false%" "${config_file}"; fi
-if [ -z "$(grep "^debug_logging=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^debug_logging=$%debug_logging=AAAAA%" "${config_file}"; fi
+if [ -z "$(grep "^debug_logging=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^debug_logging=$%debug_logging=false%" "${config_file}"; fi
 if [ -z "$(grep "^delete_accompanying=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^delete_accompanying=$%delete_accompanying=false%" "${config_file}"; fi
 if [ -z "$(grep "^delete_after_download=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^delete_after_download=$%delete_after_download=false%" "${config_file}"; fi
 if [ -z "$(grep "^delete_empty_directories=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^delete_empty_directories=$%delete_empty_directories=false%" "${config_file}"; fi
@@ -123,7 +123,7 @@ if [ -z "$(grep "^file_permissions=" "${config_file}" | awk -F= '{print $2}')" ]
 if [ -z "$(grep "^folder_structure=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^folder_structure=$%folder_structure={:\%Y/\%m/\%d\}%" "${config_file}"; fi
 if [ -z "$(grep "^force_gid=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^force_gid=$%force_gid=false%" "${config_file}"; fi
 if [ -z "$(grep "^group=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^group=$%group=group%" "${config_file}"; fi
-if [ -z "$(grep "^group_id=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^group_id=$%group_id=group%" "${config_file}"; fi
+if [ -z "$(grep "^group_id=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^group_id=$%group_id=1000%" "${config_file}"; fi
 if [ -z "$(grep "^icloud_china=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^icloud_china=$%icloud_china=false%" "${config_file}"; fi
 if [ -z "$(grep "^jpeg_quality=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^jpeg_quality=$%jpeg_quality=90%" "${config_file}"; fi
 if [ -z "$(grep "^keep_unicode=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^keep_unicode=$%keep_unicode=false%" "${config_file}"; fi
@@ -261,5 +261,6 @@ chmod --reference="${config_file}.tmp" "${config_file}"
 rm "${config_file}.tmp"
 sed -i 's/=True/=true/g' "${config_file}"
 sed -i 's/=False/=false/g' "${config_file}"
+sed -i 's/debug_logging=AAAAA/debug_logging=false/' "${config_file}"
 sed -i 's/authentication_type=2FA/authentication_type=MFA/' "${config_file}"
 sed -i '/delete_notification=/d' "${config_file}"
