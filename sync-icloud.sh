@@ -555,7 +555,7 @@ CreateGroup(){
       LogDebug "Group, ${group}:${group_id}, already created"
    else
       if [ "$(grep -c "^${group}:" "/etc/group")" -eq 1 ]; then
-         LogDebug "Group name, ${group}, already in use - exiting"
+         LogError "Group name, ${group}, already in use - exiting"
          sleep 120
          exit 1
       elif [ "$(grep -c ":x:${group_id}:" "/etc/group")" -eq 1 ]; then

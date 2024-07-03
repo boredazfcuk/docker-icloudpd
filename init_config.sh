@@ -95,7 +95,7 @@ config_file="${config_dir}/icloudpd.conf"
     if [ "$(grep -c "^msmtp_args=" "${config_file}")" -eq 0 ]; then echo msmtp_args="${msmtp_args:=--tls-starttls=off}"; fi
     if [ "$(grep -c "^agentid=" "${config_file}")" -eq 0 ]; then echo agentid="${agentid}"; fi
     if [ "$(grep -c "^touser=" "${config_file}")" -eq 0 ]; then echo touser="${touser}"; fi
-    if [ "$(grep -c "content_source_url=" "${config_file}")" -eq 0 ]; then echo content_source_url="${content_source_url}"; fi
+    if [ "$(grep -c "^content_source_url=" "${config_file}")" -eq 0 ]; then echo content_source_url="${content_source_url}"; fi
     if [ "$(grep -c "^name=" "${config_file}")" -eq 0 ]; then echo name="${name}"; fi
     if [ "$(grep -c "^media_id_startup=" "${config_file}")" -eq 0 ]; then echo media_id_startup="${media_id_startup}"; fi
     if [ "$(grep -c "^media_id_download=" "${config_file}")" -eq 0 ]; then echo media_id_download="${media_id_download}"; fi
