@@ -22,7 +22,7 @@ Initialise(){
    elif [ "${current_version}" -gt "${latest_version}" ]; then
       LogInfo " - Current version (v${current_version}) is newer than latest build (v${latest_version}). Good luck!"
    elif [ "${current_version}" -eq "${latest_version}" ]; then
-      LogInfo " - Current version is up to date."
+      LogInfo " - Current version is up to date"
    else
       LogError " - Check for updates failed. Continuing in 2 minutes..."
       sleep 120
@@ -30,11 +30,11 @@ Initialise(){
 
    config_file="${config_dir}/icloudpd.conf"
    if [ ! -f "${config_file}" ]; then
-      LogError "Failed to create configuration file: ${config_file} - Cannot continue, exiting."
+      LogError "Failed to create configuration file: ${config_file} - Cannot continue, exiting"
       sleep 600
       exit 1
    elif [ ! -w "${config_file}" ]; then
-      LogError "Cannot write to configuration file: ${config_file} - Cannot continue, exiting."
+      LogError "Cannot write to configuration file: ${config_file} - Cannot continue, exiting"
       sleep 600
       exit 1
    fi
@@ -148,8 +148,8 @@ Initialise(){
    LogInfo "Cookie expiry notification period: ${notification_days}"
    LogInfo "Download destination directory: ${download_path:=/home/${user}/iCloud}"
    if [ ! -d "${download_path}" ]; then
-      LogInfo "Download directory does not exist."
-      LogInfo "Creating ${download_path} and configuring permissions."
+      LogInfo "Download directory does not exist"
+      LogInfo "Creating ${download_path} and configuring permissions"
       mkdir --parents "${download_path}"
       SetOwnerAndPermissionsDownloads
    fi
@@ -168,7 +168,7 @@ Initialise(){
       if [ "${warnings_acknowledged:=false}" = true ]; then
          LogDebug "Synchronisation interval throttle warning acknowledged"
       else
-         LogWarning "Setting synchronisation_interval to less than 43200 (12 hours) may cause throttling by Apple."
+         LogWarning "Setting synchronisation_interval to less than 43200 (12 hours) may cause throttling by Apple"
          LogWarning "If you run into the following error: "
          LogWarning " - private db access disabled for this account. Please wait a few hours then try again. The remote servers might be trying to throttle requests. (ACCESS_DENIED)"
          LogWarning "Then check your synchronisation_interval is 43200 or greater and switch the container off for 6-12 hours so Apple's throttling expires. Continuing in 3 minutes"
@@ -227,9 +227,9 @@ Initialise(){
    fi
    if [ "${delete_accompanying}" = true -a -z "${warnings_acknowledged}" ]; then
       LogInfo "Delete accompanying files (.JPG/.HEIC.MOV)"
-      LogWarning "This feature deletes files from your local disk. Please use with caution. I am not responsible for any data loss."
+      LogWarning "This feature deletes files from your local disk. Please use with caution. I am not responsible for any data loss"
       LogWarning "This feature cannot be used if the 'folder_structure' variable is set to 'none' and also, 'set_exif_datetime' must be 'False'"
-      LogWarning "These two settings will increase the chances of de-duplication happening, which could result in the wrong files being removed. Continuing in 2 minutes."
+      LogWarning "These two settings will increase the chances of de-duplication happening, which could result in the wrong files being removed. Continuing in 2 minutes"
       if [ "${warnings_acknowledged:=false}" = true ]; then
          LogInfo "File deletion warning accepted"
       else
@@ -255,7 +255,7 @@ Initialise(){
          LogInfo "Nextcloud Target Directory: ${nextcloud_target_dir}"
          LogInfo "Nextcloud username: ${nextcloud_username}"
       else
-         LogError "Nextcloud upload: Missing mandatory variables. Disabling."
+         LogError "Nextcloud upload: Missing mandatory variables. Disabling"
          unset nextlcoud_upload
       fi
    else
@@ -397,7 +397,7 @@ ConfigureNotifications(){
             fi
             LogDebug "Bot check: ${bot_check}"
             if [ "${bot_check}" = true ]; then
-               LogInfo " - Bot has been initialised."
+               LogInfo " - Bot has been initialised"
             else
                LogInfo " - Bot has not been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container. Disabling remote wake"
                sleep 10
@@ -677,7 +677,7 @@ ConfigurePassword(){
       LogDebug "Using password stored in keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
    fi
    if [ ! -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
-      LogError "Keyring file does not exist. Please try again."
+      LogError "Keyring file does not exist. Please try again"
       sleep 120
       exit 1
    fi
@@ -830,7 +830,7 @@ WaitForAuthentication(){
 
 CheckWebCookie(){
    if [ -f "${config_dir}/${cookie_file}" ]; then
-      LogDebug "Web cookie exists."
+      LogDebug "Web cookie exists"
       web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    else
       LogError "Web cookie does not exist"
@@ -841,7 +841,7 @@ CheckWebCookie(){
 
 CheckMFACookie(){
    if [ -f "${config_dir}/${cookie_file}" ]; then
-      LogDebug "Multifactor authentication cookie exists."
+      LogDebug "Multifactor authentication cookie exists"
    else
       LogError "Multifactor authentication cookie does not exist"
       WaitForCookie DisplayMessage
@@ -925,7 +925,7 @@ CheckFiles(){
       LogError "Error debugging info:"
       LogError "$(cat /tmp/icloudpd/icloudpd_check_error)"
       if [ "${debug_logging}" != true ]; then
-         LogError "Please set debug_logging=true in your icloudpd.conf file then reproduce the error."
+         LogError "Please set debug_logging=true in your icloudpd.conf file then reproduce the error"
          LogError "***** Once you have captured this log file, please post it along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
       else
          LogError "***** Please post the above debug log, along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
@@ -1129,7 +1129,7 @@ CheckNextcloudConnectivity(){
          sleep 45
          counter=$((counter + 1))
          if [ "${counter}" -eq 15 ] || [ "${counter}" -eq 60 ] || [ "${counter}" -eq 300 ]; then
-            Notify "Nextcloud" "failed" "0" "Nextcloud has been offline since ${fail_time}. Please take corrective action. icloudpd will remain paused until this issue is rectified."
+            Notify "Nextcloud" "failed" "0" "Nextcloud has been offline since ${fail_time}. Please take corrective action. icloudpd will remain paused until this issue is rectified"
          fi
          nextcloud_check_result="$(curl --silent --location --max-time 15 --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/")"
       done
@@ -1457,7 +1457,7 @@ UploadLibraryToNextcloud(){
 
 RemoveAllJPGs(){
    IFS="$(echo -en "\n\b")"
-   LogWarning "Remove all JPGs that have accompanying HEIC files. This could result in data loss if HEIC file name matches the JPG file name, but content does not."
+   LogWarning "Remove all JPGs that have accompanying HEIC files. This could result in data loss if HEIC file name matches the JPG file name, but content does not"
    LogInfo "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
    for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null); do
@@ -1690,7 +1690,7 @@ Notify(){
       curl_exit_code="$?"
    elif [ "${notification_type}" = "WeCom" ]; then
       if [ "$(date +'%s')" -ge "$(date +'%s' -d "${wecom_token_expiry}")" ]; then
-         LogWarning "${notification_type} token has expired."
+         LogWarning "${notification_type} token has expired"
          unset wecom_token
       fi
       if [ -z "${wecom_token}" ]; then
@@ -1756,10 +1756,10 @@ Notify(){
       else
          LogError "${notification_type} ${notification_classification} notification failed with http status code: ${notification_result} and curl exit code: ${curl_exit_code}"
          if [ "${notification_result}" = "000" -a "${curl_exit_code}" = "6" ]; then
-            LogError " - HTTP status code '000' and curl exit code '6' means it cannot connect to the server. Please check your network settings."
+            LogError " - HTTP status code '000' and curl exit code '6' means it cannot connect to the server. Please check your network settings"
          else
             if [ "${debug_logging}" != true ]; then
-               LogError "Please set debug_logging=true in your icloudpd.conf file then reproduce the error."
+               LogError "Please set debug_logging=true in your icloudpd.conf file then reproduce the error"
                LogError "***** Once you have captured this log file, please post it along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
             else
                LogError "***** Please post the above debug log, along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
@@ -1865,7 +1865,7 @@ SyncUser(){
                LogError "Error debugging info:"
                LogError "$(cat /tmp/icloudpd/icloudpd_download_error)"
                if [ "${debug_logging}" != true ]; then
-                  LogError "Please set debug_logging=true in your icloudpd.conf file then reproduce the error."
+                  LogError "Please set debug_logging=true in your icloudpd.conf file then reproduce the error"
                   LogError "***** Once you have captured this log file, please post it along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
                else
                   LogError "***** Please post the above debug log, along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
