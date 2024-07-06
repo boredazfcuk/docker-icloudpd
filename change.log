@@ -1,3 +1,7 @@
+06/07/2024
+
+ - Change: Bumped to v1.21.0
+
 03/07/2024
 
  - Change: Seems one of the error logs was not using the error log function, but debug log function... fixed.
