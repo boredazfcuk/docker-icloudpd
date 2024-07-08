@@ -1201,8 +1201,6 @@ NextcloudUpload(){
          if [ ! -f "${full_filename}" ]; then
             LogWarning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
          else
-#            nextcloud_file_path="$(NextcloudEncodeURL "${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}")"
-#            LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
              LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
              curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename}")"
             if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
@@ -1212,8 +1210,6 @@ NextcloudUpload(){
                LogDebug "Encoded paths: ${nextcloud_file_name} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
             fi
             if [ -f "${full_filename%.HEIC}.JPG" ]; then
-#               nextcloud_file_path="$(NextcloudEncodeURL "${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}")"
-#               LogInfoN "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
                LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
                curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename%.HEIC}.JPG")"
                if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
@@ -1763,9 +1759,26 @@ Notify(){
 }
 
 CommandLineBuilder(){
+   local size
    command_line="--directory ${download_path} --cookie-directory ${config_dir} --domain ${auth_domain} --username ${apple_id} --no-progress-bar"
-   if [ "${photo_size}" != "original"  ]; then
+   if [ "${photo_size}" = "original" -o "${photo_size}" = "medium" -o "${photo_size}" = "thumb" -o "${photo_size}" = "adjusted" ]; then
       command_line="${command_line} --size ${photo_size}"
+   else
+      if [ "${photo_size}" ]; then
+         SAVE_IFS="$IFS"
+         IFS=","
+         for size in ${photo_size}; do
+            if [ "${size}" = "original" -o "${size}" = "medium" -o "${size}" = "thumb" -o "${size}" = "adjusted" ]; then
+               LogDebug "Adding photo size ${size} to size types"
+               command_line="${command_line} --size ${size}"
+            else
+               LogWarning "Photo size ${size} not recognised, disregarding"
+            fi
+         done
+         IFS="$SAVE_IFS"
+      else
+         LogWarning "Photo size is not specified, original will be downloaded by default"
+      fi
    fi
    if [ "${set_exif_datetime}" != false ]; then
       command_line="${command_line} --set-exif-datetime"
