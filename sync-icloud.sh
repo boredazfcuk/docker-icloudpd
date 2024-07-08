@@ -555,23 +555,19 @@ CreateGroup(){
    if [ "$(grep -c "^${group}:x:${group_id}:" "/etc/group")" -eq 1 ]; then
       LogDebug "Group, ${group}:${group_id}, already created"
    else
+      LogDebug "Creating minimal /etc/group file"
+      {
+         echo 'root:x:0:root'
+         echo 'tty:x:5:'
+         echo 'shadow:x:42:'
+      } >/etc/group
       if [ "$(grep -c "^${group}:" "/etc/group")" -eq 1 ]; then
          LogError "Group name, ${group}, already in use - exiting"
          sleep 120
          exit 1
-      elif [ "$(grep -c ":x:${group_id}:" "/etc/group")" -eq 1 ]; then
-         if [ "${force_gid}" = true ]; then
-            group="$(grep ":x:${group_id}:" /etc/group | awk -F: '{print $1}')"
-            LogWarning "Group id, ${group_id}, already in use by the group: ${group} - continuing as force_gid variable has been set. Group name to use: ${group}"
-         else
-            LogError "Group id, ${group_id}, already in use by the group: ${group} - exiting. If you must to add your user to this pre-existing system group, please set the force_gid variable to True"
-            sleep 120
-            exit 1
-         fi
-      else
-         LogDebug "Creating group ${group}:${group_id}"
-         groupadd --gid "${group_id}" "${group}"
       fi
+      LogDebug "Creating group ${group}:${group_id}"
+      groupadd --gid "${group_id}" "${group}"
    fi
 }
 
@@ -579,18 +575,12 @@ CreateUser(){
    if [ "$(grep -c "^${user}:x:${user_id}:${group_id}" "/etc/passwd")" -eq 1 ]; then
       LogDebug "User, ${user}:${user_id}, already created"
    else
-      if [ "$(grep -c "^${user}:" "/etc/passwd")" -eq 1 ]; then
-         LogError "User name, ${user}, already in use - exiting"
-         sleep 120
-         exit 1
-      elif [ "$(grep -c ":x:${user_id}:$" "/etc/passwd")" -eq 1 ]; then
-         LogError "User id, ${user_id}, already in use - exiting"
-         sleep 120
-         exit 1
-      else
-         LogDebug "Creating user ${user}:${user_id}"
-         useradd --shell /bin/ash --gid "${group_id}" --uid "${user_id}" "${user}" --home-dir "/home/${user}" --badname
-      fi
+      LogDebug "Creating minimal /etc/passwd file"
+      {
+         echo 'root:x:0:0:root:/root:/bin/sh'
+      } >/etc/passwd
+      LogDebug "Creating user ${user}:${user_id}"
+      useradd --shell /bin/ash --gid "${group_id}" --uid "${user_id}" "${user}" --home-dir "/home/${user}" --badname
    fi
 }
 

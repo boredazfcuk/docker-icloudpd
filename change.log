@@ -1,3 +1,7 @@
+08/07/2024
+
+ - Change: Reworked user/group creation. As the config file is now user to specify the user/group and not variables, it would default to creating a user:1000 and group:1000 for the user and group. Then a user could come along and change say the username, but it would fail to change this due to the UID already being is use. Script has been changed to overwrite the /etc/passwd and /etc/group files with minimal ones (only a root user and only root, tty and shadow for groups). It will then create the new user. This should allow much better user switching within the container.
+
 06/07/2024
 
  - Change: Bumped to v1.21.0
