@@ -1761,14 +1761,14 @@ Notify(){
 CommandLineBuilder(){
    local size
    command_line="--directory ${download_path} --cookie-directory ${config_dir} --domain ${auth_domain} --username ${apple_id} --no-progress-bar"
-   if [ "${photo_size}" = "original" -o "${photo_size}" = "medium" -o "${photo_size}" = "thumb" -o "${photo_size}" = "adjusted" ]; then
+   if [ "${photo_size}" = "original" -o "${photo_size}" = "medium" -o "${photo_size}" = "thumb" -o "${photo_size}" = "adjusted" -o "${photo_size}" = "alternative" ]; then
       command_line="${command_line} --size ${photo_size}"
    else
       if [ "${photo_size}" ]; then
          SAVE_IFS="$IFS"
          IFS=","
          for size in ${photo_size}; do
-            if [ "${size}" = "original" -o "${size}" = "medium" -o "${size}" = "thumb" -o "${size}" = "adjusted" ]; then
+            if [ "${size}" = "original" -o "${size}" = "medium" -o "${size}" = "thumb" -o "${size}" = "adjusted" -o "${photo_size}" = "alternative" ]; then
                LogDebug "Adding photo size ${size} to size types"
                command_line="${command_line} --size ${size}"
             else

@@ -55,7 +55,7 @@ When the container is first started, it will write a default configuration file 
 
 **delete_after_download**: After a file is successfully downloaded it is moved to the Recenlty Deleted folder. This configuration option cannot be used in conjunction with **auto_delete**. Default: false.
 
-**photo_size**: Image size to download. Can be set to **original**, **medium**, **thumb**, **adjusted** or any combination of those four in a comma-separated string if multiple size types are to be downloaded e.g. **photo_size=original,adjusted**. Adjusted are the edited photos that can be made by using filters, or by using the markup tool in the Photos app. Default: original.
+**photo_size**: Image size to download. Can be set to **original**, **medium**, **thumb**, **adjusted**, **alternative** or any combination of those five in a comma-separated string if multiple size types are to be downloaded e.g. **photo_size=original,adjusted**. Adjusted are the edited photos that can be made by using filters, or by using the markup tool in the Photos app. Alternative are RAW file types. Default: original.
 
 **skip_live_photos**: If this is set, it will skip downloading live photos. Default: false.
 
