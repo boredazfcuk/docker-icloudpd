@@ -1768,7 +1768,7 @@ CommandLineBuilder(){
          SAVE_IFS="$IFS"
          IFS=","
          for size in ${photo_size}; do
-            if [ "${size}" = "original" -o "${size}" = "medium" -o "${size}" = "thumb" -o "${size}" = "adjusted" -o "${photo_size}" = "alternative" ]; then
+            if [ "${size}" = "original" -o "${size}" = "medium" -o "${size}" = "thumb" -o "${size}" = "adjusted" -o "${size}" = "alternative" ]; then
                LogDebug "Adding photo size ${size} to size types"
                command_line="${command_line} --size ${size}"
             else
