@@ -477,8 +477,15 @@ ConfigureNotifications(){
             wecom_base_url="${wecom_proxy}"
             LogDebug "${notification_type} notifications proxy enabled : ${wecom_proxy}"
          fi
+         user_agent="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36"
+         if [ "${curl_user_agent}" ]; then
+            user_agent="${curl_user_agent}"
+            LogInfo "${notification_type} curl user_agnet : ${user_agent}"
+         fi
+         LogDebug "${notification_type} curl user_agnet : ${user_agent}"
+
          wecom_token_url="${wecom_base_url}/cgi-bin/gettoken?corpid=${wecom_id}&corpsecret=${wecom_secret}"
-         wecom_token="$(/usr/bin/curl -s -G "${wecom_token_url}" | awk -F\" '{print $10}')"
+         wecom_token="$(/usr/bin/curl -s -G --user-agent "${user_agent}" "${wecom_token_url}" | awk -F\" '{print $10}')"
          wecom_token_expiry="$(date --date='2 hour')"
          notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
          LogInfo "${notification_type} notifications enabled"
@@ -1682,7 +1689,7 @@ Notify(){
       fi
       if [ -z "${wecom_token}" ]; then
          LogWarning "Obtaining new ${notification_type} token..."
-         wecom_token="$(/usr/bin/curl -s -G "${wecom_token_url}" | awk -F\" '{print $10}')"
+         wecom_token="$(/usr/bin/curl -s -G --user-agnet "${user_agent}"  "${wecom_token_url}" | awk -F\" '{print $10}')"
          wecom_token_expiry="$(date --date='2 hour')"
          notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
          LogInfo "${notification_type} token: ${wecom_token}"
@@ -1709,7 +1716,7 @@ Notify(){
          fi
       fi
       LogInfo "Attempting send..."
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --user_agent "${user_agent}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
       curl_exit_code="$?"
       LogInfo "Send result: ${notification_result}"
    elif [ "${notification_type}" = "Gotify" ]; then
