@@ -8,7 +8,7 @@ Initialise(){
    LogInfo "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
    LogInfo "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
    LogInfo "Python version: $(python3 --version | awk '{print $2}')"
-   LogInfo "icloud-photos-downloader version: $(/opt/icloudpd/bin/icloudpd --version | awk '{print $3}')"
+   LogInfo "icloud-photos-downloader version: $(/opt/icloudpd/bin/icloudpd --version | awk -F, '{print $1}' | sed 's/version://')"
 
    LogInfo "Checking for updates..."
    current_version="$(cat /opt/build_version.txt | awk -F_ '{print $1}')"
@@ -28,7 +28,7 @@ Initialise(){
       sleep 120
    fi
 
-   config_file="${config_dir}/icloudpd.conf"
+   config_file="/config/icloudpd.conf"
    if [ ! -f "${config_file}" ]; then
       LogError "Failed to create configuration file: ${config_file} - Cannot continue, exiting"
       sleep 600
@@ -141,9 +141,9 @@ Initialise(){
    fi
    LogInfo "Authentication Type: ${authentication_type}"
    if [ "${debug_logging}" = true ]; then
-      LogDebug "Cookie path: ${config_dir}/(hidden)"
+      LogDebug "Cookie path: /config/(hidden)"
    else
-      LogInfo "Cookie path: ${config_dir}/${cookie_file}"
+      LogInfo "Cookie path: /config/${cookie_file}"
    fi
    LogInfo "Cookie expiry notification period: ${notification_days}"
    LogInfo "Download destination directory: ${download_path}"
@@ -382,7 +382,7 @@ ConfigureNotifications(){
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
          if [ "${telegram_polling}" = true ]; then
-            telegram_update_id_offset_file="${config_dir}/telegram_update_id.num"
+            telegram_update_id_offset_file="/config/telegram_update_id.num"
             if [ ! -f "${telegram_update_id_offset_file}" ]; then
                LogDebug "Creating Telegram Update ID offset file"
                echo -n 0 > "${telegram_update_id_offset_file}"
@@ -593,7 +593,7 @@ ListLibraries(){
    fi
    IFS=$'\n'
    if [ "${skip_download}" = false ]; then
-      shared_libraries="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
+      shared_libraries="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
    fi
    LogInfo "Shared libraries:"
    for library in ${shared_libraries}; do
@@ -611,7 +611,7 @@ ListAlbums(){
    fi
    IFS=$'\n'
    if [ "${skip_download}" = false ]; then
-      photo_albums="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
+      photo_albums="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
    fi
    LogInfo "Photo albums:"
    for photo_album in ${photo_albums}; do
@@ -621,14 +621,14 @@ ListAlbums(){
 }
 
 DeletePassword(){
-   if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
-      LogWarning "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but --remove-keyring command line switch has been invoked. Removing in 30 seconds"
+   if [ -f "/config/python_keyring/keyring_pass.cfg" ]; then
+      LogWarning "Keyring file /config/python_keyring/keyring_pass.cfg exists, but --remove-keyring command line switch has been invoked. Removing in 30 seconds"
       if [ -z "${warnings_acknowledged}" ]; then
          sleep 30
       else
          LogInfo "Warnings acknowledged, removing immediately"
       fi
-      rm "${config_dir}/python_keyring/keyring_pass.cfg"
+      rm "/config/python_keyring/keyring_pass.cfg"
    else
       LogError "Keyring file does not exist"
    fi
@@ -636,25 +636,25 @@ DeletePassword(){
 
 ConfigurePassword(){
    LogDebug "Configure password"
-   if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
-      if [ "$(grep -c "=" "${config_dir}/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
-         LogDebug "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing"
-         rm "${config_dir}/python_keyring/keyring_pass.cfg"
+   if [ -f "/config/python_keyring/keyring_pass.cfg" ]; then
+      if [ "$(grep -c "=" "/config/python_keyring/keyring_pass.cfg")" -eq 0 ]; then
+         LogDebug "Keyring file /config/python_keyring/keyring_pass.cfg exists, but does not contain any credentials. Removing"
+         rm "/config/python_keyring/keyring_pass.cfg"
       fi
    fi
-   if [ ! -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
+   if [ ! -f "/config/python_keyring/keyring_pass.cfg" ]; then
       if [ "${initialise_container}" ]; then
-         LogDebug "Adding password to keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
+         LogDebug "Adding password to keyring file: /config/python_keyring/keyring_pass.cfg"
          run_as "/opt/icloudpd/bin/icloud --username ${apple_id} --domain ${auth_domain}"
       else
-         LogError "Keyring file ${config_dir}/python_keyring/keyring_pass.cfg does not exist"
+         LogError "Keyring file /config/python_keyring/keyring_pass.cfg does not exist"
          LogError " - Please add the your password to the system keyring using the --Initialise script command line option"
          LogError " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
          LogError " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
          LogError "Waiting for keyring file to be created..."
          local counter
          counter="${counter:=0}"
-         while [ ! -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; do
+         while [ ! -f "/config/python_keyring/keyring_pass.cfg" ]; do
             sleep 5
             counter=$((counter + 1))
             if [ "${counter}" -eq 360 ]; then
@@ -665,9 +665,9 @@ ConfigurePassword(){
          LogDebug "Keyring file exists, continuing"
       fi
    else
-      LogDebug "Using password stored in keyring file: ${config_dir}/python_keyring/keyring_pass.cfg"
+      LogDebug "Using password stored in keyring file: /config/python_keyring/keyring_pass.cfg"
    fi
-   if [ ! -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
+   if [ ! -f "/config/python_keyring/keyring_pass.cfg" ]; then
       LogError "Keyring file does not exist. Please try again"
       sleep 120
       exit 1
@@ -676,20 +676,20 @@ ConfigurePassword(){
 
 GenerateCookie(){
    LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
-   find "${config_dir}" ! -user "${user}" -exec chown "${user_id}" {} +
+   find "/config" ! -user "${user}" -exec chown "${user_id}" {} +
    LogDebug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
-   find "${config_dir}" ! -group "${group}" -exec chgrp "${group_id}" {} +
-   if [ -f "${config_dir}/${cookie_file}" ]; then
-      mv "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.bak"
+   find "/config" ! -group "${group}" -exec chgrp "${group_id}" {} +
+   if [ -f "/config/${cookie_file}" ]; then
+      mv "/config/${cookie_file}" "/config/${cookie_file}.bak"
    fi
-   if [ -f "${config_dir}/${cookie_file}.session" ]; then
-      mv "${config_dir}/${cookie_file}.session" "${config_dir}/${cookie_file}session.bak"
+   if [ -f "/config/${cookie_file}.session" ]; then
+      mv "/config/${cookie_file}.session" "/config/${cookie_file}session.bak"
    fi
    LogDebug "Generate ${authentication_type} cookie using password stored in keyring file"
-#  run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --directory /dev/null --only-print-filenames --recent 0 --domain ${auth_domain}"
-   run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --auth-only --domain ${auth_domain}"
+#  run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --directory /dev/null --only-print-filenames --recent 0 --domain ${auth_domain}"
+   run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --auth-only --domain ${auth_domain}"
    if [ "${authentication_type}" = "MFA" ]; then
-      if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 1 ]; then
+      if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}")" -eq 1 ]; then
          LogInfo "Multifactor authentication cookie generated. Sync should now be successful"
       else
          LogError "Multifactor authentication information missing from cookie. Authentication has failed"
@@ -727,13 +727,13 @@ SetOwnerAndPermissionsConfig(){
    LogDebug "Set owner and group on icloudpd temp directory"
    chown -R "${user_id}:${group_id}" "/tmp/icloudpd"
    LogDebug "Set owner and group on config directory"
-   chown -R "${user_id}:${group_id}" "${config_dir}"
+   chown -R "${user_id}:${group_id}" "/config"
 
-   if [ -d "${config_dir}/python_keyring/" ]; then
-      if [ "$(run_as "test -w ${config_dir}/python_keyring/; echo $?")" -eq 0 ]; then
-         LogInfo "Directory is writable: ${config_dir}/python_keyring/"
+   if [ -d "/config/python_keyring/" ]; then
+      if [ "$(run_as "test -w /config/python_keyring/; echo $?")" -eq 0 ]; then
+         LogInfo "Directory is writable: /config/python_keyring/"
       else
-         LogError "Directory is not writable: ${config_dir}/python_keyring/"
+         LogError "Directory is not writable: /config/python_keyring/"
          sleep 120
          exit 1
       fi
@@ -765,7 +765,7 @@ check_permissions(){
 }
 
 CheckKeyringExists(){
-   if [ -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; then
+   if [ -f "/config/python_keyring/keyring_pass.cfg" ]; then
       LogInfo "Keyring file exists, continuing"
    else
       LogError "Keyring does not exist"
@@ -775,7 +775,7 @@ CheckKeyringExists(){
       LogError "Waiting for keyring file to be created..."
       local counter
       counter="${counter:=0}"
-      while [ ! -f "${config_dir}/python_keyring/keyring_pass.cfg" ]; do
+      while [ ! -f "/config/python_keyring/keyring_pass.cfg" ]; do
          sleep 5
          counter=$((counter + 1))
          if [ "${counter}" -eq 360 ]; then
@@ -796,7 +796,7 @@ WaitForCookie(){
    fi
    local counter
    counter="${counter:=0}"
-   while [ ! -f "${config_dir}/${cookie_file}" ]; do
+   while [ ! -f "/config/${cookie_file}" ]; do
       sleep 5
       counter=$((counter + 1))
       if [ "${counter}" -eq 360 ]; then
@@ -809,7 +809,7 @@ WaitForCookie(){
 WaitForAuthentication(){
    local counter
    counter="${counter:=0}"
-   while [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 0 ]; do
+   while [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}")" -eq 0 ]; do
       sleep 5
       counter=$((counter + 1))
       if [ "${counter}" -eq 360 ]; then
@@ -820,9 +820,9 @@ WaitForAuthentication(){
 }
 
 CheckWebCookie(){
-   if [ -f "${config_dir}/${cookie_file}" ]; then
+   if [ -f "/config/${cookie_file}" ]; then
       LogDebug "Web cookie exists"
-      web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+      web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "/config/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    else
       LogError "Web cookie does not exist"
       WaitForCookie DisplayMessage
@@ -831,35 +831,35 @@ CheckWebCookie(){
 }
 
 CheckMFACookie(){
-   if [ -f "${config_dir}/${cookie_file}" ]; then
+   if [ -f "/config/${cookie_file}" ]; then
       LogDebug "Multifactor authentication cookie exists"
    else
       LogError "Multifactor authentication cookie does not exist"
       WaitForCookie DisplayMessage
       LogDebug "Multifactor authentication cookie file exists, checking validity..."
    fi
-   if [ "$(grep -c "X-APPLE-DS-WEB-SESSION-TOKEN" "${config_dir}/${cookie_file}")" -eq 1 -a "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie_file}")" -eq 0 ]; then
+   if [ "$(grep -c "X-APPLE-DS-WEB-SESSION-TOKEN" "/config/${cookie_file}")" -eq 1 -a "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}")" -eq 0 ]; then
       LogDebug "Multifactor authentication cookie exists, but not autenticated. Waiting for authentication to complete..."
       WaitForAuthentication
       LogDebug "Multifactor authentication authentication complete, checking expiry date..."
    fi
-   if [ "$(grep -c "X-APPLE-WEBAUTH-PCS-Photos" "${config_dir}/${cookie_file}")" -eq 1 ]; then
-      mfa_expire_date="$(grep "X-APPLE-WEBAUTH-PCS-Photos" "${config_dir}/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   if [ "$(grep -c "X-APPLE-WEBAUTH-PCS-Photos" "/config/${cookie_file}")" -eq 1 ]; then
+      mfa_expire_date="$(grep "X-APPLE-WEBAUTH-PCS-Photos" "/config/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
       mfa_expire_seconds="$(date -d "${mfa_expire_date}" '+%s')"
       days_remaining="$(($((mfa_expire_seconds - $(date '+%s'))) / 86400))"
-      echo "${days_remaining}" > "${config_dir}/DAYS_REMAINING"
+      echo "${days_remaining}" > "/config/DAYS_REMAINING"
       if [ "${days_remaining}" -gt 0 ]; then
          valid_mfa_cookie=true
          LogDebug "Valid multifactor authentication cookie found. Days until expiration: ${days_remaining}"
       else
-         rm -f "${config_dir}/${cookie_file}"
+         rm -f "/config/${cookie_file}"
          LogError "Cookie expired at: ${mfa_expire_date}"
          LogError "Expired cookie file has been removed. Restarting container in 5 minutes"
          sleep 300
          exit 1
       fi
    else
-      rm -f "${config_dir}/${cookie_file}"
+      rm -f "/config/${cookie_file}"
       LogError "Cookie is not multifactor authentication capable, authentication type may have changed"
       LogError "Invalid cookie file has been removed. Restarting container in 5 minutes"
       sleep 300
@@ -906,9 +906,9 @@ CheckFiles(){
    fi
    LogInfo "Check for new files using password stored in keyring file"
    LogInfo "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
-   LogDebug "Launch command: /opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory ${config_dir} --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames"
+   LogDebug "Launch command: /opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames"
    >/tmp/icloudpd/icloudpd_check_error
-   run_as "(/opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory ${config_dir} --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log"
+   run_as "(/opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log"
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ] || [ -s /tmp/icloudpd/icloudpd_check_error ]; then
       LogError "Failed check for new files files"
@@ -985,7 +985,7 @@ DeletedFilesNotification(){
 DownloadAlbums(){
    local all_albums albums_to_download log_level
    if [ "${photo_album}" = "all albums" ]; then
-      all_albums="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
+      all_albums="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
       LogDebug "Buildling list of albums to download..."
       IFS=$'\n'
       for album in ${all_albums}; do
@@ -1040,7 +1040,7 @@ DownloadLibraries(){
    local all_libraries libraries_to_download log_level
    if [ "${photo_library}" = "all libraries" ]; then
       LogDebug "Fetching libraries list..."
-      all_libraries="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
+      all_libraries="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
       LogDebug "Building list of libraries to download..."
       IFS=$'\n'
       for library in ${all_libraries}; do
@@ -1760,7 +1760,7 @@ Notify(){
 
 CommandLineBuilder(){
    local size
-   command_line="--directory ${download_path} --cookie-directory ${config_dir} --domain ${auth_domain} --username ${apple_id} --no-progress-bar"
+   command_line="--directory ${download_path} --cookie-directory /config --domain ${auth_domain} --username ${apple_id} --no-progress-bar"
    if [ "${photo_size}" = "original" -o "${photo_size}" = "medium" -o "${photo_size}" = "thumb" -o "${photo_size}" = "adjusted" -o "${photo_size}" = "alternative" ]; then
       command_line="${command_line} --size ${photo_size}"
    else
@@ -1831,7 +1831,7 @@ SyncUser(){
       synchronisation_start_time="$(date +'%s')"
       LogInfo "Synchronisation starting at $(date +%H:%M:%S -d "@${synchronisation_start_time}")"
       source <(grep debug_logging "${config_file}")
-      chown -R "${user_id}:${group_id}" "${config_dir}"
+      chown -R "${user_id}:${group_id}" "/config"
       CheckKeyringExists
       if [ "${authentication_type}" = "MFA" ]; then
          LogDebug "Check MFA Cookie"
@@ -1957,7 +1957,7 @@ SyncUser(){
                               LogDebug "Remote authentication message match: ${check_update_text}"
                               if [ "${icloud_china}" = false ]; then
                                  Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
-                                 rm "${config_dir}/${cookie_file}" "${config_dir}/${cookie_file}.session"
+                                 rm "/config/${cookie_file}" "/config/${cookie_file}.session"
                                  >/tmp/icloudpd/mfacode.txt
                                  >/tmp/icloudpd/smschoice.txt
                                  LogDebug "Starting authentication process"

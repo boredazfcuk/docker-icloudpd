@@ -1,3 +1,9 @@
+21/07/2024
+
+ - Change: Got rid of the config_dir variable and hardcoded /config. Some systems dont' seem to be honoring it, even though it's specified in the container.
+ - Change: Bumped to v1.22.0
+ - Change: icloud-photos-downloader version output text has changed. Updated command so it's correctly displayed
+ 
 10/07/2024
 
  - Change: Bug with Alternative size

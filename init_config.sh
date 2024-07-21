@@ -1,6 +1,6 @@
 #!/bin/ash
 
-config_file="${config_dir}/icloudpd.conf"
+config_file="/config/icloudpd.conf"
 
 # Add missing options and set their default value
 {

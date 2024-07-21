@@ -1,6 +1,6 @@
 #!/bin/ash
 
-source "${config_dir}/icloudpd.conf"
+source "/config/icloudpd.conf"
 
 if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ] || [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]; then
@@ -34,12 +34,12 @@ if [ -s "/tmp/icloudpd/icloudpd_check_error" ] || [ -s "/tmp/icloudpd/icloudpd_d
 fi
 
 cookie="$(echo -n "${apple_id//[^a-zA-Z0-9_]}" | tr '[:upper:]' '[:lower:]')"
-if [ ! -f "${config_dir}/${cookie}" ]; then
+if [ ! -f "/config/${cookie}" ]; then
 	echo "Error: Cookie does not exist. Please generate new cookie"
 	exit 1
 fi
 if [ "${authentication_type:=MFA}" = "MFA" ]; then
-   mfa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   mfa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    mfa_expire_seconds="$(date -d "${mfa_expire_date}" '+%s')"
    days_remaining="$(($((mfa_expire_seconds - $(date '+%s'))) / 86400))"
    if [ -z "${notification_days}" ]; then notification_days=7; fi
@@ -50,7 +50,7 @@ if [ "${authentication_type:=MFA}" = "MFA" ]; then
       exit 1
    fi
 elif [ "${authentication_type}" = "Web" ]; then
-   web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "${config_dir}/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "/config/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    web_cookie_expire_seconds="$(date -d "${web_cookie_expire_date}" '+%s')"
    days_remaining="$(($((web_cookie_expire_seconds - $(date '+%s'))) / 86400))"
 else

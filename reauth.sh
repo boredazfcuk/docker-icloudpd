@@ -19,14 +19,14 @@ if [ "${auth_china:=false}" = true ]; then
     auth_domain="cn"
 fi
 
-if [ -f "${config_dir}/${cookie_file}" ]; then
-   rm "${config_dir}/${cookie_file}"
+if [ -f "/config/${cookie_file}" ]; then
+   rm "/config/${cookie_file}"
 fi
 
-if [ -f "${config_dir}/${cookie_file}.session" ]; then
-   rm "${config_dir}/${cookie_file}.session"
+if [ -f "/config/${cookie_file}.session" ]; then
+   rm "/config/${cookie_file}.session"
 fi
 
-run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory ${config_dir} --auth-only --domain ${auth_domain:=com} | tee /tmp/icloudpd/reauth.log"
+run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --auth-only --domain ${auth_domain:=com} | tee /tmp/icloudpd/reauth.log"
 
 rm /tmp/icloudpd/reauth.log
