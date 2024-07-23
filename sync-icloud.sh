@@ -749,6 +749,16 @@ SetOwnerAndPermissionsDownloads(){
    find "${download_path}" -type d ! -perm "${directory_permissions}" ! -path "${ignore_path}" -exec chmod "${directory_permissions}" '{}' +
    LogDebug "Set ${file_permissions} permissions on iCloud files, if required"
    find "${download_path}" -type f ! -perm "${file_permissions}" ! -path "${ignore_path}" -exec chmod "${file_permissions}" '{}' +
+   if [ "${jpeg_path}" ]; then
+      LogDebug "Set owner on jpeg directory, if required"
+      find "${jpeg_path}" ! -type l ! -user "${user_id}" ! -path "${ignore_path}" -exec chown "${user_id}" {} +
+      LogDebug "Set group on jpeg directory, if required"
+      find "${jpeg_path}" ! -type l ! -group "${group_id}" ! -path "${ignore_path}" -exec chgrp "${group_id}" {} +
+      LogDebug "Set ${directory_permissions} permissions on jpeg directories, if required"
+      find "${jpeg_path}" -type d ! -perm "${directory_permissions}" ! -path "${ignore_path}" -exec chmod "${directory_permissions}" '{}' +
+      LogDebug "Set ${file_permissions} permissions on jpeg files, if required"
+      find "${jpeg_path}" -type f ! -perm "${file_permissions}" ! -path "${ignore_path}" -exec chmod "${file_permissions}" '{}' +
+   fi
 }
 
 check_permissions(){
@@ -757,6 +767,16 @@ check_permissions(){
       SetOwnerAndPermissionsDownloads
       if [ "$(run_as ${user} "if ! test -w \"${download_path}\"; then echo false; fi")" = false ]; then
          LogError "User ${user}:${user_id} still cannot write to directory: ${download_path}"
+         LogError " - Fixing permissions failed - Cannot continue, exiting"
+         sleep 120
+         exit 1
+      fi
+   fi
+   if [ "$(run_as ${user} "if ! test -w \"${jpeg_path}\"; then echo false; fi")" = false ]; then
+      LogWarning "User ${user}:${user_id} cannot write to directory: ${jpeg_path} - Attempting to set permissions"
+      SetOwnerAndPermissionsDownloads
+      if [ "$(run_as ${user} "if ! test -w \"${jpeg_path}\"; then echo false; fi")" = false ]; then
+         LogError "User ${user}:${user_id} still cannot write to directory: ${jpeg_path}"
          LogError " - Fixing permissions failed - Cannot continue, exiting"
          sleep 120
          exit 1
@@ -1313,9 +1333,12 @@ ConvertDownloadedHEIC2JPEG(){
          LogWarning "HEIC file ${heic_file} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
       else
          jpeg_file="${heic_file%.HEIC}.JPG"
+         if [ ! -d "${jpeg_path}" ]; then
+            mkdir --parents "${jpeg_path}"
+            chown "${user}:${group}" "${jpeg_path}"
+         fi
          if [ "${jpeg_path}" ]; then
             jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
-            mkdir --parents "$(dirname "${jpeg_file}")"
          fi
          LogInfo "Converting ${heic_file} to ${jpeg_file}"
          convert -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
@@ -1355,9 +1378,12 @@ ConvertAllHEICs(){
    for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null); do
       LogDebug "HEIC file found: ${heic_file}"
       jpeg_file="${heic_file%.HEIC}.JPG"
+      if [ ! -d "${jpeg_path}" ]; then
+         mkdir --parents "${jpeg_path}"
+         chown "${user}:${group}" "${jpeg_path}"
+      fi
       if [ "${jpeg_path}" ]; then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
-         mkdir --parents "$(dirname "${jpeg_file}")"
       fi
       if [ ! -f "${jpeg_file}" ]; then
          LogInfo "Converting ${heic_file} to ${jpeg_file}"
