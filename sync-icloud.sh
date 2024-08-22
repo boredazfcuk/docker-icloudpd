@@ -1333,11 +1333,11 @@ ConvertDownloadedHEIC2JPEG(){
          LogWarning "HEIC file ${heic_file} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
       else
          jpeg_file="${heic_file%.HEIC}.JPG"
-         if [ ! -d "${jpeg_path}" ]; then
-            mkdir --parents "${jpeg_path}"
-            chown "${user}:${group}" "${jpeg_path}"
-         fi
          if [ "${jpeg_path}" ]; then
+            if [ ! -d "${jpeg_path}" ]; then
+               mkdir --parents "${jpeg_path}"
+               chown "${user}:${group}" "${jpeg_path}"
+            fi
             jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
          fi
          LogInfo "Converting ${heic_file} to ${jpeg_file}"

@@ -13,7 +13,7 @@ send_message(){
 choose_sms_number(){
    local auth_log_numbers auth_log_text
    auth_log_numbers="$(grep "^ " /tmp/icloudpd/reauth.log | sed 's/\*\*\*\*\*\*\*\*/number ending in /g')"
-   auth_log_text="Please select option to send the SMS code to:%0A${auth_log_numbers}%0AReply with '${user} <option>'"
+   auth_log_text="Please select option to send the SMS code to:%0A${auth_log_numbers}%0AReply with '${user} <option>' to select the number, or reply with '${user} <mfa code>' to use an Apple iDevice MFA code"
    send_message "$(echo -e "${notification_icon} *${notification_title}*%0A${auth_log_text}")"
 }
 
@@ -21,6 +21,18 @@ request_mfa_code(){
    local request_mfa_text
    request_mfa_text="Please reply with ${user} <6-digit code> in the next 10mins"
    send_message "$(echo -e "${notification_icon} *${notification_title}*%0A${request_mfa_text}")"
+}
+
+mfa_success(){
+   local mfa_success_text
+   mfa_success_text="MFA successfully re-confirmed for ${user}"
+   send_message "$(echo -e "${notification_icon} *${notification_title}*%0A${mfa_success_text}")"
+}
+
+mfa_failure(){
+   local mfa_failure_text
+   mfa_failure_text="MFA failed for ${user}. Please try again"
+   send_message "$(echo -e "${notification_icon} *${notification_title}*%0A${mfa_failure_text}")"
 }
 
 config_file="/config/icloudpd.conf"
@@ -48,4 +60,8 @@ if [ "$1" = "smschoice" ]; then
    choose_sms_number
 elif [ "$1" = "mfacode" ]; then
    request_mfa_code
+elif [ "$1" = "success" ]; then
+   mfa_success
+elif [ "$1" = "failure" ]; then
+   mfa_failure
 fi

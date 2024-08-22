@@ -22,17 +22,35 @@ expect {
         exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/mfacode.txt
         set MFACODE [exec cat /tmp/icloudpd/mfacode.txt]
         send -- "${MFACODE}\r"
+        expect {
+            "* Failed to verify two-factor authentication code" {
+                exec /usr/local/bin/sendmessage.sh failure
+            }
+            "* Authentication completed successfully" {
+                exec /usr/local/bin/sendmessage.sh success
+            }
+        }
     }
     "Please enter two-factor authentication code or device index * to send SMS with a code: " {
         exec /usr/local/bin/sendmessage.sh smschoice
         exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/smschoice.txt
         set SMSCHOICE [exec cat /tmp/icloudpd/smschoice.txt]
         send -- "${SMSCHOICE}\r"
-        expect "Please enter two-factor authentication code that you received over SMS: " {
-            exec /usr/local/bin/sendmessage.sh mfacode
-            exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/mfacode.txt
-            set MFACODE [exec cat /tmp/icloudpd/mfacode.txt]
-            send -- "${MFACODE}\r"
+        expect {
+            "Please enter two-factor authentication code that you received over SMS: " {
+                exec /usr/local/bin/sendmessage.sh mfacode
+                exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/mfacode.txt
+                set MFACODE [exec cat /tmp/icloudpd/mfacode.txt]
+                send -- "${MFACODE}\r"
+                expect {
+                    "* Failed to verify two-factor authentication code" {
+                        exec /usr/local/bin/sendmessage.sh failure
+                    }
+                    "* Authentication completed successfully" {
+                        exec /usr/local/bin/sendmessage.sh success
+                    }
+                }
+            }
         }
     }
 }

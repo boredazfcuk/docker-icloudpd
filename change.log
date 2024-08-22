@@ -1,8 +1,20 @@
+22/08/2024
+
+ - Change: Moved the logic for creating the files in the JPEG path. Seems it was attempting to create a blank directory for people who did not have this configured.
+
+31/07/2024
+
+ - Change: Might have figured out the Telgram remote authentication expect scripts bollocks.
+ 
+23/07/2024
+
+ - Change: Possible bug with jpeg_path veriable. Have added some stuff to check and set permissions.
+ 
 21/07/2024
 
  - Change: Got rid of the config_dir variable and hardcoded /config. Some systems dont' seem to be honoring it, even though it's specified in the container.
  - Change: Bumped to v1.22.0
- - Change: icloud-photos-downloader version output text has changed. Updated command so it's correctly displayed
+ - Change: icloud-photos-downloader version output text has changed. Updated command so it's correctly displayed.
  
 10/07/2024
 
