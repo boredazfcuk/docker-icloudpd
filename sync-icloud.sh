@@ -863,8 +863,8 @@ CheckMFACookie(){
       WaitForAuthentication
       LogDebug "Multifactor authentication authentication complete, checking expiry date..."
    fi
-   if [ "$(grep -c "X-APPLE-WEBAUTH-PCS-Photos" "/config/${cookie_file}")" -eq 1 ]; then
-      mfa_expire_date="$(grep "X-APPLE-WEBAUTH-PCS-Photos" "/config/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   if [ "$(grep -c "X-APPLE-WEBAUTH-USER" "/config/${cookie_file}")" -eq 1 ]; then
+      mfa_expire_date="$(grep "X-APPLE-WEBAUTH-USER" "/config/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
       mfa_expire_seconds="$(date -d "${mfa_expire_date}" '+%s')"
       days_remaining="$(($((mfa_expire_seconds - $(date '+%s'))) / 86400))"
       echo "${days_remaining}" > "/config/DAYS_REMAINING"

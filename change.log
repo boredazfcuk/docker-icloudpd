@@ -1,3 +1,7 @@
+23/08/2024
+
+ - Change: Amended some error logs
+ - Change: Amended cookie logic to pull expiry date back for X-APPLE-WEBAUTH-USER instead of X-APPLE-WEBAUTH-PCS-Photos. Seems the latter's expiry date is extended upon each sync where the former is the true expiry date of the cookie.
 22/08/2024
 
  - Change: Moved the logic for creating the files in the JPEG path. Seems it was attempting to create a blank directory for people who did not have this configured.
