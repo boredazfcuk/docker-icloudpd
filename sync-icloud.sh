@@ -227,9 +227,9 @@ Initialise(){
    fi
    if [ "${delete_accompanying}" = true -a -z "${warnings_acknowledged}" ]; then
       LogInfo "Delete accompanying files (.JPG/.HEIC.MOV)"
-      LogWarning "This feature deletes files from your local disk. Please use with caution. I am not responsible for any data loss"
-      LogWarning "This feature cannot be used if the 'folder_structure' variable is set to 'none' and also, 'set_exif_datetime' must be 'False'"
-      LogWarning "These two settings will increase the chances of de-duplication happening, which could result in the wrong files being removed. Continuing in 2 minutes"
+      LogWarning " - This feature deletes files from your local disk. Please use with caution. I am not responsible for any data loss"
+      LogWarning " - This feature cannot be used if the 'folder_structure' variable is set to 'none' and also, 'set_exif_datetime' must be 'False'"
+      LogWarning " - These two settings will increase the chances of de-duplication happening, which could result in the wrong files being removed. Continuing in 2 minutes"
       if [ "${warnings_acknowledged:=false}" = true ]; then
          LogInfo "File deletion warning accepted"
       else
