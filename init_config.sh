@@ -72,6 +72,7 @@ config_file="/config/icloudpd.conf"
     if [ "$(grep -c "^synchronisation_interval=" "${config_file}")" -eq 0 ]; then echo synchronisation_interval="${synchronisation_interval:=86400}"; fi
     if [ "$(grep -c "^synology_ignore_path=" "${config_file}")" -eq 0 ]; then echo synology_ignore_path="${synology_ignore_path:=false}"; fi     
     if [ "$(grep -c "^telegram_chat_id=" "${config_file}")" -eq 0 ]; then echo telegram_chat_id="${telegram_chat_id}"; fi
+    if [ "$(grep -c "^telegram_http=" "${config_file}")" -eq 0 ]; then echo telegram_http="${telegram_http}"; fi
     if [ "$(grep -c "^telegram_polling=" "${config_file}")" -eq 0 ]; then echo telegram_polling="${telegram_polling:=true}"; fi
     if [ "$(grep -c "^telegram_server=" "${config_file}")" -eq 0 ]; then echo telegram_server="${telegram_server}"; fi
     if [ "$(grep -c "^telegram_silent_file_notifications=" "${config_file}")" -eq 0 ]; then echo telegram_silent_file_notifications="${telegram_silent_file_notifications}"; fi
@@ -151,6 +152,7 @@ if [ -z "$(grep "^startup_notification=" "${config_file}" | awk -F= '{print $2}'
 if [ -z "$(grep "^synchronisation_delay=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^synchronisation_delay=$%synchronisation_delay=0%" "${config_file}"; fi
 if [ -z "$(grep "^synchronisation_interval=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^synchronisation_interval=$%synchronisation_interval=86400%" "${config_file}"; fi
 if [ -z "$(grep "^synology_ignore_path=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^synology_ignore_path=$%synology_ignore_path=false%" "${config_file}"; fi
+if [ -z "$(grep "^telegram_http=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^telegram_http=$%telegram_http=false%" "${config_file}"; fi
 if [ -z "$(grep "^user=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^user=$%user=user%" "${config_file}"; fi
 if [ -z "$(grep "^user_id=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^user_id=$%user_id=1000%" "${config_file}"; fi
 if [ -z "$(grep "^webhook_https=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^webhook_https=$%webhook_https=false%" "${config_file}"; fi
@@ -228,6 +230,7 @@ if [ "${synchronisation_delay}" ]; then sed -i "s%^synchronisation_delay=.*%sync
 if [ "${synchronisation_interval}" ]; then sed -i "s%^synchronisation_interval=.*%synchronisation_interval=${synchronisation_interval}%" "${config_file}"; fi
 if [ "${synology_ignore_path}" ]; then sed -i "s%^synology_ignore_path=.*%synology_ignore_path=${synology_ignore_path}%" "${config_file}"; fi
 if [ "${telegram_chat_id}" ]; then sed -i "s%^telegram_chat_id=.*%telegram_chat_id=${telegram_chat_id}%" "${config_file}"; fi
+if [ "${telegram_http}" ]; then sed -i "s%^telegram_http=.*%telegram_http=${telegram_http}%" "${config_file}"; fi
 if [ "${telegram_polling}" ]; then sed -i "s%^telegram_polling=.*%telegram_polling=${telegram_polling}%" "${config_file}"; fi
 if [ "${telegram_server}" ]; then sed -i "s%^telegram_server=.*%telegram_server=${telegram_server}%" "${config_file}"; fi
 if [ "${telegram_silent_file_notifications}" ]; then sed -i "s%^telegram_silent_file_notifications=.*%telegram_silent_file_notifications=${telegram_silent_file_notifications}%" "${config_file}"; fi

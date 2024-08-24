@@ -140,6 +140,8 @@ adds asset id from iCloud to all file names and does not need de-duplication. De
 
 **telegram_server**: Optional if notification_type set to 'Telegram'. If Telegram is blocked in your country and you need to use a proxy server to access it, put the fully qualified domain name of the server here. e.g. proxy.server.com
 
+**telegram_http**: Optional if notification_type set to 'Telegram'. If Telegram is retricted to HTTP only in your country, set this to **true** so that HTTP is used instead of HTTPS. Default = false
+
 **webhook_server**: Mandatory if notification_type set to 'Webhook' or 'openhab' then this is the name of the server to connect to when sending webhook notifications.
 
 **webhook_port**: Mandatory if notification_type set to 'Webhook' or 'openhab' then this is the port number to use when connecting to the webhook server. If this is not set, it will default to 8123.

@@ -363,10 +363,15 @@ ConfigureNotifications(){
          fi
          notification_url="https://api.pushover.net/1/messages.json"
       elif [ "${notification_type}" = "Telegram" -a "${telegram_token}" -a "${telegram_chat_id}" ]; then
-         if [ "${telegram_server}" ] ; then
-            notification_url="https://${telegram_server}/bot${telegram_token}/sendMessage"
+         if [ "${telegram_http}" = true ]; then
+            telegram_protocol="http"
          else
-            notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
+            telegram_protocol="https"
+         fi
+         if [ "${telegram_server}" ] ; then
+            notification_url="${telegram_protocol}://${telegram_server}/bot${telegram_token}/sendMessage"
+         else
+            notification_url="${telegram_protocol}://api.telegram.org/bot${telegram_token}/sendMessage"
          fi
          LogInfo "${notification_type} notifications enabled"
          CleanNotificationTitle
@@ -374,11 +379,13 @@ ConfigureNotifications(){
             LogDebug "${notification_type} token: (hidden)"
             LogDebug "${notification_type} chat id: (hidden)"
             LogDebug "${notification_type} polling: ${telegram_polling}"
+            LogDebug "${notification_type} uses HTTP: ${telegram_http}"
             LogDebug "${notification_type} notification URL: (hidden)"
          else
             LogInfo "${notification_type} token: ${telegram_token}"
             LogInfo "${notification_type} chat id: ${telegram_chat_id}"
             LogInfo "${notification_type} polling: ${telegram_polling}"
+            LogInfo "${notification_type} uses HTTP: ${telegram_http}"
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
          if [ "${telegram_polling}" = true ]; then
