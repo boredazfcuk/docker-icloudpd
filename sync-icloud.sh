@@ -1955,7 +1955,11 @@ SyncUser(){
          exit 0
       else
          sleep_time="$((synchronisation_interval - synchronisation_end_time + synchronisation_start_time))"
-         LogInfo "Next synchronisation at $(date +%H:%M:%S -d "${sleep_time} seconds")"
+         if [ "${sleep_time}" -ge "72000" ]; then
+            LogInfo "Next synchronisation at $(date +%c -d "${sleep_time} seconds")"
+         else
+            LogInfo "Next synchronisation at $(date +%H:%M:%S -d "${sleep_time} seconds")"
+         fi
          unset check_exit_code check_files_count download_exit_code
          unset new_files
          if [ "${notification_type}" = "Telegram" -a "${telegram_polling}" = true ]; then
