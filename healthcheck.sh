@@ -39,7 +39,7 @@ if [ ! -f "/config/${cookie}" ]; then
 	exit 1
 fi
 if [ "${authentication_type:=MFA}" = "MFA" ]; then
-   mfa_expire_date="$(grep "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
+   mfa_expire_date="$(grep "X-APPLE-DS-WEB-SESSION-TOKEN" "/config/${cookie}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    mfa_expire_seconds="$(date -d "${mfa_expire_date}" '+%s')"
    days_remaining="$(($((mfa_expire_seconds - $(date '+%s'))) / 86400))"
    if [ -z "${notification_days}" ]; then notification_days=7; fi

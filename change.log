@@ -1,3 +1,8 @@
+26/88/2024
+
+ - Change: Reworked Telegram notifications so that they have a base URL instead of notification URL, this is to remove duplicated lines of code surrounding notifications and polling.
+ - Change: Amended health check to instpect the same cookie expiry value as the main script
+ 
 24/08/2024
 
  - Change: Now possible to configure Telegram to use HTTP instead of HTTPS by setting **telegram_http=true**

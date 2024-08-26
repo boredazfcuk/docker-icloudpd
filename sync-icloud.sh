@@ -369,10 +369,11 @@ ConfigureNotifications(){
             telegram_protocol="https"
          fi
          if [ "${telegram_server}" ] ; then
-            notification_url="${telegram_protocol}://${telegram_server}/bot${telegram_token}/sendMessage"
+            telegram_base_url="${telegram_protocol}://${telegram_server}/bot${telegram_token}"
          else
-            notification_url="${telegram_protocol}://api.telegram.org/bot${telegram_token}/sendMessage"
+            telegram_base_url="${telegram_protocol}://api.telegram.org/bot${telegram_token}"
          fi
+         notification_url="${telegram_base_url}/sendMessage"
          LogInfo "${notification_type} notifications enabled"
          CleanNotificationTitle
          if [ "${debug_logging}" = true ]; then
@@ -380,12 +381,14 @@ ConfigureNotifications(){
             LogDebug "${notification_type} chat id: (hidden)"
             LogDebug "${notification_type} polling: ${telegram_polling}"
             LogDebug "${notification_type} uses HTTP: ${telegram_http}"
+            LogDebug "${notification_type} base URL: (hidden)"
             LogDebug "${notification_type} notification URL: (hidden)"
          else
             LogInfo "${notification_type} token: ${telegram_token}"
             LogInfo "${notification_type} chat id: ${telegram_chat_id}"
             LogInfo "${notification_type} polling: ${telegram_polling}"
             LogInfo "${notification_type} uses HTTP: ${telegram_http}"
+            LogInfo "${notification_type} base URL: ${telegram_base_url}"
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
          if [ "${telegram_polling}" = true ]; then
@@ -398,11 +401,10 @@ ConfigureNotifications(){
             sleep "$((RANDOM % 15))"
             if [ "${telegram_server}" ] ; then
                LogDebug "Checking ${telegram_server} for updates"
-               bot_check="$(curl --silent -X POST "https://${telegram_server}/bot${telegram_token}/getUpdates" | jq -r .ok)"
             else
                LogDebug "Checking api.telegram.org for updates"
-               bot_check="$(curl --silent -X POST "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq -r .ok)"
             fi
+            bot_check="$(curl --silent -X POST "${telegram_base_url}/getUpdates" | jq -r .ok)"
             LogDebug "Bot check: ${bot_check}"
             if [ "${bot_check}" = true ]; then
                LogInfo " - Bot has been initialised"
@@ -1966,11 +1968,7 @@ SyncUser(){
                   telegram_update_id_offset="$(head -1 "${telegram_update_id_offset_file}")"
                   LogDebug "Polling Telegram for updates newer than: ${telegram_update_id_offset}"
                   telegram_update_id_offset_inc=$((telegram_update_id_offset + 1))
-                  if [ "${telegram_server}" ] ; then
-                     latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "https://${telegram_server}/bot${telegram_token}/getUpdates" | jq .result[])"
-                  else
-                     latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "https://api.telegram.org/bot${telegram_token}/getUpdates" | jq .result[])"
-                  fi
+                  latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "${telegram_base_url}/getUpdates" | jq .result[])"
                   if [ "${latest_updates}" ]; then
                      latest_update_ids="$(echo "${latest_updates}" | jq -r '.update_id')"
                   fi

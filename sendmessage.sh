@@ -39,10 +39,17 @@ config_file="/config/icloudpd.conf"
 user="$(grep "^user=" ${config_file} | awk -F= '{print $2}')"
 apple_id="$(grep "^apple_id=" ${config_file} | awk -F= '{print $2}')"
 telegram_chat_id="$(grep "^telegram_chat_id=" ${config_file} | awk -F= '{print $2}')"
+telegram_http="$(grep "^telegram_http=" ${config_file} | awk -F= '{print $2}')"
 telegram_server="$(grep "^telegram_server=" ${config_file} | awk -F= '{print $2}')"
 telegram_token="$(grep "^telegram_token=" ${config_file} | awk -F= '{print $2}')"
 notification_title="$(grep "^notification_title=" ${config_file} | awk -F= '{print $2}')"
 notification_icon="\xE2\x96\xB6"
+
+if [ "${telegram_http}" = true ]; then
+   telegram_protocol="http"
+else
+   telegram_protocol="https"
+fi
 
 if [ "${notification_title}" ]; then
    notification_title="${notification_title//[^a-zA-Z0-9_ ]/}"
@@ -51,10 +58,11 @@ else
 fi
 
 if [ "${telegram_server}" ] ; then
-   notification_url="https://${telegram_server}/bot${telegram_token}/sendMessage"
+   telegram_base_url="${telegram_protocol}://${telegram_server}/bot${telegram_token}"
 else
-   notification_url="https://api.telegram.org/bot${telegram_token}/sendMessage"
+   telegram_base_url="${telegram_protocol}://api.telegram.org/bot${telegram_token}"
 fi
+notification_url="${telegram_base_url}/sendMessage"
 
 if [ "$1" = "smschoice" ]; then
    choose_sms_number
