@@ -493,7 +493,11 @@ ConfigureNotifications(){
             LogDebug "${notification_type} notifications proxy enabled : ${wecom_proxy}"
          fi
          wecom_token_url="${wecom_base_url}/cgi-bin/gettoken?corpid=${wecom_id}&corpsecret=${wecom_secret}"
-         wecom_token="$(/usr/bin/curl -s -G "${wecom_token_url}" | awk -F\" '{print $10}')"
+         if [ "${fake_user_agent}" = true ]; then
+            wecom_token="$(/usr/bin/curl --silent --user-agent "${curl_user_agent}" --get "${wecom_token_url}" | awk -F\" '{print $10}')"
+         else
+            wecom_token="$(/usr/bin/curl --silent --get "${wecom_token_url}" | awk -F\" '{print $10}')"
+         fi
          wecom_token_expiry="$(date --date='2 hour')"
          notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
          LogInfo "${notification_type} notifications enabled"
@@ -1723,7 +1727,11 @@ Notify(){
       fi
       if [ -z "${wecom_token}" ]; then
          LogWarning "Obtaining new ${notification_type} token..."
-         wecom_token="$(/usr/bin/curl -s -G "${wecom_token_url}" | awk -F\" '{print $10}')"
+         if [ "${fake_user_agent}" = true ]; then
+            wecom_token="$(/usr/bin/curl --silent --user-agent "${curl_user_agent}" --get "${wecom_token_url}" | awk -F\" '{print $10}')"
+         else
+            wecom_token="$(/usr/bin/curl --silent --get "${wecom_token_url}" | awk -F\" '{print $10}')"
+         fi
          wecom_token_expiry="$(date --date='2 hour')"
          notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
          LogInfo "${notification_type} token: ${wecom_token}"

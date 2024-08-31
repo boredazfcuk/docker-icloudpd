@@ -12,7 +12,7 @@ send_message(){
 
 choose_sms_number(){
    local auth_log_numbers auth_log_text
-   auth_log_numbers="$(grep "^ " /tmp/icloudpd/reauth.log | sed 's/\*\*\*\*\*\ \*\*\*\*/number ending in /g' | sed 's/[a-z]://g')"
+   auth_log_numbers="$(grep "^ " /tmp/icloudpd/reauth.log | sed 's/\*\*\*\*\*\ \*\*\*\*/number ending in /g')"
    auth_log_text="Please select option to send the SMS code to:%0A${auth_log_numbers}%0AReply with '${user} <option>' to select the number, or reply with '${user} <mfa code>' to use an Apple iDevice MFA code"
    send_message "$(echo -e "${notification_icon} *${notification_title}*%0A${auth_log_text}")"
 }
