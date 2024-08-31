@@ -87,6 +87,8 @@ When the container is first started, it will write a default configuration file 
 
 **auth_china**: Set this to **true** to use icloud.com.cn instead of icloud.com for cookie generation. Default: false.
 
+**fake_user_agent**: Set this to **true** to tell curl to use a fake user agent. This is required for some notification sites which do not allow curl to send notifications, IYUU for one. Sets user agent to: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0"
+
 **synology_photos_app_fix**: Set this to **true** to touch files after download and trigger the Synology Photos app to index any newly created files.
 
 **synology_ignore_path**: Set this to **true** to avoid warnings when trying to change **@eaDir** permissions for the extended attributes directories under Synology system.

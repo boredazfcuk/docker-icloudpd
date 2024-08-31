@@ -1,3 +1,11 @@
+31/08/2024
+
+ - Change: Fake user agent to fix IYUU notifications in China
+ 
+30/08/2024
+
+ - Change: Latest version of icloudpd changed the way that the phone numbers were output (specifically the ***** *****) part, so the remote auth feature would not fire out the Telegram notification with the number on
+
 26/88/2024
 
  - Change: Reworked Telegram notifications so that they have a base URL instead of notification URL, this is to remove duplicated lines of code surrounding notifications and polling.

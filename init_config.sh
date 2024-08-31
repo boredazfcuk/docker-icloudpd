@@ -27,6 +27,7 @@ config_file="/config/icloudpd.conf"
         user="$(grep "^user=" "${config_file}" | awk -F= '{print $2}')"
         echo download_path="${download_path:=/home/${user:=user}/iCloud}"
     fi
+    if [ "$(grep -c "^fake_user_agent=" "${config_file}")" -eq 0 ]; then echo fake_user_agent="${fake_user_agent}"; fi
     if [ "$(grep -c "^file_match_policy=" "${config_file}")" -eq 0 ]; then echo file_match_policy="${file_match_policy:=name-size-dedup-with-suffix}"; fi
     if [ "$(grep -c "^file_permissions=" "${config_file}")" -eq 0 ]; then echo file_permissions="${file_permissions:=640}"; fi
     if [ "$(grep -c "^folder_structure=" "${config_file}")" -eq 0 ]; then echo folder_structure="${folder_structure:={:%Y/%m/%d\}}"; fi
@@ -126,6 +127,7 @@ if [ -z "$(grep "^download_path=" "${config_file}" | awk -F= '{print $2}')" ]; t
     user="$(grep "^user=" "${config_file}" | awk -F= '{print $2}')"
     sed -i "s%^download_path=$%download_path=${download_path:=/home/${user:=user}/iCloud}%" "${config_file}"
 fi
+if [ -z "$(grep "^fake_user_agent=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^fake_user_agent=$%fake_user_agent=false%" "${config_file}"; fi
 if [ -z "$(grep "^file_match_policy=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^file_match_policy=$%file_match_policy=name-size-dedup-with-suffix%" "${config_file}"; fi
 if [ -z "$(grep "^file_permissions=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^file_permissions=$%file_permissions=640%" "${config_file}"; fi
 if [ -z "$(grep "^folder_structure=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^folder_structure=$%folder_structure={:\%Y/\%m/\%d\}%" "${config_file}"; fi
@@ -182,6 +184,7 @@ if [ "${discord_id}" ]; then sed -i "s%^discord_id=.*%discord_id=${discord_id}%"
 if [ "${discord_token}" ]; then sed -i "s%^discord_token=.*%discord_token=${discord_token}%" "${config_file}"; fi
 if [ "${download_notifications}" ]; then sed -i "s%^download_notifications=.*%download_notifications=${download_notifications}%" "${config_file}"; fi
 if [ "${download_path}" ]; then sed -i "s%^download_path=.*%download_path=${download_path}%" "${config_file}"; fi
+if [ "${fake_user_agent}" ]; then sed -i "s%^fake_user_agent=.*%fake_user_agent=${fake_user_agent}%" "${config_file}"; fi
 if [ "${file_match_policy}" ]; then sed -i "s%^file_match_policy=.*%file_match_policy=${file_match_policy}%" "${config_file}"; fi
 if [ "${file_permissions}" ]; then sed -i "s%^file_permissions=.*%file_permissions=${file_permissions}%" "${config_file}"; fi
 if [ "${folder_structure}" ]; then

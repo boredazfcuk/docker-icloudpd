@@ -12,7 +12,7 @@ send_message(){
 
 choose_sms_number(){
    local auth_log_numbers auth_log_text
-   auth_log_numbers="$(grep "^ " /tmp/icloudpd/reauth.log | sed 's/\*\*\*\*\*\*\*\*/number ending in /g')"
+   auth_log_numbers="$(grep "^ " /tmp/icloudpd/reauth.log | sed 's/\*\*\*\*\*\ \*\*\*\*/number ending in /g' | sed 's/[a-z]://g')"
    auth_log_text="Please select option to send the SMS code to:%0A${auth_log_numbers}%0AReply with '${user} <option>' to select the number, or reply with '${user} <mfa code>' to use an Apple iDevice MFA code"
    send_message "$(echo -e "${notification_icon} *${notification_title}*%0A${auth_log_text}")"
 }
@@ -35,6 +35,18 @@ mfa_failure(){
    send_message "$(echo -e "${notification_icon} *${notification_title}*%0A${mfa_failure_text}")"
 }
 
+show_variables(){
+   echo "user: ${user}"
+   echo "apple_id: ${apple_id}"
+   echo "telegram_chat_id: ${telegram_chat_id}"
+   echo "telegram_http: ${telegram_http}"
+   echo "telegram_server: ${telegram_server}"
+   echo "telegram_token: ${telegram_token}"
+   echo "telegram_protocol: ${telegram_protocol}"
+   echo "telegram_base_url: ${telegram_base_url}"
+   echo "notification_url: ${notification_url}"
+}
+
 config_file="/config/icloudpd.conf"
 user="$(grep "^user=" ${config_file} | awk -F= '{print $2}')"
 apple_id="$(grep "^apple_id=" ${config_file} | awk -F= '{print $2}')"
@@ -51,12 +63,6 @@ else
    telegram_protocol="https"
 fi
 
-if [ "${notification_title}" ]; then
-   notification_title="${notification_title//[^a-zA-Z0-9_ ]/}"
-else
-   notification_title="boredazfcuk/iCloudPD"
-fi
-
 if [ "${telegram_server}" ] ; then
    telegram_base_url="${telegram_protocol}://${telegram_server}/bot${telegram_token}"
 else
@@ -64,6 +70,13 @@ else
 fi
 notification_url="${telegram_base_url}/sendMessage"
 
+if [ "${notification_title}" ]; then
+   notification_title="${notification_title//[^a-zA-Z0-9_ ]/}"
+else
+   notification_title="boredazfcuk/iCloudPD"
+fi
+
+# show_variables
 if [ "$1" = "smschoice" ]; then
    choose_sms_number
 elif [ "$1" = "mfacode" ]; then
