@@ -849,7 +849,7 @@ WaitForCookie(){
 WaitForAuthentication(){
    local counter
    counter="${counter:=0}"
-   while [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}" 2>/dev/null | echo 0)" -eq 0 ]; do
+   while [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}" >/dev/null 2>&1 && echo 1 || echo 0)" -eq 0 ]; do
       sleep 5
       counter=$((counter + 1))
       if [ "${counter}" -eq 360 ]; then
