@@ -14,7 +14,12 @@ choose_sms_number(){
    local auth_log_numbers auth_log_text
    auth_log_numbers="$(grep "^ " /tmp/icloudpd/reauth.log | sed 's/\*\*\*\*\*\ \*\*\*\*/number ending in /g')"
    auth_index_upper="$(grep "^ " /tmp/icloudpd/reauth.log | tail -1 | awk -F: '{print $1}' | sed 's/ //g')"
-   auth_log_text="Please select option to send the SMS code to:%0A${auth_log_numbers}%0AReply with '${user} <option a-${auth_index_upper}>' to select the mobile number, or reply with '${user} <mfa code>' to use an Apple iDevice MFA code"
+   if [ "${auth_index_upper}" = "a" ]; then
+      option_list="a"
+   else
+      option_list="a-${auth_index_upper}"
+   fi
+   auth_log_text="Please select option to send the SMS code to:%0A${auth_log_numbers}%0AReply with '${user} <option ${option_list}>' to select the mobile number, or reply with '${user} <mfa code>' to use an Apple iDevice MFA code"
    send_message "$(echo -e "${notification_icon} *${notification_title}*%0A${auth_log_text}")"
 }
 
