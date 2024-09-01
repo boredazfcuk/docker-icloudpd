@@ -14,39 +14,48 @@ if {$force_conservative} {
 
 set timeout -1
 spawn -noecho /usr/local/bin/reauth.sh
+log_user 0
 match_max 100000
 #sleep 5
 expect {
     "Please enter two-factor authentication code: " {
         exec /usr/local/bin/sendmessage.sh mfacode
-        exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/mfacode.txt
-        set MFACODE [exec cat /tmp/icloudpd/mfacode.txt]
+        send_user "\nWaiting for MFA code...\n"
+        exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/expect_input.txt
+        set MFACODE [exec cat /tmp/icloudpd/expect_input.txt]
+        send_user "\nMFA code received: ${MFACODE}\n"
         send -- "${MFACODE}\r"
-        expect {
-            "* Failed to verify two-factor authentication code" {
-                exec /usr/local/bin/sendmessage.sh failure
-            }
-            "* Authentication completed successfully" {
-                exec /usr/local/bin/sendmessage.sh success
-            }
-        }
     }
-    "Please enter two-factor authentication code or device index * to send SMS with a code: " {
+    "Failed to verify two-factor authentication code" {
+        send_user "\nAuthentication failed\n"
+        exec /usr/local/bin/sendmessage.sh failure
+    }
+    "The script can now be run without user interaction until 2FA expires" {
+        send_user "\nAuthentication successful\n"
+        exec /usr/local/bin/sendmessage.sh success
+    }
+    "Please enter two-factor authentication code or device index " {
         exec /usr/local/bin/sendmessage.sh smschoice
-        exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/smschoice.txt
-        set SMSCHOICE [exec cat /tmp/icloudpd/smschoice.txt]
+        send_user "\nWaiting for SMS choice...\n"
+        exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/expect_input.txt
+        set SMSCHOICE [exec cat /tmp/icloudpd/expect_input.txt]
+        send_user "\nSMS choice received: ${SMSCHOICE}\n"
         send -- "${SMSCHOICE}\r"
         expect {
             "Please enter two-factor authentication code that you received over SMS: " {
                 exec /usr/local/bin/sendmessage.sh mfacode
-                exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/mfacode.txt
-                set MFACODE [exec cat /tmp/icloudpd/mfacode.txt]
+                send_user "\nWaiting for MFA code...\n"
+                exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/expect_input.txt
+                set MFACODE [exec cat /tmp/icloudpd/expect_input.txt]
+                send_user "\nMFA code received: ${MFACODE}\n"
                 send -- "${MFACODE}\r"
                 expect {
-                    "* Failed to verify two-factor authentication code" {
+                    "Failed to verify two-factor authentication code" {
+                        send_user "\nAuthentication failed\n"
                         exec /usr/local/bin/sendmessage.sh failure
                     }
-                    "* Authentication completed successfully" {
+                    "The script can now be run without user interaction until 2FA expires" {
+                        send_user "\nAuthentication successful\n"
                         exec /usr/local/bin/sendmessage.sh success
                     }
                 }

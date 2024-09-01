@@ -77,6 +77,7 @@ Initialise(){
    touch "/tmp/icloudpd/icloudpd_download_error"
    touch "/tmp/icloudpd/icloudpd_sync.log"
    touch "/tmp/icloudpd/icloudpd_tracert.err"
+   touch "/tmp/icloudpd/expect_input.txt"
 
    if [ -z "${apple_id}" ]; then
       LogError "Apple ID not set - exiting"
@@ -848,10 +849,11 @@ WaitForCookie(){
 WaitForAuthentication(){
    local counter
    counter="${counter:=0}"
+   sleep 5
    while [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}")" -eq 0 ]; do
       sleep 5
       counter=$((counter + 1))
-      if [ "${counter}" -eq 360 ]; then
+      if [ "${counter}" -eq 355 ]; then
          LogError "Valid cookie file has not appeared within 30 minutes. Restarting container..."
          exit 1
       fi
@@ -879,6 +881,7 @@ CheckMFACookie(){
    fi
    if [ "$(grep -c "X-APPLE-DS-WEB-SESSION-TOKEN" "/config/${cookie_file}")" -eq 1 -a "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}")" -eq 0 ]; then
       LogDebug "Multifactor authentication cookie exists, but not autenticated. Waiting for authentication to complete..."
+      WaitForCookie
       WaitForAuthentication
       LogDebug "Multifactor authentication authentication complete, checking expiry date..."
    fi
@@ -2011,28 +2014,22 @@ SyncUser(){
                               if [ "${icloud_china}" = false ]; then
                                  Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
                                  rm "/config/${cookie_file}" "/config/${cookie_file}.session"
-                                 >/tmp/icloudpd/mfacode.txt
-                                 >/tmp/icloudpd/smschoice.txt
                                  LogDebug "Starting authentication process"
                                  /usr/bin/expect /opt/authenticate.exp &
                               else
                                  Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
                               fi
                            elif [[ "$(echo "${check_update_text}" | tr [:upper:] [:lower:])" =~ "$(echo "${user}" | tr [:upper:] [:lower:]) [0-9][0-9][0-9][0-9][0-9][0-9]$" ]]; then
-                              LogDebug "Remote authentication MFA code received: $(echo ${check_update_text} | awk '{print $2}')"
                               mfa_code="$(echo ${check_update_text} | awk '{print $2}')"
-                              echo "${mfa_code}" > /tmp/icloudpd/mfacode.txt
+                              LogDebug "Using MFA code to re-authenticate: ${mfa_code}"
+                              echo "${mfa_code}" > /tmp/icloudpd/expect_input.txt
                               sleep 2
-                              LogDebug "Using MFA code to re-authenticate"
-                              >/tmp/icloudpd/mfacode.txt
                               unset mfa_code
-                           elif [[ "$(echo "${check_update_text}" | tr [:upper:] [:lower:])" =~ "$(echo "${user}" | tr [:upper:] [:lower:]) [0-9]$" ]]; then
-                              LogDebug "Remote SMS choice received: $(echo ${check_update_text} | awk '{print $2}')"
+                           elif [[ "$(echo "${check_update_text}" | tr [:upper:] [:lower:])" =~ "$(echo "${user}" | tr [:upper:] [:lower:]) [a-z]$" ]]; then
                               sms_choice="$(echo ${check_update_text} | awk '{print $2}')"
-                              echo "${sms_choice}" > /tmp/icloudpd/smschoice.txt
+                              LogDebug "SMS choice selected: ${sms_choice}"
+                              echo "${sms_choice}" > /tmp/icloudpd/expect_input.txt
                               sleep 2
-                              LogDebug "MFA choice selected: ${sms_choice}"
-                              >/tmp/icloudpd/smschoice.txt
                               unset sms_choice
                            else
                               LogDebug "Ignoring message: ${check_update_text}"

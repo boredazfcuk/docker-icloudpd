@@ -38,6 +38,7 @@ alias listupdates='apk list --upgradable'
 alias upgrade='apk update && apk upgrade'
 alias editconfig='nano /config/icloudpd.conf'
 alias whatsmyip='wget -qO- icanhazip.com'
+alias innit='/usr/local/bin/sync-icloud.sh --init'
 
 function __setprompt
 {
