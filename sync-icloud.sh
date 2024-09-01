@@ -849,11 +849,10 @@ WaitForCookie(){
 WaitForAuthentication(){
    local counter
    counter="${counter:=0}"
-   sleep 5
-   while [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}")" -eq 0 ]; do
+   while [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}" 2>/dev/null | echo 0)" -eq 0 ]; do
       sleep 5
       counter=$((counter + 1))
-      if [ "${counter}" -eq 355 ]; then
+      if [ "${counter}" -eq 360 ]; then
          LogError "Valid cookie file has not appeared within 30 minutes. Restarting container..."
          exit 1
       fi
@@ -881,7 +880,6 @@ CheckMFACookie(){
    fi
    if [ "$(grep -c "X-APPLE-DS-WEB-SESSION-TOKEN" "/config/${cookie_file}")" -eq 1 -a "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}")" -eq 0 ]; then
       LogDebug "Multifactor authentication cookie exists, but not autenticated. Waiting for authentication to complete..."
-      WaitForCookie
       WaitForAuthentication
       LogDebug "Multifactor authentication authentication complete, checking expiry date..."
    fi
@@ -2020,20 +2018,18 @@ SyncUser(){
                               if [ "${icloud_china}" = false ]; then
                                  Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
                                  rm "/config/${cookie_file}" "/config/${cookie_file}.session"
-                                 LogDebug "Starting authentication process"
+                                 LogDebug "Starting remote authentication process"
                                  /usr/bin/expect /opt/authenticate.exp &
                               else
                                  Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
                               fi
                            elif [[ "$(echo "${check_update_text}" | tr [:upper:] [:lower:])" =~ "$(echo "${user}" | tr [:upper:] [:lower:]) [0-9][0-9][0-9][0-9][0-9][0-9]$" ]]; then
                               mfa_code="$(echo ${check_update_text} | awk '{print $2}')"
-                              LogDebug "Using MFA code to re-authenticate: ${mfa_code}"
                               echo "${mfa_code}" > /tmp/icloudpd/expect_input.txt
                               sleep 2
                               unset mfa_code
                            elif [[ "$(echo "${check_update_text}" | tr [:upper:] [:lower:])" =~ "$(echo "${user}" | tr [:upper:] [:lower:]) [a-z]$" ]]; then
                               sms_choice="$(echo ${check_update_text} | awk '{print $2}')"
-                              LogDebug "SMS choice selected: ${sms_choice}"
                               echo "${sms_choice}" > /tmp/icloudpd/expect_input.txt
                               sleep 2
                               unset sms_choice

@@ -3,6 +3,8 @@
  - Change: Bump to icloud photos downloader v1.23.2
  - Change: Telegram remote authentication is working perfectly now... only related issue is that it's spamming the logs. Need to figure out how to quieten it down. Task for another day, I think. I've done so many MFA re-authentications today, it won't be long before Apple block me again. 
  - Change: Bump to icloud photos downloader v.123.3
+ - Change: Fixed an odd bug that when the container is waiting for authentication to complete, the cookie was being removed. Think this behaviour has changed somwhere down the line. Previously I think the file was being overwritten, no I think it removes the file at the start of the process. This resulted in a grep command not being able to find the file. Now, set the grep command to silence errors and just echo a value indicating non-detection instead.
+ - Change: A buncu of remote authentication tweaks. It's looking a lot nicer now. No debug info printed and logging nicely too.
  
 31/08/2024
 
