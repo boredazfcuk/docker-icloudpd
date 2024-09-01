@@ -164,7 +164,6 @@ adds asset id from iCloud to all file names and does not need de-duplication. De
 
 **iyuu_token**: Mandatory if notification_type set to 'IYUU'. This is the access token required to send messages.
 
-
 **wecom_id**: Mandatory if notification_type set to 'WeCom'.企业微信通知，企业微信通知，企业ID / This is the CORPID associated with your account。企业微信通知配置也可参见[此项目链接](https://github.com/Alano-i/wecom-notification/tree/main/iCloudPD)
 
 **wecom_secret**: Mandatory if notification_type set to 'WeCom'.企业微信通知，企业应用的Secret / This is the CORPSECRET associated with your account

@@ -1,7 +1,9 @@
 01/09/2024
 
- - Change: Bump to icloudpd v1.23.2
+ - Change: Bump to icloud photos downloader v1.23.2
  - Change: Telegram remote authentication is working perfectly now... only related issue is that it's spamming the logs. Need to figure out how to quieten it down. Task for another day, I think. I've done so many MFA re-authentications today, it won't be long before Apple block me again. 
+ - Change: Bump to icloud photos downloader v.123.3
+ 
 31/08/2024
 
  - Change: Fake user agent to fix IYUU notifications in China

@@ -1719,9 +1719,15 @@ Notify(){
       else
          iyuu_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
       fi
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-         --data text="${notification_title}" \
-         --data desp="${iyuu_text}")"
+      if [ "${fake_user_agent}" = true ]; then
+         notification_result="$(curl --silent --user-agent "${curl_user_agent}" --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+            --data text="${notification_title}" \
+            --data desp="${iyuu_text}")"
+      else
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+            --data text="${notification_title}" \
+            --data desp="${iyuu_text}")"
+      fi
       curl_exit_code="$?"
    elif [ "${notification_type}" = "WeCom" ]; then
       if [ "$(date +'%s')" -ge "$(date +'%s' -d "${wecom_token_expiry}")" ]; then
