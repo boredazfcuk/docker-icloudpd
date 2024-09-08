@@ -1,3 +1,7 @@
+08/09/2024
+
+ - Change: Upload Library to Nextcloud function now checks for the existence of the file and skips if it's already there. Hopefully this wil speed-up the time it takes, at the expense of overwriting what's already on the server
+
 02/09/2024
 
  - Change: Bump to iCloud Photos Downloader v1.23.4

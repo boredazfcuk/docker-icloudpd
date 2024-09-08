@@ -1468,19 +1468,27 @@ UploadLibraryToNextcloud(){
          LogWarning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
       else
          LogInfoN "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
-         curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename}")"
-         if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
-            echo "Success: ${curl_response}"
+         if ( curl --silent --output /dev/null --fail --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename}" ); then
+            echo "File already exsits"
          else
-            echo "Unexpected response: ${curl_response}"
-         fi
-         if [ -f "${full_filename%.HEIC}.JPG" ]; then
-            LogInfoN "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
-            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename%.HEIC}.JPG" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename%.HEIC}.JPG")"
+            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename}")"
             if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
                echo "Success: ${curl_response}"
             else
                echo "Unexpected response: ${curl_response}"
+            fi
+         fi
+         if [ -f "${full_filename%.HEIC}.JPG" ]; then
+            LogInfoN "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
+            if ( curl --silent --output /dev/null --fail --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename%.HEIC}.JPG" ); then
+               LogInfoN "File already exsits"
+            else
+               curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename%.HEIC}.JPG" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename%.HEIC}.JPG")"
+               if [ "${curl_response}" -ge 200 -a "${curl_response}" -le 299 ]; then
+                  echo "Success: ${curl_response}"
+               else
+                  echo "Unexpected response: ${curl_response}"
+               fi
             fi
          fi
       fi
