@@ -1160,7 +1160,7 @@ CheckNextcloudConnectivity(){
          sleep 45
          counter=$((counter + 1))
          if [ "${counter}" -eq 15 ] || [ "${counter}" -eq 60 ] || [ "${counter}" -eq 300 ]; then
-            Notify "Nextcloud" "failed" "0" "Nextcloud has been offline since ${fail_time}. Please take corrective action. icloudpd will remain paused until this issue is rectified"
+            Notify "Nextcloud" "failed" "0" "Nextcloud has been offline for user ${user} since ${fail_time}. Please take corrective action. icloudpd will remain paused until this issue is rectified"
          fi
          nextcloud_check_result="$(curl --silent --location --max-time 15 --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/")"
       done
