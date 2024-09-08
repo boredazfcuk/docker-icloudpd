@@ -1155,7 +1155,7 @@ CheckNextcloudConnectivity(){
    if [ "${nextcloud_check_result}" -ne 200 ]; then
       LogError "Nextcloud connectivity check failed: ${nextcloud_check_result}"
       fail_time="$(date "+%a %d %B %H:%M:%S (%Z) %Y")"
-      Notify "Nextcloud" "failed" "0" "Nextcloud connectivity check failed. Waiting for server to come back online..."
+      Notify "Nextcloud" "failed" "0" "Nextcloud connectivity check failed for user: ${user}. Waiting for server to come back online..."
       while [ "${nextcloud_check_result}" -ne 200 ]; do
          sleep 45
          counter=$((counter + 1))
