@@ -398,6 +398,9 @@ ConfigureNotifications(){
             LogInfo "${notification_type} base URL: ${telegram_base_url}"
             LogInfo "${notification_type} notification URL: ${notification_url}"
          fi
+         if [ "${script_launch_parameters}" ]; then
+            telegram_polling="false"
+         fi
          if [ "${telegram_polling}" = true ]; then
             telegram_update_id_offset_file="/config/telegram_update_id.num"
             if [ ! -f "${telegram_update_id_offset_file}" ]; then

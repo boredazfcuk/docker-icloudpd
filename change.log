@@ -2,6 +2,7 @@
 
  - Change: Upload Library to Nextcloud function now checks for the existence of the file and skips if it's already there. Hopefully this wil speed-up the time it takes, at the expense of overwriting what's already on the server
  - Change: Amended Nextcloud offline notification to contain username. I've had two notifications for a possible five accounts. Not sure which accounts to look at
+ - Change: Added a bit to detect whether a command line parameter has been specified. If so, it sets telegram_polling to false, so there's no delay when launching the script with command line parameters such as init and upload-library-to-nextcloud
 
 02/09/2024
 
