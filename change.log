@@ -1,3 +1,7 @@
+11/09/2024
+
+ - Change: Merged PR submitted by RICwang which adds the Chinese translations for the remote sync feature and also enables the feature.
+
 08/09/2024
 
  - Change: Upload Library to Nextcloud function now checks for the existence of the file and skips if it's already there. Hopefully this wil speed-up the time it takes, at the expense of overwriting what's already on the server

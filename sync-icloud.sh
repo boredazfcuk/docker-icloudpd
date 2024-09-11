@@ -2031,7 +2031,7 @@ SyncUser(){
                               else
                                  Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD将以Apple ID: ${apple_id}发起身份验证"
                               fi
-			      rm "/config/${cookie_file}" "/config/${cookie_file}.session"
+			                     rm "/config/${cookie_file}" "/config/${cookie_file}.session"
                               LogDebug "Starting remote authentication process"
                               /usr/bin/expect /opt/authenticate.exp &
                            elif [[ "$(echo "${check_update_text}" | tr [:upper:] [:lower:])" =~ "$(echo "${user}" | tr [:upper:] [:lower:]) [0-9][0-9][0-9][0-9][0-9][0-9]$" ]]; then
