@@ -2028,12 +2028,12 @@ SyncUser(){
                               LogDebug "Remote authentication message match: ${check_update_text}"
                               if [ "${icloud_china}" = false ]; then
                                  Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
-                                 rm "/config/${cookie_file}" "/config/${cookie_file}.session"
-                                 LogDebug "Starting remote authentication process"
-                                 /usr/bin/expect /opt/authenticate.exp &
                               else
-                                 Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
+                                 Notify "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD将以Apple ID: ${apple_id}发起身份验证"
                               fi
+			      rm "/config/${cookie_file}" "/config/${cookie_file}.session"
+                              LogDebug "Starting remote authentication process"
+                              /usr/bin/expect /opt/authenticate.exp &
                            elif [[ "$(echo "${check_update_text}" | tr [:upper:] [:lower:])" =~ "$(echo "${user}" | tr [:upper:] [:lower:]) [0-9][0-9][0-9][0-9][0-9][0-9]$" ]]; then
                               mfa_code="$(echo ${check_update_text} | awk '{print $2}')"
                               echo "${mfa_code}" > /tmp/icloudpd/expect_input.txt
