@@ -1,3 +1,9 @@
+
+16/09/2024
+
+ - Change: Rebase to Alpine Linux 3.20.3
+ - Change: Installed libheif 1.18.2-r0 from Edge repository which should allow for HEIC to JPEG conversion on iOS 18
+
 11/09/2024
 
  - Change: Merged PR submitted by RICwang which adds the Chinese translations for the remote sync feature and also enables the feature.
