@@ -157,6 +157,10 @@ Initialise(){
       LogInfo "Download directory does not exist"
       LogInfo "Creating ${download_path} and configuring permissions"
       mkdir --parents "${download_path}"
+      if [ $? -ne 0 ]; then
+         LogError "Failed to create directory: '${download_path}'"
+         exit 1
+      fi
       SetOwnerAndPermissionsDownloads
    fi
    LogInfo "Folder structure: ${folder_structure}"
