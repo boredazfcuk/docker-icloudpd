@@ -158,7 +158,7 @@ Initialise(){
       LogInfo "Creating ${download_path} and configuring permissions"
       mkdir --parents "${download_path}"
       if [ $? -ne 0 ]; then
-         LogError "Failed to create directory: '${download_path}'"
+         LogError "Failed to create download directory: '${download_path}'"
          sleep 120
          exit 1
       fi
