@@ -156,8 +156,8 @@ Initialise(){
    if [ ! -d "${download_path}" ]; then
       LogInfo "Download directory does not exist"
       LogInfo "Creating ${download_path} and configuring permissions"
-      mkdir --parents "${download_path}"
-      if [ $? -ne 0 ]; then
+      
+      if ! mkdir --parents "${download_path}"; then 
          LogError "Failed to create download directory: '${download_path}'"
          sleep 120
          exit 1
