@@ -147,11 +147,21 @@ Initialise(){
       LogInfo "Cookie path: /config/${cookie_file}"
    fi
    LogInfo "Cookie expiry notification period: ${notification_days}"
+   if [ -z "${download_path}" ]; then
+      LogError "Download path is not set properly in config"
+      sleep 120
+      exit 1
+   fi
    LogInfo "Download destination directory: ${download_path}"
    if [ ! -d "${download_path}" ]; then
       LogInfo "Download directory does not exist"
       LogInfo "Creating ${download_path} and configuring permissions"
-      mkdir --parents "${download_path}"
+      
+      if ! mkdir --parents "${download_path}"; then 
+         LogError "Failed to create download directory: '${download_path}'"
+         sleep 120
+         exit 1
+      fi
       SetOwnerAndPermissionsDownloads
    fi
    LogInfo "Folder structure: ${folder_structure}"
