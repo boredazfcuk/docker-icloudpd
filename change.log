@@ -1,4 +1,8 @@
 
+17/09/2024
+
+ -Change: Added PR from @Teknicallity which fixes a rare condition which would lead to an empty download_path variable and some other logging output changes.
+ 
 16/09/2024
 
  - Change: Rebase to Alpine Linux 3.20.3
