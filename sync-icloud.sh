@@ -466,6 +466,9 @@ ConfigureNotifications(){
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
          LogDebug "${notification_type} notification URL: ${notification_url}"
          LogDebug "${notification_type} body keyword: ${webhook_body:=data}"
+         if [ "${webhook_insecure}"]; then
+            LogDebug "${notification_type} insecure certificates allowed"
+         fi
       elif [ "${notification_type}" = "Discord" -a "${discord_id}" -a "${discord_token}" ]; then
          LogInfo "${notification_type} notifications enabled"
          CleanNotificationTitle
@@ -1713,9 +1716,15 @@ Notify(){
       curl_exit_code="$?"
    elif [ "${notification_type}" = "Webhook" ]; then
       webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
-         --header 'content-type: application/json' \
-         --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
+      if [ "${webhook_inseucre}" = true ]; then
+         notification_result="$(curl --silent --insecure --output /dev/null --write-out "%{http_code}" "${notification_url}" \
+            --header 'content-type: application/json' \
+            --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
+      else
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
+            --header 'content-type: application/json' \
+            --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
+      fi
       curl_exit_code="$?"
    elif [ "${notification_type}" = "Discord" ]; then
       if [ "${notification_files_preview_count}" ]; then

@@ -87,6 +87,7 @@ config_file="/config/icloudpd.conf"
     if [ "$(grep -c "^webhook_path=" "${config_file}")" -eq 0 ]; then echo webhook_path="${webhook_path:=/api/webhook/}"; fi
     if [ "$(grep -c "^webhook_port=" "${config_file}")" -eq 0 ]; then echo webhook_port="${webhook_port:=8123}"; fi
     if [ "$(grep -c "^webhook_server=" "${config_file}")" -eq 0 ]; then echo webhook_server="${webhook_server}"; fi
+   if [ "$(grep -c "^webhook_insecure=" "${config_file}")" -eq 0 ]; then echo webhook_insecure="${webhook_insecure}"; fi
     if [ "$(grep -c "^wecom_id=" "${config_file}")" -eq 0 ]; then echo wecom_id="${wecom_id}"; fi
     if [ "$(grep -c "^wecom_proxy=" "${config_file}")" -eq 0 ]; then echo wecom_proxy="${wecom_proxy}"; fi
     if [ "$(grep -c "^wecom_secret=" "${config_file}")" -eq 0 ]; then echo wecom_secret="${wecom_secret}"; fi
@@ -160,6 +161,7 @@ if [ -z "$(grep "^user_id=" "${config_file}" | awk -F= '{print $2}')" ]; then se
 if [ -z "$(grep "^webhook_https=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^webhook_https=$%webhook_https=false%" "${config_file}"; fi
 if [ -z "$(grep "^webhook_path=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^webhook_path=$%webhook_path=/api/webhook/%" "${config_file}"; fi
 if [ -z "$(grep "^webhook_port=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^webhook_port=$%webhook_port=8123%" "${config_file}"; fi
+if [ -z "$(grep "^webhook_insecure=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^webhook_insecure=$%webhook_insecure=false%" "${config_file}"; fi
 if [ -z "$(grep "^msmtp_tls=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^msmtp_tls=$%msmtp_tls=on%" "${config_file}"; fi
 if [ -z "$(grep "^msmtp_args=" "${config_file}" | awk -F= '{print $2}')" ]; then sed -i "s%^msmtp_args=$%msmtp_args=--tls-starttls=off%" "${config_file}"; fi
 
@@ -247,6 +249,7 @@ if [ "${webhook_id}" ]; then sed -i "s%^webhook_id=.*%webhook_id=${webhook_id}%"
 if [ "${webhook_path}" ]; then sed -i "s%^webhook_path=.*%webhook_path=${webhook_path}%" "${config_file}"; fi
 if [ "${webhook_port}" ]; then sed -i "s%^webhook_port=.*%webhook_port=${webhook_port}%" "${config_file}"; fi
 if [ "${webhook_server}" ]; then sed -i "s%^webhook_server=.*%webhook_server=${webhook_server}%" "${config_file}"; fi
+if [ "${webhook_insecure}" ]; then sed -i "s%^webhook_insecure=.*%webhook_insecure=${webhook_insecure}%" "${config_file}"; fi
 if [ "${wecom_id}" ]; then sed -i "s%^wecom_id=.*%wecom_id=${wecom_id}%" "${config_file}"; fi
 if [ "${wecom_proxy}" ]; then sed -i "s%^wecom_proxy=.*%wecom_proxy=${wecom_proxy}%" "${config_file}"; fi
 if [ "${wecom_secret}" ]; then sed -i "s%^wecom_secret=.*%wecom_secret=${wecom_secret}%" "${config_file}"; fi
