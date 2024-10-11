@@ -1,7 +1,11 @@
+11/10/2024
+
+ - Change: Added the **webhook_insecure** option to allow use of self-signed certificates
+ - Change: Some logging changes.
 
 17/09/2024
 
- -Change: Added PR from @Teknicallity which fixes a rare condition which would lead to an empty download_path variable and some other logging output changes.
+ - Change: Added PR from @Teknicallity which fixes a rare condition which would lead to an empty download_path variable and some other logging output changes.
  
 16/09/2024
 

@@ -136,6 +136,11 @@ Initialise(){
       LogDebug "Route check to ${icloud_domain} successful"
    fi
    if [ "${debug_logging}" = true ]; then
+      LogDebug "Debug logging: Enabled"
+   else
+      LogInfo "Debug logging: Disabled"
+   fi
+   if [ "${debug_logging}" = true ]; then
       LogDebug "Apple ID: (hidden)"
    else
       LogInfo "Apple ID: ${apple_id}"
