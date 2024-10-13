@@ -1,3 +1,7 @@
+13/10/2024
+
+ - Change: Issue reported with a "] if statement preventing launch. Odd, as greppimg the main script for it returned a second result which must have been there for many, mant releases.
+
 11/10/2024
 
  - Change: Added the **webhook_insecure** option to allow use of self-signed certificates

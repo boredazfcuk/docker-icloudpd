@@ -138,7 +138,7 @@ Initialise(){
    if [ "${debug_logging}" = true ]; then
       LogDebug "Debug logging: Enabled"
    else
-      LogInfo "Debug logging: Disabled"
+      LogInfo "Debug logging: Disabledarting co"
    fi
    if [ "${debug_logging}" = true ]; then
       LogDebug "Apple ID: (hidden)"
@@ -2124,7 +2124,7 @@ disable_debug_logging(){
 
 ##### Script #####
 script_launch_parameters="${1}"
-if [ "${2}"]; then
+if [ "${2}" ]; then
    LogWarning "Only a single command line parameter is supported at this time. Only processing: ${script_launch_parameters}"
 fi
 case  "$(echo ${script_launch_parameters} | tr [:upper:] [:lower:])" in
