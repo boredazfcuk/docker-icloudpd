@@ -87,7 +87,7 @@ config_file="/config/icloudpd.conf"
     if [ "$(grep -c "^webhook_path=" "${config_file}")" -eq 0 ]; then echo webhook_path="${webhook_path:=/api/webhook/}"; fi
     if [ "$(grep -c "^webhook_port=" "${config_file}")" -eq 0 ]; then echo webhook_port="${webhook_port:=8123}"; fi
     if [ "$(grep -c "^webhook_server=" "${config_file}")" -eq 0 ]; then echo webhook_server="${webhook_server}"; fi
-   if [ "$(grep -c "^webhook_insecure=" "${config_file}")" -eq 0 ]; then echo webhook_insecure="${webhook_insecure}"; fi
+    if [ "$(grep -c "^webhook_insecure=" "${config_file}")" -eq 0 ]; then echo webhook_insecure="${webhook_insecure}"; fi
     if [ "$(grep -c "^wecom_id=" "${config_file}")" -eq 0 ]; then echo wecom_id="${wecom_id}"; fi
     if [ "$(grep -c "^wecom_proxy=" "${config_file}")" -eq 0 ]; then echo wecom_proxy="${wecom_proxy}"; fi
     if [ "$(grep -c "^wecom_secret=" "${config_file}")" -eq 0 ]; then echo wecom_secret="${wecom_secret}"; fi
