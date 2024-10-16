@@ -16,7 +16,7 @@ A clear and concise description of what you expected to happen.
 **Actual behaviour**
 A clear and concise description of what actually happened.
 
-**System (please complete the following information):**
+**System (The following information must be entered or the issue will be closed):**
  - OS: [e.g. Debian, Ubuntu, Windows, Synology DSM]
  - Version [e.g. 12, 24, 11, 8]
 
