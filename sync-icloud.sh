@@ -136,19 +136,12 @@ Initialise(){
       LogDebug "Route check to ${icloud_domain} successful"
    fi
    if [ "${debug_logging}" = true ]; then
-      LogDebug "Debug logging: Enabled"
+      LogInfo "Debug logging: Enabled"
+      LogInfo "Apple ID: (hidden)"
+      LogInfo "Cookie path: /config/(hidden)"
    else
-      LogInfo "Debug logging: Disabledarting co"
-   fi
-   if [ "${debug_logging}" = true ]; then
-      LogDebug "Apple ID: (hidden)"
-   else
+      LogInfo "Debug logging: Disabled"
       LogInfo "Apple ID: ${apple_id}"
-   fi
-   LogInfo "Authentication Type: ${authentication_type}"
-   if [ "${debug_logging}" = true ]; then
-      LogDebug "Cookie path: /config/(hidden)"
-   else
       LogInfo "Cookie path: /config/${cookie_file}"
    fi
    LogInfo "Cookie expiry notification period: ${notification_days}"
