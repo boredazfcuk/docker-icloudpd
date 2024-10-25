@@ -8,7 +8,7 @@ assignees: boredazfcuk
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is. English only please. If you can't be bothered to run it through Google Translate, or whatever, neither can I.
+A clear and concise description of what the bug is. English only please. If you can't be bothered to run it through Google Translate, or whatever, neither can I. Any issues raised that ignore this template will be closed as unplanned.
 
 **Expected behaviour**
 A clear and concise description of what you expected to happen.
