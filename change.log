@@ -1,3 +1,8 @@
+10/11/2024
+
+ - Changed the format of a lot of code.
+ - Added bash shell and now running scripts in bash. This is because I've started using shellcheck to test the code and it doesn't support Alpine.
+
 22/10/2024
 
  - Removed all the "Change: " prefixes in this file. I originally planned to have different stuff, and there probably are a few still in here, but they serve no value.
