@@ -3,7 +3,7 @@ LABEL maintainer="boredazfcuk"
 
 ENV XDG_DATA_HOME="/config" TZ="UTC" ENV="/etc/profile"
 
-ARG icloudpd_version="1.24.3"
+ARG icloudpd_version="1.24.4"
 ARG build_dependencies="gcc python3-dev libc-dev libffi-dev cargo openssl-dev"
 ARG app_dependencies="bash findutils nano nano-syntax py3-pip exiftool coreutils tzdata curl imagemagick shadow jq jpeg bind-tools expect inotify-tools msmtp"
 

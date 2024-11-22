@@ -1,6 +1,7 @@
 #!/bin/bash
 
 config_file="/config/icloudpd.conf"
+
 if [ ! -f "${config_file}" ]
 then
    touch "${config_file}"
