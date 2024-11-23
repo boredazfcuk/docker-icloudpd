@@ -2466,13 +2466,13 @@ synchronise_user()
 			                     rm "/config/${cookie_file}" "/config/${cookie_file}.session"
                               log_debug "Starting remote authentication process"
                               /usr/bin/expect /opt/authenticate.exp &
-                           elif [[ "$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]')" =~ $(echo "${user}" | tr '[:upper:]' '[:lower:]') [0-9][0-9][0-9][0-9][0-9][0-9]$ ]]
+                           elif [[ "$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]')" =~ "$(echo "${user}" | tr '[:upper:]' '[:lower:]') [0-9][0-9][0-9][0-9][0-9][0-9]$"" ]]
                            then
                               mfa_code="$(echo "${check_update_text}" | awk '{print $2}')"
                               echo "${mfa_code}" > /tmp/icloudpd/expect_input.txt
                               sleep 2
                               unset mfa_code
-                           elif [[ "$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]')" =~ $(echo "${user}" | tr '[:upper:]' '[:lower:]') [a-z]$ ]]
+                           elif [[ "$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]')" =~ "$(echo "${user}" | tr '[:upper:]' '[:lower:]') [a-z]$" ]]
                            then
                               sms_choice="$(echo "${check_update_text}" | awk '{print $2}')"
                               echo "${sms_choice}" > /tmp/icloudpd/expect_input.txt
