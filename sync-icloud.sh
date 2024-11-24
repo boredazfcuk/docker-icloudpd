@@ -2450,11 +2450,11 @@ synchronise_user()
                            check_update="$(echo "${latest_updates}" | jq ". | select(.update_id == ${latest_update}).message")"
                            check_update_text="$(echo "${check_update}" | jq -r .text)"
                            log_debug "New message received: ${check_update_text}"
-                           if [ "$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]')" = "$(echo "${user}" | tr '[:upper:]' '[:lower:]')" ]
+                           if [ "${check_update_text,,}" = "${user,,}" ]
                            then
                               break_while=true
                               log_debug "Remote sync message match: ${check_update_text}"
-                           elif [ "$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]')" = "$(echo "${user} auth" | tr '[:upper:]' '[:lower:]')" ]
+                           elif [ "${check_update_text,,}" = "${user,,} auth" ]
                            then
                               log_debug "Remote authentication message match: ${check_update_text}"
                               if [ "${icloud_china}" = false ]
@@ -2466,13 +2466,13 @@ synchronise_user()
 			                     rm "/config/${cookie_file}" "/config/${cookie_file}.session"
                               log_debug "Starting remote authentication process"
                               /usr/bin/expect /opt/authenticate.exp &
-                           elif [[ "$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]')" =~ "$(echo "${user}" | tr '[:upper:]' '[:lower:]') [0-9][0-9][0-9][0-9][0-9][0-9]$" ]]
+                           elif [[ "${check_update_text,,}" =~ ^${user,,}\ [0-9]{6}$ ]]
                            then
                               mfa_code="$(echo "${check_update_text}" | awk '{print $2}')"
                               echo "${mfa_code}" > /tmp/icloudpd/expect_input.txt
                               sleep 2
                               unset mfa_code
-                           elif [[ "$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]')" =~ "$(echo "${user}" | tr '[:upper:]' '[:lower:]') [a-z]$" ]]
+                           elif [[ "${check_update_text,,}" =~ ^${user,,}\ [a-z]$ ]]
                            then
                               sms_choice="$(echo "${check_update_text}" | awk '{print $2}')"
                               echo "${sms_choice}" > /tmp/icloudpd/expect_input.txt

@@ -1,6 +1,6 @@
 23/11/2024
 
- - Remote auth fix
+ - Well, seems like remote auth was royally fucked with the switch from ash to bash due to the regex matching. Think it's fixed. Pretty sure there were PRs surrounding the photo_album and photo_lirary features that used the same regex based matches. they could be broke, but it's late, so I'm going to bed. I'm also a bit drunk so I'll probably forget to check if its broken tomorrow
  
 22/11/2024
 
