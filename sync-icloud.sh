@@ -1245,7 +1245,7 @@ download_albums()
       do
          if [ "${skip_album}" ]
          then
-            if [[ ! "${skip_album}" =~ "${album}" ]]
+            if [ ! "${skip_album}" = "${album}" ]
             then
                log_debug " - ${album}"
                if [ -z "${albums_to_download}" ]
@@ -1311,7 +1311,7 @@ download_libraries()
       do
          if [ "${skip_library}" ]
          then
-            if [[ ! "${skip_library}" =~ "${library}" ]]
+            if [ ! "${skip_library}" = "${library}" ]
             then
                log_debug " - ${library}"
                if [ -z "${libraries_to_download}" ]
@@ -2466,7 +2466,7 @@ synchronise_user()
 			                     rm "/config/${cookie_file}" "/config/${cookie_file}.session"
                               log_debug "Starting remote authentication process"
                               /usr/bin/expect /opt/authenticate.exp &
-                           elif [[ "${check_update_text,,}" =~ ^${user,,}\ [0-9]{6}$ ]]
+                           elif [[ "${check_update_text,,}" =~ ^${user,,}\ [0-9][0-9][0-9][0-9][0-9][0-9]$ ]]
                            then
                               mfa_code="$(echo "${check_update_text}" | awk '{print $2}')"
                               echo "${mfa_code}" > /tmp/icloudpd/expect_input.txt
