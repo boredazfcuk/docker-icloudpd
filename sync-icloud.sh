@@ -677,7 +677,7 @@ configure_notifications()
          log_debug "Startup notification: Enabled"
          if [ "${icloud_china}" = false ]
          then
-            send_notification "startup" "iCloudPD container started" "0" "iCloudPD container now starting for Apple ID: ${apple_id}"
+            send_notification "startup" "iCloudPD container started" "0" "iCloudPD container starting for Apple ID: ${apple_id}"
          else
             send_notification "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
          fi
