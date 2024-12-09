@@ -1005,7 +1005,7 @@ check_keyring_exists()
    fi
 }
 
-WaitForCookie()
+wait_for_cookie()
 {
    if [ "${1}" = "DisplayMessage" ]
    then
@@ -1028,7 +1028,7 @@ WaitForCookie()
    done
 }
 
-WaitForAuthentication()
+wait_for_authentication()
 {
    local counter
    counter="${counter:=0}"
@@ -1052,7 +1052,7 @@ check_web_cookie()
       web_cookie_expire_date="$(grep "X_APPLE_WEB_KB" "/config/${cookie_file}" | sed -e 's#.*expires="\(.*\)Z"; HttpOnly.*#\1#')"
    else
       log_error "Web cookie does not exist"
-      WaitForCookie DisplayMessage
+      wait_for_cookie DisplayMessage
       log_info "Cookie file exists, continuing"
    fi
 }
@@ -1064,13 +1064,13 @@ check_multifactor_authentication_cookie()
       log_debug "Multifactor authentication cookie exists"
    else
       log_error "Multifactor authentication cookie does not exist"
-      WaitForCookie DisplayMessage
+      wait_for_cookie DisplayMessage
       log_debug "Multifactor authentication cookie file exists, checking validity..."
    fi
    if [ "$(grep -c "X-APPLE-DS-WEB-SESSION-TOKEN" "/config/${cookie_file}")" -eq 1 ] && [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}")" -eq 0 ]
    then
       log_debug "Multifactor authentication cookie exists, but not autenticated. Waiting for authentication to complete..."
-      WaitForAuthentication
+      wait_for_authentication
       log_debug "Multifactor authentication authentication complete, checking expiry date..."
    fi
    if [ "$(grep -c "X-APPLE-WEBAUTH-USER" "/config/${cookie_file}")" -eq 1 ]
@@ -1193,7 +1193,7 @@ downloaded_files_notification()
    if [ "${new_files_count:=0}" -gt 0 ]
    then
       log_info "New files downloaded: ${new_files_count}"
-      new_files_preview="$(echo "${new_files}" | cut -d " " -f 9- | sed -e "s%${download_path}/%%g" | head -10)"
+      new_files_preview="$(echo "${new_files}" | cut --delimiter " " --fields 9- | sed -e "s%${download_path}/%%g" | head -10)"
       new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
       if [ "${icloud_china}" = false ]
       then
@@ -1217,7 +1217,7 @@ deleted_files_notification()
    if [ "${deleted_files_count:=0}" -gt 0 ]
    then
       log_info "Number of files deleted: ${deleted_files_count}"
-      deleted_files_preview="$(echo "${deleted_files}" | cut -d " " -f 9- | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
+      deleted_files_preview="$(echo "${deleted_files}" | cut --delimiter " " --fields 9- | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
       deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
       if [ "${icloud_china}" = false ]
       then
@@ -1385,8 +1385,7 @@ download_photos()
 
 check_nextcloud_connectivity()
 {
-   local nextcloud_check_result
-   local counter=0
+   local nextcloud_check_result counter
    log_info "Checking Nextcloud connectivity..."
    nextcloud_check_result="$(curl --silent --max-time 15 --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/")"
    if [ "${nextcloud_check_result}" -ne 200 ]
@@ -1408,218 +1407,339 @@ check_nextcloud_connectivity()
    fi
 }
 
-nextcloud_encode_url()
+nextcloud_url_encoder()
 {
-   s="${1//'%'/%25}"
-   s="${s//' '/%20}"
-   s="${s//'"'/%22}"
-   s="${s//'#'/%23}"
-   s="${s//'$'/%24}"
-   s="${s//'&'/%26}"
-   s="${s//'+'/%2B}"
-   s="${s//','/%2C}"
-   s="${s//':'/%3A}"
-   s="${s//';'/%3B}"
-   s="${s//'='/%3D}"
-   s="${s//'?'/%3F}"
-   s="${s//'@'/%40}"
-   s="${s//'['/%5B}"
-   s="${s//']'/%5D}"
-   printf %s "$s"
+   echo "$@" | sed \
+      -e 's/%/%25/g' \
+      -e 's/ /%20/g' \
+      -e 's/!/%21/g' \
+      -e 's/"/%22/g' \
+      -e "s/'/%27/g" \
+      -e 's/#/%23/g' \
+      -e 's/(/%28/g' \
+      -e 's/)/%29/g' \
+      -e 's/+/%2b/g' \
+      -e 's/,/%2c/g' \
+      -e 's/:/%3a/g' \
+      -e 's/;/%3b/g' \
+      -e 's/?/%3f/g' \
+      -e 's/@/%40/g' \
+      -e 's/\$/%24/g' \
+      -e 's/\&/%26/g' \
+      -e 's/\*/%2a/g' \
+      -e 's/\[/%5b/g' \
+      -e 's/\\/%5c/g' \
+      -e 's/\]/%5d/g' \
+      -e 's/\^/%5e/g' \
+      -e 's/`/%60/g' \
+      -e 's/{/%7b/g' \
+      -e 's/|/%7c/g' \
+      -e 's/}/%7d/g' \
+      -e 's/~/%7e/g'
+}
+
+nextlcoud_create_directories()
+{
+   local destination_directories encoded_destination_directories curl_response
+   log_info "Checking Nextcloud destination directories..."
+   destination_directories=$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | cut --delimiter " " --fields 9- | sed "s%${download_path}%%" | while read -r line
+      do
+         for level in $(seq 1 $(echo "${line}" | tr -cd '/' | wc -c))
+         do
+            echo "${line}" | cut -d'/' -f1-"${level}"
+         done
+      done | sort -u)
+
+   IFS=$'\n'
+   encoded_destination_directories=$(for destination_directory in $destination_directories
+      do
+         echo "${nextcloud_url%/}/remote.php/dav/files/$(echo $(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}${destination_directory}/"))"
+      done)
+   IFS="${save_ifs}"
+
+   for nextcloud_destination in ${encoded_destination_directories}; do
+      log_info_n " - ${nextcloud_destination} "
+      curl_response="$(curl --silent --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_destination}")"
+      if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
+      then
+         echo "Exists"
+      else
+         echo "Missing"
+         log_info_n "Creating Nextcloud directory: ${nextcloud_destination} "
+         curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --request MKCOL "${nextcloud_destination}")"
+         if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
+         then
+            echo "Success"
+         else
+            echo "Error: ${curl_response}"
+         fi
+      fi
+   done
+}
+
+nextcloud_sync()
+{
+   local new_files_count deleted_files_count
+
+   new_files_count="$(grep -c "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)"
+   deleted_files_count="$(grep -c "Deleted /" /tmp/icloudpd/icloudpd_sync.log)"
+
+   if [ "${new_files_count:=0}" -gt 0 ]
+   then
+      check_nextcloud_connectivity
+      nextlcoud_create_directories
+      nextcloud_upload
+   fi
+
+   if [ "${deleted_files_count:=0}" -gt 0 ]
+   then
+      if [ "${nextcloud_delete}" = true ]
+      then
+         check_nextcloud_connectivity
+         nextcloud_delete
+         nextlcoud_delete_directories
+      fi
+   fi
 }
 
 nextcloud_upload()
 {
-   local new_files_count new_filename nextcloud_file_path nextcloud_directory_path nextcloud_file_path curl_response
-   new_files_count="$(grep -c "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)"
-   if [ "${new_files_count:=0}" -gt 0 ]
-   then
-      log_info "Upload files to Nextcloud"
-      check_nextcloud_connectivity
-      log_info "Checking Nextcloud destination directories..."
-      destination_directories="$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | cut -d " " -f 9- | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | uniq)"
-      for destination_directory in ${destination_directories}
-      do
-         SAVE_IFS="$IFS"
-         IFS='/'
-         unset build_path
-         for directory in ${destination_directory}
-         do
-            build_path="${build_path}/${directory}"
-            if [ "${build_path}" = "/" ]
-            then
-               unset build_path
-            fi
-            if [ "${build_path}" ]
-            then
-               nextcloud_file_path="$(nextcloud_encode_url "${nextcloud_username}/${nextcloud_target_dir}${build_path%/}/")"
-               log_info_n "Checking for Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}... "
-               curl_response="$(curl --silent --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}")"
-               if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
-               then
-                  echo "Exists"
-               else
-                  echo "Missing"
-                  nextcloud_directory_path="$(nextcloud_encode_url "${nextcloud_username}/${nextcloud_target_dir}${build_path%/}/")"
-                  log_info_n "Creating Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_directory_path}... "
-                  curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --request MKCOL "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_directory_path}")"
-                  if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
-                  then
-                     echo "Success"
-                  else
-                     echo "Unexpected response: ${curl_response}"
-                  fi
-               fi
-            fi
-         done
-         IFS="$SAVE_IFS"
-      done
+   local nextcloud_destination curl_response
 
-      log_info "Uploading files to Nextcloud"
-      IFS="$(echo -en "\n\b")"
-      for full_filename in $(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | cut -d " " -f 9-)
-      do
-         log_debug "Full filename: ${full_filename}"
-         base_filename="$(basename "${full_filename}")"
-         log_debug "Base filename: ${base_filename}"
-         encoded_filename="$(nextcloud_encode_url "${base_filename}")"
-         log_debug "Encoded filename: ${encoded_filename}"
-         new_filename="$(echo "${full_filename}" | sed "s%${download_path%/}%%")"
-         log_debug "New filename: ${new_filename}"
-         directory_name="$(echo "${new_filename}" | sed "s%${base_filename}%%")"
-         log_debug "Directory name: ${directory_name}"
-         nextcloud_file_path="$(dirname ${new_filename})"
-         log_debug "Nextcloud file path: ${nextcloud_file_path}"
-         if [ ! -f "${full_filename}" ]
+   log_info "Uploading files to Nextcloud"
+   IFS=$'\n'
+   for full_filename in $(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | cut --delimiter " " --fields 9-)
+   do
+      nextcloud_destination="${nextcloud_url%/}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}$(echo ${full_filename} | sed "s%${download_path}%%")")"
+      if [ ! -f "${full_filename}" ]
+      then
+         log_warning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
+      else
+         log_info_n "Uploading ${full_filename} to ${nextcloud_destination}"
+         curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_destination}")"
+         if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
          then
-            log_warning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
-         else
-             log_info_n "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
-             curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename}")"
-            if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
-            then
-               echo "Success"
-            else
-               echo "Unexpected response: ${curl_response}"
-               log_debug "Encoded paths: ${nextcloud_file_name} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
-            fi
-            if [ -f "${full_filename%.HEIC}.JPG" ]
-            then
-               log_info_n "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
-               curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename%.HEIC}.JPG")"
-               if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
-               then
-                  echo "Success"
-               else
-                  echo "Unexpected response: ${curl_response}"
-                  log_debug "Encoded paths: ${nextcloud_file_name} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_file_path}"
-               fi
-            fi
-         fi
-      done
-      IFS="${save_ifs}"
-   fi
-}
-
-nextcloud_delete()
-{
-   local deleted_files_count new_filename nextcloud_file_path encoded_file_path curl_response
-   deleted_files_count="$(grep -c "Deleted /" /tmp/icloudpd/icloudpd_sync.log)"
-   if [ "${deleted_files_count:=0}" -gt 0 ]
-   then
-      IFS="$(echo -en "\n\b")"
-      check_nextcloud_connectivity
-      log_info "Delete files from Nextcloud..."
-      for full_filename in $(echo "$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log)" | cut -d " " -f 9-)
-      do
-         full_filename="$(echo "${full_filename}" | sed 's/!$//')"
-         new_filename="$(echo "${full_filename}" | sed "s%${download_path%/}%%")"
-         base_filename="$(basename "${new_filename}")"
-         nextcloud_file_path="$(dirname ${new_filename})"
-         encoded_file_path="$(nextcloud_encode_url "${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}")"
-         log_debug "Checking file path: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${encoded_file_path}"
-         curl_response="$(curl --silent --show-error --location --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${encoded_file_path}" --output /dev/null --write-out "%{http_code}")"
-         if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 200 ]
-         then
-            log_info_n " - File exists, deleting... "
-            if curl --silent --show-error --location --request DELETE --user "${nextcloud_username}:${nextcloud_password}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${encoded_file_path}"
-            then
-               echo "Success: $?"
-            else
-               echo "Error: $?"
-            fi
-         elif [ "${curl_response}" -eq 404 ]
-         then
-            echo "File not found: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
+            echo "Success"
          else
             echo "Unexpected response: ${curl_response}"
          fi
          if [ -f "${full_filename%.HEIC}.JPG" ]
          then
-            full_filename="${full_filename%.HEIC}.JPG"
-            new_filename="$(echo "${full_filename}" | sed "s%${download_path%/}%%")"
-            base_filename="$(basename "${new_filename}")"
-            encoded_file_path="$(nextcloud_encode_url "${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}")"
-            log_debug "Checking file path: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${encoded_file_path}"
-            curl_response="$(curl --silent --show-error --location --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${encoded_file_path}" --output /dev/null --write-out "%{http_code}")"
-            if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 200 ]
+            log_info_n "Uploading ${full_filename} to ${nextcloud_destination%.HEIC}.JPG"
+            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_destination%.HEIC}.JPG")"
+            if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
             then
-               log_info_n " - File exists, deleting... "
-               if curl --silent --show-error --location --request DELETE --user "${nextcloud_username}:${nextcloud_password}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${encoded_file_path}"
-               then
-                  echo "Success: $?"
-               else
-                  echo "Error: $?"
-               fi
-            elif [ "${curl_response}" -eq 404 ]
-            then
-               echo "File not found: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
+               echo "Success"
             else
                echo "Unexpected response: ${curl_response}"
             fi
          fi
-      done
-      IFS="${save_ifs}"
-
-      log_info "Checking for empty Nextcloud destination directories to remove..."
-      directories_list="$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | cut -d " " -f 9- | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | uniq)"
-      for target_directory in ${directories_list}
-      do
-         SAVE_IFS="$IFS"
-         IFS='/'
-         for directory in ${target_directory}; do
-            IFS="$SAVE_IFS"
-            if [ "${target_directory}" != '/' ]
+         if [ -f "${full_filename%.heic}.jpg" ]
+         then
+            log_info_n "Uploading ${full_filename} to ${nextcloud_destination%.heic}.jpg"
+            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_destination%.heic}.jpg")"
+            if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
             then
-               log_debug "Checking if Nextcloud directory is empty: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${target_directory}"
-               curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --request PROPFIND "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${target_directory}" | grep -ow '<d:href>' | wc -l)"
-               if [ "${curl_response}" -ge 2 ]
-               then
-                  log_debug " - Not removing directory as it contains items: $((curl_response -1 ))"
-               else
-                  log_info_n " - Removing empty Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${target_directory}... "
-                  curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null --request DELETE "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${target_directory}")"
-                  if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
-                  then
-                     echo "Success"
-                  else
-                     echo "Unexpected response: ${curl_response}"
-                  fi
-               fi
-               target_directory="$(echo ${target_directory} | sed 's%/$%%')"
-               target_directory="$(echo ${target_directory} | sed 's~\(.*/\).*~\1~')"
+               echo "Success"
+            else
+               echo "Unexpected response: ${curl_response}"
             fi
-         done
-         IFS="$SAVE_IFS"
-      done
-   fi
+         fi
+      fi
+   done
+   IFS="${save_ifs}"
+}
+
+nextcloud_delete()
+{
+   local nextcloud_destination curl_response
+   IFS=$'\n'
+   log_info "Delete files from Nextcloud..."
+   for full_filename in $(echo "$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log)" | cut --delimiter " " --fields 9-)
+   do
+      nextcloud_destination="${nextcloud_url%/}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}$(echo ${full_filename} | sed "s%${download_path}%%")")"
+      log_debug "Checking file path: ${nextcloud_destination}"
+      curl_response="$(curl --silent --show-error --location --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination}" --output /dev/null --write-out "%{http_code}")"
+      if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 200 ]
+      then
+         log_info_n " - File exists, deleting"
+         if curl --silent --show-error --location --request DELETE --user "${nextcloud_username}:${nextcloud_password}" --output /dev/null "${nextcloud_destination}"
+         then
+            echo "Success"
+         else
+            echo "Error: $?"
+         fi
+      elif [ "${curl_response}" -eq 404 ]
+      then
+         echo "File not found: ${nextcloud_destination}"
+      else
+         echo "Unexpected response: ${curl_response}"
+      fi
+      if [ -f "${full_filename%.HEIC}.JPG" ]
+      then
+         log_debug "Checking file path: ${nextcloud_destination%.HEIC}.JPG"
+         curl_response="$(curl --silent --show-error --location --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination%.HEIC}.JPG" --output /dev/null --write-out "%{http_code}")"
+         if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 200 ]
+         then
+            log_info_n " - File exists, deleting"
+            if curl --silent --show-error --location --request DELETE --user "${nextcloud_username}:${nextcloud_password}" --output /dev/null "${nextcloud_destination%.HEIC}.JPG"
+            then
+               echo "Success"
+            else
+               echo "Error: $?"
+            fi
+         elif [ "${curl_response}" -eq 404 ]
+         then
+            echo "File not found: ${nextcloud_destination%.HEIC}.JPG"
+         else
+            echo "Unexpected response: ${curl_response}"
+         fi
+      fi
+      if [ -f "${full_filename%.heic}.jpg" ]
+      then
+         log_debug "Checking file path: ${nextcloud_destination%.heic}.jpg"
+         curl_response="$(curl --silent --show-error --location --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination%.heic}.jpg" --output /dev/null --write-out "%{http_code}")"
+         if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 200 ]
+         then
+            log_info_n " - File exists, deleting"
+            if curl --silent --show-error --location --request DELETE --user "${nextcloud_username}:${nextcloud_password}" --output /dev/null "${nextcloud_destination%.heic}.jpg"
+            then
+               echo "Success"
+            else
+               echo "Error: $?"
+            fi
+         elif [ "${curl_response}" -eq 404 ]
+         then
+            echo "File not found: ${nextcloud_destination%.heic}.jpg"
+         else
+            echo "Unexpected response: ${curl_response}"
+         fi
+      fi
+   done
+   IFS="${save_ifs}"
+}
+
+nextlcoud_delete_directories()
+{
+   local directories_list nextcloud_target curl_response
+   log_info "Checking for empty Nextcloud destination directories to remove..."
+   directories_list="$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | cut --delimiter " " --fields 9- | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | sort --unique --reverse | grep -v "^$")"
+   IFS=$'\n'
+   for target_directory in ${directories_list}
+   do
+      nextcloud_target="${nextcloud_url%/}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}${target_directory}")"
+      log_debug "Checking if Nextcloud directory is empty: ${nextcloud_target}"
+      curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --request PROPFIND "${nextcloud_target}" | grep -ow '<d:href>' | wc -l)"
+      if [ "${curl_response}" -ge 2 ]
+      then
+         log_debug " - Not removing directory as it contains items: $((curl_response -1 ))"
+      else
+         log_info_n " - Removing empty Nextcloud directory: ${nextcloud_target}"
+         curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null --request DELETE "${nextcloud_target}")"
+         if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
+         then
+            echo "Success"
+         else
+            echo "Unexpected response: ${curl_response}"
+         fi
+      fi
+   done
+   IFS="${save_ifs}"
+}
+
+nextcloud_upload_library()
+{
+   log_info "Uploading entire library to Nextcloud. This may take a while..."
+   local destination_directories encoded_destination_directories curl_response
+   log_info "Checking Nextcloud destination directories..."
+   destination_directories=$(find "${download_path}" -type d ! -name '.*' 2>/dev/null | sed "s%${download_path}%%" | grep -v "^$" | sort --unique)
+
+   IFS=$'\n'
+   encoded_destination_directories=$(for destination_directory in $destination_directories
+      do
+         echo "${nextcloud_url%/}/remote.php/dav/files/$(echo $(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}${destination_directory}/"))"
+      done)
+   IFS="${save_ifs}"
+
+   for nextcloud_destination in ${encoded_destination_directories}; do
+      log_info_n " - ${nextcloud_destination} "
+      curl_response="$(curl --silent --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_destination}")"
+      if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
+      then
+         echo "Exists"
+      else
+         echo "Missing"
+         log_info_n "Creating Nextcloud directory: ${nextcloud_destination} "
+         curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --request MKCOL "${nextcloud_destination}")"
+         if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
+         then
+            echo "Success"
+         else
+            echo "Error: ${curl_response}"
+         fi
+      fi
+   done
+
+   log_info "Checking Nextcloud destination files..."
+   IFS=$'\n'
+   for full_filename in $(find "${download_path}" -type f ! -name '.*' 2>/dev/null | sed "s%${download_path}%%")
+   do
+      nextcloud_destination="${nextcloud_url%/}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}$(echo ${full_filename})")"
+
+      log_info_n "Uploading ${full_filename} to ${nextcloud_destination}"
+      if curl --silent --output /dev/null --fail --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination}"
+      then
+         echo "File already exsits"
+      else
+         curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_destination}")"
+         if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
+         then
+            echo "Success"
+         else
+            echo "Unexpected response: ${curl_response}"
+         fi
+      fi
+      if [ -f "${full_filename%.HEIC}.JPG" ]
+      then
+         log_info_n "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_destination%.HEIC}.JPG"
+         if curl --silent --output /dev/null --fail --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination%.HEIC}.JPG"
+         then
+            log_info_n "File already exsits"
+         else
+            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${nextcloud_destination%.HEIC}.JPG")"
+            if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
+            then
+               echo "Success"
+            else
+               echo "Unexpected response: ${curl_response}"
+            fi
+         fi
+      fi
+      if [ -f "${full_filename%.heic}.jpg" ]
+      then
+         log_info_n "Uploading ${full_filename%.heic}.jpg to ${nextcloud_destination%.heic}.jpg"
+         if curl --silent --output /dev/null --fail --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination%.heic}.jpg"
+         then
+            log_info_n "File already exsits"
+         else
+            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${nextcloud_destination%.heic}.jpg")"
+            if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
+            then
+               echo "Success"
+            else
+               echo "Unexpected response: ${curl_response}"
+            fi
+         fi
+      fi
+   done
+   IFS="${save_ifs}"
 }
 
 convert_downloaded_heic_to_jpeg()
 {
    IFS="$(echo -en "\n\b")"
    log_info "Convert HEIC to JPEG..."
-   for heic_file in $(echo "$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut -d " " -f 9-)
+   for heic_file in $(echo "$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut --delimiter " " --fields 9-)
    do
       if [ ! -f "${heic_file}" ]
       then
@@ -1653,7 +1773,7 @@ synology_photos_app_fix()
    # Works for onestix. Do not obsolete
    IFS="$(echo -en "\n\b")"
    log_info "Fixing Synology Photos App import issue..."
-   for heic_file in $(echo "$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut -d " " -f 9-)
+   for heic_file in $(echo "$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut --delimiter " " --fields 9-)
    do
       log_debug "Create empty date/time reference file ${heic_file%.HEIC}.TMP"
       run_as "touch --reference=\"${heic_file}\" \"${heic_file%.HEIC}.TMP\""
@@ -1696,98 +1816,6 @@ convert_all_heic_files()
          log_debug "Setting timestamp of ${jpeg_file} to ${heic_date}"
          log_debug "Correct owner and group of ${jpeg_file} to ${user}:${group}"
          chown "${user}:${group}" "${jpeg_file}"
-      fi
-   done
-   IFS="${save_ifs}"
-}
-
-upload_library_to_nextcloud()
-{
-   log_info "Uploading entire library to Nextcloud. This may take a while..."
-   check_nextcloud_connectivity
-   log_info "Checking Nextcloud destination directories..."
-   destination_directories="$(find "${download_path}" -type f ! -name '.*' 2>/dev/null | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | uniq)"
-   for destination_directory in ${destination_directories}
-   do
-      SAVE_IFS="$IFS"
-      IFS='/'
-      unset build_path
-      for directory in ${destination_directory}
-      do
-         build_path="${build_path}/${directory}"
-         if [ "${build_path}" = "/" ]
-         then
-            unset build_path
-         fi
-         if [ "${build_path}" ]
-         then
-            log_info_n "Checking for Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path%/}/"
-            curl_response="$(curl --silent --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path%/}/")"
-            if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
-            then
-               echo "Exists: ${curl_response}"
-            else
-               echo "Missing: ${curl_response}"
-               log_info_n "Creating Nextcloud directory: ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path%/}"
-               curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --request MKCOL "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${build_path%/}/")"
-               if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
-               then
-                  echo "Success: ${curl_response}"
-               else
-                  echo "Unexpected response: ${curl_response}"
-               fi
-            fi
-         fi
-      done
-      IFS="$SAVE_IFS"
-   done
-
-   IFS="$(echo -en "\n\b")"
-   for full_filename in $(find "${download_path}" -type f ! -name '.*' 2>/dev/null)
-   do
-      log_debug "Full filename: ${full_filename}"
-      base_filename="$(basename "${full_filename}")"
-      log_debug "Base filename: ${base_filename}"
-      encoded_filename="$(nextcloud_encode_url "${base_filename}")"
-      log_debug "Encoded filename: ${encoded_filename}"
-      new_filename="$(echo "${full_filename}" | sed "s%${download_path}%%")"
-      log_debug "New filename: ${new_filename}"
-      directory_name="$(echo "${new_filename}" | sed "s%${base_filename}%%")"
-      log_debug "Directory name: ${directory_name}"
-      nextcloud_file_path="$(dirname ${new_filename})"
-      log_debug "Nextcloud file path: ${nextcloud_file_path}"
-      if [ ! -f "${full_filename}" ]
-      then
-         log_warning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
-      else
-         log_info_n "Uploading ${full_filename} to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename}"
-         if ( curl --silent --output /dev/null --fail --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename}" )
-         then
-            echo "File already exsits"
-         else
-            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename}")"
-            if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
-            then
-               echo "Success: ${curl_response}"
-            else
-               echo "Unexpected response: ${curl_response}"
-            fi
-         fi
-         if [ -f "${full_filename%.HEIC}.JPG" ]
-         then
-            log_info_n "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${base_filename%.HEIC}.JPG"
-            if (curl --silent --output /dev/null --fail --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename%.HEIC}.JPG")then
-               log_info_n "File already exsits"
-            else
-               curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename%.HEIC}.JPG" "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/${nextcloud_target_dir}${nextcloud_file_path}/${encoded_filename%.HEIC}.JPG")"
-               if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
-               then
-                  echo "Success: ${curl_response}"
-               else
-                  echo "Unexpected response: ${curl_response}"
-               fi
-            fi
-         fi
       fi
    done
    IFS="${save_ifs}"
@@ -1900,7 +1928,7 @@ remove_recently_deleted_accompanying_files()
 {
    IFS="$(echo -en "\n\b")"
    log_info "Deleting 'Recently Deleted' accompanying files (.JPG/_HEVC.MOV)..."
-   for heic_file in $(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | grep ".HEIC" | cut -d " " -f 9-)
+   for heic_file in $(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | grep ".HEIC" | cut --delimiter " " --fields 9-)
    do
       heic_file_clean="${heic_file/!/}"
       jpeg_file_clean="${heic_file_clean%.HEIC}.JPG"
@@ -2367,11 +2395,7 @@ synchronise_user()
                fi
                if [ "${nextcloud_upload}" = true ]
                then
-                  nextcloud_upload
-               fi
-               if [ "${nextcloud_delete}" = true ]
-               then
-                  nextcloud_delete
+                  nextcloud_sync
                fi
                if [ "${delete_notifications}" ]
                then
@@ -2573,7 +2597,7 @@ case  "$(echo "${script_launch_parameters}" | tr '[:upper:]' '[:lower:]')" in
       disable_debugging=true
    ;;
    "--upload-library-to-nextcloud")
-      upload_library_to_nextcloud=true
+      nextcloud_upload_library=true
    ;;
    "--help")
       "$(which more)" "/opt/CONFIGURATION.md"
@@ -2652,10 +2676,10 @@ then
    correct_jpeg_timestamps
    log_info "JPEG timestamp correction complete"
    exit 0
-elif [ "${upload_library_to_nextcloud:=false}" = true ]
+elif [ "${nextcloud_upload_library:=false}" = true ]
 then
    log_info "Uploading library to Nextcloud"
-   upload_library_to_nextcloud
+   nextcloud_upload_library
    log_info "Uploading library to Nextcloud complete"
    exit 0
 elif [ "${list_albums:=false}" = true ]
