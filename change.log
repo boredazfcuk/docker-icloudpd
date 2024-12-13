@@ -1,3 +1,7 @@
+13/12/2024
+
+ - Imagemagic changed the "convert" command to "magick convert". I'm sure they must have a reason for it, but it seems a little daft... and annoying
+ 
 09/12/2024
 
  - Well that was weird. I just re-built the "upload library to nextcloud" function using the newly reworked "create directories" and "upload files" functions as a template and the function worked first time in testing. Ther'es gotta be something wrong with it, surely?
