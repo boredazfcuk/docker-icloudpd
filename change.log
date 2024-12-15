@@ -1,6 +1,10 @@
+15/12/2024
+
+ - Still seems like there is a bug in the JPG file conversion code. Doesn't seem to create the subdirectories it needs. Likely only ever worked if folder_structure was set to none.
+ 
 13/12/2024
 
- - Imagemagic changed the "convert" command to "magick convert". I'm sure they must have a reason for it, but it seems a little daft... and annoying
+ - Imagemagick changed the "convert" command to "magick convert". I'm sure they must have a reason for it, but it seems a little daft... and annoying
  
 09/12/2024
 

@@ -49,7 +49,7 @@ When the container is first started, it will write a default configuration file 
 
 **delete_empty_directories**: Tells the script to delete any empty directories it finds in the download path. It will only run if **folder_structure** isn't set to 'none'
 
-**set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date. Default: false.
+**set_exif_datetime**: Write the DateTimeOriginal exif tag from file creation date. Warning: Setting this option will alter the local file and result in the original being downloaded again, with a de-duplication suffix added to the name. Default: false.
 
 **auto_delete**: Scans the "Recently Deleted" folder and deletes any files found in there. (If you restore the photo in iCloud, it will be downloaded again). Default: false.
 

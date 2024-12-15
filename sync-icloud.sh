@@ -1555,7 +1555,7 @@ nextcloud_delete()
    local nextcloud_destination curl_response
    IFS=$'\n'
    log_info "Delete files from Nextcloud..."
-   for full_filename in $(echo "$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log)" | cut --delimiter " " --fields 9-)
+   for full_filename in $(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | cut --delimiter " " --fields 9-)
    do
       nextcloud_destination="${nextcloud_url%/}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}$(echo ${full_filename} | sed "s%${download_path}%%")")"
       log_debug "Checking file path: ${nextcloud_destination}"
@@ -1737,9 +1737,9 @@ nextcloud_upload_library()
 
 convert_downloaded_heic_to_jpeg()
 {
-   IFS="$(echo -en "\n\b")"
+   IFS=$'\n'
    log_info "Convert HEIC to JPEG..."
-   for heic_file in $(echo "$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut --delimiter " " --fields 9-)
+   for heic_file in $(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | grep ".HEIC" | cut --delimiter " " --fields 9-)
    do
       if [ ! -f "${heic_file}" ]
       then
@@ -1754,6 +1754,12 @@ convert_downloaded_heic_to_jpeg()
                chown "${user}:${group}" "${jpeg_path}"
             fi
             jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
+            jpeg_directory="$(dirname "${jpeg_file/${download_path}/${jpeg_path}}")"
+            if [ ! -d "${jpeg_directory}" ]
+            then
+               mkdir --parents "${jpeg_directory}"
+               chown "${user}:${group}" "${jpeg_directory}"
+            fi
          fi
          log_info "Converting ${heic_file} to ${jpeg_file}"
          magick -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
@@ -1797,14 +1803,20 @@ convert_all_heic_files()
    for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null); do
       log_debug "HEIC file found: ${heic_file}"
       jpeg_file="${heic_file%.HEIC}.JPG"
-      if [ ! -d "${jpeg_path}" ]
-      then
-         mkdir --parents "${jpeg_path}"
-         chown "${user}:${group}" "${jpeg_path}"
-      fi
       if [ "${jpeg_path}" ]
       then
+         if [ ! -d "${jpeg_path}" ]
+         then
+            mkdir --parents "${jpeg_path}"
+            chown "${user}:${group}" "${jpeg_path}"
+         fi
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
+         jpeg_directory="$(dirname "${jpeg_file/${download_path}/${jpeg_path}}")"
+         if [ ! -d "${jpeg_directory}" ]
+         then
+            mkdir --parents "${jpeg_directory}"
+            chown "${user}:${group}" "${jpeg_directory}"
+         fi
       fi
       if [ ! -f "${jpeg_file}" ]
       then
@@ -1853,10 +1865,24 @@ force_convert_all_heic_files()
       jpeg_file="${heic_file%.HEIC}.JPG"
       if [ "${jpeg_path}" ]
       then
+         if [ ! -d "${jpeg_path}" ]
+         then
+            mkdir --parents "${jpeg_path}"
+            chown "${user}:${group}" "${jpeg_path}"
+         fi
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
+         jpeg_directory="$(dirname "${jpeg_file/${download_path}/${jpeg_path}}")"
+         if [ ! -d "${jpeg_directory}" ]
+         then
+            mkdir --parents "${jpeg_directory}"
+            chown "${user}:${group}" "${jpeg_directory}"
+         fi
       fi
       log_info "Converting ${heic_file} to ${jpeg_file}"
-      rm "${jpeg_file}"
+      if [ -f "${jpeg_file}" ]
+      then
+         rm "${jpeg_file}"
+      fi
       magick -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
       heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
       log_debug "Timestamp of HEIC file: ${heic_date}"
