@@ -1821,7 +1821,7 @@ convert_all_heic_files()
       if [ ! -f "${jpeg_file}" ]
       then
          log_info "Converting ${heic_file} to ${jpeg_file}"
-         convemagick -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
+         magick -quality "${jpeg_quality}" "${heic_file}" "${jpeg_file}"
          heic_date="$(date -r "${heic_file}" +"%a %b %e %T %Y")"
          log_debug "Timestamp of HEIC file: ${heic_date}"
          touch --reference="${heic_file}" "${jpeg_file}"
