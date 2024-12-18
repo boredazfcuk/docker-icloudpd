@@ -1,10 +1,15 @@
+18/12/2024
+
+ - Another ImageMagick bug... grr.
+ - Added additional checks at container first launch when creating the /config directory and /config/icloudpd.conf file. Script will now hang before initialisation if checks on these locations fail.
+
 15/12/2024
 
  - Still seems like there is a bug in the JPG file conversion code. Doesn't seem to create the subdirectories it needs. Likely only ever worked if folder_structure was set to none.
  
 13/12/2024
 
- - Imagemagick changed the "convert" command to "magick convert". I'm sure they must have a reason for it, but it seems a little daft... and annoying
+ - Imagemagick changed the "convert" command to "magick convert". I'm sure they must have a reason for it, but it seems a little daft... and annoying.
  
 09/12/2024
 
@@ -12,25 +17,25 @@
  
 08/12/2024
 
- - A bunch more Nextcloud stuff done over the weekend. All functions now reworked except for the one that uploads the entrie library. Not as much space saved as I'd liked. The upload function was actually pretty well written, plus I broke them into separate functions for creating directories and uploading files. I also found a potential issue regarding case sensitivity and the HEIC conversion tool, so added a bunch of code to handle that. Hopefully I'll get some time to finish the last function tomorrow/Tuesday
+ - A bunch more Nextcloud stuff done over the weekend. All functions now reworked except for the one that uploads the entrie library. Not as much space saved as I'd liked. The upload function was actually pretty well written, plus I broke them into separate functions for creating directories and uploading files. I also found a potential issue regarding case sensitivity and the HEIC conversion tool, so added a bunch of code to handle that. Hopefully I'll get some time to finish the last function tomorrow/Tuesday.
 
 05/12/2024
 
- - Bit of work regarding the Nextcloud stuff. Rewritten the function that creates the directories prior to uploading. It now generates the list of encoded directory paths before attempting to create them. Seems a lot cleaner. Code has gone from about 40 lines to 30 lines, a reduction of over 200 characters. S/hould be able to make similar gains surrounding the nextcloud_upload, nextcloud_delete and double the amoutn for the upload_library_to_nextcloud functions... iirc
- - Also, Alpine Linux 3.210.0 has dropped so rebuilt with that
+ - Bit of work regarding the Nextcloud stuff. Rewritten the function that creates the directories prior to uploading. It now generates the list of encoded directory paths before attempting to create them. Seems a lot cleaner. Code has gone from about 40 lines to 30 lines, a reduction of over 200 characters. S/hould be able to make similar gains surrounding the nextcloud_upload, nextcloud_delete and double the amoutn for the upload_library_to_nextcloud functions... iirc.
+ - Also, Alpine Linux 3.210.0 has dropped so rebuilt with that.
 
 03/12/2024
 
- - Bump icloud-photos-downloader to v.125.0 and pushed to GitHub
- - Then found nextcloud upload handling doesn't work when the album name has a space in it. I've got directoy creation and upload working, but it's an absolute mess. I've no idea how it's actally working and seems way, way overly complicated. Needs some time spending on it
+ - Bump icloud-photos-downloader to v.125.0 and pushed to GitHub.
+ - Then found nextcloud upload handling doesn't work when the album name has a space in it. I've got directoy creation and upload working, but it's an absolute mess. I've no idea how it's actally working and seems way, way overly complicated. Needs some time spending on it.
 
 24/11/2024
 
- - Did remember
+ - Did remember.
 
 23/11/2024
 
- - Well, seems like remote auth was royally fucked with the switch from ash to bash due to the regex matching. Think it's fixed. Pretty sure there were PRs surrounding the photo_album and photo_lirary features that used the same regex based matches. they could be broke, but it's late, so I'm going to bed. I'm also a bit drunk so I'll probably forget to check if its broken tomorrow
+ - Well, seems like remote auth was royally fucked with the switch from ash to bash due to the regex matching. Think it's fixed. Pretty sure there were PRs surrounding the photo_album and photo_lirary features that used the same regex based matches. they could be broke, but it's late, so I'm going to bed. I'm also a bit drunk so I'll probably forget to check if its broken tomorrow.
  
 22/11/2024
 
