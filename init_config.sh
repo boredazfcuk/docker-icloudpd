@@ -20,6 +20,12 @@ then
       sleep infinity
    fi
 fi
+if [ ! -f "${config_file}" ]
+then
+   echo "Config file appears to be a directory: ${config_file}"
+   echo " - Cannot continue. Check your volume mount."
+   sleep infinity
+fi
 
 # Add missing options and set their default value
 {
