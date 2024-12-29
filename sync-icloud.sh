@@ -14,7 +14,10 @@ initialise_script()
    latest_version="$(curl --silent --max-time 5 https://raw.githubusercontent.com/boredazfcuk/docker-icloudpd/master/build_version.txt | awk -F_ '{print $1}')"
    if [ "${current_version:=99}" -eq "99" ] || [ "${latest_version:=98}" -eq "98" ]
    then
-      log_error " - Check for updates failed. Continuing in 2 minutes..."
+      log_error " - Check for updates failed. Placeholder version detected."
+      log_error " - Current version: ${current_version}"
+      log_error " - Latest version: ${latest_version}"
+      log_error " - Continuing in 2 minutes..."
       sleep 120
    elif [ "${current_version}" -lt "${latest_version}" ]
    then
