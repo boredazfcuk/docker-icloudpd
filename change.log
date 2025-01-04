@@ -1,3 +1,8 @@
+04/01/2025
+
+ - Messed about with the Telegram polling times so that when re-authenticating, the polling frequency increases so it's more responsive. Polling every 60s makes re-authentication take about 3mins. Should now be loads quicker.
+ - Also noticed that additional sleeps in the Telegram polling sequence would mean the sync time slips by 2 seconds every 60. I've not checked logs to confirm, so this is only a suspicion. Have changed it anyway so that it should now be more accurate and slippage should only be by the amount of time it takes to process all the commands... so hopefully can be measured in miliseconds.
+ 
 29/12/2024
 
  - Bump icloud-photos-downloader to v.125.1 and pushed to GitHub.

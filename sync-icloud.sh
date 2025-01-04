@@ -2477,6 +2477,7 @@ synchronise_user()
          then
             log_info "Monitoring ${notification_type} for remote commands prefix: ${user}"
             listen_counter=0
+            poll_sleep=30
             while [ "${listen_counter}" -lt "${sleep_time}" ]
             do
                if [ "${telegram_polling}" = true ]
@@ -2519,20 +2520,30 @@ synchronise_user()
 			                     rm "/config/${cookie_file}" "/config/${cookie_file}.session"
                               log_debug "Starting remote authentication process"
                               /usr/bin/expect /opt/authenticate.exp &
+                              poll_sleep=3
                            elif [[ "${check_update_text,,}" =~ ^${user,,}\ [0-9][0-9][0-9][0-9][0-9][0-9]$ ]]
                            then
                               mfa_code="$(echo "${check_update_text}" | awk '{print $2}')"
                               echo "${mfa_code}" > /tmp/icloudpd/expect_input.txt
+                              listen_counter=$((listen_counter+2))
+                              # additional sleeps mean sync time slips each time time a sync or auth is performed.
+                              # adding same amount of time to listen counter should prevent this from occurring.
                               sleep 2
                               unset mfa_code
+                              poll_sleep=30
                            elif [[ "${check_update_text,,}" =~ ^${user,,}\ [a-z]$ ]]
                            then
                               sms_choice="$(echo "${check_update_text}" | awk '{print $2}')"
                               echo "${sms_choice}" > /tmp/icloudpd/expect_input.txt
+                              listen_counter=$((listen_counter+2))
+                              # additional sleeps mean sync time slips each time time a sync or auth is performed.
+                              # adding same amount of time to listen counter should prevent this from occurring.
                               sleep 2
                               unset sms_choice
+                              poll_sleep=3
                            else
                               log_debug "Ignoring message: ${check_update_text}"
+                              poll_sleep=30
                            fi
                         done
                         echo -n "${latest_update}" > "${telegram_update_id_offset_file}"
@@ -2546,13 +2557,16 @@ synchronise_user()
                            else
                               send_notification "remotesync" "iCloudPD remote synchronisation initiated" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
                            fi
+                              poll_sleep=30
                            break
                         fi
                      fi
                   fi
                fi
-               listen_counter=$((listen_counter+60))
-               sleep 60
+               listen_counter=$((listen_counter+poll_sleep))
+               # additional sleeps mean sync time slips each time time a sync or auth is performed.
+               # adding same amount of time to listen counter should prevent this from occurring.
+               sleep "${poll_sleep}"
             done
          else
             sleep "${sleep_time}"
