@@ -77,6 +77,10 @@ fi
    then
       echo delete_after_download="${delete_after_download:=false}"
    fi
+      if [ "$(grep -c "^keep_recent_days=" "${config_file}")" -eq 0 ]
+   then
+      echo keep_recent_days="${keep_recent_days:=0}"
+   fi
    if [ "$(grep -c "^delete_empty_directories=" "${config_file}")" -eq 0 ]
    then
       echo delete_empty_directories="${delete_empty_directories:=false}"
