@@ -1,8 +1,11 @@
-version: "3.8"
-
-volumes:
-   config:
-      name: icloudpd_config
+networks:
+   icloudpd:
+      name: icloudpd
+      driver: bridge
+      ipam:
+         driver: default
+      driver_opts:
+         com.docker.network.bridge.name: icloudpd
 
 volumes:
    icloudpd_user1_config:
@@ -13,8 +16,13 @@ volumes:
 services:
    icloudpd_user1:
       hostname: icloudpd_user1
+      networks:
+         icloudpd:
+            aliases:
+               - icloudpd_user1
       environment:
          - TZ=Europe/London
+         - user=user1
       image: boredazfcuk/icloudpd
       healthcheck:
          test: /usr/local/bin/healthcheck.sh
@@ -25,8 +33,13 @@ services:
          - ./iCloud/:/home/user1/iCloud/
    icloudpd_user2:
       hostname: icloudpd_user2
+      networks:
+         icloudpd:
+            aliases:
+               - icloudpd_user2
       environment:
          - TZ=Europe/London
+         - user=user2
       image: boredazfcuk/icloudpd
       healthcheck:
          test: /usr/local/bin/healthcheck.sh
