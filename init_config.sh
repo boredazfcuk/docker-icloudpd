@@ -294,6 +294,10 @@ fi
    then
       echo synology_ignore_path="${synology_ignore_path:=false}"
    fi
+   if [ "$(grep -c "^synology_photos_app_fix=" "${config_file}")" -eq 0 ]
+   then
+      echo synology_photos_app_fix="${synology_photos_app_fix:=false}"
+   fi
    if [ "$(grep -c "^telegram_chat_id=" "${config_file}")" -eq 0 ]
    then
       echo telegram_chat_id="${telegram_chat_id}"
@@ -611,6 +615,10 @@ if [ -z "$(grep "^synology_ignore_path=" "${config_file}" | awk -F= '{print $2}'
 then
    sed -i "s%^synology_ignore_path=$%synology_ignore_path=false%" "${config_file}"
 fi
+if [ -z "$(grep "^synology_photos_app_fix=" "${config_file}" | awk -F= '{print $2}')" ]
+then
+   sed -i "s%^synology_photos_app_fix=$%synology_photos_app_fix=false%" "${config_file}"
+fi
 if [ -z "$(grep "^telegram_http=" "${config_file}" | awk -F= '{print $2}')" ]
 then
    sed -i "s%^telegram_http=$%telegram_http=false%" "${config_file}"
@@ -909,6 +917,10 @@ fi
 if [ "${synology_ignore_path}" ]
 then
    sed -i "s%^synology_ignore_path=.*%synology_ignore_path=${synology_ignore_path}%" "${config_file}"
+fi
+if [ "${synology_photos_app_fix}" ]
+then
+   sed -i "s%^synology_photos_app_fix=.*%synology_photos_app_fix=${synology_photos_app_fix}%" "${config_file}"
 fi
 if [ "${telegram_chat_id}" ]
 then

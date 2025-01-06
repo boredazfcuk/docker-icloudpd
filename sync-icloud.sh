@@ -1191,6 +1191,7 @@ check_files()
 
 downloaded_files_notification()
 {
+   IFS=$'\n'
    local new_files_count new_files_preview new_files_text
    new_files="$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)"
    new_files_count="$(grep -c "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)"
@@ -1211,10 +1212,12 @@ downloaded_files_notification()
          send_notification "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "下载" "${new_files_preview}" "新增 ${new_files_count} 张照片 - ${name}" "下次同步时间 ${syn_next_time}"
       fi
    fi
+   IFS="${save_ifs}"
 }
 
 deleted_files_notification()
 {
+   IFS=$'\n'
    local deleted_files deleted_files_count deleted_files_preview deleted_files_text
    deleted_files="$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log)"
    deleted_files_count="$(grep -c "Deleted /" /tmp/icloudpd/icloudpd_sync.log)"
@@ -1235,6 +1238,7 @@ deleted_files_notification()
          send_notification "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "删除" "${deleted_files_preview}" "删除 ${deleted_files_count} 张照片 - ${name}" "下次同步时间 ${syn_next_time}"
       fi
    fi
+   IFS="${save_ifs}"
 }
 
 download_albums()
@@ -1444,6 +1448,7 @@ nextcloud_url_encoder()
 
 nextlcoud_create_directories()
 {
+   IFS=$'\n'
    local destination_directories encoded_destination_directories curl_response
    log_info "Checking Nextcloud destination directories..."
    destination_directories=$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | cut --delimiter " " --fields 9- | sed "s%${download_path}%%" | while read -r line
@@ -1454,7 +1459,6 @@ nextlcoud_create_directories()
          done
       done | sort -u)
 
-   IFS=$'\n'
    encoded_destination_directories=$(for destination_directory in $destination_directories
       do
          echo "${nextcloud_url%/}/remote.php/dav/files/$(echo $(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}${destination_directory}/"))"
@@ -1508,10 +1512,9 @@ nextcloud_sync()
 
 nextcloud_upload()
 {
-   local nextcloud_destination curl_response
-
-   log_info "Uploading files to Nextcloud"
    IFS=$'\n'
+   local nextcloud_destination curl_response
+   log_info "Uploading files to Nextcloud"
    for full_filename in $(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | cut --delimiter " " --fields 9-)
    do
       nextcloud_destination="${nextcloud_url%/}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}$(echo ${full_filename} | sed "s%${download_path}%%")")"
@@ -1556,8 +1559,8 @@ nextcloud_upload()
 
 nextcloud_delete()
 {
-   local nextcloud_destination curl_response
    IFS=$'\n'
+   local nextcloud_destination curl_response
    log_info "Delete files from Nextcloud..."
    for full_filename in $(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | cut --delimiter " " --fields 9-)
    do
@@ -1625,10 +1628,10 @@ nextcloud_delete()
 
 nextlcoud_delete_directories()
 {
+   IFS=$'\n'
    local directories_list nextcloud_target curl_response
    log_info "Checking for empty Nextcloud destination directories to remove..."
    directories_list="$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | cut --delimiter " " --fields 9- | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | sort --unique --reverse | grep -v "^$")"
-   IFS=$'\n'
    for target_directory in ${directories_list}
    do
       nextcloud_target="${nextcloud_url%/}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}${target_directory}")"
@@ -1781,9 +1784,9 @@ convert_downloaded_heic_to_jpeg()
 synology_photos_app_fix()
 {
    # Works for onestix. Do not obsolete
-   IFS="$(echo -en "\n\b")"
+   IFS=$'\n'
    log_info "Fixing Synology Photos App import issue..."
-   for heic_file in $(echo "$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log)" | grep ".HEIC" | cut --delimiter " " --fields 9-)
+   for heic_file in $(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | grep ".HEIC" | cut --delimiter " " --fields 9-)
    do
       log_debug "Create empty date/time reference file ${heic_file%.HEIC}.TMP"
       run_as "touch --reference=\"${heic_file}\" \"${heic_file%.HEIC}.TMP\""
@@ -1802,7 +1805,7 @@ synology_photos_app_fix()
 
 convert_all_heic_files()
 {
-   IFS="$(echo -en "\n\b")"
+   IFS=$'\n'
    log_info "Convert all HEICs to JPEG, if required..."
    for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null); do
       log_debug "HEIC file found: ${heic_file}"
@@ -1839,7 +1842,7 @@ convert_all_heic_files()
 
 remove_all_jpeg_files()
 {
-   IFS="$(echo -en "\n\b")"
+   IFS=$'\n'
    log_warning "Remove all JPGs that have accompanying HEIC files. This could result in data loss if HEIC file name matches the JPG file name, but content does not"
    log_info "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
@@ -1861,7 +1864,7 @@ remove_all_jpeg_files()
 
 force_convert_all_heic_files()
 {
-   IFS="$(echo -en "\n\b")"
+   IFS=$'\n'
    log_warning "Force convert all HEICs to JPEG. This could result in data loss if JPG files have been edited on disk"
    log_info "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
@@ -1900,7 +1903,7 @@ force_convert_all_heic_files()
 
 force_convert_all_mnt_heic_files()
 {
-   IFS="$(echo -en "\n\b")"
+   IFS=$'\n'
    log_warning "Force convert all HEICs in /mnt directory to JPEG. This could result in data loss if JPG files have been edited on disk"
    log_info "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
@@ -1926,7 +1929,7 @@ force_convert_all_mnt_heic_files()
 
 correct_jpeg_timestamps()
 {
-   IFS="$(echo -en "\n\b")"
+   IFS=$'\n'
    log_info "Check and correct converted HEIC timestamps..."
    for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null)
    do
@@ -1956,7 +1959,7 @@ correct_jpeg_timestamps()
 
 remove_recently_deleted_accompanying_files()
 {
-   IFS="$(echo -en "\n\b")"
+   IFS=$'\n'
    log_info "Deleting 'Recently Deleted' accompanying files (.JPG/_HEVC.MOV)..."
    for heic_file in $(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | grep ".HEIC" | cut --delimiter " " --fields 9-)
    do
@@ -2418,7 +2421,7 @@ synchronise_user()
                then
                   downloaded_files_notification
                fi
-               if [ "${synology_photos_app_fix}" ]
+               if [ "${synology_photos_app_fix}" = true ]
                then
                   synology_photos_app_fix
                fi
