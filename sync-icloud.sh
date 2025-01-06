@@ -245,6 +245,7 @@ initialise_script()
       sleep 120
       exit 1
    fi
+   log_info "Keep recent days: ${keep_recent_days}"
    log_info "Delete empty directories: ${delete_empty_directories}"
    log_info "Photo size: ${photo_size}"
    log_info "Align RAW: ${align_raw}"
@@ -2304,6 +2305,10 @@ command_line_builder()
    elif [ "${delete_after_download}" != false ]
    then
       command_line="${command_line} --delete-after-download"
+   fi
+   if [ "${keep_recent_days}" != 0 ]
+   then
+      command_line="${command_line} --keep-recent-days ${keep_recent_days}"
    fi
    if [ "${skip_live_photos}" = false ]
    then
