@@ -6,6 +6,7 @@
 
  - Changed some IFS declarations so they're all consistent (echo \b\n to $'\n')
  - Re-implemented Synology Photos App Fix which hadn't been brought in since the move to icloudpd.conf file configuration
+ - Updated the bug report template
 
 05/01/2025
 
