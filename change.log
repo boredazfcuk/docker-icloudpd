@@ -1,3 +1,7 @@
+07/01/2025
+
+ - Updated parameter name **keep_recent_days** to **keep_icloud_recent_days**.
+
 06/01/2025
 
  - Changed some IFS declarations so they're all consistent (echo \b\n to $'\n')
@@ -5,7 +9,7 @@
 
 05/01/2025
 
- - Added **keep_recent_days** option.
+ - Added **keep_icloud_recent_days** option.
 
 04/01/2025
 
