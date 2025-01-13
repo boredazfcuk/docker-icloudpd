@@ -77,10 +77,6 @@ fi
    then
       echo delete_after_download="${delete_after_download:=false}"
    fi
-   if [ "$(grep -c "^keep_icloud_recent_days=" "${config_file}")" -eq 0 ]
-   then
-      echo keep_icloud_recent_days="${keep_icloud_recent_days:=0}"
-   fi
    if [ "$(grep -c "^delete_empty_directories=" "${config_file}")" -eq 0 ]
    then
       echo delete_empty_directories="${delete_empty_directories:=false}"
@@ -169,6 +165,10 @@ fi
    if [ "$(grep -c "^jpeg_quality=" "${config_file}")" -eq 0 ]
    then
       echo jpeg_quality="${jpeg_quality:=90}"
+   fi
+   if [ "$(grep -c "^keep_icloud_recent_days=" "${config_file}")" -eq 0 ]
+   then
+      echo keep_icloud_recent_days="${keep_icloud_recent_days:=0}"
    fi
    if [ "$(grep -c "^keep_unicode=" "${config_file}")" -eq 0 ]
    then
@@ -543,6 +543,10 @@ if [ -z "$(grep "^jpeg_quality=" "${config_file}" | awk -F= '{print $2}')" ]
 then
    sed -i "s%^jpeg_quality=$%jpeg_quality=90%" "${config_file}"
 fi
+if [ -z "$(grep "^keep_icloud_recent_days=" "${config_file}" | awk -F= '{print $2}')" ]
+then
+   sed -i "s%^keep_icloud_recent_days=$%keep_icloud_recent_days=0%" "${config_file}"
+fi
 if [ -z "$(grep "^keep_unicode=" "${config_file}" | awk -F= '{print $2}')" ]
 then
    sed -i "s%^keep_unicode=$%keep_unicode=false%" "${config_file}"
@@ -793,6 +797,10 @@ fi
 if [ "${jpeg_quality}" ]
 then
    sed -i "s%^jpeg_quality=.*%jpeg_quality=${jpeg_quality}%" "${config_file}"
+fi
+if [ "${keep_icloud_recent_days}" ]
+then
+   sed -i "s%^keep_icloud_recent_days=.*%keep_icloud_recent_days=${keep_icloud_recent_days}%" "${config_file}"
 fi
 if [ "${keep_unicode}" ]
 then
