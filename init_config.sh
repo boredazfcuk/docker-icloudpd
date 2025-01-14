@@ -27,7 +27,7 @@ then
    sleep infinity
 fi
 
-# Add missing options and set their default value
+# Add missing options to the config file and if a Docker variable exists, use that to set the default value
 {
    if [ "$(grep -c "^albums_with_dates=" "${config_file}")" -eq 0 ]
    then
@@ -656,7 +656,7 @@ then
    sed -i "s%^msmtp_args=$%msmtp_args=--tls-starttls=off%" "${config_file}"
 fi
 
-# Update configuration file with currently set Docker environment variables
+# Update configuration file with with values from Docker environment variables, in case they've changed
 if [ "${albums_with_dates}" ]
 then
    sed -i "s%^albums_with_dates=.*%albums_with_dates=${albums_with_dates}%" "${config_file}"

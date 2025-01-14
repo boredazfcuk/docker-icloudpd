@@ -245,7 +245,10 @@ initialise_script()
       sleep 120
       exit 1
    fi
-   log_info "Keep iCloud recent days: ${keep_icloud_recent_days}"
+   if [ "${keep_icloud_recent_days}" ]
+   then
+      log_info "Keep iCloud recent days: ${keep_icloud_recent_days}"
+   fi
    log_info "Delete empty directories: ${delete_empty_directories}"
    log_info "Photo size: ${photo_size}"
    log_info "Align RAW: ${align_raw}"
@@ -1289,11 +1292,11 @@ download_albums()
       log_info "Downloading album: ${album}"
       if [ "${albums_with_dates}" = true ]
       then
-         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       else
-         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       fi
       if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]
       then
@@ -1354,11 +1357,11 @@ download_libraries()
       fi
       if [ "${libraries_with_dates}" = true ]
       then
-         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure ${library}/${folder_structure} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}/${folder_structure}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} --folder-structure ${library}/${folder_structure} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level "${log_level}" --folder-structure "${library}/${folder_structure}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       else
-         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure ${library} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} --folder-structure ${library} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level "${log_level}" --folder-structure "${library}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       fi
       if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]
       then
@@ -1380,10 +1383,10 @@ download_photos()
    else
       log_level="info"
    fi
-   log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd --log-level ${log_level} ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
+   log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd --log-level ${log_level} ${command_line[@]} 2>/tmp/icloudpd/icloudpd_download_error"
    if [ "${skip_download}" = false ]
    then
-      run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+      run_as "(/opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
    else
       log_debug "Skip download: ${skip_download} - skipping"
       echo 0 >/tmp/icloudpd/icloudpd_download_exit_code
@@ -2258,10 +2261,11 @@ send_notification()
 command_line_builder()
 {
    local size
+   command_line=()
    command_line="--directory ${download_path} --cookie-directory /config --domain ${auth_domain} --username ${apple_id} --no-progress-bar"
    if [ "${photo_size}" = "original" ] || [ "${photo_size}" = "medium" ] || [ "${photo_size}" = "thumb" ] || [ "${photo_size}" = "adjusted" ] || [ "${photo_size}" = "alternative" ]
    then
-      command_line="${command_line} --size ${photo_size}"
+      command_line+=" --size ${photo_size}"
    else
       if [ "${photo_size}" ]
       then
@@ -2272,7 +2276,7 @@ command_line_builder()
             if [ "${size}" = "original" ] || [ "${size}" = "medium" ] || [ "${size}" = "thumb" ] || [ "${size}" = "adjusted" ] || [ "${size}" = "alternative" ]
             then
                log_debug "Adding photo size ${size} to size types"
-               command_line="${command_line} --size ${size}"
+               command_line+=" --size ${size}"
             else
                log_warning "Photo size ${size} not recognised, disregarding"
             fi
@@ -2284,59 +2288,59 @@ command_line_builder()
    fi
    if [ "${set_exif_datetime}" != false ]
    then
-      command_line="${command_line} --set-exif-datetime"
+      command_line+=" --set-exif-datetime"
    fi
    if [ "${keep_unicode}" != false ]
    then
-      command_line="${command_line} --keep-unicode-in-filenames ${keep_unicode}"
+      command_line+=" --keep-unicode-in-filenames ${keep_unicode}"
    fi
    if [ "${live_photo_mov_filename_policy}" != "suffix" ]
    then
-      command_line="${command_line} --live-photo-mov-filename-policy ${live_photo_mov_filename_policy}"
+      command_line+=" --live-photo-mov-filename-policy ${live_photo_mov_filename_policy}"
    fi
    if [ "${align_raw}" != "as-is" ]
    then
-      command_line="${command_line} --align-raw ${align_raw}"
+      command_line+=" --align-raw ${align_raw}"
    fi
    if [ "${file_match_policy}" != "name-size-dedup-with-suffix" ]
    then
-      command_line="${command_line} --file-match-policy ${file_match_policy}"
+      command_line+=" --file-match-policy ${file_match_policy}"
    fi
    if [ "${auto_delete}" != false ]
    then
-      command_line="${command_line} --auto-delete"
+      command_line+=" --auto-delete"
    elif [ "${delete_after_download}" != false ]
    then
-      command_line="${command_line} --delete-after-download"
+      command_line+=" --delete-after-download"
    fi
-   # if [ "${keep_icloud_recent_days}" -ne 0 ]
-   # then
-   #    command_line="${command_line} --keep-icloud-recent-days ${keep_icloud_recent_days}"
-   # fi
+   if [ "${keep_icloud_recent_days}" ]
+   then
+      command_line+=" --keep-icloud-recent-days ${keep_icloud_recent_days}"
+   fi
    if [ "${skip_live_photos}" = false ]
    then
       if [ "${live_photo_size}" != "original" ]
       then
-         command_line="${command_line} --live-photo-size ${live_photo_size}"
+         command_line+=" --live-photo-size ${live_photo_size}"
       fi
    else
-      command_line="${command_line} --skip-live-photos"
+      command_line+=" --skip-live-photos"
    fi
    if [ "${skip_videos}" != false ]
    then
-      command_line="${command_line} --skip-videos"
+      command_line+=" --skip-videos"
    fi
    if [ -z "${photo_album}" ] && [ -z "${photo_library}" ]
    then
-      command_line="${command_line} --folder-structure ${folder_structure}"
+      command_line+=" --folder-structure ${folder_structure}"
    fi
    if [ "${until_found}" ]
    then
-      command_line="${command_line} --until-found ${until_found}"
+      command_line+=" --until-found ${until_found}"
    fi
    if [ "${recent_only}" ]
    then
-      command_line="${command_line} --recent ${recent_only}"
+      command_line+=" --recent ${recent_only}"
    fi
 }
 

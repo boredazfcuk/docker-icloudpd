@@ -1,3 +1,9 @@
+14/01/2025
+
+ - Something not right with the new option as it was enabling by default and configuring a value which would delete all files from icloud.com. Have changed the init_config.sh script so it doesn't set a defualt of 0, but defaults to blank and also so that it invokes the command on the presence of the variable.
+ - Changed the command builder to use an array
+ - Change the logging to not display the keep_icloud_recent_days variable if it is not set
+ 
 07/01/2025
 
  - Updated parameter name **keep_recent_days** to **keep_icloud_recent_days**.
