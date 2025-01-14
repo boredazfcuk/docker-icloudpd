@@ -168,7 +168,7 @@ fi
    fi
    if [ "$(grep -c "^keep_icloud_recent_days=" "${config_file}")" -eq 0 ]
    then
-      echo keep_icloud_recent_days="${keep_icloud_recent_days:=0}"
+      echo keep_icloud_recent_days="${keep_icloud_recent_days}"
    fi
    if [ "$(grep -c "^keep_unicode=" "${config_file}")" -eq 0 ]
    then
@@ -542,10 +542,6 @@ fi
 if [ -z "$(grep "^jpeg_quality=" "${config_file}" | awk -F= '{print $2}')" ]
 then
    sed -i "s%^jpeg_quality=$%jpeg_quality=90%" "${config_file}"
-fi
-if [ -z "$(grep "^keep_icloud_recent_days=" "${config_file}" | awk -F= '{print $2}')" ]
-then
-   sed -i "s%^keep_icloud_recent_days=$%keep_icloud_recent_days=0%" "${config_file}"
 fi
 if [ -z "$(grep "^keep_unicode=" "${config_file}" | awk -F= '{print $2}')" ]
 then
