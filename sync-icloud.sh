@@ -2309,10 +2309,10 @@ command_line_builder()
    then
       command_line="${command_line} --delete-after-download"
    fi
-   if [ "${keep_icloud_recent_days}" -ne 0 ]
-   then
-      command_line="${command_line} --keep-icloud-recent-days ${keep_icloud_recent_days}"
-   fi
+   # if [ "${keep_icloud_recent_days}" -ne 0 ]
+   # then
+   #    command_line="${command_line} --keep-icloud-recent-days ${keep_icloud_recent_days}"
+   # fi
    if [ "${skip_live_photos}" = false ]
    then
       if [ "${live_photo_size}" != "original" ]
