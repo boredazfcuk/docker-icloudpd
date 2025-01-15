@@ -245,9 +245,18 @@ initialise_script()
       sleep 120
       exit 1
    fi
-   if [ "${keep_icloud_recent_days}" ]
+   if [ "${keep_icloud_recent_only}" = true ]
    then
+      log_info "Keep iCloud recent : Enabled"
       log_info "Keep iCloud recent days: ${keep_icloud_recent_days}"
+      log_warning "This feature deletes all files from your local disk which are older than this amount of days. Setting this to 0 will delete everthing."
+      log_warning " - Please use with caution. I am not responsible for any data loss. Continuing in 2 minutes"
+      if [ "${warnings_acknowledged:=false}" = true ]
+      then
+         log_info "File deletion warning accepted"
+      else
+         sleep 120
+      fi
    fi
    log_info "Delete empty directories: ${delete_empty_directories}"
    log_info "Photo size: ${photo_size}"
@@ -2313,7 +2322,7 @@ command_line_builder()
    then
       command_line+=" --delete-after-download"
    fi
-   if [ "${keep_icloud_recent_days}" ]
+   if [ "${keep_icloud_recent_only}" = true ] && [ "${keep_icloud_recent_days}" ]
    then
       command_line+=" --keep-icloud-recent-days ${keep_icloud_recent_days}"
    fi

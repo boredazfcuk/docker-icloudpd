@@ -170,6 +170,10 @@ fi
    then
       echo keep_icloud_recent_days="${keep_icloud_recent_days}"
    fi
+   if [ "$(grep -c "^keep_icloud_recent_only=" "${config_file}")" -eq 0 ]
+   then
+      echo keep_icloud_recent_only="${keep_icloud_recent_only}"
+   fi
    if [ "$(grep -c "^keep_unicode=" "${config_file}")" -eq 0 ]
    then
       echo keep_unicode="${keep_unicode:=false}"
@@ -543,6 +547,10 @@ if [ -z "$(grep "^jpeg_quality=" "${config_file}" | awk -F= '{print $2}')" ]
 then
    sed -i "s%^jpeg_quality=$%jpeg_quality=90%" "${config_file}"
 fi
+if [ -z "$(grep "^keep_icloud_recent_only=" "${config_file}" | awk -F= '{print $2}')" ]
+then
+   sed -i "s%^keep_icloud_recent_only=$%keep_icloud_recent_only=false%" "${config_file}"
+fi
 if [ -z "$(grep "^keep_unicode=" "${config_file}" | awk -F= '{print $2}')" ]
 then
    sed -i "s%^keep_unicode=$%keep_unicode=false%" "${config_file}"
@@ -797,6 +805,10 @@ fi
 if [ "${keep_icloud_recent_days}" ]
 then
    sed -i "s%^keep_icloud_recent_days=.*%keep_icloud_recent_days=${keep_icloud_recent_days}%" "${config_file}"
+fi
+if [ "${keep_icloud_recent_only}" ]
+then
+   sed -i "s%^keep_icloud_recent_only=.*%keep_icloud_recent_only=${keep_icloud_recent_only}%" "${config_file}"
 fi
 if [ "${keep_unicode}" ]
 then
@@ -1080,4 +1092,4 @@ sed -i 's/=True/=true/gI' "${config_file}"
 sed -i 's/=False/=false/gI' "${config_file}"
 sed -i 's/debug_logging=AAAAA/debug_logging=false/' "${config_file}"
 sed -i 's/authentication_type=2FA/authentication_type=MFA/' "${config_file}"
-sed -i '/delete_notification=/d' "${config_file}"
+sed -i '/keep_recent_days=/d' "${config_file}"
