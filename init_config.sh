@@ -1,31 +1,4 @@
-#!/bin/bash
-
-config_file="/config/icloudpd.conf"
-
-if [ ! -d "/config" ]
-then
-   if ! mkdir /config
-   then
-      echo "Failed to configuration directory: /config"
-      echo " - Cannot continue. Check your volume mount is not read-only. Check NFS/SMB share permissions if mounting to a shared location"
-      sleep infinity
-   fi
-fi
-if [ ! -f "${config_file}" ]
-then
-   if ! touch "${config_file}"
-   then
-      echo "Failed to create configration file: ${config_file}"
-      echo " - Cannot continue. Check your volume mount is not read-only. Check NFS/SMB share permissions if mounting to a shared location. Check you container has root permissions."
-      sleep infinity
-   fi
-fi
-if [ ! -f "${config_file}" ]
-then
-   echo "Config file appears to be a directory: ${config_file}"
-   echo " - Cannot continue. Check your volume mount."
-   sleep infinity
-fi
+#!/bin/ash
 
 # Add missing options to the config file and if a Docker variable exists, use that to set the default value
 {

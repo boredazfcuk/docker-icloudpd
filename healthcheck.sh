@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/ash
 
 source "/config/icloudpd.conf"
 
@@ -7,19 +7,22 @@ then
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]
    then
       download_exit_code="$(cat /tmp/icloudpd/icloudpd_download_exit_code)"
-      if [ "${download_exit_code}" -ne 0 ]
+      # If the value is empty, set to 0 to presume healthy. Container is likely un-initialised and waiting for user input.
+      # This prevents the healthcheck from restarting the container when combined with autoheal. 
+      if [ "${download_exit_code:=0}" -ne 0 ]
       then
          echo "File download error: ${download_exit_code}"
-         exit 1
+         exit "${download_exit_code}"
       fi
    fi
    if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]
    then
       check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
-      if [ "${check_exit_code}" -ne 0 ]
+      # Same as before
+      if [ "${check_exit_code:=0}" -ne 0 ]
       then
          echo "File check error: ${check_exit_code}"
-         exit 1
+         exit "${check_exit_code}"
       fi
    fi
 else

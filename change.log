@@ -1,9 +1,21 @@
+19/01/2025
+
+ - Rebase to Alpine Linux 3.21.2
+ - Scrapped using bash and gone back to ash. It just adds a bit of bloat and I've not used shellcheck as much as I expected to.
+ - Moved the bits where it creates the requied directories and checks for updates to the launcher, so that it only occurrs during startup. I want the launcher to become a startup script and put all the "pre-flight check" stuff in there... such as checking the telegram bot is enabled, as this has a short pause in it and is annoying when it checks it each time you renew MFA. Same with all the DNS/route cheks. Files permissions. Also check config files variables aren't going to cause issues.
+ - Massive re-working of initialisation portion of script. It is all performed in the launcher so it is only performed once, instead of each time the sync-icloud.sh script is run. This should make manual execution a lot quicker.
+ - Disabled all the permissions stuff in the main script. The initialisation script should make sure the /tmp/icloudpd, /config, download and JPEG directories have the corect permissions. As long as I make sure the script switches the user correctly when creating new files, all should be good. Did this quite some time ago, but never disabled the permissions stuff. Hopefully it will work.
+
+18/01/2025
+
+ - Found a bug in the helthcheck code. If the container is uninitialised, then it can't read the exit code checks. If these files don't exist, then presume healthy, as the container should be waiting for user input.
+
 14/01/2025
 
  - Something not right with the new option as it was enabling by default and configuring a value which would delete all files from icloud.com. Have changed the init_config.sh script so it doesn't set a defualt of 0, but defaults to blank and also so that it invokes the command on the presence of the variable.
  - Changed the command builder to use an array
  - Change the logging to not display the keep_icloud_recent_days variable if it is not set
- - Added an extra variable, keep_icloud_recent_only which has to be switched on to enable keep_icloud_recent_days. This is a dangerous feature and enabling it can just blow away entire icloud accounts. Also added two minute warning so it can be cancelled before any damage is done
+ - Added an extra variable, keep_icloud_recent_only which has to be switched on to enable keep_icloud_recent_days. This is a dangerous feature and enabling it can just blow away entire icloud accounts. Also added two minute warning so it can be cancelled before any damage is done.
  
 07/01/2025
 
@@ -56,7 +68,7 @@
 05/12/2024
 
  - Bit of work regarding the Nextcloud stuff. Rewritten the function that creates the directories prior to uploading. It now generates the list of encoded directory paths before attempting to create them. Seems a lot cleaner. Code has gone from about 40 lines to 30 lines, a reduction of over 200 characters. S/hould be able to make similar gains surrounding the nextcloud_upload, nextcloud_delete and double the amoutn for the upload_library_to_nextcloud functions... iirc.
- - Also, Alpine Linux 3.210.0 has dropped so rebuilt with that.
+ - Also, Alpine Linux 3.21.0 has dropped so rebuilt with that.
 
 03/12/2024
 

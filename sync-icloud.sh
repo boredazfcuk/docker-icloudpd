@@ -1,51 +1,14 @@
-#!/bin/bash
+#!/bin/ash
 
 ##### Functions #####
 initialise_script()
 {
+   
    log_info "***** boredazfcuk/icloudpd container v1.0.$(cat /opt/build_version.txt) started *****"
    log_info "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
    log_info "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
-   log_info "Python version: $(python3 --version | awk '{print $2}')"
-   log_info "icloud-photos-downloader version: $(/opt/icloudpd/bin/icloudpd --version | awk -F, '{print $1}' | sed 's/version://')"
-
-   log_info "Checking for updates..."
-   current_version="$(awk -F_ '{print $1}' /opt/build_version.txt)"
-   latest_version="$(curl --silent --max-time 5 https://raw.githubusercontent.com/boredazfcuk/docker-icloudpd/master/build_version.txt | awk -F_ '{print $1}')"
-   if [ "${current_version:=99}" -eq "99" ] || [ "${latest_version:=98}" -eq "98" ]
-   then
-      log_error " - Check for updates failed. Placeholder version detected."
-      log_error " - Current version: ${current_version}"
-      log_error " - Latest version: ${latest_version}"
-      log_error " - Continuing in 2 minutes..."
-      sleep 120
-   elif [ "${current_version}" -lt "${latest_version}" ]
-   then
-      log_info " - Current version (v${current_version}) is out of date. Please upgrade to latest version (v${latest_version}). Continuing in 2 minutes..."
-      sleep 120
-   elif [ "${current_version}" -gt "${latest_version}" ]
-   then
-      log_info " - Current version (v${current_version}) is newer than latest build (v${latest_version}). Good luck!"
-   elif [ "${current_version}" -eq "${latest_version}" ]
-   then
-      log_info " - Current version is up to date"
-   else
-      log_error " - Check for updates failed. Continuing in 2 minutes..."
-      sleep 120
-   fi
-
-   config_file="/config/icloudpd.conf"
-   if [ ! -f "${config_file}" ]
-   then
-      log_error "Failed to create configuration file: ${config_file} - Cannot continue, exiting"
-      sleep 600
-      exit 1
-   elif [ ! -w "${config_file}" ]
-   then
-      log_error "Cannot write to configuration file: ${config_file} - Cannot continue, exiting"
-      sleep 600
-      exit 1
-   fi
+   log_info "Python version: $(cat /tmp/icloudpd/python_version)"
+   log_info "icloud-photos-downloader version: $(cat /tmp/icloudpd/icloudpd_version)"
    log_info "Loading configuration from: ${config_file}"
    source "${config_file}"
    save_ifs="${IFS}"
@@ -74,42 +37,6 @@ initialise_script()
    then
       synchronisation_delay=60
    fi
-   if [ ! -d "/tmp/icloudpd" ]
-   then
-      mkdir --parents "/tmp/icloudpd"
-   fi
-   if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]
-   then
-      rm "/tmp/icloudpd/icloudpd_check_exit_code"
-   fi
-   if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]
-   then
-      rm "/tmp/icloudpd/icloudpd_download_exit_code"
-   fi
-   if [ -f "/tmp/icloudpd/icloudpd_check_error" ]
-   then
-      rm "/tmp/icloudpd/icloudpd_check_error"
-   fi
-   if [ -f "/tmp/icloudpd/icloudpd_download_error" ]
-   then
-      rm "/tmp/icloudpd/icloudpd_download_error"
-   fi
-   if [ -f "/tmp/icloudpd/icloudpd_sync.log" ]
-   then
-      rm "/tmp/icloudpd/icloudpd_sync.log"
-   fi
-   if [ -f "/tmp/icloudpd/icloudpd_tracert.err" ]
-   then
-      rm "/tmp/icloudpd/icloudpd_tracert.err"
-   fi
-   touch "/tmp/icloudpd/icloudpd_check_exit_code"
-   touch "/tmp/icloudpd/icloudpd_download_exit_code"
-   touch "/tmp/icloudpd/icloudpd_check_error"
-   touch "/tmp/icloudpd/icloudpd_download_error"
-   touch "/tmp/icloudpd/icloudpd_sync.log"
-   touch "/tmp/icloudpd/icloudpd_tracert.err"
-   touch "/tmp/icloudpd/expect_input.txt"
-
    if [ -z "${apple_id}" ]
    then
       log_error "Apple ID not set - exiting"
@@ -118,31 +45,7 @@ initialise_script()
    fi
    log_debug "Running user id: $(id --user)"
    log_debug "Running group id: $(id --group)"
-   if [ "${user}" = "root" ]
-   then
-      log_warning "The local user for synchronisation cannot be root, resetting to 'user'"
-      unset user
-      sleep 120
-   fi
-   if [ "${user_id}" -eq 0 ]
-   then
-      log_warning "The local user id for synchronisation cannot be 0, resetting to '1000'"
-      unset user_id
-      sleep 120
-   fi
    log_debug "Local user: ${user}:${user_id}"
-   if [ "${group}" = "root" ]
-   then
-      log_warning "The local group for synchronisation cannot be root, resetting to 'group'"
-      unset group
-      sleep 120
-   fi
-   if [ "${group_id}" -eq 0 ]
-   then
-      log_warning "The local group id for synchronisation cannot be 0, resetting to '1000'"
-      unset group_id force_gid
-      sleep 120
-   fi
    log_debug "Local group: ${group}:${group_id}"
    log_debug "Force GID: ${force_gid}"
    log_debug "LAN IP Address: ${lan_ip}"
@@ -166,15 +69,6 @@ initialise_script()
       fi
    done
    log_debug "IP address for ${icloud_domain}: ${icloud_dot_com}"
-   if [ "$(traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>/tmp/icloudpd/icloudpd_tracert.err; echo $?)" = 1 ]
-   then
-      log_error "No route to ${icloud_domain} found. Please check your container's network settings - exiting"
-      log_error "Error debug - $(cat /tmp/icloudpd/icloudpd_tracert.err)"
-      sleep 120
-      exit 1
-   else
-      log_debug "Route check to ${icloud_domain} successful"
-   fi
    if [ "${debug_logging}" = true ]
    then
       log_info "Debug logging: Enabled"
@@ -186,77 +80,22 @@ initialise_script()
       log_info "Cookie path: /config/${cookie_file}"
    fi
    log_info "Cookie expiry notification period: ${notification_days}"
-   if [ -z "${download_path}" ]
-   then
-      log_error "Download path is not set properly in config"
-      sleep 120
-      exit 1
-   fi
    log_info "Download destination directory: ${download_path}"
-   if [ ! -d "${download_path}" ]
-   then
-      log_info "Download directory does not exist"
-      log_info "Creating ${download_path} and configuring permissions"
-      
-      if ! mkdir --parents "${download_path}"
-      then 
-         log_error "Failed to create download directory: '${download_path}'"
-         sleep 120
-         exit 1
-      fi
-      set_owner_and_permissions_downloads
-   fi
    log_info "Folder structure: ${folder_structure}"
    log_debug "Directory permissions: ${directory_permissions}"
    log_debug "File permissions: ${file_permissions}"
-   if [ "${syncronisation_interval}" ]
-   then
-      log_warning "The syncronisation_interval variable contained a typo. This has now been corrected to synchronisation_interval. Please update your container. Defaulting to one sync per 24 hour period"
-      synchronisation_interval="86400"
-   fi
    log_info "Keep Unicode: ${keep_unicode}"
    log_info "Live Photo MOV Filename Policy: ${live_photo_mov_filename_policy}"
    log_info "File Match Policy: ${file_match_policy}"
    log_info "Synchronisation interval: ${synchronisation_interval}"
-   if [ "${synchronisation_interval}" -lt 43200 ]
-   then
-      if [ "${warnings_acknowledged:=false}" = true ]
-      then
-         log_debug "Synchronisation interval throttle warning acknowledged"
-      else
-         log_warning "Setting synchronisation_interval to less than 43200 (12 hours) may cause throttling by Apple"
-         log_warning "If you run into the following error: "
-         log_warning " - private db access disabled for this account. Please wait a few hours then try again. The remote servers might be trying to throttle requests. (ACCESS_DENIED)"
-         log_warning "Then check your synchronisation_interval is 43200 or greater and switch the container off for 6-12 hours so Apple's throttling expires. Continuing in 3 minutes"
-         sleep 120
-      fi
-   fi
    log_info "Synchronisation delay (minutes): ${synchronisation_delay}"
    log_info "Set EXIF date/time: ${set_exif_datetime}"
-   if [ "${set_exif_datetime}" = true ]
-   then
-      log_warning "This setting changes the files that are downloaded, so they will be downloaded a second time. Enabling this setting results in a lot of duplicate"
-   fi
    log_info "Auto delete: ${auto_delete}"
    log_info "Delete after download: ${delete_after_download}"
-   if [ "${auto_delete}" != false ] && [ "${delete_after_download}" != false ]
-   then
-      log_error "The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other - exiting"
-      sleep 120
-      exit 1
-   fi
    if [ "${keep_icloud_recent_only}" = true ]
    then
       log_info "Keep iCloud recent : Enabled"
       log_info "Keep iCloud recent days: ${keep_icloud_recent_days}"
-      log_warning "This feature deletes all files from your local disk which are older than this amount of days. Setting this to 0 will delete everthing."
-      log_warning " - Please use with caution. I am not responsible for any data loss. Continuing in 2 minutes"
-      if [ "${warnings_acknowledged:=false}" = true ]
-      then
-         log_info "File deletion warning accepted"
-      else
-         sleep 120
-      fi
    fi
    log_info "Delete empty directories: ${delete_empty_directories}"
    log_info "Photo size: ${photo_size}"
@@ -304,18 +143,9 @@ initialise_script()
    then
       log_info "Converted JPEGs path: ${jpeg_path}"
    fi
-   if [ "${delete_accompanying}" = true ] && [ -z "${warnings_acknowledged}" ]
+   if [ "${delete_accompanying}" = true ]
    then
       log_info "Delete accompanying files (.JPG/.HEIC.MOV)"
-      log_warning " - This feature deletes files from your local disk. Please use with caution. I am not responsible for any data loss"
-      log_warning " - This feature cannot be used if the 'folder_structure' variable is set to 'none' and also, 'set_exif_datetime' must be 'False'"
-      log_warning " - These two settings will increase the chances of de-duplication happening, which could result in the wrong files being removed. Continuing in 2 minutes"
-      if [ "${warnings_acknowledged:=false}" = true ]
-      then
-         log_info "File deletion warning accepted"
-      else
-         sleep 120
-      fi
    fi
    if [ "${notification_type}" ]
    then
@@ -327,9 +157,6 @@ initialise_script()
       if [ "${auth_china}" = true ]
       then
          auth_domain="cn"
-      else
-         log_warning "You have the icloud_china variable set, but auth_china is false. Are you sure this is correct?"
-         sleep 120
       fi
    fi
    if [ "${fake_user_agent}" = true ]
@@ -342,16 +169,10 @@ initialise_script()
    log_info "Authentication domain: ${auth_domain:=com}"
    if [ "${nextcloud_upload}" = true ]
    then
-      if [ "${nextcloud_url}" ] && [ "${nextcloud_username}" ] && [ "${nextcloud_password}" ]
-      then
-         log_info "Nextcloud upload: Enabled"
-         log_info "Nextcloud URL: ${nextcloud_url}"
-         log_info "Nextcloud Target Directory: ${nextcloud_target_dir}"
-         log_info "Nextcloud username: ${nextcloud_username}"
-      else
-         log_error "Nextcloud upload: Missing mandatory variables. Disabling"
-         unset nextlcoud_upload
-      fi
+      log_info "Nextcloud upload: Enabled"
+      log_info "Nextcloud URL: ${nextcloud_url}"
+      log_info "Nextcloud Target Directory: ${nextcloud_target_dir}"
+      log_info "Nextcloud username: ${nextcloud_username}"
    else
       log_debug "Nextcloud upload: Disabled"
    fi
@@ -372,49 +193,37 @@ initialise_script()
 
 log_info()
 {
-   local log_message
-   log_message="${1}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${log_message}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${1}"
 }
 
 log_info_n()
 {
-   local log_message
-   log_message="${1}"
-   echo -n "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${log_message}... "
+   echo -n "$(date '+%Y-%m-%d %H:%M:%S') INFO     ${1}... "
 }
 
 log_warning()
 {
-   local log_message
-   log_message="${1}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  ${log_message}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING  ${1}"
 }
 
 log_error()
 {
-   local log_message
-   log_message="${1}"
-   echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${log_message}"
+   echo "$(date '+%Y-%m-%d %H:%M:%S') ERROR    ${1}"
 }
 
 log_debug()
 {
    if [ "${debug_logging}" = true ]
    then
-      local log_message
-      log_message="${1}"
-      echo "$(date '+%Y-%m-%d %H:%M:%S') DEBUG    ${log_message}"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') DEBUG    ${1}"
    fi
 }
 
 run_as()
 {
-   local command_to_run
-   command_to_run="${1}"
    if [ "$(id -u)" = 0 ]
    then
-      su "${user}" -s /bin/ash -c "${command_to_run}"
+      su "${user}" -s /bin/ash -c "${1}"
    else
       /bin/ash -c "${command_to_run}"
    fi
@@ -442,25 +251,14 @@ configure_notifications()
       then
          log_info "${notification_type} notifications enabled"
          clean_notification_title
-         if [ "${debug_logging}" = true ]
-         then
-            log_debug "${notification_type} api key: (hidden)"
-         else
-            log_info "${notification_type} api key: ${prowl_api_key}"
-         fi
+         log_info "${notification_type} api key: ${prowl_api_key:0:2}********${prowl_api_key:0-2}"
          notification_url="https://api.prowlapp.com/publicapi/add"
       elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]
       then
          log_info "${notification_type} notifications enabled"
          clean_notification_title
-         if [ "${debug_logging}" = true ]
-         then
-            log_debug "${notification_type} user: (hidden)"
-            log_debug "${notification_type} token: (hidden)"
-         else
-            log_info "${notification_type} user: ${pushover_user}"
-            log_info "${notification_type} token: ${pushover_token}"
-         fi
+         log_info "${notification_type} user: ${pushover_user:0:2}********${pushover_user:0-2}"
+         log_info "${notification_type} token: ${pushover_token:0:2}********${pushover_token:0-2}"
          if [ "${pushover_sound}" ]
          then
             case "${pushover_sound}" in
@@ -490,54 +288,32 @@ configure_notifications()
          notification_url="${telegram_base_url}/sendMessage"
          log_info "${notification_type} notifications enabled"
          clean_notification_title
-         if [ "${debug_logging}" = true ]
-         then
-            log_debug "${notification_type} token: (hidden)"
-            log_debug "${notification_type} chat id: (hidden)"
-            log_debug "${notification_type} polling: ${telegram_polling}"
-            log_debug "${notification_type} uses HTTP: ${telegram_http}"
-            log_debug "${notification_type} base URL: (hidden)"
-            log_debug "${notification_type} notification URL: (hidden)"
-         else
-            log_info "${notification_type} token: ${telegram_token}"
-            log_info "${notification_type} chat id: ${telegram_chat_id}"
+            log_info "${notification_type} token: ${telegram_token:0:2}********${telegram_token:0-2}"
+            log_info "${notification_type} chat id: ${telegram_chat_id:0:2}********${telegram_chat_id:0-2}"
             log_info "${notification_type} polling: ${telegram_polling}"
             log_info "${notification_type} uses HTTP: ${telegram_http}"
             log_info "${notification_type} base URL: ${telegram_base_url}"
             log_info "${notification_type} notification URL: ${notification_url}"
-         fi
          if [ "${script_launch_parameters}" ]
          then
             telegram_polling="false"
          fi
          if [ "${telegram_polling}" = true ]
          then
-            telegram_update_id_offset_file="/config/telegram_update_id.num"
-            if [ ! -f "${telegram_update_id_offset_file}" ]
+            if [ "$(cat /tmp/icloudpd/bot_check)" = true ]
             then
-               log_debug "Creating Telegram Update ID offset file"
-               echo -n 0 > "${telegram_update_id_offset_file}"
-            fi
-            log_info "Check Telegram bot initialised..."
-            sleep "$((RANDOM % 15))"
-            if [ "${telegram_server}" ]
-            then
-               log_debug "Checking ${telegram_server} for updates"
+               if [ "${telegram_server}" ]
+               then
+                  log_debug "Checking ${telegram_server} for updates"
+               else
+                  log_debug "Checking api.telegram.org for updates"
+               fi
+               telegram_update_id_offset_file="/config/telegram_update_id.num"
+               telegram_update_id_offset="$(head -1 ${telegram_update_id_offset_file})"
+               log_info "Latest update id: ${telegram_update_id_offset}"
             else
-               log_debug "Checking api.telegram.org for updates"
-            fi
-            bot_check="$(curl --silent -X POST "${telegram_base_url}/getUpdates" | jq -r .ok)"
-            log_debug "Bot check: ${bot_check}"
-            if [ "${bot_check}" = true ]
-            then
-               log_info " - Bot has been initialised"
-            else
-               log_info " - Bot has not been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container. Disabling remote wake"
-               sleep 10
                telegram_polling=false
             fi
-            telegram_update_id_offset="$(head -1 ${telegram_update_id_offset_file})"
-            log_info "Latest update id: ${telegram_update_id_offset}"
          fi
          if [ "${telegram_silent_file_notifications}" ]
          then
@@ -556,7 +332,7 @@ configure_notifications()
          log_debug "${notification_type} server: ${webhook_server}"
          log_debug "${notification_type} port: ${webhook_port:=8123}"
          log_debug "${notification_type} path: ${webhook_path:=/rest/items/}"
-         log_debug "${notification_type} ID: ${webhook_id}"
+         log_debug "${notification_type} ID: ${webhook_id:0:2}********${webhook_id:0-2}"
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
          log_debug "${notification_type} notification URL: ${notification_url}"
       elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
@@ -572,7 +348,7 @@ configure_notifications()
          log_debug "${notification_type} server: ${webhook_server}"
          log_debug "${notification_type} port: ${webhook_port:=8123}"
          log_debug "${notification_type} path: ${webhook_path:=/api/webhook/}"
-         log_debug "${notification_type} ID: ${webhook_id}"
+         log_debug "${notification_type} ID: ${webhook_id:0:2}********${webhook_id:0-2}"
          notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
          log_debug "${notification_type} notification URL: ${notification_url}"
          log_debug "${notification_type} body keyword: ${webhook_body:=data}"
@@ -584,30 +360,16 @@ configure_notifications()
       then
          log_info "${notification_type} notifications enabled"
          clean_notification_title
-         if [ "${debug_logging}" = true ]
-         then
-            log_debug "${notification_type} Discord ID: (hidden)"
-            log_debug "${notification_type} Discord token: (hidden)"
-            notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
-            log_debug "${notification_type} notification URL: (hidden)"
-         else
-            log_info "${notification_type} Discord ID: ${discord_id}"
-            log_info "${notification_type} Discord token: ${discord_token}"
-            notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
-            log_info "${notification_type} notification URL: ${notification_url}"
-         fi
+         log_debug "${notification_type} Discord ID: ${discord_id:0:2}********${discord_id:0-2}"
+         log_debug "${notification_type} Discord token: ${discord_token:0:2}********${discord_token:0-2}"
+         notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
+         log_debug "${notification_type} notification URL: ${notification_url}"
       elif [ "${notification_type}" = "Dingtalk" ] && [ "${dingtalk_token}" ]
       then
          notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
          log_info "${notification_type} notifications enabled"
-         if [ "${debug_logging}" = true ]
-         then
-            log_debug "${notification_type} token: (hidden)"
-            log_debug "${notification_type} notification URL: (hidden)"
-         else
-            log_info "${notification_type} token: ${dingtalk_token}"
-            log_info "${notification_type} notification URL: ${notification_url}"
-         fi
+         log_debug "${notification_type} token: ${dingtalk_token:0:2}********${dingtalk_token:0-2}"
+         log_debug "${notification_type} notification URL: ${notification_url}"
       elif [ "${notification_type}" = "IYUU" ] && [ "${iyuu_token}" ]
       then
          notification_url="http://iyuu.cn/${iyuu_token}.send?"
@@ -684,7 +446,7 @@ configure_notifications()
       then
          log_info "${notification_type} notifications enabled"
       else
-         log_warning "$(date '+%Y-%m-%d %H:%M:%S') WARINING ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
+         log_warning "${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
          unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_scheme gotify_server_url bark_device_key bark_server
       fi
 
@@ -715,44 +477,6 @@ configure_notifications()
          log_debug "Delete notifications: Disabled"
          unset delete_notifications
       fi
-   fi
-}
-
-create_group()
-{
-   if [ "$(grep -c "^${group}:x:${group_id}:" "/etc/group")" -eq 1 ]
-   then
-      log_debug "Group, ${group}:${group_id}, already created"
-   else
-      log_debug "Creating minimal /etc/group file"
-      {
-         echo 'root:x:0:root'
-         echo 'tty:x:5:'
-         echo 'shadow:x:42:'
-      } >/etc/group
-      if [ "$(grep -c "^${group}:" "/etc/group")" -eq 1 ]
-      then
-         log_error "Group name, ${group}, already in use - exiting"
-         sleep 120
-         exit 1
-      fi
-      log_debug "Creating group ${group}:${group_id}"
-      groupadd --gid "${group_id}" "${group}"
-   fi
-}
-
-create_user()
-{
-   if [ "$(grep -c "^${user}:x:${user_id}:${group_id}" "/etc/passwd")" -eq 1 ]
-   then
-      log_debug "User, ${user}:${user_id}, already created"
-   else
-      log_debug "Creating minimal /etc/passwd file"
-      {
-         echo 'root:x:0:0:root:/root:/bin/bash'
-      } >/etc/passwd
-      log_debug "Creating user ${user}:${user_id}"
-      useradd --shell /bin/bash --gid "${group_id}" --uid "${user_id}" "${user}" --home-dir "/home/${user}" --badname
    fi
 }
 
@@ -867,10 +591,6 @@ configure_password()
 
 generate_cookie()
 {
-   log_debug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct owner on config directory, if required"
-   find "/config" ! -user "${user}" -exec chown "${user_id}" {} +
-   log_debug "$(date '+%Y-%m-%d %H:%M:%S') INFO     Correct group on config directory, if required"
-   find "/config" ! -group "${group}" -exec chgrp "${group_id}" {} +
    if [ -f "/config/${cookie_file}" ]
    then
       mv "/config/${cookie_file}" "/config/${cookie_file}.bak"
@@ -923,55 +643,43 @@ check_mount()
    log_info "Failsafe file ${download_path}/.mounted exists, continuing"
 }
 
-set_owner_and_permissions_config()
-{
-   log_debug "Set owner and group on icloudpd temp directory"
-   chown -R "${user_id}:${group_id}" "/tmp/icloudpd"
-   log_debug "Set owner and group on config directory"
-   chown -R "${user_id}:${group_id}" "/config"
+# set_owner_and_permissions_config()
+# {
+#    log_debug "Set owner and group on icloudpd temp directory"
+#    chown -R "${user_id}:${group_id}" "/tmp/icloudpd"
+#    log_debug "Set owner and group on config directory"
+#    chown -R "${user_id}:${group_id}" "/config"
+# }
 
-   if [ -d "/config/python_keyring/" ]
-   then
-      if [ "$(run_as "test -w /config/python_keyring/; echo $?")" -eq 0 ]
-      then
-         log_info "Directory is writable: /config/python_keyring/"
-      else
-         log_error "Directory is not writable: /config/python_keyring/"
-         sleep 120
-         exit 1
-      fi
-   fi
-}
-
-set_owner_and_permissions_downloads()
-{
-   log_debug "Set owner on iCloud directory, if required"
-   find "${download_path}" ! -type l ! -user "${user_id}" ! -path "${ignore_path}" -exec chown "${user_id}" {} +
-   log_debug "Set group on iCloud directory, if required"
-   find "${download_path}" ! -type l ! -group "${group_id}" ! -path "${ignore_path}" -exec chgrp "${group_id}" {} +
-   log_debug "Set ${directory_permissions} permissions on iCloud directories, if required"
-   find "${download_path}" -type d ! -perm "${directory_permissions}" ! -path "${ignore_path}" -exec chmod "${directory_permissions}" '{}' +
-   log_debug "Set ${file_permissions} permissions on iCloud files, if required"
-   find "${download_path}" -type f ! -perm "${file_permissions}" ! -path "${ignore_path}" -exec chmod "${file_permissions}" '{}' +
-   if [ "${jpeg_path}" ]
-   then
-      log_debug "Set owner on jpeg directory, if required"
-      find "${jpeg_path}" ! -type l ! -user "${user_id}" ! -path "${ignore_path}" -exec chown "${user_id}" {} +
-      log_debug "Set group on jpeg directory, if required"
-      find "${jpeg_path}" ! -type l ! -group "${group_id}" ! -path "${ignore_path}" -exec chgrp "${group_id}" {} +
-      log_debug "Set ${directory_permissions} permissions on jpeg directories, if required"
-      find "${jpeg_path}" -type d ! -perm "${directory_permissions}" ! -path "${ignore_path}" -exec chmod "${directory_permissions}" '{}' +
-      log_debug "Set ${file_permissions} permissions on jpeg files, if required"
-      find "${jpeg_path}" -type f ! -perm "${file_permissions}" ! -path "${ignore_path}" -exec chmod "${file_permissions}" '{}' +
-   fi
-}
+# set_owner_and_permissions_downloads()
+# {
+#    log_debug "Set owner on iCloud directory, if required"
+#    find "${download_path}" ! -type l ! -user "${user_id}" ! -path "${ignore_path}" -exec chown "${user_id}" {} +
+#    log_debug "Set group on iCloud directory, if required"
+#    find "${download_path}" ! -type l ! -group "${group_id}" ! -path "${ignore_path}" -exec chgrp "${group_id}" {} +
+#    log_debug "Set ${directory_permissions} permissions on iCloud directories, if required"
+#    find "${download_path}" -type d ! -perm "${directory_permissions}" ! -path "${ignore_path}" -exec chmod "${directory_permissions}" '{}' +
+#    log_debug "Set ${file_permissions} permissions on iCloud files, if required"
+#    find "${download_path}" -type f ! -perm "${file_permissions}" ! -path "${ignore_path}" -exec chmod "${file_permissions}" '{}' +
+#    if [ "${jpeg_path}" ]
+#    then
+#       log_debug "Set owner on jpeg directory, if required"
+#       find "${jpeg_path}" ! -type l ! -user "${user_id}" ! -path "${ignore_path}" -exec chown "${user_id}" {} +
+#       log_debug "Set group on jpeg directory, if required"
+#       find "${jpeg_path}" ! -type l ! -group "${group_id}" ! -path "${ignore_path}" -exec chgrp "${group_id}" {} +
+#       log_debug "Set ${directory_permissions} permissions on jpeg directories, if required"
+#       find "${jpeg_path}" -type d ! -perm "${directory_permissions}" ! -path "${ignore_path}" -exec chmod "${directory_permissions}" '{}' +
+#       log_debug "Set ${file_permissions} permissions on jpeg files, if required"
+#       find "${jpeg_path}" -type f ! -perm "${file_permissions}" ! -path "${ignore_path}" -exec chmod "${file_permissions}" '{}' +
+#    fi
+# }
 
 check_permissions()
 {
    if [ "$(run_as "${user}" "if ! test -w \"${download_path}\"; then echo false; fi")" = false ]
    then
       log_warning "User ${user}:${user_id} cannot write to directory: ${download_path} - Attempting to set permissions"
-      set_owner_and_permissions_downloads
+      # set_owner_and_permissions_downloads
       if [ "$(run_as "${user}" "if ! test -w \"${download_path}\"; then echo false; fi")" = false ]
       then
          log_error "User ${user}:${user_id} still cannot write to directory: ${download_path}"
@@ -983,7 +691,7 @@ check_permissions()
    if [ "$(run_as "${user}" "if ! test -w \"${jpeg_path}\"; then echo false; fi")" = false ]
    then
       log_warning "User ${user}:${user_id} cannot write to directory: ${jpeg_path} - Attempting to set permissions"
-      set_owner_and_permissions_downloads
+      # set_owner_and_permissions_downloads
       if [ "$(run_as "${user}" "if ! test -w \"${jpeg_path}\"; then echo false; fi")" = false ]
       then
          log_error "User ${user}:${user_id} still cannot write to directory: ${jpeg_path}"
@@ -1301,11 +1009,11 @@ download_albums()
       log_info "Downloading album: ${album}"
       if [ "${albums_with_dates}" = true ]
       then
-         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       else
-         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       fi
       if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]
       then
@@ -1366,11 +1074,11 @@ download_libraries()
       fi
       if [ "${libraries_with_dates}" = true ]
       then
-         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} --folder-structure ${library}/${folder_structure} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level "${log_level}" --folder-structure "${library}/${folder_structure}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure ${library}/${folder_structure} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}/${folder_structure}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       else
-         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} --folder-structure ${library} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level "${log_level}" --folder-structure "${library}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure ${library} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
       fi
       if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]
       then
@@ -1392,10 +1100,10 @@ download_photos()
    else
       log_level="info"
    fi
-   log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd --log-level ${log_level} ${command_line[@]} 2>/tmp/icloudpd/icloudpd_download_error"
+   log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd --log-level ${log_level} ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
    if [ "${skip_download}" = false ]
    then
-      run_as "(/opt/icloudpd/bin/icloudpd ${command_line[@]} --log-level ${log_level} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+      run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
    else
       log_debug "Skip download: ${skip_download} - skipping"
       echo 0 >/tmp/icloudpd/icloudpd_download_exit_code
@@ -2270,11 +1978,10 @@ send_notification()
 command_line_builder()
 {
    local size
-   command_line=()
    command_line="--directory ${download_path} --cookie-directory /config --domain ${auth_domain} --username ${apple_id} --no-progress-bar"
    if [ "${photo_size}" = "original" ] || [ "${photo_size}" = "medium" ] || [ "${photo_size}" = "thumb" ] || [ "${photo_size}" = "adjusted" ] || [ "${photo_size}" = "alternative" ]
    then
-      command_line+=" --size ${photo_size}"
+      command_line="${command_line} --size ${photo_size}"
    else
       if [ "${photo_size}" ]
       then
@@ -2285,7 +1992,7 @@ command_line_builder()
             if [ "${size}" = "original" ] || [ "${size}" = "medium" ] || [ "${size}" = "thumb" ] || [ "${size}" = "adjusted" ] || [ "${size}" = "alternative" ]
             then
                log_debug "Adding photo size ${size} to size types"
-               command_line+=" --size ${size}"
+               command_line="${command_line} --size ${size}"
             else
                log_warning "Photo size ${size} not recognised, disregarding"
             fi
@@ -2297,59 +2004,59 @@ command_line_builder()
    fi
    if [ "${set_exif_datetime}" != false ]
    then
-      command_line+=" --set-exif-datetime"
+      command_line="${command_line} --set-exif-datetime"
    fi
    if [ "${keep_unicode}" != false ]
    then
-      command_line+=" --keep-unicode-in-filenames ${keep_unicode}"
+      command_line="${command_line} --keep-unicode-in-filenames ${keep_unicode}"
    fi
    if [ "${live_photo_mov_filename_policy}" != "suffix" ]
    then
-      command_line+=" --live-photo-mov-filename-policy ${live_photo_mov_filename_policy}"
+      command_line="${command_line} --live-photo-mov-filename-policy ${live_photo_mov_filename_policy}"
    fi
    if [ "${align_raw}" != "as-is" ]
    then
-      command_line+=" --align-raw ${align_raw}"
+      command_line="${command_line} --align-raw ${align_raw}"
    fi
    if [ "${file_match_policy}" != "name-size-dedup-with-suffix" ]
    then
-      command_line+=" --file-match-policy ${file_match_policy}"
+      command_line="${command_line} --file-match-policy ${file_match_policy}"
    fi
    if [ "${auto_delete}" != false ]
    then
-      command_line+=" --auto-delete"
+      command_line="${command_line} --auto-delete"
    elif [ "${delete_after_download}" != false ]
    then
-      command_line+=" --delete-after-download"
+      command_line="${command_line} --delete-after-download"
    fi
    if [ "${keep_icloud_recent_only}" = true ] && [ "${keep_icloud_recent_days}" ]
    then
-      command_line+=" --keep-icloud-recent-days ${keep_icloud_recent_days}"
+      command_line="${command_line} --keep-icloud-recent-days ${keep_icloud_recent_days}"
    fi
    if [ "${skip_live_photos}" = false ]
    then
       if [ "${live_photo_size}" != "original" ]
       then
-         command_line+=" --live-photo-size ${live_photo_size}"
+         command_line="${command_line} --live-photo-size ${live_photo_size}"
       fi
    else
-      command_line+=" --skip-live-photos"
+      command_line="${command_line} --skip-live-photos"
    fi
    if [ "${skip_videos}" != false ]
    then
-      command_line+=" --skip-videos"
+      command_line="${command_line} --skip-videos"
    fi
    if [ -z "${photo_album}" ] && [ -z "${photo_library}" ]
    then
-      command_line+=" --folder-structure ${folder_structure}"
+      command_line="${command_line} --folder-structure ${folder_structure}"
    fi
    if [ "${until_found}" ]
    then
-      command_line+=" --until-found ${until_found}"
+      command_line="${command_line} --until-found ${until_found}"
    fi
    if [ "${recent_only}" ]
    then
-      command_line+=" --recent ${recent_only}"
+      command_line="${command_line} --recent ${recent_only}"
    fi
 }
 
@@ -2459,7 +2166,7 @@ synchronise_user()
                then
                   remove_empty_directories
                fi
-               set_owner_and_permissions_downloads
+               # set_owner_and_permissions_downloads
                log_info "Synchronisation complete for ${user}"
                if [ "${notification_type}" ] && [ "${remote_sync_complete_notification}" = true ]
                then
@@ -2524,12 +2231,14 @@ synchronise_user()
                            log_debug "Processing update: ${latest_update}"
                            check_update="$(echo "${latest_updates}" | jq ". | select(.update_id == ${latest_update}).message")"
                            check_update_text="$(echo "${check_update}" | jq -r .text)"
+                           check_update_text_lc="$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]')"
                            log_debug "New message received: ${check_update_text}"
-                           if [ "${check_update_text,,}" = "${user,,}" ]
+                           user_lc="$(echo "${user}" | tr '[:upper:]' '[:lower:]')"
+                           if [ "${check_update_text_lc}" = "${user_lc}" ]
                            then
                               break_while=true
                               log_debug "Remote sync message match: ${check_update_text}"
-                           elif [ "${check_update_text,,}" = "${user,,} auth" ]
+                           elif  [ "${check_update_text_lc}" = "${user_lc} auth" ]
                            then
                               log_debug "Remote authentication message match: ${check_update_text}"
                               if [ "${icloud_china}" = false ]
@@ -2542,23 +2251,22 @@ synchronise_user()
                               log_debug "Starting remote authentication process"
                               /usr/bin/expect /opt/authenticate.exp &
                               poll_sleep=3
-                           elif [[ "${check_update_text,,}" =~ ^${user,,}\ [0-9][0-9][0-9][0-9][0-9][0-9]$ ]]
+                           elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [0-9][0-9][0-9][0-9][0-9][0-9]$" >/dev/null; echo $?)" -eq 0 ]
                            then
                               mfa_code="$(echo "${check_update_text}" | awk '{print $2}')"
                               echo "${mfa_code}" > /tmp/icloudpd/expect_input.txt
                               listen_counter=$((listen_counter+2))
-                              # additional sleeps mean sync time slips each time time a sync or auth is performed.
-                              # adding same amount of time to listen counter should prevent this from occurring.
+                              # additional sleeps mean sync time slips each time time a sync or auth is performed
+                              # adding same amount of time to listen counter should prevent this from occurring
                               sleep 2
                               unset mfa_code
                               poll_sleep=30
-                           elif [[ "${check_update_text,,}" =~ ^${user,,}\ [a-z]$ ]]
+                           elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [a-z]$" >/dev/null; echo $?)" -eq 0 ]
                            then
                               sms_choice="$(echo "${check_update_text}" | awk '{print $2}')"
                               echo "${sms_choice}" > /tmp/icloudpd/expect_input.txt
                               listen_counter=$((listen_counter+2))
-                              # additional sleeps mean sync time slips each time time a sync or auth is performed.
-                              # adding same amount of time to listen counter should prevent this from occurring.
+                              # Same again
                               sleep 2
                               unset sms_choice
                               poll_sleep=3
@@ -2585,8 +2293,8 @@ synchronise_user()
                   fi
                fi
                listen_counter=$((listen_counter+poll_sleep))
-               # additional sleeps mean sync time slips each time time a sync or auth is performed.
-               # adding same amount of time to listen counter should prevent this from occurring.
+               # additional sleeps mean sync time slips each time time a sync or auth is performed
+               # adding same amount of time to listen counter should prevent this from occurring
                sleep "${poll_sleep}"
             done
          else
@@ -2679,9 +2387,6 @@ esac
 
 initialise_script
 sanitise_launch_parameters
-create_group
-create_user
-set_owner_and_permissions_config
 if [ "${delete_password:=false}" = true ]
 then
    log_info "Deleting password from keyring"
@@ -2710,28 +2415,28 @@ elif [ "${convert_all_heics:=false}" = true ]
 then
    log_info "Converting all HEICs to JPG"
    convert_all_heic_files
-   set_owner_and_permissions_downloads
+   # set_owner_and_permissions_downloads
    log_info "HEIC to JPG conversion complete"
    exit 0
 elif [ "${remove_all_jpgs:=false}" = true ]
 then
    log_info "Forcing removal of JPG files if accompanying HEIC exists"
    remove_all_jpeg_files
-   set_owner_and_permissions_downloads
+   # set_owner_and_permissions_downloads
    log_info "Forced removal of JPG files if accompanying HEIC exists complete"
    exit 0
 elif [ "${force_convert_all_heics:=false}" = true ]
 then
    log_info "Forcing HEIC to JPG conversion"
    force_convert_all_heic_files
-   set_owner_and_permissions_downloads
+   # set_owner_and_permissions_downloads
    log_info "Forced HEIC to JPG conversion complete"
    exit 0
 elif [ "${force_convert_all_mnt_heics:=false}" = true ]
 then
    log_info "Forcing HEIC to JPG conversion of all files in mount path"
    force_convert_all_mnt_heic_files
-   set_owner_and_permissions_downloads
+   # set_owner_and_permissions_downloads
    log_info "Forced HEIC to JPG conversion of all files in mount path complete"
    exit 0
 elif [ "${correct_jpeg_time_stamps:=false}" = true ]
@@ -2756,7 +2461,7 @@ then
    exit 0
 fi
 check_mount
-set_owner_and_permissions_config
+# set_owner_and_permissions_config
 command_line_builder
 check_keyring_exists
 synchronise_user
