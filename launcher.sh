@@ -189,13 +189,6 @@ fi
 log_info " - Create/update configuration file: ${config_file}"
 /usr/local/bin/init_config.sh
 
-if [ -z "${apple_id}" ]
-then
-   log_error "     | Apple ID not set"
-   log_error "       Cannot continue. Halting"
-   sleep infinity
-fi
-
 # Check config file was created and is writable
 if [ ! -f "${config_file}" ]
 then
@@ -212,6 +205,14 @@ fi
 # Load variables from config file
 log_info " - Checking ${config_file} for errors"
 source "${config_file}"
+
+# Check Apple ID set
+if [ -z "${apple_id}" ]
+then
+   log_error "     | Apple ID not set"
+   log_error "       Cannot continue. Halting"
+   sleep infinity
+fi
 
 # Check user not attempting to configure the local user as root as this breaks the "runas" function
 if [ "${group}" = "root" ]
