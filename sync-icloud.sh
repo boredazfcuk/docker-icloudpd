@@ -183,9 +183,9 @@ initialise_script()
       nextcloud_url_webroot="${nextcloud_url_suffix#*/}"
       nextcloud_url_censored="${nextcloud_url_domain:0:1}********.${nextcloud_url_tld}/${nextcloud_url_webroot%/}${nextcloud_target_dir%/}/"
       nextcloud_url_censored="${nextcloud_url_censored//\/\///}"
-      log_debug " | Nextcloud username: ${nextcloud_username:0:1}********${nextcloud_username:0-1}"
-      log_debug " | Nextcloud target directory: ${nextcloud_target_dir}"
-      log_debug " | Nextcloud destination URL: ${nextcloud_url_scheme}${nextcloud_url_censored}"
+      log_debug "Nextcloud username: ${nextcloud_username:0:1}********${nextcloud_username:0-1}"
+      log_debug "Nextcloud target directory: ${nextcloud_target_dir}"
+      log_debug "Nextcloud destination URL: ${nextcloud_url_scheme}${nextcloud_url_censored}"
    else
       log_debug "Nextcloud upload: Disabled"
    fi
