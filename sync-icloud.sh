@@ -37,16 +37,16 @@ initialise_script()
    then
       synchronisation_delay=60
    fi
-   if [ -z "${apple_id}" ]
-   then
-      log_error "Apple ID not set - exiting"
-      sleep 120
-      exit 1
-   fi
    log_debug "Running user id: $(id --user)"
    log_debug "Running group id: $(id --group)"
-   log_info "Local user: ${user}:${user_id}"
-   log_info "Local group: ${group}:${group_id}"
+   if [ "${debug_logging}" = true ]
+   then
+      log_debug "Local user: ${user:0:2}********:${user_id}"
+      log_debug "Local group: ${group:0:2}********:${group_id}"
+   else
+      log_info "Local user: ${user}:${user_id}"
+      log_info "Local group: ${group}:${group_id}"
+   fi
    log_debug "Force GID: ${force_gid}"
    log_debug "LAN IP Address: ${lan_ip}"
    log_debug "Default gateway: $(ip route | grep default | awk '{print $3}')"
@@ -167,22 +167,25 @@ initialise_script()
    fi
    if [ "${fake_user_agent}" = true ]
    then
-      log_info "Fake user agent for curl: Enabled"
-      curl_user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edg/122.0.0.0"
+      log_info "User agent impersonation for curl: Enabled"
+      curl_user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edge/122.0.0.0"
    else
-      log_info "Fake user agent for curl: Disabled"
+      log_debug "User agent impersonation for curl: Disabled"
    fi
    log_info "Authentication domain: ${auth_domain:=com}"
    if [ "${nextcloud_upload}" = true ]
    then
       log_info "Nextcloud upload: Enabled"
+      nextcloud_url_scheme="${nextcloud_url%//*}//"
       nextcloud_url_suffix="${nextcloud_url##*//}"
       nextcloud_url_domain="${nextcloud_url_suffix%%/*}"
       nextcloud_url_tld="${nextcloud_url_domain#*.}"
-      nextcloud_url_censored="${nextcloud_url_domain:0:1}********.${nextcloud_url_tld}"
-      log_debug "Nextcloud URL: ${nextcloud_url_censored}"
-      log_debug "Nextcloud Target Directory: ${nextcloud_target_dir}"
-      log_debug "Nextcloud username: ${nextcloud_username:0:1}********${nextcloud_username:0-1}"
+      nextcloud_url_webroot="${nextcloud_url_suffix#*/}"
+      nextcloud_url_censored="${nextcloud_url_domain:0:1}********.${nextcloud_url_tld}/${nextcloud_url_webroot%/}${nextcloud_target_dir%/}/"
+      nextcloud_url_censored="${nextcloud_url_censored//\/\///}"
+      log_debug " | Nextcloud username: ${nextcloud_username:0:1}********${nextcloud_username:0-1}"
+      log_debug " | Nextcloud target directory: ${nextcloud_target_dir}"
+      log_debug " | Nextcloud destination URL: ${nextcloud_url_scheme}${nextcloud_url_censored}"
    else
       log_debug "Nextcloud upload: Disabled"
    fi
@@ -191,13 +194,12 @@ initialise_script()
       log_info "Ignore Synology extended attribute directories: Enabled"
       ignore_path="*/@eaDir*"
    else
-      log_info "Ignore Synology extended attribute directories: Disabled"
+      log_debug "Ignore Synology extended attribute directories: Disabled"
       ignore_path=""
    fi
 
    source /opt/icloudpd/bin/activate
    log_debug "Activated Python virtual environment for icloudpd"
-   log_info "Container initialisation complete"
 }
 
 log_info()
