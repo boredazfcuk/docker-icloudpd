@@ -5,6 +5,7 @@
  - Moved the bits where it creates the requied directories and checks for updates to the launcher, so that it only occurrs during startup. I want the launcher to become a startup script and put all the "pre-flight check" stuff in there... such as checking the telegram bot is enabled, as this has a short pause in it and is annoying when it checks it each time you renew MFA. Same with all the DNS/route cheks. Files permissions. Also check config files variables aren't going to cause issues.
  - Massive re-working of initialisation portion of script. It is all performed in the launcher so it is only performed once, instead of each time the sync-icloud.sh script is run. This should make manual execution a lot quicker.
  - Disabled all the permissions stuff in the main script. The initialisation script should make sure the /tmp/icloudpd, /config, download and JPEG directories have the corect permissions. As long as I make sure the script switches the user correctly when creating new files, all should be good. Did this quite some time ago, but never disabled the permissions stuff. Hopefully it will work.
+ - Massive bunch of changes in an attempt to make sensitive items partially obsucred so that they may still be verified by someone who knows the info, but still unrecognisable if it gets posted in part of a log file on GitHub
 
 18/01/2025
 
