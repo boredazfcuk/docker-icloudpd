@@ -97,6 +97,10 @@ When the container is first started, it will write a default configuration file 
 
 **synology_ignore_path**: Set this to **true** to avoid warnings when trying to change **@eaDir** permissions for the extended attributes directories under Synology system.
 
+**sideways_copy_videos**: Set this to **true** to have the container copy the downloaded videos to another directory. This directory must be specified in the **video_path** directory. Default: false
+
+**sideways_copy_videos_mode**: Seto this to **copy** to have the **sideways_copy_videos** function copy files, leaving the original in place. Set this to **move** to have it move files to the destination directory. If **move** is specified, then **delete_after_download** must be set to **true**. This is to avoid a situation where all video files are moved out of the download folder, then re-downloaded when the next syncronisation occurs. By having **delete_after_download** set to **true** it means that each downloaded video is removed from iCloud after it's downloaded, so it would not be possible for the container to re-download the file after it is moved from the download directory.
+
 **single_pass**: Set this to **true** to exit out after a single pass instead of looping as per the synchronisation_interval. This way, the script can be scheduled to lauch on the host system using cron or another scheduling agent. If this option is used, it will automatically disable the download check. If using this configuration option, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
 
 **keep_unicode**: Set this to **true** to keep unicode chars in file names or set it to **false** to remove all non-ascii chars. Default: false.
@@ -107,6 +111,8 @@ When the container is first started, it will write a default configuration file 
 
 **file_match_policy**: Policy to identify existing files and de-duplicate. **name-size-dedup-with-suffix** appends file size to deduplicate. **name-id7**
 adds asset id from iCloud to all file names and does not need de-duplication. Default: name-size-dedup-with-suffix.
+
+**video_path**: 
 
 # NEXTCLOUD CONFIGURATION VARIABLES
 
@@ -416,6 +422,9 @@ To run the script inside the currently running container, issue this command (as
 This command line option will upload your entire library to the Nextcloud server. First, it will scan your download directory, then replicate the directory structure on the Nextcloud server. Once this is complete, it will proceed upload the files to these directories.
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --Upload-Library-To-Nextcloud`
+
+**--Sideways-Copy-All-Videos**
+This command will copy all the videos in your download path to the location specified in the **video_path** variable. It will check the value of the **sideways_copy_all_videos_mode** variable to determine the copy mode, which can be either 'copy' or 'move'. If the copy mode is set to 'move' then the **delete_after_download** vairable must also be set to **true**. This is because moving the vidoes out of the the main download location will cause icloudpd to re-download the videos from iCloud. If **delete_after_download** is set, then iCloud should be empty, so the endless loop of downloading videos should not occurr.
 
 **--List-Albums**
 This commmand will list the names of the albums available to download

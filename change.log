@@ -1,3 +1,6 @@
+20/01/2025
+
+ - New feature... Sideways copying of videos. This tells the container to copy/move all the videos it downloads to a different directory. It also has a command line switch so that it can be run against an existing library.
 19/01/2025
 
  - Rebase to Alpine Linux 3.21.2

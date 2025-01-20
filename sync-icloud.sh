@@ -149,6 +149,14 @@ initialise_script()
    then
       log_info "Converted JPEGs path: ${jpeg_path}"
    fi
+   if [ "${sideways_copy_videos}" = true ]
+   then
+      log_debug "Sideways copy videos mode: ${sideways_copy_videos_mode}"
+   fi
+   if [ "${video_path}" ]
+   then
+      log_info "Sideways copied videos path: ${video_path}"
+   fi
    if [ "${delete_accompanying}" = true ]
    then
       log_info "Delete accompanying files (.JPG/.HEIC.MOV)"
@@ -1155,7 +1163,7 @@ nextlcoud_create_directories()
          do
             echo "${line}" | cut -d'/' -f1-"${level}"
          done
-      done | sort -u)
+      done | sort --unique)
 
    encoded_destination_directories=$(for destination_directory in $destination_directories
       do
@@ -1474,6 +1482,120 @@ convert_downloaded_heic_to_jpeg()
          log_debug "Setting timestamp of ${jpeg_file} to ${heic_date}"
          log_debug "Correct owner and group of ${jpeg_file} to ${user}:${group}"
          chown "${user}:${group}" "${jpeg_file}"
+      fi
+   done
+   IFS="${save_ifs}"
+}
+
+sideways_copy_all_videos()
+{
+   # Copy videos sideways to alternate directory
+   local video_list folder_list
+   log_info "Sideways copy all videos to alternate directory..."
+   if [ -z "${video_path}" ] 
+   then
+      log_error "Video path is not configured. Cannot sideways copy all videos. Exiting."
+      sleep 120
+      exit 1
+   elif [ ! -d "${video_path}" ]
+   then
+      log_error "Video path configured does not exit: ${video_path}. Cannot sideways copy all videos. Exiting"
+      sleep 120
+      exit 1
+   fi
+
+   IFS=$'\n'
+   video_list="$(find "${download_path}" -type f -iname "*.mp4" -o -iname "*.mov" | grep -vi hevc.mov)"
+   folder_list="$(for line in ${video_list}; do echo ${line}; done | sort --unique)"
+   destination_directories=$(echo "${folder_list}" | while read -r line
+   do
+      for level in $(seq 1 $(echo "${line}" | tr -cd '/' | wc -c))
+      do
+         echo "${line}" | cut -d'/' -f1-"${level}"
+      done
+   done | sort --unique)
+
+   log_debug " - Creating destination folders..."
+   for folder in ${destination_directories}
+   do
+      log_debug "   | Processing: ${folder}"
+      if [ ! -d "${video_path}${folder}" ]
+      then
+         log_debug "   | Creating: ${video_path}${folder}"
+         mkdir --parents "${video_path}${folder}" >/dev/null
+         chown --reference="${folder}" "${video_path}${folder}"
+         chmod --reference="${folder}" "${video_path}${folder}"
+      fi
+   done
+
+   log_debug " - Sideways copying all videos with copy mode: ${sideways_copy_videos_mode}"
+   for video in ${video_list}
+   do
+      if [ "${sideways_copy_videos_mode}" = "move" ] && [ "${delete_after_download}" = true ]
+      then
+         log_debug "   | Moving ${video} to ${video_path}${video}"
+         mv --update=none --preserve "${video}" "${video_path}${video}"
+      elif [ "${sideways_copy_videos_mode}" = "copy" ]
+      then
+         log_debug "   | Copying ${video} to ${video_path}${video}"
+         cp --update=none --preserve "${video}" "${video_path}${video}"
+      fi
+   done
+   IFS="${save_ifs}"
+}
+
+sideways_copy_videos()
+{
+   # Copy videos sideways to alternate directory
+   local video_list folder_list
+   log_info "Sideways copy videos to alternate directory..."
+   if [ -z "${video_path}" ] 
+   then
+      log_error " - Video path is not configured. Cannot sideways copy all videos. Exiting."
+      sleep 120
+      exit 1
+   elif [ ! -d "${video_path}" ]
+   then
+      log_error " - Video path configured does not exit: ${video_path}. Cannot sideways copy all videos. Exiting"
+      sleep 120
+      exit 1
+   fi
+
+   IFS=$'\n'
+   video_list="$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | grep -i ".mov$\|.mp4$" | grep -vi "hevc.mov$" | cut --delimiter " " --fields 9-)"
+   folder_list="$(for line in ${video_list}; do echo ${line}; done | sort --unique)"
+   destination_directories=$(echo "${folder_list}" | while read -r line
+   do
+      for level in $(seq 1 $(echo "${line}" | tr -cd '/' | wc -c))
+      do
+         echo "${line}" | cut -d'/' -f1-"${level}"
+      done
+   done | sort --unique)
+
+   log_debug " - Creating destination folders..."
+   for folder in ${destination_directories}
+   do
+      log_debug "   | Processing: ${folder}"
+      if [ ! -d "${video_path}${folder}" ]
+      then
+         log_debug "   | Creating: ${video_path}${folder}"
+         mkdir --parents "${video_path}${folder}" >/dev/null
+         chown --reference="${folder}" "${video_path}${folder}"
+         chmod --reference="${folder}" "${video_path}${folder}"
+      fi
+   done
+
+   log_debug " - Sideways copying videos with copy mode: ${sideways_copy_videos_mode}"
+   for video in ${video_list}
+   do
+      if [ "${sideways_copy_videos_mode}" = "move" ] && [ "${delete_after_download}" = true ]
+      then
+         log_debug "   | Moving ${video} to ${video_path}${video}"
+         mv --update=none --preserve "${video}" "${video_path}${video}"
+      elif [ "${sideways_copy_videos_mode}" = "copy" ]
+      then
+         log_debug "   | Copying ${video} to ${video_path}${video}"
+         cp --update=none --preserve "${video}" "${video_path}${video}"
       fi
    done
    IFS="${save_ifs}"
@@ -2128,6 +2250,11 @@ synchronise_user()
                   log_info "Convert HEIC files to JPEG"
                   convert_downloaded_heic_to_jpeg
                fi
+               if [ "${sideways_copy_videos}" = true ]
+               then
+                  log_info "Copy videos sideways to: ${video_path}"
+                  sideways_copy_videos
+               fi
                if [ "${nextcloud_upload}" = true ]
                then
                   nextcloud_sync
@@ -2287,7 +2414,7 @@ sanitise_launch_parameters()
    if [ "${script_launch_parameters}" ]
    then
       case "$(echo "${script_launch_parameters}" | tr '[:upper:]' '[:lower:]')" in
-         "--initialise"|"--initialize"|"--init"|"--remove-keyring"|"--convert-all-heics"|"--remove-all-jpgs"|"--force-convert-all-heics"|"--force-convert-all-mnt-heics"|"--correct-jpeg-time-stamps"|"--upload-library-to-nextcloud"|"--list-albums"|"--list-libraries"|"--enable-debugging"|"--disable-debugging")
+         "--initialise"|"--initialize"|"--init"|"--remove-keyring"|"--convert-all-heics"|"--remove-all-jpgs"|"--force-convert-all-heics"|"--force-convert-all-mnt-heics"|"--correct-jpeg-time-stamps"|"--upload-library-to-nextcloud"|"--sideways-copy-all-videos"|"--list-albums"|"--list-libraries"|"--enable-debugging"|"--disable-debugging")
             log_info "Script launch parameters: ${script_launch_parameters}"
          ;;
          *)
@@ -2348,6 +2475,9 @@ case  "$(echo "${script_launch_parameters}" | tr '[:upper:]' '[:lower:]')" in
    ;;
    "--upload-library-to-nextcloud")
       nextcloud_upload_library=true
+   ;;
+   "--sideways-copy-all-videos")
+      sideways_copy_all_videos=true
    ;;
    "--help")
       "$(which more)" "/opt/CONFIGURATION.md"
@@ -2428,6 +2558,13 @@ then
    log_info "Uploading library to Nextcloud"
    nextcloud_upload_library
    log_info "Uploading library to Nextcloud complete"
+   exit 0
+
+elif [ "${sideways_copy_all_videos:=false}" = true ]
+then
+   log_info "Copying all videos sideways"
+   sideways_copy_all_videos
+   log_info "Sideways copying of all videos complete"
    exit 0
 elif [ "${list_albums:=false}" = true ]
 then

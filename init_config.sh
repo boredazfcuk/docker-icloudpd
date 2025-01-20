@@ -227,6 +227,18 @@
    then
       echo set_exif_datetime="${set_exif_datetime:=false}"
    fi
+   if [ "$(grep -c "^sideways_copy_videos=" "${config_file}")" -eq 0 ]
+   then
+      echo sideways_copy_videos="${sideways_copy:=false}"
+   fi
+   if [ "$(grep -c "^sideways_copy_videos_mode=" "${config_file}")" -eq 0 ]
+   then
+      echo sideways_copy_videos_mode="${sideways_copy_mode:=copy}"
+   fi
+   if [ "$(grep -c "^single_pass=" "${config_file}")" -eq 0 ]
+   then
+      echo single_pass="${single_pass:=false}"
+   fi
    if [ "$(grep -c "^skip_album=" "${config_file}")" -eq 0 ]
    then
       echo skip_album="${skip_album}"
@@ -234,10 +246,6 @@
    if [ "$(grep -c "^skip_library=" "${config_file}")" -eq 0 ]
    then
       echo skip_library="${skip_library}"
-   fi
-   if [ "$(grep -c "^single_pass=" "${config_file}")" -eq 0 ]
-   then
-      echo single_pass="${single_pass:=false}"
    fi
    if [ "$(grep -c "^skip_check=" "${config_file}")" -eq 0 ]
    then
@@ -314,6 +322,10 @@
    if [ "$(grep -c "^user_id=" "${config_file}")" -eq 0 ]
    then
       echo user_id="${user_id:=1000}"
+   fi
+   if [ "$(grep -c "^video_path=" "${config_file}")" -eq 0 ]
+   then
+      echo video_path="${video_path}"
    fi
    if [ "$(grep -c "^webhook_https=" "${config_file}")" -eq 0 ]
    then
@@ -559,6 +571,14 @@ fi
 if [ -z "$(grep "^set_exif_datetime=" "${config_file}" | awk -F= '{print $2}')" ]
 then
    sed -i "s%^set_exif_datetime=$%set_exif_datetime=false%" "${config_file}"
+fi
+if [ -z "$(grep "^sideways_copy_videos=" "${config_file}" | awk -F= '{print $2}')" ]
+then
+   sed -i "s%^sideways_copy_videos=$%sideways_copy_videos=false%" "${config_file}"
+fi
+if [ -z "$(grep "^sideways_copy_videos_mode=" "${config_file}" | awk -F= '{print $2}')" ]
+then
+   sed -i "s%^sideways_copy_videos_mode=$%sideways_copy_videos_mode=copy%" "${config_file}"
 fi
 if [ -z "$(grep "^single_pass=" "${config_file}" | awk -F= '{print $2}')" ]
 then
@@ -863,6 +883,14 @@ if [ "${set_exif_datetime}" ]
 then
    sed -i "s%^set_exif_datetime=.*%set_exif_datetime=${set_exif_datetime}%" "${config_file}"
 fi
+if [ "${sideways_copy}" ]
+then
+   sed -i "s%^sideways_copy_videos=.*%sideways_copy_videos=${sideways_copy}%" "${config_file}"
+fi
+if [ "${sideways_copy_mode}" ]
+then
+   sed -i "s%^sideways_copy_videos_mode=.*%sideways_copy_videos_mode=${sideways_copy_mode}%" "${config_file}"
+fi
 if [ "${single_pass}" ]
 then
    sed -i "s%^single_pass=.*%single_pass=${single_pass}%" "${config_file}"
@@ -950,6 +978,10 @@ fi
 if [ "${user_id}" ]
 then
    sed -i "s%^user_id=.*%user_id=${user_id}%" "${config_file}"
+fi
+if [ "${video_path}" ]
+then
+   sed -i "s%^video_path=.*%video_path=${video_path}%" "${config_file}"
 fi
 if [ "${webhook_https}" ]
 then
