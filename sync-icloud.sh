@@ -648,37 +648,6 @@ check_mount()
    log_info "Failsafe file ${download_path}/.mounted exists, continuing"
 }
 
-# set_owner_and_permissions_config()
-# {
-#    log_debug "Set owner and group on icloudpd temp directory"
-#    chown -R "${user_id}:${group_id}" "/tmp/icloudpd"
-#    log_debug "Set owner and group on config directory"
-#    chown -R "${user_id}:${group_id}" "/config"
-# }
-
-# set_owner_and_permissions_downloads()
-# {
-#    log_debug "Set owner on iCloud directory, if required"
-#    find "${download_path}" ! -type l ! -user "${user_id}" ! -path "${ignore_path}" -exec chown "${user_id}" {} +
-#    log_debug "Set group on iCloud directory, if required"
-#    find "${download_path}" ! -type l ! -group "${group_id}" ! -path "${ignore_path}" -exec chgrp "${group_id}" {} +
-#    log_debug "Set ${directory_permissions} permissions on iCloud directories, if required"
-#    find "${download_path}" -type d ! -perm "${directory_permissions}" ! -path "${ignore_path}" -exec chmod "${directory_permissions}" '{}' +
-#    log_debug "Set ${file_permissions} permissions on iCloud files, if required"
-#    find "${download_path}" -type f ! -perm "${file_permissions}" ! -path "${ignore_path}" -exec chmod "${file_permissions}" '{}' +
-#    if [ "${jpeg_path}" ]
-#    then
-#       log_debug "Set owner on jpeg directory, if required"
-#       find "${jpeg_path}" ! -type l ! -user "${user_id}" ! -path "${ignore_path}" -exec chown "${user_id}" {} +
-#       log_debug "Set group on jpeg directory, if required"
-#       find "${jpeg_path}" ! -type l ! -group "${group_id}" ! -path "${ignore_path}" -exec chgrp "${group_id}" {} +
-#       log_debug "Set ${directory_permissions} permissions on jpeg directories, if required"
-#       find "${jpeg_path}" -type d ! -perm "${directory_permissions}" ! -path "${ignore_path}" -exec chmod "${directory_permissions}" '{}' +
-#       log_debug "Set ${file_permissions} permissions on jpeg files, if required"
-#       find "${jpeg_path}" -type f ! -perm "${file_permissions}" ! -path "${ignore_path}" -exec chmod "${file_permissions}" '{}' +
-#    fi
-# }
-
 check_permissions()
 {
    if [ "$(run_as "${user}" "if ! test -w \"${download_path}\"; then echo false; fi")" = false ]

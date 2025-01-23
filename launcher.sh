@@ -122,8 +122,11 @@ log_info "Initialising container..."
 # Create the temporary directory
 if [ ! -d "/tmp/icloudpd" ]
 then
-    log_info " - Creating temporary directory"
-    mkdir --parents "/tmp/icloudpd"
+   log_info " - Creating temporary directory"
+   if ! mkdir --parents "/tmp/icloudpd"
+   then
+      log_error "Failed to create temporary directory"
+   fi
 fi
 # Remove pre-existing temporary files
 if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]
@@ -223,8 +226,12 @@ source "${config_file}"
 if [ -z "${apple_id}" ]
 then
    log_error "   | Apple ID not set"
-   log_error "   ! Cannot continue. Halting"
-   sleep infinity
+   log_error "   ! Waiting for it to be added to: ${config_file}"
+   while [ -z "${apple_id}" ]
+   do
+      sleep 10
+      source "${config_file}"
+   done
 fi
 
 # Check user not attempting to configure the local user as root as this breaks the "runas" function
