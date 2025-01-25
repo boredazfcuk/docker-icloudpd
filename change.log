@@ -1,6 +1,11 @@
+25/01/2025
+
+ - Chaned the description for --keep-icloud-recent days warning.
+
 23/01/2025
 
  - Bump to icloud-photos-downloader v1.26.1
+
 21/01/2025
 
  - Launcher now waits for apple_id to be added to icloudpd.conf and continues once it's added. This is so I can create test containers with docker --rm and be able to add the apple_id variable and continue using the container. This means I don't have to pre populate a static volume and icloudpd.conf file

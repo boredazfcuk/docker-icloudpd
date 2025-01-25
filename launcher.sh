@@ -330,7 +330,7 @@ fi
 # Display warning when using keep_icloud_recent
 if [ "${keep_icloud_recent_only}" = true ] && [ "${warnings_acknowledged:=false}" = false ]
 then
-   log_warning "   | The 'Keep iCloud recent' feature deletes all files from your local disk which are older than this amount of days. Setting this to 0 will delete everthing"
+   log_warning "   | The 'Keep iCloud recent' feature deletes all files from iCloud which are older than this amount of days. Setting this to 0 will delete everthing"
    log_warning "     Please use this with caution. I am not responsible for any data loss. Continuing in 2 minutes"
    user_warning_displayed=true
 fi
