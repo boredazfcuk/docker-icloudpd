@@ -128,6 +128,7 @@ then
       log_error "Failed to create temporary directory"
    fi
 fi
+
 # Remove pre-existing temporary files
 if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ]
 then
@@ -155,17 +156,57 @@ then
 fi
 
 # Create new temporary files
-touch "/tmp/icloudpd/icloudpd_check_exit_code"
-touch "/tmp/icloudpd/icloudpd_download_exit_code"
-touch "/tmp/icloudpd/icloudpd_check_error"
-touch "/tmp/icloudpd/icloudpd_download_error"
-touch "/tmp/icloudpd/icloudpd_sync.log"
-touch "/tmp/icloudpd/icloudpd_tracert.err"
-touch "/tmp/icloudpd/expect_input.txt"
+log_info " - Create temporary files"
+if ! touch "/tmp/icloudpd/icloudpd_check_exit_code"
+then
+   log_error "   | Failed to create /tmp/icloudpd/icloudpd_check_exit_code"
+   log_error "   ! Cannot continue. Halting"
+   sleep infinity
+fi
+if ! touch "/tmp/icloudpd/icloudpd_download_exit_code"
+then
+   log_error "   | Failed to create /tmp/icloudpd/icloudpd_download_exit_code"
+   log_error "   ! Cannot continue. Halting"
+   sleep infinity
+fi
+if ! touch "/tmp/icloudpd/icloudpd_check_error"
+then
+   log_error "   | Failed to create /tmp/icloudpd/icloudpd_check_error"
+   log_error "   ! Cannot continue. Halting"
+   sleep infinity
+fi
+if ! touch "/tmp/icloudpd/icloudpd_download_error"
+then
+   log_error "   | Failed to create /tmp/icloudpd/icloudpd_download_error"
+   log_error "   ! Cannot continue. Halting"
+   sleep infinity
+fi
+if ! touch "/tmp/icloudpd/icloudpd_sync.log"
+then
+   log_error "   | Failed to create /tmp/icloudpd/icloudpd_sync.log"
+   log_error "   ! Cannot continue. Halting"
+   sleep infinity
+fi
+if ! touch "/tmp/icloudpd/icloudpd_tracert.err"
+then
+   log_error "   | Failed to create /tmp/icloudpd/icloudpd_tracert.err"
+   log_error "   ! Cannot continue. Halting"
+   sleep infinity
+fi
+if ! touch "/tmp/icloudpd/expect_input.txt"
+then
+   log_error "   | Failed to create /tmp/icloudpd/expect_input.txt"
+   log_error "   ! Cannot continue. Halting"
+   sleep infinity
+fi
 
 # Push icloudpd version to file so it's a smidgen quicker to load on container restarts/syncs
 /opt/icloudpd/bin/icloudpd --version | awk -F, '{print $1}' | sed 's/version://' > /tmp/icloudpd/icloudpd_version
 python3 --version | awk '{print $2}' > /tmp/icloudpd/python_version
+
+# Check volumes are mounted
+grep -c "/config" /etc/mtab
+grep -c "${download_path}" /etc/mtab
 
 # Check the config directory exists and create it if it does not
 log_info " - Checking configuration file permissions"

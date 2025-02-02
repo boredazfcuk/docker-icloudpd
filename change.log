@@ -1,6 +1,11 @@
+02/02/2025
+
+ - Amended initialisation script to hang if it can't create the temporary files
+ - Changed the way it pulls info about container; using cut to return fields rather than sed to remove the thing I grep'd for
+
 25/01/2025
 
- - Chaned the description for --keep-icloud-recent days warning.
+ - Changed the description for --keep-icloud-recent days warning.
 
 23/01/2025
 

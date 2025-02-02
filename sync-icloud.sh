@@ -6,7 +6,7 @@ initialise_script()
    
    log_info "***** boredazfcuk/icloudpd container v1.0.$(cat /opt/build_version.txt) started *****"
    log_info "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
-   log_info "$(cat /etc/*-release | grep "^NAME" | sed 's/NAME=//g' | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | sed 's/VERSION_ID=//g' | sed 's/"//g')"
+   log_info "$(cat /etc/*-release | grep "^NAME" | cut -d= -f2 | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | cut -d= -f2 | sed 's/"//g')"
    log_info "Python version: $(cat /tmp/icloudpd/python_version)"
    log_info "icloud-photos-downloader version: $(cat /tmp/icloudpd/icloudpd_version)"
    log_info "Loading configuration from: ${config_file}"
