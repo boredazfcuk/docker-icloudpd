@@ -476,9 +476,10 @@ fi
 log_info " - Checking ${icloud_domain} is accessible"
 if [ "$(traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>/tmp/icloudpd/icloudpd_tracert.err; echo $?)" = 1 ]
 then
-   log_error "   | No route to ${icloud_domain} found. Please check your container's network settings. Cannot continue. Halting"
+   log_error "   | No route to ${icloud_domain} found. Please check your container's network settings. Cannot continue. Restarting in 5 minutes"
    log_error "Error debug - $(cat /tmp/icloudpd/icloudpd_tracert.err)"
-   sleep infinity
+   sleep 5m
+   exit 1
 fi
 
 # Check Telegram bot initialised
@@ -508,7 +509,7 @@ then
    then
       echo true > /tmp/icloudpd/bot_check
    else
-      log_info "   | Bot does not appear to have been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container"
+      log_warning "   | Bot does not appear to have been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container"
       echo false > /tmp/icloudpd/bot_check
    fi
 fi
@@ -521,10 +522,12 @@ if [ "${current_version:=99}" -eq "99" ] || [ "${latest_version:=98}" -eq "98" ]
 then
    echo "Check for updates failed. Placeholder version detected. Current version: ${current_version}. Latest version: ${latest_version}"
    user_warning_displayed=true
+   sleep 1m
 elif [ "${current_version}" -lt "${latest_version}" ]
 then
    echo "Current version (v${current_version}) is out of date. Please upgrade to latest version (v${latest_version})."
    user_warning_displayed=true
+   sleep 1m
 elif [ "${current_version}" -gt "${latest_version}" ]
 then
    echo "Current version (v${current_version}) is newer than latest build (v${latest_version}). Good luck!"

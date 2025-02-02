@@ -2,7 +2,7 @@
 
  - Amended initialisation script to hang if it can't create the temporary files
  - Changed the way it pulls info about container; using cut to return fields rather than sed to remove the thing I grep'd for
- - Added healthcheck to report container unhealthy if launch time Internet connectivity check failed
+ - Container no longer hangs indefinitely if Internet connectivity fails during initialisation. Now waits for 5mins before restarting
 
 25/01/2025
 
