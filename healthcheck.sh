@@ -44,6 +44,13 @@ then
    fi
 fi
 
+# Report error if traceroute error file isn't empty
+if [ -s "/tmp/icloudpd/icloudpd_tracert.err" ]
+then
+   echo "Internet connectivity check failed during container initialisation"
+   exit 1
+fi
+
 cookie="$(echo -n "${apple_id//[^a-zA-Z0-9_]}" | tr '[:upper:]' '[:lower:]')"
 if [ ! -f "/config/${cookie}" ]
 then

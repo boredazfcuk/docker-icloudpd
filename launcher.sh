@@ -204,10 +204,6 @@ fi
 /opt/icloudpd/bin/icloudpd --version | awk -F, '{print $1}' | sed 's/version://' > /tmp/icloudpd/icloudpd_version
 python3 --version | awk '{print $2}' > /tmp/icloudpd/python_version
 
-# Check volumes are mounted
-grep -c "/config" /etc/mtab
-grep -c "${download_path}" /etc/mtab
-
 # Check the config directory exists and create it if it does not
 log_info " - Checking configuration file permissions"
 if [ ! -d "/config" ]

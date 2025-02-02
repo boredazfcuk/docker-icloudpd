@@ -2,6 +2,7 @@
 
  - Amended initialisation script to hang if it can't create the temporary files
  - Changed the way it pulls info about container; using cut to return fields rather than sed to remove the thing I grep'd for
+ - Added healthcheck to report container unhealthy if launch time Internet connectivity check failed
 
 25/01/2025
 
