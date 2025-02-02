@@ -476,8 +476,9 @@ fi
 log_info " - Checking ${icloud_domain} is accessible"
 if [ "$(traceroute -q 1 -w 1 ${icloud_domain} >/dev/null 2>/tmp/icloudpd/icloudpd_tracert.err; echo $?)" = 1 ]
 then
-   log_error "   | No route to ${icloud_domain} found. Please check your container's network settings. Cannot continue. Restarting in 5 minutes"
-   log_error "Error debug - $(cat /tmp/icloudpd/icloudpd_tracert.err)"
+   log_error "   | No route to ${icloud_domain} found. Please check your container's network settings"
+   log_error "   ! Error debug - $(cat /tmp/icloudpd/icloudpd_tracert.err)"
+   log_error "   ! Cannot continue. Restarting in 5 minutes"
    sleep 5m
    exit 1
 fi
