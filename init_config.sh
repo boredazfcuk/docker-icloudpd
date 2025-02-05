@@ -283,6 +283,10 @@
    then
       echo synology_photos_app_fix="${synology_photos_app_fix:=false}"
    fi
+   if [ "$(grep -c "^telegram_bot_initialised=" "${config_file}")" -eq 0 ]
+   then
+      echo telegram_bot_initialised=false
+   fi
    if [ "$(grep -c "^telegram_chat_id=" "${config_file}")" -eq 0 ]
    then
       echo telegram_chat_id="${telegram_chat_id}"

@@ -487,31 +487,33 @@ fi
 if [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ] && [ "${telegram_polling}" = true ]
 then
    log_info " - Checking Telegram bot initialised"
-   if [ "${telegram_http}" = true ]
+   if [ "${telegram_bot_initialised}" = false ]
    then
-      telegram_protocol="http"
-   else
-      telegram_protocol="https"
-   fi
-   if [ "${telegram_server}" ]
-   then
-      telegram_base_url="${telegram_protocol}://${telegram_server}/bot${telegram_token}"
-   else
-      telegram_base_url="${telegram_protocol}://api.telegram.org/bot${telegram_token}"
-   fi
-   telegram_update_id_offset_file="/config/telegram_update_id.num"
-   if [ ! -f "${telegram_update_id_offset_file}" ]
-   then
-      echo -n 0 > "${telegram_update_id_offset_file}"
-   fi
-   sleep "$((RANDOM % 15))"
-   bot_check="$(curl --silent -X POST "${telegram_base_url}/getUpdates" | jq -r .ok)"
-   if [ "${bot_check}" = true ]
-   then
-      echo true > /tmp/icloudpd/bot_check
-   else
-      log_warning "   | Bot does not appear to have been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container"
-      echo false > /tmp/icloudpd/bot_check
+      if [ "${telegram_http}" = true ]
+      then
+         telegram_protocol="http"
+      else
+         telegram_protocol="https"
+      fi
+      if [ "${telegram_server}" ]
+      then
+         telegram_base_url="${telegram_protocol}://${telegram_server}/bot${telegram_token}"
+      else
+         telegram_base_url="${telegram_protocol}://api.telegram.org/bot${telegram_token}"
+      fi
+      telegram_update_id_offset_file="/config/telegram_update_id.num"
+      if [ ! -f "${telegram_update_id_offset_file}" ]
+      then
+         echo -n 0 > "${telegram_update_id_offset_file}"
+      fi
+      sleep "$((RANDOM % 15))"
+      bot_check="$(curl --silent -X POST "${telegram_base_url}/getUpdates" | jq -r .ok)"
+      if [ "${bot_check}" = true ]
+      then
+         sed -i "s%^telegram_bot_initialised=false$%telegram_bot_initialised=true%" "${config_file}"
+      else
+         log_warning "   | Bot does not appear to have been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container"
+      fi
    fi
 fi
 

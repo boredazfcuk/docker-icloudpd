@@ -320,7 +320,7 @@ configure_notifications()
             log_debug "${notification_type} base URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}"
 
          fi
-         ##################
+
          log_debug "${notification_type} notification URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}/sendMessage"
          if [ "${script_launch_parameters}" ]
          then
@@ -328,7 +328,7 @@ configure_notifications()
          fi
          if [ "${telegram_polling}" = true ]
          then
-            if [ "$(cat /tmp/icloudpd/bot_check)" = true ]
+            if [ "${telegram_bot_initialised}" = true ]
             then
                if [ "${telegram_server}" ]
                then
