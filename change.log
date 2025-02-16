@@ -1,3 +1,12 @@
+1/02/2025
+
+ - Now setting umask based on file permissions. This should result in files being created with correct permissions, if they are created with a non-default umask (022), rather than relying on the functions to correct permissions being run.
+
+13/02/2025
+
+ - Changed the launcher to check that notifications are configured correctly pre-launch. 
+ - Fixed Nextcloud URL log display which was missing a / character between the webroot and desination directory
+ 
 05/02/2025
 
  - Changed the Telegram bot check so that it only occurs once, during the launch script. Once it successfully verifies the bot, it updates a new variable in the config file and will never check again. For some reason I see it failling to verify my own bot occasionally. I think the check fails randomly for some reason. I've no need to do it each time though as the update number is tracked via file in /config so it should be able to work even if verification fails.

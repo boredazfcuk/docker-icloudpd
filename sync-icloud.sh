@@ -3,169 +3,74 @@
 ##### Functions #####
 initialise_script()
 {
-   
+   save_ifs="${IFS}"
+   login_counter=0
+   local icloud_dot_com dns_counter
    log_info "***** boredazfcuk/icloudpd container v1.0.$(cat /opt/build_version.txt) started *****"
    log_info "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
    log_info "$(cat /etc/*-release | grep "^NAME" | cut -d= -f2 | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | cut -d= -f2 | sed 's/"//g')"
    log_info "Python version: $(cat /tmp/icloudpd/python_version)"
    log_info "icloud-photos-downloader version: $(cat /tmp/icloudpd/icloudpd_version)"
-   log_info "Loading configuration from: ${config_file}"
-   source "${config_file}"
-   save_ifs="${IFS}"
    lan_ip="$(hostname -i)"
-   login_counter=0
+   log_debug "LAN IP Address: ${lan_ip}"   
+   log_debug "Default gateway: $(ip route | grep default | awk '{print $3}')"
+   log_debug "DNS server: $(grep nameserver /etc/resolv.conf | awk '{print $2}')"
+   log_info "Loading configuration from: ${config_file}"
+   source "${config_file}"  
    apple_id="$(echo -n "${apple_id}" | tr '[:upper:]' '[:lower:]')"
+   apple_id_prefix="${apple_id%%@*}"
+   apple_id_suffix="${apple_id##*@}"
+   apple_id_domain="${apple_id_suffix%%.*}"
+   apple_id_tld="${apple_id##*.}"
+   apple_id_censored="${apple_id_prefix:0:1}******${apple_id_prefix:0-1}@${apple_id_domain:0:1}******.${apple_id_tld}"
+   log_info " | Apple ID: ${apple_id_censored}"
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
+   cookie_file_censored="$(echo -n "${apple_id_censored//[^a-z0-9_*]/}")"
+   log_info "   - Cookie path: /config/${cookie_file_censored}"
+   if [ "${debug_logging}" = true ]
+   then
+      log_info " | Debug logging: Enabled"
+      log_level="debug"
+   else
+      log_info " | Debug logging: Disabled"
+      log_level="info"
+   fi
+   log_debug " | Running user id: $(id --user)"
+   log_debug " | Running group id: $(id --group)"
+   if [ "${debug_logging}" = true ]
+   then
+      log_debug " | Local user: ${user:0:2}********:${user_id}"
+      log_debug " | Local group: ${group:0:2}********:${group_id}"
+   else
+      log_info " | Local user: ${user}:${user_id}"
+      log_info " | Local group: ${group}:${group_id}"
+   fi
+   log_debug " | Force GID: ${force_gid}"
 
-   local icloud_dot_com dns_counter
    if [ "${icloud_china:=false}" = true ]
    then
       icloud_domain="icloud.com.cn"
    else
       icloud_domain="icloud.com"
    fi
-   case "${synchronisation_interval:=86400}" in
-      21600) synchronisation_interval=21600;; # 6 hours
-      43200) synchronisation_interval=43200;; # 12 hours
-      86400) synchronisation_interval=86400;; # 24 hours
-      129600) synchronisation_interval=129600;; # 36 hours
-      172800) synchronisation_interval=172800;; # 48 hours
-      604800) synchronisation_interval=604800;; # 7 days
-      *) synchronisation_interval=86400;; # 24 hours
-   esac
-   if [ "${synchronisation_delay:=0}" -gt 60 ]
-   then
-      synchronisation_delay=60
-   fi
-   log_debug "Running user id: $(id --user)"
-   log_debug "Running group id: $(id --group)"
-   if [ "${debug_logging}" = true ]
-   then
-      log_debug "Local user: ${user:0:2}********:${user_id}"
-      log_debug "Local group: ${group:0:2}********:${group_id}"
-   else
-      log_info "Local user: ${user}:${user_id}"
-      log_info "Local group: ${group}:${group_id}"
-   fi
-   log_debug "Force GID: ${force_gid}"
-   log_debug "LAN IP Address: ${lan_ip}"
-   log_debug "Default gateway: $(ip route | grep default | awk '{print $3}')"
-   log_debug "DNS server: $(grep nameserver /etc/resolv.conf | awk '{print $2}')"
    icloud_dot_com="$(nslookup -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
    while [ -z "${icloud_dot_com}" ]
    do
       if [ "${dns_counter:=0}" = 0 ]
       then
-         log_warning "Cannot find ${icloud_domain} IP address - retrying"
+         log_warning " ! Cannot find ${icloud_domain} IP address - retrying"
       fi
       sleep 10
       icloud_dot_com="$(nslookup -type=a ${icloud_domain} | grep -v "127.0.0.1" | grep Address | tail -1 | awk '{print $2}')"
       dns_counter=$((dns_counter+1))
       if [ "${dns_counter}" = 12 ]
       then
-         log_error "Cannot find ${icloud_domain} IP address. Please check your DNS/Firewall settings - exiting"
+         log_error " ! Cannot find ${icloud_domain} IP address. Please check your DNS/Firewall settings - exiting"
          sleep 120
          exit 1
       fi
    done
-   log_debug "IP address for ${icloud_domain}: ${icloud_dot_com}"
-   if [ "${debug_logging}" = true ]
-   then
-      log_info "Debug logging: Enabled"
-      log_level="debug"
-   else
-      log_info "Debug logging: Disabled"
-      log_level="info"
-   fi
-   apple_id_prefix="${apple_id%%@*}"
-   apple_id_suffix="${apple_id##*@}"
-   apple_id_domain="${apple_id_suffix%%.*}"
-   apple_id_tld="${apple_id##*.}"
-   apple_id_censored="${apple_id_prefix:0:1}******${apple_id_prefix:0-1}@${apple_id_domain:0:1}******.${apple_id_tld}"
-   log_info "Apple ID: ${apple_id_censored}"
-   cookie_file_censored="$(echo -n "${apple_id_censored//[^a-z0-9_*]/}")"
-   log_info "Cookie path: /config/${cookie_file_censored}"
-   log_info "Cookie expiry notification period: ${notification_days}"
-   log_info "Download destination directory: ${download_path}"
-   log_info "Folder structure: ${folder_structure}"
-   log_debug "Directory permissions: ${directory_permissions}"
-   log_debug "File permissions: ${file_permissions}"
-   log_info "Keep Unicode: ${keep_unicode}"
-   log_info "Live Photo MOV Filename Policy: ${live_photo_mov_filename_policy}"
-   log_info "File Match Policy: ${file_match_policy}"
-   log_info "Synchronisation interval: ${synchronisation_interval}"
-   log_info "Synchronisation delay (minutes): ${synchronisation_delay}"
-   log_info "Set EXIF date/time: ${set_exif_datetime}"
-   log_info "Auto delete: ${auto_delete}"
-   log_info "Delete after download: ${delete_after_download}"
-   if [ "${keep_icloud_recent_only}" = true ]
-   then
-      log_info "Keep iCloud recent : Enabled"
-      log_info "Keep iCloud recent days: ${keep_icloud_recent_days}"
-   fi
-   log_info "Delete empty directories: ${delete_empty_directories}"
-   log_info "Photo size: ${photo_size}"
-   log_info "Align RAW: ${align_raw}"
-   log_info "Single pass mode: ${single_pass}"
-   if [ "${single_pass}" = true ]
-   then
-      log_debug "Single pass mode enabled. Disabling download check"
-      skip_check=true
-   fi
-   log_info "Skip download check: ${skip_check}"
-   log_info "Skip live photos: ${skip_live_photos}"
-   if [ "${recent_only}" ]
-   then
-      log_info "Number of most recently added photos to download: ${recent_only}"
-   else
-      log_info "Number of most recently added photos to download: Download All Photos"
-   fi
-   if [ "${photo_album}" ]
-   then
-      log_info "Downloading photos from album(s): ${photo_album}"
-   elif [ "${photo_library}" ]
-   then
-      log_info "Downloading photos from library: ${photo_library}"
-   else
-      log_info "Downloading photos from: Download All Photos"
-   fi
-   if [ "${until_found}" ]
-   then
-      log_info "Stop downloading when prexisiting files count is: ${until_found}"
-   else
-      log_info "Stop downloading when prexisiting files count is: Download All Photos"
-   fi
-   if [ "${skip_live_photos}" = false ]
-   then
-      log_info "Live photo size: ${live_photo_size}"
-   fi
-   log_info "Skip videos: ${skip_videos}"
-   log_info "Convert HEIC to JPEG: ${convert_heic_to_jpeg}"
-   if [ "${convert_heic_to_jpeg}" = true ]
-   then
-      log_debug "JPEG conversion quality: ${jpeg_quality}"
-   fi
-   if [ "${jpeg_path}" ]
-   then
-      log_info "Converted JPEGs path: ${jpeg_path}"
-   fi
-   if [ "${sideways_copy_videos}" = true ]
-   then
-      log_debug "Sideways copy videos mode: ${sideways_copy_videos_mode}"
-   fi
-   if [ "${video_path}" ]
-   then
-      log_info "Sideways copied videos path: ${video_path}"
-   fi
-   if [ "${delete_accompanying}" = true ]
-   then
-      log_info "Delete accompanying files (.JPG/.HEIC.MOV)"
-   fi
-   if [ "${notification_type}" ]
-   then
-      configure_notifications
-   fi
-   log_info "Downloading from: ${icloud_domain}"
+   log_debug " | IP address for ${icloud_domain}: ${icloud_dot_com}"
    if [ "${icloud_china}" = true ]
    then
       if [ "${auth_china}" = true ]
@@ -173,37 +78,120 @@ initialise_script()
          auth_domain="cn"
       fi
    fi
+   log_info " | Authentication domain: ${auth_domain:=com}"
+   log_info " | Downloading from: ${icloud_domain}"
+   log_info " | Cookie expiry notification period: ${notification_days}"
+   log_info " | Download destination directory: ${download_path}"
+   log_info " | Folder structure: ${folder_structure}"
+   log_debug " | Directory permissions: ${directory_permissions}"
+   log_debug " | File permissions: ${file_permissions}"
+   log_info " | Keep Unicode: ${keep_unicode}"
+   log_info " | Live Photo MOV Filename Policy: ${live_photo_mov_filename_policy}"
+   log_info " | File Match Policy: ${file_match_policy}"
+   log_info " | Synchronisation interval: ${synchronisation_interval}"
+   log_info " | Synchronisation delay (minutes): ${synchronisation_delay}"
+   log_info " | Set EXIF date/time: ${set_exif_datetime}"
+   log_info " | Auto delete: ${auto_delete}"
+   log_info " | Delete after download: ${delete_after_download}"
+   if [ "${keep_icloud_recent_only}" = true ]
+   then
+      log_info " | Keep iCloud recent : Enabled"
+      log_info " | Keep iCloud recent days: ${keep_icloud_recent_days}"
+   fi
+   log_info " | Delete empty directories: ${delete_empty_directories}"
+   log_info " | Photo size: ${photo_size}"
+   log_info " | Align RAW: ${align_raw}"
+   log_info " | Single pass mode: ${single_pass}"
+   if [ "${single_pass}" = true ]
+   then
+      log_debug " | Single pass mode enabled. Disabling download check"
+      skip_check=true
+   fi
+   log_info " | Skip download check: ${skip_check}"
+   log_info " | Skip live photos: ${skip_live_photos}"
+   if [ "${recent_only}" ]
+   then
+      log_info " | Number of most recently added photos to download: ${recent_only}"
+   else
+      log_info " | Number of most recently added photos to download: Download All Photos"
+   fi
+   if [ "${photo_album}" ]
+   then
+      log_info " | Downloading photos from album(s): ${photo_album}"
+   elif [ "${photo_library}" ]
+   then
+      log_info " | Downloading photos from library: ${photo_library}"
+   else
+      log_info " | Downloading photos from: Download All Photos"
+   fi
+   if [ "${until_found}" ]
+   then
+      log_info " | Stop downloading when prexisiting files count is: ${until_found}"
+   else
+      log_info " | Stop downloading when prexisiting files count is: Download All Photos"
+   fi
+   if [ "${skip_live_photos}" = false ]
+   then
+      log_info " | Live photo size: ${live_photo_size}"
+   fi
+   log_info " | Skip videos: ${skip_videos}"
+   log_info " | Convert HEIC to JPEG: ${convert_heic_to_jpeg}"
+   if [ "${convert_heic_to_jpeg}" = true ]
+   then
+      log_debug " | JPEG conversion quality: ${jpeg_quality}"
+   fi
+   if [ "${jpeg_path}" ]
+   then
+      log_info " | Converted JPEGs path: ${jpeg_path}"
+   fi
+   if [ "${sideways_copy_videos}" = true ]
+   then
+      log_debug " | Sideways copy videos mode: ${sideways_copy_videos_mode}"
+   fi
+   if [ "${video_path}" ]
+   then
+      log_info " | Sideways copied videos path: ${video_path}"
+   fi
+   if [ "${delete_accompanying}" = true ]
+   then
+      log_info " | Delete accompanying files (.JPG/.HEIC.MOV)"
+   fi
    if [ "${fake_user_agent}" = true ]
    then
-      log_info "User agent impersonation for curl: Enabled"
+      log_info " | User agent impersonation for curl: Enabled"
       curl_user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edge/122.0.0.0"
    else
-      log_debug "User agent impersonation for curl: Disabled"
+      log_debug " | User agent impersonation for curl: Disabled"
    fi
-   log_info "Authentication domain: ${auth_domain:=com}"
    if [ "${nextcloud_upload}" = true ]
    then
-      log_info "Nextcloud upload: Enabled"
+      log_info " | Nextcloud upload: Enabled"
       nextcloud_url_scheme="${nextcloud_url%//*}//"
       nextcloud_url_suffix="${nextcloud_url##*//}"
       nextcloud_url_domain="${nextcloud_url_suffix%%/*}"
       nextcloud_url_tld="${nextcloud_url_domain#*.}"
       nextcloud_url_webroot="${nextcloud_url_suffix#*/}"
-      nextcloud_url_censored="${nextcloud_url_domain:0:1}********.${nextcloud_url_tld}/${nextcloud_url_webroot%/}${nextcloud_target_dir%/}/"
+      nextcloud_url_censored="${nextcloud_url_domain:0:1}********.${nextcloud_url_tld}/${nextcloud_url_webroot%/}/${nextcloud_target_dir%/}/"
       nextcloud_url_censored="${nextcloud_url_censored//\/\///}"
-      log_debug "Nextcloud username: ${nextcloud_username:0:1}********${nextcloud_username:0-1}"
-      log_debug "Nextcloud target directory: ${nextcloud_target_dir}"
-      log_debug "Nextcloud destination URL: ${nextcloud_url_scheme}${nextcloud_url_censored}"
+      log_debug " | Nextcloud username: ${nextcloud_username:0:1}********${nextcloud_username:0-1}"
+      log_debug " | Nextcloud target directory: ${nextcloud_target_dir}"
+      log_debug " | Nextcloud destination URL: ${nextcloud_url_scheme}${nextcloud_url_censored}"
    else
-      log_debug "Nextcloud upload: Disabled"
+      log_debug " | Nextcloud upload: Disabled"
    fi
    if [ "${synology_ignore_path}" = true ]
    then
-      log_info "Ignore Synology extended attribute directories: Enabled"
+      log_info " | Ignore Synology extended attribute directories: Enabled"
       ignore_path="*/@eaDir*"
    else
-      log_debug "Ignore Synology extended attribute directories: Disabled"
+      log_debug " | Ignore Synology extended attribute directories: Disabled"
       ignore_path=""
+   fi
+   log_info "Finished loading configuration file"
+
+   if [ "${notification_type}" ]
+   then
+      configure_notifications
    fi
 
    source /opt/icloudpd/bin/activate
@@ -253,234 +241,237 @@ clean_notification_title()
    if [ "${notification_title}" ]
    then
       notification_title="${notification_title//[^a-zA-Z0-9_ ]/}"
-      log_debug "Cleaned notification title: ${notification_title}"
+      log_debug " | Cleaned notification title: ${notification_title}"
    else
-      log_debug "Notification title: ${notification_title:=boredazfcuk/iCloudPD}"
+      log_debug " | Notification title: ${notification_title:=boredazfcuk/iCloudPD}"
    fi
 }
 
 configure_notifications()
 {
-   if [ -z "${prowl_api_key}" ] && [ -z "${pushover_token}" ] && [ -z "${telegram_token}" ] && [ -z "${webhook_id}" ] && [ -z "${dingtalk_token}" ] && [ -z "${discord_token}" ] && [ -z "${iyuu_token}" ] && [ -z "${wecom_secret}" ] && [ -z "${gotify_app_token}" ] && [ -z "${bark_device_key}" ] && [ -z "${msmtp_pass}" ]
+   log_info "Configuring notifications"
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "prowl" ] && [ "${prowl_api_key}" ]
    then
-      log_warning "${notification_type} notifications enabled, but API key/token/secret not set - disabling notifications"
-      unset notification_type
-   else
-      if [ "${notification_type}" = "Prowl" ] && [ "${prowl_api_key}" ]
+      log_info " | ${notification_type} notifications enabled"
+      log_debug "   - ${notification_type} api key: ${prowl_api_key:0:2}********${prowl_api_key:0-2}"
+      notification_url="https://api.prowlapp.com/publicapi/add"
+      log_debug "   - ${notification_type} notification URL: ${notification_url}"
+      clean_notification_title
+   elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]
+   then
+      log_info " | ${notification_type} notifications enabled"
+      log_debug "   - ${notification_type} user: ${pushover_user:0:2}********${pushover_user:0-2}"
+      log_debug "   - ${notification_type} token: ${pushover_token:0:2}********${pushover_token:0-2}"
+      if [ "${pushover_sound}" ]
       then
-         log_info "${notification_type} notifications enabled"
-         clean_notification_title
-         log_debug "${notification_type} api key: ${prowl_api_key:0:2}********${prowl_api_key:0-2}"
-         notification_url="https://api.prowlapp.com/publicapi/add"
-         log_debug "${notification_type} notification URL: ${notification_url}"
-      elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]
+         case "${pushover_sound}" in
+            pushover|bike|bugle|cashregister|classical|cosmic|falling|gamelan|incoming|intermission|magic|mechanical|pianobar|siren|spacealarm|tugboat|alien|climb|persistent|echo|updown|vibrate|none)
+               log_debug "   - ${notification_type} sound: ${pushover_sound}"
+            ;;
+            *)
+               log_debug "   - ${notification_type} sound not recognised. Using default"
+               unset pushover_sound
+         esac
+      fi
+      notification_url="https://api.pushover.net/1/messages.json"
+      log_debug "   - ${notification_type} notification URL: ${notification_url}"
+      clean_notification_title
+   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]
+   then
+      if [ "${telegram_http}" = true ]
       then
-         log_info "${notification_type} notifications enabled"
-         clean_notification_title
-         log_debug "${notification_type} user: ${pushover_user:0:2}********${pushover_user:0-2}"
-         log_debug "${notification_type} token: ${pushover_token:0:2}********${pushover_token:0-2}"
-         if [ "${pushover_sound}" ]
-         then
-            case "${pushover_sound}" in
-               pushover|bike|bugle|cashregister|classical|cosmic|falling|gamelan|incoming|intermission|magic|mechanical|pianobar|siren|spacealarm|tugboat|alien|climb|persistent|echo|updown|vibrate|none)
-                  log_debug "${notification_type} sound: ${pushover_sound}"
-               ;;
-               *)
-                  log_debug "${notification_type} sound not recognised. Using default"
-                  unset pushover_sound
-            esac
-         fi
-         notification_url="https://api.pushover.net/1/messages.json"
-         log_debug "${notification_type} notification URL: ${notification_url}"
-      elif [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]
+         telegram_protocol="http"
+      else
+         telegram_protocol="https"
+      fi
+      if [ "${telegram_server}" ]
       then
-         if [ "${telegram_http}" = true ]
-         then
-            telegram_protocol="http"
-         else
-            telegram_protocol="https"
-         fi
-         if [ "${telegram_server}" ]
-         then
-            telegram_base_url="${telegram_protocol}://${telegram_server}/bot${telegram_token}"
-         else
-            telegram_base_url="${telegram_protocol}://api.telegram.org/bot${telegram_token}"
-         fi
-         notification_url="${telegram_base_url}/sendMessage"
-         log_info "${notification_type} notifications enabled"
-         clean_notification_title
-         log_debug "${notification_type} token: ${telegram_token:0:2}********${telegram_token:0-2}"
-         log_debug "${notification_type} chat id: ${telegram_chat_id:0:2}********${telegram_chat_id:0-2}"
-         log_debug "${notification_type} polling: ${telegram_polling}"
-         log_debug "${notification_type} uses HTTP: ${telegram_http}"
-         if [ "${telegram_server}" ]
-         then
-            log_debug "${notification_type} base URL: ${telegram_protocol}://${telegram_server}/bot${telegram_token:0:2}********${telegram_token:0-2}"
-         else
-            log_debug "${notification_type} base URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}"
+         telegram_base_url="${telegram_protocol}://${telegram_server}/bot${telegram_token}"
+      else
+         telegram_base_url="${telegram_protocol}://api.telegram.org/bot${telegram_token}"
+      fi
+      notification_url="${telegram_base_url}/sendMessage"
+      log_info " | ${notification_type} notifications enabled"
+      log_debug "   - ${notification_type} token: ${telegram_token:0:2}********${telegram_token:0-2}"
+      log_debug "   - ${notification_type} chat id: ${telegram_chat_id:0:2}********${telegram_chat_id:0-2}"
+      log_debug "   - ${notification_type} polling: ${telegram_polling}"
+      log_debug "   - ${notification_type} uses HTTP: ${telegram_http}"
+      if [ "${telegram_server}" ]
+      then
+         log_debug "   - ${notification_type} base URL: ${telegram_protocol}://${telegram_server}/bot${telegram_token:0:2}********${telegram_token:0-2}"
+      else
+         log_debug "   - ${notification_type} base URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}"
 
-         fi
-
-         log_debug "${notification_type} notification URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}/sendMessage"
-         if [ "${script_launch_parameters}" ]
+      fi
+      log_debug "   - ${notification_type} notification URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}/sendMessage"
+      if [ "${script_launch_parameters}" ]
+      then
+         telegram_polling="false"
+      fi
+      if [ "${telegram_polling}" = true ]
+      then
+         if [ "${telegram_bot_initialised}" = true ]
          then
-            telegram_polling="false"
-         fi
-         if [ "${telegram_polling}" = true ]
-         then
-            if [ "${telegram_bot_initialised}" = true ]
+            if [ "${telegram_server}" ]
             then
-               if [ "${telegram_server}" ]
-               then
-                  log_debug "Checking ${telegram_server} for updates"
-               else
-                  log_debug "Checking api.telegram.org for updates"
-               fi
-               telegram_update_id_offset_file="/config/telegram_update_id.num"
-               telegram_update_id_offset="$(head -1 ${telegram_update_id_offset_file})"
-               log_info "Latest update id: ${telegram_update_id_offset}"
+               log_debug "   - Checking ${telegram_server} for updates"
             else
-               telegram_polling=false
+               log_debug "   - Checking api.telegram.org for updates"
             fi
-         fi
-         if [ "${telegram_silent_file_notifications}" ]
-         then
-            telegram_silent_file_notifications=true
-         fi
-         log_debug "${notification_type} silent file notifications: ${telegram_silent_file_notifications:=false}"
-      elif [ "${notification_type}" = "openhab" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
-      then
-         if [ "${webhook_https}" = true ]
-         then
-            webhook_scheme="https"
+            telegram_update_id_offset_file="/config/telegram_update_id.num"
+            telegram_update_id_offset="$(head -1 ${telegram_update_id_offset_file})"
+            log_info "   - Latest update id: ${telegram_update_id_offset}"
          else
-            webhook_scheme="http"
+            telegram_polling=false
          fi
-         log_info "${notification_type} notifications enabled"
-         notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
-         log_debug "${notification_type} server: ${webhook_server}"
-         log_debug "${notification_type} port: ${webhook_port:=8123}"
-         log_debug "${notification_type} path: ${webhook_path:=/rest/items/}"
-         log_debug "${notification_type} ID: ${webhook_id:0:2}********${webhook_id:0-2}"
-         log_debug "${notification_type} notification URL: ${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id:0:2}********${webhook_id:0-2}"
-      elif [ "${notification_type}" = "Webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
-      then
-         if [ "${webhook_https}" = true ]
-         then
-            webhook_scheme="https"
-         else
-            webhook_scheme="http"
-         fi
-         log_info "${notification_type} notifications enabled"
-         clean_notification_title
-         notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
-         log_debug "${notification_type} server: ${webhook_server}"
-         log_debug "${notification_type} port: ${webhook_port:=8123}"
-         log_debug "${notification_type} path: ${webhook_path:=/api/webhook/}"
-         log_debug "${notification_type} ID: ${webhook_id:0:2}********${webhook_id:0-2}"
-         log_debug "${notification_type} notification URL: ${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id:0:2}********${webhook_id:0-2}"
-         log_debug "${notification_type} body keyword: ${webhook_body:=data}"
-         if [ "${webhook_insecure}" ] &&  [ "${debug_logging}" = true ]
-         then
-            log_debug "${notification_type} insecure certificates allowed"
-         fi
-      elif [ "${notification_type}" = "Discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]
-      then
-         log_info "${notification_type} notifications enabled"
-         clean_notification_title
-         notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
-         log_debug "${notification_type} Discord ID: ${discord_id:0:2}********${discord_id:0-2}"
-         log_debug "${notification_type} Discord token: ${discord_token:0:2}********${discord_token:0-2}"
-         log_debug "${notification_type} notification URL: https://discord.com/api/webhooks/${discord_id:0:2}********${discord_id:0-2}/${discord_token:0:2}********${discord_token:0-2}"
-      elif [ "${notification_type}" = "Dingtalk" ] && [ "${dingtalk_token}" ]
-      then
-         notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
-         log_info "${notification_type} notifications enabled"
-         log_debug "${notification_type} token: ${dingtalk_token:0:2}********${dingtalk_token:0-2}"
-         log_debug "${notification_type} notification URL: https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token:0:2}********${dingtalk_token:0-2}"
-      elif [ "${notification_type}" = "IYUU" ] && [ "${iyuu_token}" ]
-      then
-         notification_url="http://iyuu.cn/${iyuu_token}.send?"
-         log_info "${notification_type} notifications enabled"
-         log_debug "${notification_type} token: ${iyuu_token}"
-         log_debug "${notification_type} notification URL: http://iyuu.cn/${iyuu_token:0:2}********${iyuu_token:0-2}.send?"
-      elif [ "${notification_type}" = "WeCom" ] && [ "${wecom_id}" ] && [ "${wecom_secret}" ]
-      then
-         wecom_base_url="https://qyapi.weixin.qq.com"
-         if [ "${wecom_proxy}" ]
-         then
-            wecom_base_url="${wecom_proxy}"
-            log_debug "${notification_type} notifications proxy enabled : ${wecom_proxy}"
-         fi
-         wecom_token_url="${wecom_base_url}/cgi-bin/gettoken?corpid=${wecom_id}&corpsecret=${wecom_secret}"
-         if [ "${fake_user_agent}" = true ]
-         then
-            wecom_token="$(/usr/bin/curl --silent --user-agent "${curl_user_agent}" --get "${wecom_token_url}" | awk -F\" '{print $10}')"
-         else
-            wecom_token="$(/usr/bin/curl --silent --get "${wecom_token_url}" | awk -F\" '{print $10}')"
-         fi
-         wecom_token_expiry="$(date --date='2 hour')"
-         notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
-         log_info "${notification_type} notifications enabled"
-         log_debug "${notification_type} token: ${wecom_token:0:2}********${wecom_token:0-2}"
-         log_debug "${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
-         log_debug "${notification_type} notification URL: ${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token:0:2}********${wecom_token:0-2}"
-      elif [ "${notification_type}" = "Gotify" ] && [ "${gotify_app_token}" ] && [ "${gotify_server_url}" ]
-      then
-      if [ "${gotify_https}" = true ]
-      then
-            gotify_scheme="https"
-         else
-            gotify_scheme="http"
-         fi
-         log_info "${notification_type} notifications enabled"
-         clean_notification_title
-         notification_url="${gotify_scheme}://${gotify_server_url}/message?token=${gotify_app_token}"
-         log_debug "${notification_type} token: ${gotify_app_token:0:2}********${gotify_app_token:0-2}"
-         log_debug "${notification_type} server URL: ${gotify_scheme}://${gotify_server_url}"
-         log_debug "${notification_type} notification URL: ${gotify_scheme}://${gotify_server_url}/message?token=${gotify_app_token:0:2}********${gotify_app_token:0-2}"
-      elif [ "${notification_type}" = "Bark" ] && [ "${bark_device_key}" ] && [ "${bark_server}" ]
-      then
-         log_info "${notification_type} notifications enabled"
-         clean_notification_title
-         notification_url="http://${bark_server}/push"
-         log_debug "${notification_type} device key: ${bark_device_key:0:2}********${bark_device_key:0-2}"
-         log_debug "${notification_type} server: ${bark_server}"
-         log_debug "${notification_type} notification URL: http://${bark_server}/push"
-      elif [ "${notification_type}" = "msmtp" ] && [ "${msmtp_host}" ] && [ "${msmtp_port}" ] && [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]
-      then
-         log_info "${notification_type} notifications enabled"
-      else
-         log_warning "${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
-         unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_scheme gotify_server_url bark_device_key bark_server
       fi
+      if [ "${telegram_silent_file_notifications}" ]
+      then
+         telegram_silent_file_notifications=true
+      fi
+      log_debug "   - ${notification_type} silent file notifications: ${telegram_silent_file_notifications:=false}"
+      clean_notification_title
+   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "openhab" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
+   then
+      if [ "${webhook_https}" = true ]
+      then
+         webhook_scheme="https"
+      else
+         webhook_scheme="http"
+      fi
+      log_info " | ${notification_type} notifications enabled"
+      notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
+      log_debug "   - ${notification_type} server: ${webhook_server}"
+      log_debug "   - ${notification_type} port: ${webhook_port:=8123}"
+      log_debug "   - ${notification_type} path: ${webhook_path:=/rest/items/}"
+      log_debug "   - ${notification_type} ID: ${webhook_id:0:2}********${webhook_id:0-2}"
+      log_debug "   - ${notification_type} notification URL: ${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id:0:2}********${webhook_id:0-2}"
+   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
+   then
+      if [ "${webhook_https}" = true ]
+      then
+         webhook_scheme="https"
+      else
+         webhook_scheme="http"
+      fi
+      log_info " | ${notification_type} notifications enabled"
+      notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
+      log_debug "   - ${notification_type} server: ${webhook_server}"
+      log_debug "   - ${notification_type} port: ${webhook_port:=8123}"
+      log_debug "   - ${notification_type} path: ${webhook_path:=/api/webhook/}"
+      log_debug "   - ${notification_type} ID: ${webhook_id:0:2}********${webhook_id:0-2}"
+      log_debug "   - ${notification_type} notification URL: ${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id:0:2}********${webhook_id:0-2}"
+      log_debug "   - ${notification_type} body keyword: ${webhook_body:=data}"
+      if [ "${webhook_insecure}" ] &&  [ "${debug_logging}" = true ]
+      then
+         log_debug "   - ${notification_type} insecure certificates allowed"
+      fi
+      clean_notification_title
+   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]
+   then
+      log_info " | ${notification_type} notifications enabled"
+      notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
+      log_debug "   - ${notification_type} Discord ID: ${discord_id:0:2}********${discord_id:0-2}"
+      log_debug "   - ${notification_type} Discord token: ${discord_token:0:2}********${discord_token:0-2}"
+      log_debug "   - ${notification_type} notification URL: https://discord.com/api/webhooks/${discord_id:0:2}********${discord_id:0-2}/${discord_token:0:2}********${discord_token:0-2}"
+      clean_notification_title
+   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "dingtalk" ] && [ "${dingtalk_token}" ]
+   then
+      notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
+      log_info " | ${notification_type} notifications enabled"
+      log_debug "   - ${notification_type} token: ${dingtalk_token:0:2}********${dingtalk_token:0-2}"
+      log_debug "   - ${notification_type} notification URL: https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token:0:2}********${dingtalk_token:0-2}"
+   elif [ "${notification_type}" = "IYUU" ] && [ "${iyuu_token}" ]
+   then
+      notification_url="http://iyuu.cn/${iyuu_token}.send?"
+      log_info " | ${notification_type} notifications enabled"
+      log_debug "   - ${notification_type} token: ${iyuu_token}"
+      log_debug "   - ${notification_type} notification URL: http://iyuu.cn/${iyuu_token:0:2}********${iyuu_token:0-2}.send?"
+   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "wecom" ] && [ "${wecom_id}" ] && [ "${wecom_secret}" ]
+   then
+      wecom_base_url="https://qyapi.weixin.qq.com"
+      if [ "${wecom_proxy}" ]
+      then
+         wecom_base_url="${wecom_proxy}"
+         log_debug " | ${notification_type} notifications proxy enabled : ${wecom_proxy}"
+      fi
+      wecom_token_url="${wecom_base_url}/cgi-bin/gettoken?corpid=${wecom_id}&corpsecret=${wecom_secret}"
+      if [ "${fake_user_agent}" = true ]
+      then
+         wecom_token="$(/usr/bin/curl --silent --user-agent "${curl_user_agent}" --get "${wecom_token_url}" | awk -F\" '{print $10}')"
+      else
+         wecom_token="$(/usr/bin/curl --silent --get "${wecom_token_url}" | awk -F\" '{print $10}')"
+      fi
+      wecom_token_expiry="$(date --date='2 hour')"
+      notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
+      log_info " | ${notification_type} notifications enabled"
+      log_debug "   - ${notification_type} token: ${wecom_token:0:2}********${wecom_token:0-2}"
+      log_debug "   - ${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
+      log_debug "   - ${notification_type} notification URL: ${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token:0:2}********${wecom_token:0-2}"
+   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "gotify" ] && [ "${gotify_app_token}" ] && [ "${gotify_server_url}" ]
+   then
+   if [ "${gotify_https}" = true ]
+   then
+         gotify_scheme="https"
+      else
+         gotify_scheme="http"
+      fi
+      log_info " | ${notification_type} notifications enabled"
+      notification_url="${gotify_scheme}://${gotify_server_url}/message?token=${gotify_app_token}"
+      log_debug "   - ${notification_type} token: ${gotify_app_token:0:2}********${gotify_app_token:0-2}"
+      log_debug "   - ${notification_type} server URL: ${gotify_scheme}://${gotify_server_url}"
+      log_debug "   - ${notification_type} notification URL: ${gotify_scheme}://${gotify_server_url}/message?token=${gotify_app_token:0:2}********${gotify_app_token:0-2}"
+      clean_notification_title
+   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "bark" ] && [ "${bark_device_key}" ] && [ "${bark_server}" ]
+   then
+      log_info " | ${notification_type} notifications enabled"
+      notification_url="http://${bark_server}/push"
+      log_debug "   - ${notification_type} device key: ${bark_device_key:0:2}********${bark_device_key:0-2}"
+      log_debug "   - ${notification_type} server: ${bark_server}"
+      log_debug "   - ${notification_type} notification URL: http://${bark_server}/push"
+      clean_notification_title
+   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "msmtp" ] && [ "${msmtp_host}" ] && [ "${msmtp_port}" ] && [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]
+   then
+      log_info " | ${notification_type} notifications enabled"
+      log_debug "   - ${notification_type} hostname: ${msmtp_host}"
+      log_debug "   - ${notification_type} port number: ${msmtp_port}"
+      log_debug "   - ${notification_type} username: ${msmtp_user}"
+      log_debug "   - ${notification_type} password: ${msmtp_pass:0:2}********${msmtp_pass:0-2}"
+   else
+      log_warning " ! ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
+      unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_scheme gotify_server_url bark_device_key bark_server
+   fi
 
-      if [ "${startup_notification}" = true ]
-      then
-         log_debug "Startup notification: Enabled"
-         if [ "${icloud_china}" = false ]
-         then
-            send_notification "startup" "iCloudPD container started" "0" "iCloudPD container starting for Apple ID: ${apple_id}"
-         else
-            send_notification "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
-         fi
-      else
-         log_debug "Startup notification: Disabled"
-      fi
+   if [ "${startup_notification}" = true ]
+   then
+      log_debug " | Startup notification: Enabled"
+   else
+      log_debug " | Startup notification: Disabled"
+   fi
 
-      if [ "${download_notifications}" = true ]
+   if [ "${download_notifications}" = true ]
+   then
+      log_debug " | Download notifications: Enabled"
+   else
+      log_debug " | Download notifications: Disabled"
+      unset download_notifications
+   fi
+   if [ "${delete_notifications}" = true ]
+   then
+      log_debug " | Delete notifications: Enabled"
+   else
+      log_debug " | Delete notifications: Disabled"
+      unset delete_notifications
+   fi
+   log_info "Configuring of notifications complete"
+
+   if [ "${startup_notification}" = true ]
+   then
+      if [ "${icloud_china}" = false ]
       then
-         log_debug "Download notifications: Enabled"
+         send_notification "startup" "iCloudPD container started" "0" "iCloudPD container starting for Apple ID: ${apple_id}"
       else
-         log_debug "Download notifications: Disabled"
-         unset download_notifications
-      fi
-      if [ "${delete_notifications}" = true ]
-      then
-         log_debug "Delete notifications: Enabled"
-      else
-         log_debug "Delete notifications: Disabled"
-         unset delete_notifications
+         send_notification "startup" "iCloudPD container started" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
       fi
    fi
 }

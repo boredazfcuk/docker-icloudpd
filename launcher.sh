@@ -52,10 +52,20 @@ create_user()
 {
    if [ "$(grep -c "^${user}:x:${user_id}:${group_id}" "/etc/passwd")" -eq 0 ]
    then
+      case "${file_permissions}" in
+         600) user_mask=077;;
+         640) user_mask=027;;
+         644) user_mask=022;;
+         660) user_mask=007;;
+         664) user_mask=002;;
+         666) user_mask=000;;
+         *) user_mask=077;;
+      esac
+      log_debug "   | Calculated umask from file permissions (${file_permissions}): ${user_mask}"
       log_debug "   | Creating minimal /etc/passwd file"
       echo 'root:x:0:0:root:/root:/bin/ash' >/etc/passwd
-      log_debug "   | Creating user ${user}:${user_id}"
-      useradd --shell /bin/ash --gid "${group_id}" --uid "${user_id}" "${user}" --home-dir "/home/${user}" --badname
+      log_debug "   | Creating user ${user}:x:${user_id}:${group_id}:umask=${user_mask}:/home/${user}:/bin/ash"
+      useradd "${user}" --uid "${user_id}" --gid "${group_id}" --comment "umask=${user_mask}" --home-dir "/home/${user}" --shell /bin/ash --badname 
    fi
 }
 
@@ -114,6 +124,14 @@ run_as()
    else
       /bin/ash -c "${1}"
    fi
+}
+
+disable_notifications()
+{
+   log_warning "   | $(echo "${notification_type}" | cut -c1 | tr '[:lower:]' '[:upper:]')$(echo "${notification_type}" | cut -c2-) notifications enabled, but API key/token/secret/server/id not set"
+   log_warning "   ! Disabling nofifications"
+   sed 's/notification_type=.*/notification_type=/' "${config_file}"
+   sleep 1m
 }
 
 ##### Start Script #####
@@ -271,6 +289,22 @@ then
    done
 fi
 
+# Check synchronisation interval
+case "${synchronisation_interval}" in
+   21600) synchronisation_interval=21600;; # 6 hours
+   43200) synchronisation_interval=43200;; # 12 hours
+   86400) synchronisation_interval=86400;; # 24 hours
+   129600) synchronisation_interval=129600;; # 36 hours
+   172800) synchronisation_interval=172800;; # 48 hours
+   604800) synchronisation_interval=604800;; # 7 days
+   *) sed 's/synchronisation_interval=.*/synchronisation_interval=86400/' "${config_file}";; # 24 hours
+esac
+# Lower it to 60 if set higher
+if [ "${synchronisation_delay:=61}" -gt 60 ]
+then
+   sed 's/synchronisation_delay=.*/synchronisation_delay=60/' "${config_file}"
+fi
+
 # Check user not attempting to configure the local user as root as this breaks the "runas" function
 if [ "${group}" = "root" ]
 then
@@ -411,6 +445,87 @@ then
    else
       log_warning "Non-fatal configuration options detected. Continuing in 2 minutes..."
       sleep 120
+   fi
+fi
+
+# Check notifications
+if [ "${notification_type}" ]
+then
+   log_info " - Check $(echo "${notification_type}" | cut -c1 | tr '[:lower:]' '[:upper:]')$(echo "${notification_type}" | cut -c2-) notifications configuration"
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "prowl" ] && [ -z "${prowl_api_key}" ]
+   then
+      disable_notifications
+   fi
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "pushover" ]
+   then
+      if [ -z "${pushover_user}" ] || [ -z "${pushover_token}" ]
+      then
+         disable_notifications
+      fi
+   fi
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "telegram" ]
+   then
+      if [ -z "${telegram_token}" ] || [ -z "${telegram_chat_id}" ] 
+      then
+         disable_notifications
+      fi
+   fi
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "openhab" ]
+   then
+      if [ -z "${webhook_server}" ] || [ -z "${webhook_id}" ]
+      then
+         disable_notifications
+      fi
+   fi
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "webhook" ]
+   then
+      if [ -z "${webhook_server}" ] || [ -z "${webhook_id}" ]
+      then
+         disable_notifications
+      fi
+   fi
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "discord" ]
+   then
+      if [ -z "${discord_id}" ] || [ -z "${discord_token}" ]
+      then
+         disable_notifications
+      fi
+   fi
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "dingtalk" ] && [ -z "${dingtalk_token}" ]
+   then
+      disable_notifications
+   fi
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "iyuu" ] && [ -z "${iyuu_token}" ]
+   then
+      disable_notifications
+   fi
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "wecom" ]
+   then
+      if [ -z "${wecom_id}" ] || [ -z "${wecom_secret}" ]
+      then
+         disable_notifications
+      fi
+   fi
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "gotify" ]
+   then
+      if [ "${gotify_app_token}" ] || [ "${gotify_server_url}" ]
+      then
+         disable_notifications
+      fi
+   fi
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "bark" ]
+   then
+      if [ -z "${bark_device_key}" ] || [ -z "${bark_server}" ]
+      then
+         disable_notifications
+      fi
+   fi
+   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "msmtp" ]
+   then
+      if [ -z "${msmtp_host}" ] || [ -z "${msmtp_port}" ] || [ -z "${msmtp_user}" ] || [ -z "${msmtp_pass}" ]
+      then
+         disable_notifications
+      fi
    fi
 fi
 
