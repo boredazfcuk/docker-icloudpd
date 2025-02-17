@@ -72,6 +72,7 @@ set_user_mask()
    esac
    log_info " - Setting file mode creation mask from configured file permissions (${file_permissions}): ${user_mask}"
    sed -i "s/^umask.*/umask ${user_mask}/" /etc/profile
+   umask "${user_mask}"
 }
 
 set_owner_and_permissions_downloads()
