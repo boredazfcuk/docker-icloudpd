@@ -1,7 +1,13 @@
-1/02/2025
+
+17/02/2025
+
+ - Setting the umask via /etc/passwd didn't work as expected. Now configuring via /etc/profile as it should be consistent whether using interactive or non-interactive shells. 
+
+16/02/2025
 
  - Now setting umask based on file permissions. This should result in files being created with correct permissions, if they are created with a non-default umask (022), rather than relying on the functions to correct permissions being run.
-
+ - Change the variable name save_ifs to OLDIFS. Think I like that more.
+ 
 13/02/2025
 
  - Changed the launcher to check that notifications are configured correctly pre-launch. 

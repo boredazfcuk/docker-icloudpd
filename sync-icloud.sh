@@ -3,7 +3,7 @@
 ##### Functions #####
 initialise_script()
 {
-   save_ifs="${IFS}"
+   OLDIFS="${IFS}"
    login_counter=0
    local icloud_dot_com dns_counter
    log_info "***** boredazfcuk/icloudpd container v1.0.$(cat /opt/build_version.txt) started *****"
@@ -495,7 +495,7 @@ list_libraries()
    do
       log_info " - ${library}"
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 list_albums()
@@ -517,7 +517,7 @@ list_albums()
    do
       log_info " - ${photo_album}"
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 delete_password()
@@ -601,11 +601,11 @@ generate_cookie()
    then
       if [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}")" -eq 1 ]
       then
-         log_info "Multifactor authentication cookie generated. Sync should now be successful"
+         log_info "Multi-factor authentication cookie generated. Sync should now be successful"
       else
-         log_error "Multifactor authentication information missing from cookie. Authentication has failed"
+         log_error "Multi-factor authentication information missing from cookie. Authentication has failed"
          log_error " - Was the correct password entered?"
-         log_error " - Was the multifactor authentication code mistyped?"
+         log_error " - Was the multi-factor authentication code mistyped?"
          log_error " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
          if [ "${icloud_china}" = true ]
          then
@@ -750,17 +750,17 @@ check_multifactor_authentication_cookie()
 {
    if [ -f "/config/${cookie_file}" ]
    then
-      log_debug "Multifactor authentication cookie exists"
+      log_debug "Multi-factor authentication cookie exists"
    else
-      log_error "Multifactor authentication cookie does not exist"
+      log_error "Multi-factor authentication cookie does not exist"
       wait_for_cookie DisplayMessage
-      log_debug "Multifactor authentication cookie file exists, checking validity..."
+      log_debug "Multi-factor authentication cookie file exists, checking validity..."
    fi
    if [ "$(grep -c "X-APPLE-DS-WEB-SESSION-TOKEN" "/config/${cookie_file}")" -eq 1 ] && [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}")" -eq 0 ]
    then
-      log_debug "Multifactor authentication cookie exists, but not autenticated. Waiting for authentication to complete..."
+      log_debug "Multi-factor authentication cookie exists, but not authenticated. Waiting for authentication to complete..."
       wait_for_authentication
-      log_debug "Multifactor authentication authentication complete, checking expiry date..."
+      log_debug "Multi-factor authentication authentication complete, checking expiry date..."
    fi
    if [ "$(grep -c "X-APPLE-WEBAUTH-USER" "/config/${cookie_file}")" -eq 1 ]
    then
@@ -771,7 +771,7 @@ check_multifactor_authentication_cookie()
       if [ "${days_remaining}" -gt 0 ]
       then
          valid_mfa_cookie=true
-         log_debug "Valid multifactor authentication cookie found. Days until expiration: ${days_remaining}"
+         log_debug "Valid multi-factor authentication cookie found. Days until expiration: ${days_remaining}"
       else
          rm -f "/config/${cookie_file}"
          log_error "Cookie expired at: ${mfa_expire_date}"
@@ -781,7 +781,7 @@ check_multifactor_authentication_cookie()
       fi
    else
       rm -f "/config/${cookie_file}"
-      log_error "Cookie is not multifactor authentication capable, authentication type may have changed"
+      log_error "Cookie is not multi-factor authentication capable, authentication type may have changed"
       log_error "Invalid cookie file has been removed. Restarting container in 5 minutes"
       sleep 300
       exit 1
@@ -791,7 +791,7 @@ check_multifactor_authentication_cookie()
 display_multifactor_authentication_expiry()
 {
    local error_message
-   log_info "Multifactor authentication cookie expires: ${mfa_expire_date/ / @ }"
+   log_info "Multi-factor authentication cookie expires: ${mfa_expire_date/ / @ }"
    log_info "Days remaining until expiration: ${days_remaining}"
    if [ "${days_remaining}" -le "${notification_days}" ]
    then
@@ -800,7 +800,7 @@ display_multifactor_authentication_expiry()
          cookie_status="cookie expired"
          if [ "${icloud_china}" = false ]
          then
-            error_message="Final day before multifactor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
+            error_message="Final day before multi-factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
          else
             error_message="今天是 ${name} 的 Apple ID 两步验证 cookie 到期前的最后一天 - 请立即重新初始化，这是最后的提醒"
          fi
@@ -808,7 +808,7 @@ display_multifactor_authentication_expiry()
          cookie_status="cookie expiration"
          if [ "${icloud_china}" = false ]
          then
-            error_message="Only ${days_remaining} days until multifactor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
+            error_message="Only ${days_remaining} days until multi-factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
          else
             error_message="${days_remaining} 天后 ${name} 的 Apple ID 两步验证将到期 - 请立即重新初始化"
          fi
@@ -818,9 +818,9 @@ display_multifactor_authentication_expiry()
       then
          if [ "${icloud_china}" = false ]
          then
-            send_notification "${cookie_status}" "Multifactor Authentication Cookie Expiration" "2" "${error_message}"
+            send_notification "${cookie_status}" "Multi-factor Authentication Cookie Expiration" "2" "${error_message}"
          else
-            send_notification "${cookie_status}" "Multifactor Authentication Cookie Expiration" "2" "${error_message}" "" "" "" "${days_remaining} 天后，${name} 的身份验证到期" "${error_message}"
+            send_notification "${cookie_status}" "Multi-factor Authentication Cookie Expiration" "2" "${error_message}" "" "" "" "${days_remaining} 天后，${name} 的身份验证到期" "${error_message}"
          fi
          next_notification_time="$(date +%s -d "+24 hour")"
          log_debug "Next notification not before: $(date +%H:%M:%S -d "${next_notification_time} seconds")"
@@ -897,7 +897,7 @@ downloaded_files_notification()
          send_notification "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "下载" "${new_files_preview}" "新增 ${new_files_count} 张照片 - ${name}" "下次同步时间 ${syn_next_time}"
       fi
    fi
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 deleted_files_notification()
@@ -923,7 +923,7 @@ deleted_files_notification()
          send_notification "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "删除" "${deleted_files_preview}" "删除 ${deleted_files_count} 张照片 - ${name}" "下次同步时间 ${syn_next_time}"
       fi
    fi
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 download_albums()
@@ -977,12 +977,12 @@ download_albums()
       if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]
       then
          log_error "Failed downloading album: ${album}"
-         IFS="${save_ifs}"
+         IFS="${OLDIFS}"
          sleep 10
          break
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 download_libraries()
@@ -1036,12 +1036,12 @@ download_libraries()
       if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]
       then
          log_error "Failed downloading library: ${library}"
-         IFS="${save_ifs}"
+         IFS="${OLDIFS}"
          sleep 10
          break
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 download_photos()
@@ -1129,7 +1129,7 @@ nextlcoud_create_directories()
       do
          echo "${nextcloud_url%/}/remote.php/dav/files/$(echo $(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}${destination_directory}/"))"
       done)
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 
    for nextcloud_destination in ${encoded_destination_directories}; do
       log_info_n " - ${nextcloud_destination} "
@@ -1220,7 +1220,7 @@ nextcloud_upload()
          fi
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 nextcloud_delete()
@@ -1289,7 +1289,7 @@ nextcloud_delete()
          fi
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 nextlcoud_delete_directories()
@@ -1317,7 +1317,7 @@ nextlcoud_delete_directories()
          fi
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 nextcloud_upload_library()
@@ -1332,7 +1332,7 @@ nextcloud_upload_library()
       do
          echo "${nextcloud_url%/}/remote.php/dav/files/$(echo $(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}${destination_directory}/"))"
       done)
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 
    for nextcloud_destination in ${encoded_destination_directories}; do
       log_info_n " - ${nextcloud_destination} "
@@ -1405,7 +1405,7 @@ nextcloud_upload_library()
          fi
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 convert_downloaded_heic_to_jpeg()
@@ -1444,7 +1444,7 @@ convert_downloaded_heic_to_jpeg()
          chown "${user}:${group}" "${jpeg_file}"
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 sideways_copy_all_videos()
@@ -1501,7 +1501,7 @@ sideways_copy_all_videos()
          cp --update=none --preserve "${video}" "${video_path}${video}"
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 sideways_copy_videos()
@@ -1558,7 +1558,7 @@ sideways_copy_videos()
          cp --update=none --preserve "${video}" "${video_path}${video}"
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 synology_photos_app_fix()
@@ -1580,7 +1580,7 @@ synology_photos_app_fix()
          rm "${heic_file%.HEIC}.TMP"
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 convert_all_heic_files()
@@ -1617,7 +1617,7 @@ convert_all_heic_files()
          chown "${user}:${group}" "${jpeg_file}"
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 remove_all_jpeg_files()
@@ -1639,7 +1639,7 @@ remove_all_jpeg_files()
          rm "${jpeg_file}"
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 force_convert_all_heic_files()
@@ -1678,7 +1678,7 @@ force_convert_all_heic_files()
       log_debug "Correct owner and group of ${jpeg_file} to ${user}:${group}"
       chown "${user_id}:${group_id}" "${jpeg_file}"
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 force_convert_all_mnt_heic_files()
@@ -1704,7 +1704,7 @@ force_convert_all_mnt_heic_files()
       log_debug "Correct owner and group of ${jpeg_file} to ${user}:${group}"
       chown "${user}:${group}" "${jpeg_file}"
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 correct_jpeg_timestamps()
@@ -1734,7 +1734,7 @@ correct_jpeg_timestamps()
          fi
       fi
    done
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 remove_recently_deleted_accompanying_files()
@@ -1761,7 +1761,7 @@ remove_recently_deleted_accompanying_files()
       fi
    done
    log_info "Deleting 'Recently Deleted' accompanying files complete"
-   IFS="${save_ifs}"
+   IFS="${OLDIFS}"
 }
 
 remove_empty_directories()
