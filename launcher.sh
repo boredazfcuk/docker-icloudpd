@@ -50,23 +50,25 @@ create_group()
 
 create_user()
 {
+   case "${file_permissions}" in
+      600) user_mask=077;;
+      640) user_mask=027;;
+      644) user_mask=022;;
+      660) user_mask=007;;
+      664) user_mask=002;;
+      666) user_mask=000;;
+      *) user_mask=077;;
+   esac
    if [ "$(grep -c "^${user}:x:${user_id}:${group_id}" "/etc/passwd")" -eq 0 ]
    then
-      case "${file_permissions}" in
-         600) user_mask=077;;
-         640) user_mask=027;;
-         644) user_mask=022;;
-         660) user_mask=007;;
-         664) user_mask=002;;
-         666) user_mask=000;;
-         *) user_mask=077;;
-      esac
       log_debug "   | Calculated umask from file permissions (${file_permissions}): ${user_mask}"
       log_debug "   | Creating minimal /etc/passwd file"
       echo 'root:x:0:0:root:/root:/bin/ash' >/etc/passwd
       log_debug "   | Creating user ${user}:x:${user_id}:${group_id}:umask=${user_mask}:/home/${user}:/bin/ash"
       useradd "${user}" --uid "${user_id}" --gid "${group_id}" --comment "umask=${user_mask}" --home-dir "/home/${user}" --shell /bin/ash --badname 
    fi
+   log_debug "   | Set umask ${user_mask} for folder/file creation"
+   umask ${user_mask}
 }
 
 set_owner_and_permissions_downloads()
