@@ -250,33 +250,34 @@ clean_notification_title()
 configure_notifications()
 {
    log_info "Configuring notifications"
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "prowl" ] && [ "${prowl_api_key}" ]
+   notification_type_tc="$(echo ${notification_type} | cut -c1 | tr '[:lower:]' '[:upper:]')$(echo ${notification_type} | cut -c2-)"
+   if [ "${notification_type}" = "prowl" ] && [ "${prowl_api_key}" ]
    then
-      log_info " | ${notification_type} notifications enabled"
-      log_debug "   - ${notification_type} api key: ${prowl_api_key:0:2}********${prowl_api_key:0-2}"
+      log_info " | ${notification_type_tc} notifications enabled"
+      log_debug "   - ${notification_type_tc} api key: ${prowl_api_key:0:2}********${prowl_api_key:0-2}"
       notification_url="https://api.prowlapp.com/publicapi/add"
-      log_debug "   - ${notification_type} notification URL: ${notification_url}"
+      log_debug "   - ${notification_type_tc} notification URL: ${notification_url}"
       clean_notification_title
-   elif [ "${notification_type}" = "Pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]
+   elif [ "${notification_type}" = "pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]
    then
-      log_info " | ${notification_type} notifications enabled"
-      log_debug "   - ${notification_type} user: ${pushover_user:0:2}********${pushover_user:0-2}"
-      log_debug "   - ${notification_type} token: ${pushover_token:0:2}********${pushover_token:0-2}"
+      log_info " | ${notification_type_tc} notifications enabled"
+      log_debug "   - ${notification_type_tc} user: ${pushover_user:0:2}********${pushover_user:0-2}"
+      log_debug "   - ${notification_type_tc} token: ${pushover_token:0:2}********${pushover_token:0-2}"
       if [ "${pushover_sound}" ]
       then
          case "${pushover_sound}" in
             pushover|bike|bugle|cashregister|classical|cosmic|falling|gamelan|incoming|intermission|magic|mechanical|pianobar|siren|spacealarm|tugboat|alien|climb|persistent|echo|updown|vibrate|none)
-               log_debug "   - ${notification_type} sound: ${pushover_sound}"
+               log_debug "   - ${notification_type_tc} sound: ${pushover_sound}"
             ;;
             *)
-               log_debug "   - ${notification_type} sound not recognised. Using default"
+               log_debug "   - ${notification_type_tc} sound not recognised. Using default"
                unset pushover_sound
          esac
       fi
       notification_url="https://api.pushover.net/1/messages.json"
-      log_debug "   - ${notification_type} notification URL: ${notification_url}"
+      log_debug "   - ${notification_type_tc} notification URL: ${notification_url}"
       clean_notification_title
-   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]
+   elif [ "${notification_type}" = "telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]
    then
       if [ "${telegram_http}" = true ]
       then
@@ -291,19 +292,19 @@ configure_notifications()
          telegram_base_url="${telegram_protocol}://api.telegram.org/bot${telegram_token}"
       fi
       notification_url="${telegram_base_url}/sendMessage"
-      log_info " | ${notification_type} notifications enabled"
-      log_debug "   - ${notification_type} token: ${telegram_token:0:2}********${telegram_token:0-2}"
-      log_debug "   - ${notification_type} chat id: ${telegram_chat_id:0:2}********${telegram_chat_id:0-2}"
-      log_debug "   - ${notification_type} polling: ${telegram_polling}"
-      log_debug "   - ${notification_type} uses HTTP: ${telegram_http}"
+      log_info " | ${notification_type_tc} notifications enabled"
+      log_debug "   - ${notification_type_tc} token: ${telegram_token:0:2}********${telegram_token:0-2}"
+      log_debug "   - ${notification_type_tc} chat id: ${telegram_chat_id:0:2}********${telegram_chat_id:0-2}"
+      log_debug "   - ${notification_type_tc} polling: ${telegram_polling}"
+      log_debug "   - ${notification_type_tc} uses HTTP: ${telegram_http}"
       if [ "${telegram_server}" ]
       then
-         log_debug "   - ${notification_type} base URL: ${telegram_protocol}://${telegram_server}/bot${telegram_token:0:2}********${telegram_token:0-2}"
+         log_debug "   - ${notification_type_tc} base URL: ${telegram_protocol}://${telegram_server}/bot${telegram_token:0:2}********${telegram_token:0-2}"
       else
-         log_debug "   - ${notification_type} base URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}"
+         log_debug "   - ${notification_type_tc} base URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}"
 
       fi
-      log_debug "   - ${notification_type} notification URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}/sendMessage"
+      log_debug "   - ${notification_type_tc} notification URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}/sendMessage"
       if [ "${script_launch_parameters}" ]
       then
          telegram_polling="false"
@@ -329,9 +330,9 @@ configure_notifications()
       then
          telegram_silent_file_notifications=true
       fi
-      log_debug "   - ${notification_type} silent file notifications: ${telegram_silent_file_notifications:=false}"
+      log_debug "   - ${notification_type_tc} silent file notifications: ${telegram_silent_file_notifications:=false}"
       clean_notification_title
-   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "openhab" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
+   elif [ "${notification_type}" = "openhab" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
    then
       if [ "${webhook_https}" = true ]
       then
@@ -339,14 +340,14 @@ configure_notifications()
       else
          webhook_scheme="http"
       fi
-      log_info " | ${notification_type} notifications enabled"
+      log_info " | ${notification_type_tc} notifications enabled"
       notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
-      log_debug "   - ${notification_type} server: ${webhook_server}"
-      log_debug "   - ${notification_type} port: ${webhook_port:=8123}"
-      log_debug "   - ${notification_type} path: ${webhook_path:=/rest/items/}"
-      log_debug "   - ${notification_type} ID: ${webhook_id:0:2}********${webhook_id:0-2}"
-      log_debug "   - ${notification_type} notification URL: ${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id:0:2}********${webhook_id:0-2}"
-   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
+      log_debug "   - ${notification_type_tc} server: ${webhook_server}"
+      log_debug "   - ${notification_type_tc} port: ${webhook_port:=8123}"
+      log_debug "   - ${notification_type_tc} path: ${webhook_path:=/rest/items/}"
+      log_debug "   - ${notification_type_tc} ID: ${webhook_id:0:2}********${webhook_id:0-2}"
+      log_debug "   - ${notification_type_tc} notification URL: ${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id:0:2}********${webhook_id:0-2}"
+   elif [ "${notification_type}" = "webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
    then
       if [ "${webhook_https}" = true ]
       then
@@ -354,46 +355,46 @@ configure_notifications()
       else
          webhook_scheme="http"
       fi
-      log_info " | ${notification_type} notifications enabled"
+      log_info " | ${notification_type_tc} notifications enabled"
       notification_url="${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id}"
-      log_debug "   - ${notification_type} server: ${webhook_server}"
-      log_debug "   - ${notification_type} port: ${webhook_port:=8123}"
-      log_debug "   - ${notification_type} path: ${webhook_path:=/api/webhook/}"
-      log_debug "   - ${notification_type} ID: ${webhook_id:0:2}********${webhook_id:0-2}"
-      log_debug "   - ${notification_type} notification URL: ${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id:0:2}********${webhook_id:0-2}"
-      log_debug "   - ${notification_type} body keyword: ${webhook_body:=data}"
+      log_debug "   - ${notification_type_tc} server: ${webhook_server}"
+      log_debug "   - ${notification_type_tc} port: ${webhook_port:=8123}"
+      log_debug "   - ${notification_type_tc} path: ${webhook_path:=/api/webhook/}"
+      log_debug "   - ${notification_type_tc} ID: ${webhook_id:0:2}********${webhook_id:0-2}"
+      log_debug "   - ${notification_type_tc} notification URL: ${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id:0:2}********${webhook_id:0-2}"
+      log_debug "   - ${notification_type_tc} body keyword: ${webhook_body:=data}"
       if [ "${webhook_insecure}" ] &&  [ "${debug_logging}" = true ]
       then
-         log_debug "   - ${notification_type} insecure certificates allowed"
+         log_debug "   - ${notification_type_tc} insecure certificates allowed"
       fi
       clean_notification_title
-   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]
+   elif [ "${notification_type}" = "discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]
    then
-      log_info " | ${notification_type} notifications enabled"
+      log_info " | ${notification_type_tc} notifications enabled"
       notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
-      log_debug "   - ${notification_type} Discord ID: ${discord_id:0:2}********${discord_id:0-2}"
-      log_debug "   - ${notification_type} Discord token: ${discord_token:0:2}********${discord_token:0-2}"
-      log_debug "   - ${notification_type} notification URL: https://discord.com/api/webhooks/${discord_id:0:2}********${discord_id:0-2}/${discord_token:0:2}********${discord_token:0-2}"
+      log_debug "   - ${notification_type_tc} Discord ID: ${discord_id:0:2}********${discord_id:0-2}"
+      log_debug "   - ${notification_type_tc} Discord token: ${discord_token:0:2}********${discord_token:0-2}"
+      log_debug "   - ${notification_type_tc} notification URL: https://discord.com/api/webhooks/${discord_id:0:2}********${discord_id:0-2}/${discord_token:0:2}********${discord_token:0-2}"
       clean_notification_title
-   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "dingtalk" ] && [ "${dingtalk_token}" ]
+   elif [ "${notification_type}" = "dingtalk" ] && [ "${dingtalk_token}" ]
    then
       notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
-      log_info " | ${notification_type} notifications enabled"
-      log_debug "   - ${notification_type} token: ${dingtalk_token:0:2}********${dingtalk_token:0-2}"
-      log_debug "   - ${notification_type} notification URL: https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token:0:2}********${dingtalk_token:0-2}"
-   elif [ "${notification_type}" = "IYUU" ] && [ "${iyuu_token}" ]
+      log_info " | ${notification_type_tc} notifications enabled"
+      log_debug "   - ${notification_type_tc} token: ${dingtalk_token:0:2}********${dingtalk_token:0-2}"
+      log_debug "   - ${notification_type_tc} notification URL: https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token:0:2}********${dingtalk_token:0-2}"
+   elif [ "${notification_type}" = "iyuu" ] && [ "${iyuu_token}" ]
    then
       notification_url="http://iyuu.cn/${iyuu_token}.send?"
-      log_info " | ${notification_type} notifications enabled"
-      log_debug "   - ${notification_type} token: ${iyuu_token}"
-      log_debug "   - ${notification_type} notification URL: http://iyuu.cn/${iyuu_token:0:2}********${iyuu_token:0-2}.send?"
-   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "wecom" ] && [ "${wecom_id}" ] && [ "${wecom_secret}" ]
+      log_info " | ${notification_type_tc} notifications enabled"
+      log_debug "   - ${notification_type_tc} token: ${iyuu_token}"
+      log_debug "   - ${notification_type_tc} notification URL: http://iyuu.cn/${iyuu_token:0:2}********${iyuu_token:0-2}.send?"
+   elif [ "${notification_type}" = "wecom" ] && [ "${wecom_id}" ] && [ "${wecom_secret}" ]
    then
       wecom_base_url="https://qyapi.weixin.qq.com"
       if [ "${wecom_proxy}" ]
       then
          wecom_base_url="${wecom_proxy}"
-         log_debug " | ${notification_type} notifications proxy enabled : ${wecom_proxy}"
+         log_debug "   - ${notification_type_tc} notifications proxy enabled : ${wecom_proxy}"
       fi
       wecom_token_url="${wecom_base_url}/cgi-bin/gettoken?corpid=${wecom_id}&corpsecret=${wecom_secret}"
       if [ "${fake_user_agent}" = true ]
@@ -404,11 +405,11 @@ configure_notifications()
       fi
       wecom_token_expiry="$(date --date='2 hour')"
       notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
-      log_info " | ${notification_type} notifications enabled"
-      log_debug "   - ${notification_type} token: ${wecom_token:0:2}********${wecom_token:0-2}"
-      log_debug "   - ${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
-      log_debug "   - ${notification_type} notification URL: ${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token:0:2}********${wecom_token:0-2}"
-   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "gotify" ] && [ "${gotify_app_token}" ] && [ "${gotify_server_url}" ]
+      log_info " | ${notification_type_tc} notifications enabled"
+      log_debug "   - ${notification_type_tc} token: ${wecom_token:0:2}********${wecom_token:0-2}"
+      log_debug "   - ${notification_type_tc} token expiry time: $(date -d "${wecom_token_expiry}")"
+      log_debug "   - ${notification_type_tc} notification URL: ${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token:0:2}********${wecom_token:0-2}"
+   elif [ "${notification_type}" = "gotify" ] && [ "${gotify_app_token}" ] && [ "${gotify_server_url}" ]
    then
    if [ "${gotify_https}" = true ]
    then
@@ -416,27 +417,27 @@ configure_notifications()
       else
          gotify_scheme="http"
       fi
-      log_info " | ${notification_type} notifications enabled"
+      log_info " | ${notification_type_tc} notifications enabled"
       notification_url="${gotify_scheme}://${gotify_server_url}/message?token=${gotify_app_token}"
-      log_debug "   - ${notification_type} token: ${gotify_app_token:0:2}********${gotify_app_token:0-2}"
-      log_debug "   - ${notification_type} server URL: ${gotify_scheme}://${gotify_server_url}"
-      log_debug "   - ${notification_type} notification URL: ${gotify_scheme}://${gotify_server_url}/message?token=${gotify_app_token:0:2}********${gotify_app_token:0-2}"
+      log_debug "   - ${notification_type_tc} token: ${gotify_app_token:0:2}********${gotify_app_token:0-2}"
+      log_debug "   - ${notification_type_tc} server URL: ${gotify_scheme}://${gotify_server_url}"
+      log_debug "   - ${notification_type_tc} notification URL: ${gotify_scheme}://${gotify_server_url}/message?token=${gotify_app_token:0:2}********${gotify_app_token:0-2}"
       clean_notification_title
-   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "bark" ] && [ "${bark_device_key}" ] && [ "${bark_server}" ]
+   elif [ "${notification_type}" = "bark" ] && [ "${bark_device_key}" ] && [ "${bark_server}" ]
    then
-      log_info " | ${notification_type} notifications enabled"
+      log_info " | ${notification_type_tc} notifications enabled"
       notification_url="http://${bark_server}/push"
-      log_debug "   - ${notification_type} device key: ${bark_device_key:0:2}********${bark_device_key:0-2}"
-      log_debug "   - ${notification_type} server: ${bark_server}"
-      log_debug "   - ${notification_type} notification URL: http://${bark_server}/push"
+      log_debug "   - ${notification_type_tc} device key: ${bark_device_key:0:2}********${bark_device_key:0-2}"
+      log_debug "   - ${notification_type_tc} server: ${bark_server}"
+      log_debug "   - ${notification_type_tc} notification URL: http://${bark_server}/push"
       clean_notification_title
-   elif [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "msmtp" ] && [ "${msmtp_host}" ] && [ "${msmtp_port}" ] && [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]
+   elif [ "${notification_type}" = "msmtp" ] && [ "${msmtp_host}" ] && [ "${msmtp_port}" ] && [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]
    then
-      log_info " | ${notification_type} notifications enabled"
-      log_debug "   - ${notification_type} hostname: ${msmtp_host}"
-      log_debug "   - ${notification_type} port number: ${msmtp_port}"
-      log_debug "   - ${notification_type} username: ${msmtp_user}"
-      log_debug "   - ${notification_type} password: ${msmtp_pass:0:2}********${msmtp_pass:0-2}"
+      log_info " | ${notification_type_tc} notifications enabled"
+      log_debug "   - ${notification_type_tc} hostname: ${msmtp_host}"
+      log_debug "   - ${notification_type_tc} port number: ${msmtp_port}"
+      log_debug "   - ${notification_type_tc} username: ${msmtp_user}"
+      log_debug "   - ${notification_type_tc} password: ${msmtp_pass:0:2}********${msmtp_pass:0-2}"
    else
       log_warning " ! ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
       unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_scheme gotify_server_url bark_device_key bark_server
@@ -1825,7 +1826,7 @@ send_notification()
    then
       log_info "Sending ${notification_type} ${notification_classification} notification"
    fi
-   if [ "${notification_type}" = "Prowl" ]
+   if [ "${notification_type}" = "prowl" ]
    then
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
          --form apikey="${prowl_api_key}" \
@@ -1834,7 +1835,7 @@ send_notification()
          --form priority="${notification_prority}" \
          --form description="${notification_message}")"
       curl_exit_code="$?"
-   elif [ "${notification_type}" = "Pushover" ]
+   elif [ "${notification_type}" = "pushover" ]
    then
       if [ "${notification_prority}" = "2" ]
       then
@@ -1854,7 +1855,7 @@ send_notification()
          --form-string "priority=${notification_prority}" \
          --form-string "message=${pushover_text}")"
       curl_exit_code="$?"
-   elif [ "${notification_type}" = "Telegram" ]
+   elif [ "${notification_type}" = "telegram" ]
    then
       if [ "${notification_files_preview_count}" ]
       then
@@ -1876,7 +1877,7 @@ send_notification()
          --header 'content-type: text/plain' \
          --data "${webhook_payload}")"
       curl_exit_code="$?"
-   elif [ "${notification_type}" = "Webhook" ]
+   elif [ "${notification_type}" = "webhook" ]
    then
       webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
       if [ "${webhook_insecure}" = true ]
@@ -1890,7 +1891,7 @@ send_notification()
             --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
       fi
       curl_exit_code="$?"
-   elif [ "${notification_type}" = "Discord" ]
+   elif [ "${notification_type}" = "discord" ]
    then
       if [ "${notification_files_preview_count}" ]
       then
@@ -1902,13 +1903,13 @@ send_notification()
          --header 'content-type: application/json' \
          --data "{ \"username\" : \"${notification_title}\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_event}\" } , \"color\" : 2061822 , \"description\": \"${discord_text}\" } ] }")"
       curl_exit_code="$?"
-   elif [ "${notification_type}" = "Dingtalk" ]
+   elif [ "${notification_type}" = "dingtalk" ]
    then
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --header 'Content-Type: application/json' \
          --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${notification_message}'}}")"
       curl_exit_code="$?"
-   elif [ "${notification_type}" = "IYUU" ]
+   elif [ "${notification_type}" = "iyuu" ]
    then
       if [ "${notification_files_preview_count}" ]
       then
@@ -1927,7 +1928,7 @@ send_notification()
             --data desp="${iyuu_text}")"
       fi
       curl_exit_code="$?"
-   elif [ "${notification_type}" = "WeCom" ]
+   elif [ "${notification_type}" = "wecom" ]
    then
       if [ "$(date +'%s')" -ge "$(date +'%s' -d "${wecom_token_expiry}")" ]
       then
@@ -1980,13 +1981,13 @@ send_notification()
       fi
       curl_exit_code="$?"
       log_info "Send result: ${notification_result}"
-   elif [ "${notification_type}" = "Gotify" ]
+   elif [ "${notification_type}" = "gotify" ]
    then
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
          -F "title=${notification_title}" \
          -F "message=${notification_message}")"
       curl_exit_code="$?"
-   elif [ "${notification_type}" = "Bark" ]
+   elif [ "${notification_type}" = "bark" ]
    then
       if [ "${notification_files_preview_count}" ]
       then
@@ -2266,7 +2267,7 @@ synchronise_user()
          fi
          unset check_exit_code check_files_count download_exit_code
          unset new_files
-         if [ "${notification_type}" = "Telegram" ] && [ "${telegram_polling}" = true ]
+         if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = true ]
          then
             log_info "Monitoring ${notification_type} for remote commands prefix: ${user}"
             listen_counter=0

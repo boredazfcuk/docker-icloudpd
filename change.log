@@ -1,3 +1,6 @@
+19/02/2025
+
+ - Made notification_type case insensitive. Some dude was using "discord" instead of "Discord". Both will work now.
 
 17/02/2025
 

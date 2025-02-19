@@ -1092,6 +1092,13 @@ then
    sed -i "s%^media_id_warning=.*%media_id_warning=${media_id_warning}%" "${config_file}"
 fi
 
+# Set case sensitive variables to lowercase
+notification_type_lc="$(grep "^notification_type=" /config/icloudpd.conf | awk -F= '{print $2}' | tr '[:upper:]' '[:lower:]')"
+if [ "${notification_type_lc}" ]
+then
+   sed -i "s%^notification_type=.*%notification_type=${notification_type_lc}%" "${config_file}"
+fi 
+
 mv "${config_file}" "${config_file}.tmp"
 sort "${config_file}.tmp" --output="${config_file}"
 chmod --reference="${config_file}.tmp" "${config_file}"
