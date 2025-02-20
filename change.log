@@ -1,3 +1,7 @@
+20/02/2025
+
+ - Launcher now checks that **download_path**, **jpeg_path** and **video_path** exist in /proc/mounts (if they are configured0. This should confirm that these directories are mounted to external locations at container launch. The .mounted file is still a requirement, as this makes sure the container is looking at the correct external mount and also that the volume hasn't dismounted due to errors.
+
 19/02/2025
 
  - Made notification_type case insensitive. Some dude was using "discord" instead of "Discord". Both will work now.

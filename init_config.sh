@@ -329,7 +329,8 @@
    fi
    if [ "$(grep -c "^video_path=" "${config_file}")" -eq 0 ]
    then
-      echo video_path="${video_path}"
+      echo video_path="
+   "
    fi
    if [ "$(grep -c "^webhook_https=" "${config_file}")" -eq 0 ]
    then

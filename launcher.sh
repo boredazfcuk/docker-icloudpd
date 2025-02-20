@@ -458,80 +458,116 @@ fi
 if [ "${notification_type}" ]
 then
    log_info " - Check $(echo "${notification_type}" | cut -c1 | tr '[:lower:]' '[:upper:]')$(echo "${notification_type}" | cut -c2-) notifications configuration"
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "prowl" ] && [ -z "${prowl_api_key}" ]
+   if [ "${notification_type}" = "prowl" ] && [ -z "${prowl_api_key}" ]
    then
       disable_notifications
    fi
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "pushover" ]
+   if [ "${notification_type}" = "pushover" ]
    then
       if [ -z "${pushover_user}" ] || [ -z "${pushover_token}" ]
       then
          disable_notifications
       fi
    fi
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "telegram" ]
+   if [ "${notification_type}" = "telegram" ]
    then
       if [ -z "${telegram_token}" ] || [ -z "${telegram_chat_id}" ] 
       then
          disable_notifications
       fi
    fi
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "openhab" ]
+   if [ "${notification_type}" = "openhab" ]
    then
       if [ -z "${webhook_server}" ] || [ -z "${webhook_id}" ]
       then
          disable_notifications
       fi
    fi
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "webhook" ]
+   if [ "${notification_type}" = "webhook" ]
    then
       if [ -z "${webhook_server}" ] || [ -z "${webhook_id}" ]
       then
          disable_notifications
       fi
    fi
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "discord" ]
+   if [ "${notification_type}" = "discord" ]
    then
       if [ -z "${discord_id}" ] || [ -z "${discord_token}" ]
       then
          disable_notifications
       fi
    fi
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "dingtalk" ] && [ -z "${dingtalk_token}" ]
+   if [ "${notification_type}" = "dingtalk" ] && [ -z "${dingtalk_token}" ]
    then
       disable_notifications
    fi
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "iyuu" ] && [ -z "${iyuu_token}" ]
+   if [ "${notification_type}" = "iyuu" ] && [ -z "${iyuu_token}" ]
    then
       disable_notifications
    fi
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "wecom" ]
+   if [ "${notification_type}" = "wecom" ]
    then
       if [ -z "${wecom_id}" ] || [ -z "${wecom_secret}" ]
       then
          disable_notifications
       fi
    fi
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "gotify" ]
+   if [ "${notification_type}" = "gotify" ]
    then
       if [ "${gotify_app_token}" ] || [ "${gotify_server_url}" ]
       then
          disable_notifications
       fi
    fi
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "bark" ]
+   if [ "${notification_type}" = "bark" ]
    then
       if [ -z "${bark_device_key}" ] || [ -z "${bark_server}" ]
       then
          disable_notifications
       fi
    fi
-   if [ "$(echo "${notification_type}" | tr '[:upper:]' '[:lower:]')" = "msmtp" ]
+   if [ "${notification_type}" = "msmtp" ]
    then
       if [ -z "${msmtp_host}" ] || [ -z "${msmtp_port}" ] || [ -z "${msmtp_user}" ] || [ -z "${msmtp_pass}" ]
       then
          disable_notifications
       fi
+   fi
+fi
+
+# Check download directories are mounted
+log_info " - Checing download locations are mounted"
+if [ "${download_path}" ]
+then
+   if [ "$(cat /proc/mounts | cut -d' ' -f2 | grep -c "${download_path%/}")" -eq 0 ]
+   then
+      log_error "   | Download directory is not mounted: ${download_path%/}"
+      log_error "   ! Cannot continue. Halting"
+      sleep infinity
+   else
+      log_debug "   | Download directory is mounted: ${download_path%/}"
+   fi
+fi
+if [ "${jpeg_path}" ]
+then
+   if [ "$(cat /proc/mounts | cut -d' ' -f2 | grep -c "${jpeg_path%/}")" -eq 0 ]
+   then
+      log_error "   | JPEG ownload directory is not mounted: ${jpeg_path%/}"
+      log_error "   ! Cannot continue. Halting"
+      sleep infinity
+   else
+      log_debug "   | JPEG download directory is mounted: ${jpeg_path%/}"
+   fi
+fi
+if [ "${video_path}" ]
+then
+   if [ "$(cat /proc/mounts | cut -d' ' -f2 | grep -c "${video_path%/}")" -eq 0 ]
+   then
+      log_error "   | Sideways copy video directory is not mounted: ${video_path%/}"
+      log_error "   ! Cannot continue. Halting"
+      sleep infinity
+   else
+      log_debug "   | Sideways copy video download directory is mounted: ${video_path%/}"
    fi
 fi
 
@@ -548,7 +584,7 @@ if [ "${jpeg_path}" ] && [ -d "${jpeg_path}" ]
 then
    set_owner_and_permissions_jpegs
 fi
-if [ "${videos_path}" ] && [ -d "${videos_path}" ]
+if [ "${video_path}" ] && [ -d "${video_path}" ]
 then
    set_owner_and_permissions_videos
 fi
@@ -575,7 +611,6 @@ then
    log_error "   ! Cannot continue. Halting"
    sleep infinity
 fi
-
 # Check JPEG directory is writable by configured user
 if [ "${jpeg_path}" ] && [ ! -d "${jpeg_path}" ]
 then
@@ -606,7 +641,7 @@ then
 fi
 
 # Check Telegram bot initialised
-if [ "${notification_type}" = "Telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ] && [ "${telegram_polling}" = true ]
+if [ "${notification_type}" = "telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ] && [ "${telegram_polling}" = true ]
 then
    log_info " - Checking Telegram bot initialised"
    if [ "${telegram_bot_initialised}" = false ]
@@ -634,7 +669,7 @@ then
       then
          sed -i "s%^telegram_bot_initialised=false$%telegram_bot_initialised=true%" "${config_file}"
       else
-         log_warning "   | Bot does not appear to have been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container"
+         log_warning "   | Telegram bot does not appear to have been initialised or needs reinitialising. Please send a message to the bot from your iDevice and restart the container"
       fi
    fi
 fi
