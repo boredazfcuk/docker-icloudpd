@@ -171,7 +171,7 @@ initialise_script()
       nextcloud_url_domain="${nextcloud_url_suffix%%/*}"
       nextcloud_url_tld="${nextcloud_url_domain#*.}"
       nextcloud_url_webroot="${nextcloud_url_suffix#*/}"
-      nextcloud_url_censored="${nextcloud_url_domain:0:1}********.${nextcloud_url_tld}/${nextcloud_url_webroot%/}/${nextcloud_target_dir%/}/"
+      nextcloud_url_censored="${nextcloud_url_domain:0:1}********.${nextcloud_url_tld}/${nextcloud_url_webroot}/${nextcloud_target_dir}/"
       nextcloud_url_censored="${nextcloud_url_censored//\/\///}"
       log_debug " | Nextcloud username: ${nextcloud_username:0:1}********${nextcloud_username:0-1}"
       log_debug " | Nextcloud target directory: ${nextcloud_target_dir}"
@@ -250,7 +250,7 @@ clean_notification_title()
 configure_notifications()
 {
    log_info "Configuring notifications"
-   notification_type_tc="$(echo ${notification_type} | cut -c1 | tr '[:lower:]' '[:upper:]')$(echo ${notification_type} | cut -c2-)"
+   notification_type_tc="$(echo ${notification_type} | cut -c 1 | tr '[:lower:]' '[:upper:]')$(echo ${notification_type} | cut -c2-)"
    if [ "${notification_type}" = "prowl" ] && [ "${prowl_api_key}" ]
    then
       log_info " | ${notification_type_tc} notifications enabled"
@@ -638,34 +638,6 @@ check_mount()
       fi
    done
    log_info "Failsafe file ${download_path}/.mounted exists, continuing"
-}
-
-check_permissions()
-{
-   if [ "$(run_as "${user}" "if ! test -w \"${download_path}\"; then echo false; fi")" = false ]
-   then
-      log_warning "User ${user}:${user_id} cannot write to directory: ${download_path} - Attempting to set permissions"
-      # set_owner_and_permissions_downloads
-      if [ "$(run_as "${user}" "if ! test -w \"${download_path}\"; then echo false; fi")" = false ]
-      then
-         log_error "User ${user}:${user_id} still cannot write to directory: ${download_path}"
-         log_error " - Fixing permissions failed - Cannot continue, exiting"
-         sleep 120
-         exit 1
-      fi
-   fi
-   if [ "$(run_as "${user}" "if ! test -w \"${jpeg_path}\"; then echo false; fi")" = false ]
-   then
-      log_warning "User ${user}:${user_id} cannot write to directory: ${jpeg_path} - Attempting to set permissions"
-      # set_owner_and_permissions_downloads
-      if [ "$(run_as "${user}" "if ! test -w \"${jpeg_path}\"; then echo false; fi")" = false ]
-      then
-         log_error "User ${user}:${user_id} still cannot write to directory: ${jpeg_path}"
-         log_error " - Fixing permissions failed - Cannot continue, exiting"
-         sleep 120
-         exit 1
-      fi
-   fi
 }
 
 check_keyring_exists()
@@ -1062,7 +1034,7 @@ check_nextcloud_connectivity()
 {
    local nextcloud_check_result counter
    log_info "Checking Nextcloud connectivity..."
-   nextcloud_check_result="$(curl --silent --max-time 15 --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/")"
+   nextcloud_check_result="$(curl --silent --max-time 15 --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url}/remote.php/dav/files/${nextcloud_username}/")"
    if [ "${nextcloud_check_result}" -ne 200 ]
    then
       log_error "Nextcloud connectivity check failed: ${nextcloud_check_result}"
@@ -1076,7 +1048,7 @@ check_nextcloud_connectivity()
          then
             send_notification "Nextcloud" "failed" "0" "Nextcloud has been offline for user ${user} since ${fail_time}. Please take corrective action. icloudpd will remain paused until this issue is rectified"
          fi
-         nextcloud_check_result="$(curl --silent --location --max-time 15 --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url%/}/remote.php/dav/files/${nextcloud_username}/")"
+         nextcloud_check_result="$(curl --silent --location --max-time 15 --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --output /dev/null "${nextcloud_url}/remote.php/dav/files/${nextcloud_username}/")"
       done
       send_notification "Nextcloud" "success" "0" "Nextcloud server is back online. Resuming operation"
    fi
@@ -1128,7 +1100,7 @@ nextlcoud_create_directories()
 
    encoded_destination_directories=$(for destination_directory in $destination_directories
       do
-         echo "${nextcloud_url%/}/remote.php/dav/files/$(echo $(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}${destination_directory}/"))"
+         echo "${nextcloud_url}/remote.php/dav/files/$(echo $(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir}${destination_directory}/"))"
       done)
    IFS="${OLDIFS}"
 
@@ -1182,9 +1154,9 @@ nextcloud_upload()
    IFS=$'\n'
    local nextcloud_destination curl_response
    log_info "Uploading files to Nextcloud"
-   for full_filename in $(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | cut --delimiter " " --fields 9-)
+   for full_filename in $(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | cut -d " " -f 9-)
    do
-      nextcloud_destination="${nextcloud_url%/}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}$(echo ${full_filename} | sed "s%${download_path}%%")")"
+      nextcloud_destination="${nextcloud_url}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir}$(echo ${full_filename} | sed "s%${download_path}%%")")"
       if [ ! -f "${full_filename}" ]
       then
          log_warning "Media file ${full_filename} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
@@ -1197,21 +1169,16 @@ nextcloud_upload()
          else
             echo "Unexpected response: ${curl_response}"
          fi
-         if [ -f "${full_filename%.HEIC}.JPG" ]
+         if [ "${full_filename##*.}" = 'HEIC' ]
          then
-            log_info_n "Uploading ${full_filename} to ${nextcloud_destination%.HEIC}.JPG"
-            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_destination%.HEIC}.JPG")"
-            if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
-            then
-               echo "Success"
-            else
-               echo "Unexpected response: ${curl_response}"
-            fi
+            file_extension='JPG'
+         else
+            file_extension='jpg'
          fi
-         if [ -f "${full_filename%.heic}.jpg" ]
+         if [ -f "${full_filename%.*}.${file_extension}" ]
          then
-            log_info_n "Uploading ${full_filename} to ${nextcloud_destination%.heic}.jpg"
-            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_destination%.heic}.jpg")"
+            log_info_n "Uploading ${full_filename} to ${nextcloud_destination%.*}.${file_extension}"
+            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_destination%.HEIC}.JPG")"
             if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
             then
                echo "Success"
@@ -1231,7 +1198,7 @@ nextcloud_delete()
    log_info "Delete files from Nextcloud..."
    for full_filename in $(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | cut --delimiter " " --fields 9-)
    do
-      nextcloud_destination="${nextcloud_url%/}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}$(echo ${full_filename} | sed "s%${download_path}%%")")"
+      nextcloud_destination="${nextcloud_url}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir}$(echo ${full_filename} | sed "s%${download_path}%%")")"
       log_debug "Checking file path: ${nextcloud_destination}"
       curl_response="$(curl --silent --show-error --location --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination}" --output /dev/null --write-out "%{http_code}")"
       if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 200 ]
@@ -1249,34 +1216,20 @@ nextcloud_delete()
       else
          echo "Unexpected response: ${curl_response}"
       fi
-      if [ -f "${full_filename%.HEIC}.JPG" ]
+      if [ "${full_filename##*.}" = 'HEIC' ]
       then
-         log_debug "Checking file path: ${nextcloud_destination%.HEIC}.JPG"
-         curl_response="$(curl --silent --show-error --location --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination%.HEIC}.JPG" --output /dev/null --write-out "%{http_code}")"
-         if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 200 ]
-         then
-            log_info_n " - File exists, deleting"
-            if curl --silent --show-error --location --request DELETE --user "${nextcloud_username}:${nextcloud_password}" --output /dev/null "${nextcloud_destination%.HEIC}.JPG"
-            then
-               echo "Success"
-            else
-               echo "Error: $?"
-            fi
-         elif [ "${curl_response}" -eq 404 ]
-         then
-            echo "File not found: ${nextcloud_destination%.HEIC}.JPG"
-         else
-            echo "Unexpected response: ${curl_response}"
-         fi
+         file_extension='JPG'
+      else
+         file_extension='jpg'
       fi
-      if [ -f "${full_filename%.heic}.jpg" ]
+      if [ -f "${full_filename%.*}.${file_extension}" ]
       then
-         log_debug "Checking file path: ${nextcloud_destination%.heic}.jpg"
-         curl_response="$(curl --silent --show-error --location --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination%.heic}.jpg" --output /dev/null --write-out "%{http_code}")"
+         log_debug "Checking file path: ${nextcloud_destination%.*}.${file_extension}"
+         curl_response="$(curl --silent --show-error --location --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination%.*}.${file_extension}" --output /dev/null --write-out "%{http_code}")"
          if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 200 ]
          then
             log_info_n " - File exists, deleting"
-            if curl --silent --show-error --location --request DELETE --user "${nextcloud_username}:${nextcloud_password}" --output /dev/null "${nextcloud_destination%.heic}.jpg"
+            if curl --silent --show-error --location --request DELETE --user "${nextcloud_username}:${nextcloud_password}" --output /dev/null "${nextcloud_destination%.*}.${file_extension}"
             then
                echo "Success"
             else
@@ -1284,7 +1237,7 @@ nextcloud_delete()
             fi
          elif [ "${curl_response}" -eq 404 ]
          then
-            echo "File not found: ${nextcloud_destination%.heic}.jpg"
+            echo "File not found: ${nextcloud_destination%.*}.${file_extension}"
          else
             echo "Unexpected response: ${curl_response}"
          fi
@@ -1301,7 +1254,7 @@ nextlcoud_delete_directories()
    directories_list="$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | cut --delimiter " " --fields 9- | sed 's~\(.*/\).*~\1~' | sed "s%${download_path}%%" | sort --unique --reverse | grep -v "^$")"
    for target_directory in ${directories_list}
    do
-      nextcloud_target="${nextcloud_url%/}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}${target_directory}")"
+      nextcloud_target="${nextcloud_url}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir}${target_directory}")"
       log_debug "Checking if Nextcloud directory is empty: ${nextcloud_target}"
       curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --request PROPFIND "${nextcloud_target}" | grep -ow '<d:href>' | wc -l)"
       if [ "${curl_response}" -ge 2 ]
@@ -1331,7 +1284,7 @@ nextcloud_upload_library()
    IFS=$'\n'
    encoded_destination_directories=$(for destination_directory in $destination_directories
       do
-         echo "${nextcloud_url%/}/remote.php/dav/files/$(echo $(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}${destination_directory}/"))"
+         echo "${nextcloud_url}/remote.php/dav/files/$(echo $(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir}${destination_directory}/"))"
       done)
    IFS="${OLDIFS}"
 
@@ -1358,7 +1311,7 @@ nextcloud_upload_library()
    IFS=$'\n'
    for full_filename in $(find "${download_path}" -type f ! -name '.*' 2>/dev/null | sed "s%${download_path}%%")
    do
-      nextcloud_destination="${nextcloud_url%/}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir%/}$(echo ${full_filename})")"
+      nextcloud_destination="${nextcloud_url}/remote.php/dav/files/$(nextcloud_url_encoder "${nextcloud_username}/${nextcloud_target_dir}$(echo ${full_filename})")"
 
       log_info_n "Uploading ${full_filename} to ${nextcloud_destination}"
       if curl --silent --output /dev/null --fail --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination}"
@@ -1373,30 +1326,20 @@ nextcloud_upload_library()
             echo "Unexpected response: ${curl_response}"
          fi
       fi
-      if [ -f "${full_filename%.HEIC}.JPG" ]
+      if [ "${full_filename##*.}" = 'HEIC' ]
       then
-         log_info_n "Uploading ${full_filename%.HEIC}.JPG to ${nextcloud_destination%.HEIC}.JPG"
-         if curl --silent --output /dev/null --fail --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination%.HEIC}.JPG"
-         then
-            log_info_n "File already exsits"
-         else
-            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${nextcloud_destination%.HEIC}.JPG")"
-            if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
-            then
-               echo "Success"
-            else
-               echo "Unexpected response: ${curl_response}"
-            fi
-         fi
+         file_extension='JPG'
+      else
+         file_extension='jpg'
       fi
-      if [ -f "${full_filename%.heic}.jpg" ]
+      if [ -f "${full_filename%.*}.${file_extension}" ]
       then
-         log_info_n "Uploading ${full_filename%.heic}.jpg to ${nextcloud_destination%.heic}.jpg"
-         if curl --silent --output /dev/null --fail --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination%.heic}.jpg"
+         log_info_n "Uploading ${full_filename%.*}.${file_extension} to ${nextcloud_destination%.*}.${file_extension}"
+         if curl --silent --output /dev/null --fail --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination%.*}.${file_extension}"
          then
             log_info_n "File already exsits"
          else
-            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${nextcloud_destination%.heic}.jpg")"
+            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${nextcloud_destination%.*}.${file_extension}")"
             if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
             then
                echo "Success"
@@ -1419,14 +1362,15 @@ convert_downloaded_heic_to_jpeg()
       then
          log_warning "HEIC file ${heic_file} does not exist. It may exist in 'Recently Deleted' so has been removed post download"
       else
-         jpeg_file="${heic_file%.HEIC}.JPG"
+         if [ "${heic_file##*.}" = 'HEIC' ]
+         then
+            file_extension='JPG'
+         else
+            file_extension='jpg'
+         fi
+         jpeg_file="${heic_file%.*}.${file_extension}"
          if [ "${jpeg_path}" ]
          then
-            if [ ! -d "${jpeg_path}" ]
-            then
-               mkdir --parents "${jpeg_path}"
-               chown "${user}:${group}" "${jpeg_path}"
-            fi
             jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
             jpeg_directory="$(dirname "${jpeg_file/${download_path}/${jpeg_path}}")"
             if [ ! -d "${jpeg_directory}" ]
@@ -1451,7 +1395,7 @@ convert_downloaded_heic_to_jpeg()
 sideways_copy_all_videos()
 {
    # Copy videos sideways to alternate directory
-   local video_list folder_list
+   local video_list sorted_video_list
    log_info "Sideways copy all videos to alternate directory..."
    if [ -z "${video_path}" ] 
    then
@@ -1467,8 +1411,8 @@ sideways_copy_all_videos()
 
    IFS=$'\n'
    video_list="$(find "${download_path}" -type f -iname "*.mp4" -o -iname "*.mov" | grep -vi hevc.mov)"
-   folder_list="$(for line in ${video_list}; do echo ${line}; done | sort --unique)"
-   destination_directories=$(echo "${folder_list}" | while read -r line
+   sorted_video_list="$(for line in ${video_list}; do echo ${line}; done | sort --unique)"
+   destination_directories=$(echo "${sorted_video_list}" | while read -r line
    do
       for level in $(seq 1 $(echo "${line}" | tr -cd '/' | wc -c))
       do
@@ -1479,13 +1423,13 @@ sideways_copy_all_videos()
    log_debug " - Creating destination folders..."
    for folder in ${destination_directories}
    do
-      log_debug "   | Processing: ${folder}"
-      if [ ! -d "${video_path}${folder}" ]
+      log_debug "   | Processing: ${video_path}/${folder}"
+      if [ ! -d "${video_path}/${folder}" ]
       then
-         log_debug "   | Creating: ${video_path}${folder}"
-         mkdir --parents "${video_path}${folder}" >/dev/null
-         chown --reference="${folder}" "${video_path}${folder}"
-         chmod --reference="${folder}" "${video_path}${folder}"
+         log_debug "   | Creating: ${video_path}/${folder}"
+         mkdir --parents "${video_path}/${folder}" >/dev/null
+         chown --reference="${folder}" "${video_path}/${folder}"
+         chmod --reference="${folder}" "${video_path}/${folder}"
       fi
    done
 
@@ -1494,12 +1438,12 @@ sideways_copy_all_videos()
    do
       if [ "${sideways_copy_videos_mode}" = "move" ] && [ "${delete_after_download}" = true ]
       then
-         log_debug "   | Moving ${video} to ${video_path}${video}"
-         mv --update=none --preserve "${video}" "${video_path}${video}"
+         log_debug "   | Moving ${video} to ${video_path}/${video}"
+         mv --update=none --preserve "${video}" "${video_path}/${video}"
       elif [ "${sideways_copy_videos_mode}" = "copy" ]
       then
-         log_debug "   | Copying ${video} to ${video_path}${video}"
-         cp --update=none --preserve "${video}" "${video_path}${video}"
+         log_debug "   | Copying ${video} to ${video_path}/${video}"
+         cp --update=none --preserve "${video}" "${video_path}/${video}"
       fi
    done
    IFS="${OLDIFS}"
@@ -1508,7 +1452,7 @@ sideways_copy_all_videos()
 sideways_copy_videos()
 {
    # Copy videos sideways to alternate directory
-   local video_list folder_list
+   local video_list sorted_video_list
    log_info "Sideways copy videos to alternate directory..."
    if [ -z "${video_path}" ] 
    then
@@ -1523,9 +1467,9 @@ sideways_copy_videos()
    fi
 
    IFS=$'\n'
-   video_list="$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | grep -i ".mov$\|.mp4$" | grep -vi "hevc.mov$" | cut --delimiter " " --fields 9-)"
-   folder_list="$(for line in ${video_list}; do echo ${line}; done | sort --unique)"
-   destination_directories=$(echo "${folder_list}" | while read -r line
+   video_list="$(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | grep -i ".mov$\|.mp4$" | grep -vi "hevc.mov$" | cut -d " " -f 9-)"
+   sorted_video_list="$(for line in ${video_list}; do echo ${line}; done | sort --unique)"
+   destination_directories=$(echo "${sorted_video_list}" | while read -r line
    do
       for level in $(seq 1 $(echo "${line}" | tr -cd '/' | wc -c))
       do
@@ -1537,12 +1481,12 @@ sideways_copy_videos()
    for folder in ${destination_directories}
    do
       log_debug "   | Processing: ${folder}"
-      if [ ! -d "${video_path}${folder}" ]
+      if [ ! -d "${video_path}/${folder}" ]
       then
-         log_debug "   | Creating: ${video_path}${folder}"
-         mkdir --parents "${video_path}${folder}" >/dev/null
-         chown --reference="${folder}" "${video_path}${folder}"
-         chmod --reference="${folder}" "${video_path}${folder}"
+         log_debug "   | Creating: ${video_path}/${folder}"
+         mkdir --parents "${video_path}/${folder}" >/dev/null
+         chown --reference="${folder}" "${video_path}/${folder}"
+         chmod --reference="${folder}" "${video_path}/${folder}"
       fi
    done
 
@@ -1551,12 +1495,12 @@ sideways_copy_videos()
    do
       if [ "${sideways_copy_videos_mode}" = "move" ] && [ "${delete_after_download}" = true ]
       then
-         log_debug "   | Moving ${video} to ${video_path}${video}"
-         mv --update=none --preserve "${video}" "${video_path}${video}"
+         log_debug "   | Moving ${video} to ${video_path}/${video}"
+         mv --update=none --preserve "${video}" "${video_path}/${video}"
       elif [ "${sideways_copy_videos_mode}" = "copy" ]
       then
-         log_debug "   | Copying ${video} to ${video_path}${video}"
-         cp --update=none --preserve "${video}" "${video_path}${video}"
+         log_debug "   | Copying ${video} to ${video_path}/${video}"
+         cp --update=none --preserve "${video}" "${video_path}/${video}"
       fi
    done
    IFS="${OLDIFS}"
@@ -1567,18 +1511,18 @@ synology_photos_app_fix()
    # Works for onestix. Do not obsolete
    IFS=$'\n'
    log_info "Fixing Synology Photos App import issue..."
-   for heic_file in $(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | grep ".HEIC" | cut --delimiter " " --fields 9-)
+   for heic_file in $(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | grep -i ".HEIC" | cut --delimiter " " --fields 9-)
    do
-      log_debug "Create empty date/time reference file ${heic_file%.HEIC}.TMP"
-      run_as "touch --reference=\"${heic_file}\" \"${heic_file%.HEIC}.TMP\""
+      log_debug "Create empty date/time reference file ${heic_file%.*}.TMP"
+      run_as "touch --reference=\"${heic_file}\" \"${heic_file%.*}.TMP\""
       log_debug "Set time stamp for ${heic_file} to current: $(date)"
       run_as "touch \"${heic_file}\"" 
-      log_debug "Set time stamp for ${heic_file} to original: $(date -r "${heic_file%.HEIC}.TMP" +"%a %b %e %T %Y")"
-      run_as "touch --reference=\"${heic_file%.HEIC}.TMP\" \"${heic_file}\""
-      log_debug "Removing temporary file ${heic_file%.HEIC}.TMP"
+      log_debug "Set time stamp for ${heic_file} to original: $(date -r "${heic_file%.*}.TMP" +"%a %b %e %T %Y")"
+      run_as "touch --reference=\"${heic_file%.*}.TMP\" \"${heic_file}\""
+      log_debug "Removing temporary file ${heic_file%.*}.TMP"
       if [ -z "${persist_temp_files}" ]
       then
-         rm "${heic_file%.HEIC}.TMP"
+         rm "${heic_file%.*}.TMP"
       fi
    done
    IFS="${OLDIFS}"
@@ -1590,14 +1534,15 @@ convert_all_heic_files()
    log_info "Convert all HEICs to JPEG, if required..."
    for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null); do
       log_debug "HEIC file found: ${heic_file}"
-      jpeg_file="${heic_file%.HEIC}.JPG"
+      if [ "${heic_file##*.}" = 'HEIC' ]
+      then
+         file_extension='JPG'
+      else
+         file_extension='jpg'
+      fi
+      jpeg_file="${heic_file%.*}.${file_extension}"
       if [ "${jpeg_path}" ]
       then
-         if [ ! -d "${jpeg_path}" ]
-         then
-            mkdir --parents "${jpeg_path}"
-            chown "${user}:${group}" "${jpeg_path}"
-         fi
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
          jpeg_directory="$(dirname "${jpeg_file/${download_path}/${jpeg_path}}")"
          if [ ! -d "${jpeg_directory}" ]
@@ -1629,7 +1574,13 @@ remove_all_jpeg_files()
    sleep 120
    for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null)
    do
-      jpeg_file="${heic_file%.HEIC}.JPG"
+      if [ "${heic_file##*.}" = 'HEIC' ]
+      then
+         file_extension='JPG'
+      else
+         file_extension='jpg'
+      fi
+      jpeg_file="${heic_file%.*}.${file_extension}"
       if [ "${jpeg_path}" ]
       then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
@@ -1650,14 +1601,15 @@ force_convert_all_heic_files()
    log_info "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
    for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null); do
-      jpeg_file="${heic_file%.HEIC}.JPG"
+      if [ "${heic_file##*.}" = 'HEIC' ]
+      then
+         file_extension='JPG'
+      else
+         file_extension='jpg'
+      fi
+      jpeg_file="${heic_file%.*}.${file_extension}"
       if [ "${jpeg_path}" ]
       then
-         if [ ! -d "${jpeg_path}" ]
-         then
-            mkdir --parents "${jpeg_path}"
-            chown "${user}:${group}" "${jpeg_path}"
-         fi
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
          jpeg_directory="$(dirname "${jpeg_file/${download_path}/${jpeg_path}}")"
          if [ ! -d "${jpeg_directory}" ]
@@ -1690,7 +1642,13 @@ force_convert_all_mnt_heic_files()
    sleep 120
    for heic_file in $(find "/mnt" -type f -iname *.HEIC 2>/dev/null)
    do
-      jpeg_file="${heic_file%.HEIC}.JPG"
+      if [ "${heic_file##*.}" = 'HEIC' ]
+      then
+         file_extension='JPG'
+      else
+         file_extension='jpg'
+      fi
+      jpeg_file="${heic_file%.*}.${file_extension}"
       if [ "${jpeg_path}" ]
       then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
@@ -1714,7 +1672,13 @@ correct_jpeg_timestamps()
    log_info "Check and correct converted HEIC timestamps..."
    for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null)
    do
-      jpeg_file="${heic_file%.HEIC}.JPG"
+      if [ "${heic_file##*.}" = 'HEIC' ]
+      then
+         file_extension='JPG'
+      else
+         file_extension='jpg'
+      fi
+      jpeg_file="${heic_file%.*}.${file_extension}"
       if [ "${jpeg_path}" ]
       then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
@@ -1742,23 +1706,30 @@ remove_recently_deleted_accompanying_files()
 {
    IFS=$'\n'
    log_info "Deleting 'Recently Deleted' accompanying files (.JPG/_HEVC.MOV)..."
-   for heic_file in $(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | grep ".HEIC" | cut --delimiter " " --fields 9-)
+   for heic_file in $(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log | grep -i ".HEIC" | cut -d " " -f 9-)
    do
-      heic_file_clean="${heic_file/!/}"
-      jpeg_file_clean="${heic_file_clean%.HEIC}.JPG"
+      # Remove trailing exlaimation mark
+      heic_file="${heic_file/\!/}"
+      if [ "${heic_file##*.}" = 'HEIC' ]
+      then
+         file_extension='JPG'
+      else
+         file_extension='jpg'
+      fi
+      jpeg_file="${heic_file%.*}.${file_extension}"
       if [ "${jpeg_path}" ]
       then
-         jpeg_file_clean="${jpeg_file_clean/${download_path}/${jpeg_path}}"
+         jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
       fi
-      if [ -f "${jpeg_file_clean}" ]
+      if [ -f "${jpeg_file}" ]
       then
-         log_debug "Deleting ${jpeg_file_clean}"
-         rm -f "${jpeg_file_clean}"
+         log_debug "Deleting ${jpeg_file}"
+         rm -f "${jpeg_file}"
       fi
-      if [ -f "${heic_file_clean%.HEIC}_HEVC.MOV" ]
+      if [ -f "${heic_file%.*}_HEVC.MOV" ]
       then
-         log_debug "Deleting ${heic_file_clean%.HEIC}_HEVC.MOV"
-         rm -f "${heic_file_clean%.HEIC}_HEVC.MOV"
+         log_debug "Deleting ${heic_file%.*}_HEVC.MOV"
+         rm -f "${heic_file%.*}_HEVC.MOV"
       fi
    done
    log_info "Deleting 'Recently Deleted' accompanying files complete"

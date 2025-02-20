@@ -1098,8 +1098,36 @@ notification_type_lc="$(grep "^notification_type=" /config/icloudpd.conf | awk -
 if [ "${notification_type_lc}" ]
 then
    sed -i "s%^notification_type=.*%notification_type=${notification_type_lc}%" "${config_file}"
-fi 
+fi
 
+# Remove trailing slashes on directories
+download_path_temp="$(grep "^download_path=" /config/icloudpd.conf | awk -F= '{print $2}')"
+if [ "${download_path_temp}" ]
+then
+   sed -i "s#^download_path=.*#download_path=${download_path_temp%/}#" "${config_file}"
+fi
+jpeg_path_temp="$(grep "^jpeg_path=" /config/icloudpd.conf | awk -F= '{print $2}')"
+if [ "${jpeg_path_temp}" ]
+then
+   sed -i "s#^jpeg_path=.*#jpeg_path=${jpeg_path_temp%/}#" "${config_file}"
+fi
+video_path_temp="$(grep "^video_path=" /config/icloudpd.conf | awk -F= '{print $2}')"
+if [ "${video_path_temp}" ]
+then
+   sed -i "s%^video_path=.*%video_path=${video_path_temp%/}%" "${config_file}"
+fi
+nextcloud_url_temp="$(grep "^nextcloud_url=" /config/icloudpd.conf | awk -F= '{print $2}')"
+if [ "${nextcloud_url_temp}" ]
+then
+   sed -i "s%^nextcloud_url=.*%nextcloud_url=${nextcloud_url_temp%/}%" "${config_file}"
+fi
+nextcloud_target_dir_temp="$(grep "^nextcloud_target_dir=" /config/icloudpd.conf | awk -F= '{print $2}')"
+if [ "${nextcloud_target_dir_temp}" ]
+then
+   sed -i "s%^nextcloud_target_dir=.*%nextcloud_target_dir=${nextcloud_target_dir_temp%/}%" "${config_file}"
+fi
+
+# Update config file
 mv "${config_file}" "${config_file}.tmp"
 sort "${config_file}.tmp" --output="${config_file}"
 chmod --reference="${config_file}.tmp" "${config_file}"

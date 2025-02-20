@@ -344,6 +344,8 @@ then
       log_error "   | Failed to create download directory: '${download_path}'"
       log_error "   ! Cannot continue. Halting"
       sleep infinity
+   else
+      chown "${user_id}:${group_id}" "${download_path}"
    fi
 fi
 
@@ -358,6 +360,8 @@ then
       log_error "   | Failed to create JPEG directory: '${jpeg_path}'"
       log_error "   ! Cannot continue. Halting"
       sleep infinity
+   else
+      chown "${user_id}:${group_id}" "${jpeg_path}"
    fi
 fi
 
@@ -372,6 +376,8 @@ then
       log_error "   | Failed to create video directory: '${video_path}'"
       log_error "   ! Cannot continue. Halting"
       sleep infinity
+   else
+      chown "${user_id}:${group_id}" "${video_path}"
    fi
 fi
 
@@ -552,7 +558,7 @@ if [ "${jpeg_path}" ]
 then
    if [ "$(cat /proc/mounts | cut -d' ' -f2 | grep -c "${jpeg_path%/}")" -eq 0 ]
    then
-      log_error "   | JPEG ownload directory is not mounted: ${jpeg_path%/}"
+      log_error "   | JPEG download directory is not mounted: ${jpeg_path%/}"
       log_error "   ! Cannot continue. Halting"
       sleep infinity
    else
@@ -591,23 +597,23 @@ fi
 
 # Check config directory is writable by configured user
 log_info " - Checking directories are writable by user: ${user}"
-if [ "$(run_as "test -w /config/; echo $?")" -ne 0 ]
+if [ "$(run_as "test -w /config; echo $?")" -ne 0 ]
 then
-   log_error "   | Directory is not writable: /config/"
+   log_error "   | Directory is not writable: /config"
    log_error "   ! Cannot continue. Halting"
    sleep infinity
 fi
 # Check keyring directory is writable by configured user
-if [ "$(run_as "test -w /config/python_keyring/; echo $?")" -ne 0 ]
+if [ "$(run_as "test -w /config/python_keyring; echo $?")" -ne 0 ]
 then
-   log_error "   | Directory is not writable: /config/python_keyring/"
+   log_error "   | Directory is not writable: /config/python_keyring"
    log_error "   ! Cannot continue. Halting"
    sleep infinity
 fi
 # Check download directory is writable by configured user
-if [ "$(run_as "test -w ${download_path}/; echo $?")" -ne 0 ]
+if [ "$(run_as "test -w ${download_path}; echo $?")" -ne 0 ]
 then
-   log_error "   | Directory is not writable: ${download_path}/"
+   log_error "   | Directory is not writable: ${download_path}"
    log_error "   ! Cannot continue. Halting"
    sleep infinity
 fi
@@ -615,9 +621,9 @@ fi
 if [ "${jpeg_path}" ] && [ ! -d "${jpeg_path}" ]
 then
    log_info " - Testing JPEG directory writable by user: ${user}"
-   if [ "$(run_as "test -w ${jpeg_path}/; echo $?")" -ne 0 ]
+   if [ "$(run_as "test -w ${jpeg_path}; echo $?")" -ne 0 ]
    then
-      log_error "   | Directory is not writable: ${jpeg_path}/"
+      log_error "   | Directory is not writable: ${jpeg_path}"
       log_error "   ! Cannot continue. Halting"
       sleep infinity
    fi

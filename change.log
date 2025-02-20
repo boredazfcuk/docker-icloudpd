@@ -1,6 +1,10 @@
 20/02/2025
 
  - Launcher now checks that **download_path**, **jpeg_path** and **video_path** exist in /proc/mounts (if they are configured0. This should confirm that these directories are mounted to external locations at container launch. The .mounted file is still a requirement, as this makes sure the container is looking at the correct external mount and also that the volume hasn't dismounted due to errors.
+ - Remove trailing slashes from variables which could have them, like download_path, jpeg_path, video_path, the Nextcloud URL and target dir
+ - A load of stuff I lost track of regarding conversion of jpegs and stuff. I'm a bit tipsy and probably broke a bunch of stuff. Previously there was an ugly bunch of hardcoding around HEIC/JPG file extensions... case insensitive searches, but ignoring ".heic" files etc. This uncovered a bunch of other areas where I'd copy/pasted code... so for sideways copying videos and stuff. Find other things which just didn't work in testing at all (unescaped characters in bash expansion). I've no idea ho this worked previously... maybe it's a bash/ash difference which will **** things over in side the container. Yes, I'm an adult, I can put **** if I want to, so go **** yourself if you don't like it.
+ - Rebased to Alpine Linux 3.21.3 coz apparently that's a thing now.
+ - Aw man. This just feels really broken, but it's not chucking errors out everywhere in my testing. Sod it. I'll push it to Dockerhub and deal with the fallout tomorrow. I have stuff to do on Saturday so no drinking tomorrow for me. Can fix stuff then if everything blows up.
 
 19/02/2025
 
