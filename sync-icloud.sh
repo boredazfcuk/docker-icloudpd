@@ -1318,7 +1318,7 @@ nextcloud_upload_library()
       then
          echo "File already exsits"
       else
-         curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_destination}")"
+         curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${download_path}${full_filename}" "${nextcloud_destination}")"
          if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
          then
             echo "Success"
