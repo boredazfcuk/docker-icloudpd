@@ -141,7 +141,7 @@ disable_notifications()
 }
 
 ##### Start Script #####
-log_info "Initialising container..."
+log_info "Initialising container v1.0.$(cat /opt/build_version.txt)..."
 
 # Create the temporary directory
 if [ ! -d "/tmp/icloudpd" ]
