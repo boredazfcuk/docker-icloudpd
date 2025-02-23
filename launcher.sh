@@ -141,7 +141,7 @@ disable_notifications()
 }
 
 ##### Start Script #####
-log_info "Initialising container v1.0.$(cat /opt/build_version.txt)..."
+log_info "Initialising container..."
 
 # Create the temporary directory
 if [ ! -d "/tmp/icloudpd" ]
@@ -699,7 +699,7 @@ then
    echo "Current version (v${current_version}) is newer than latest build (v${latest_version}). Good luck!"
 elif [ "${current_version}" -eq "${latest_version}" ]
 then
-   echo "Current version is up to date"
+   echo "Current version (v${current_version}) is up to date"
 else
    echo "Check for updates failed. Cannot continue. Halting"
    sleep infinity

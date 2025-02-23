@@ -1721,7 +1721,6 @@ remove_recently_deleted_accompanying_files()
          log_debug "Deleting ${heic_file%.*}_hevc.mov"
          rm -f "${heic_file%.*}_hevc.mov"
       fi
-      fi
    done
    log_info "Deleting 'Recently Deleted' accompanying files complete"
    IFS="${OLDIFS}"
