@@ -1,6 +1,6 @@
 ## Environment variables
 Environment variables can, for the time being, be used to configure the Docker container. However, configuring containers by using variables is deprecated and will be removed in future versions.
-When the container is first started, it will write a default configuration file "/config/icloudpd.conf" and the variables will be loaded from there. I you find that some things are still being set, even though you have removed the variables from the container, it could be that they are still located in the configuration file.
+When the container is first started, it will write a default configuration file "/config/icloudpd.conf" and the variables will be loaded from there. If you find that some things are still being set, even though you have removed the variables from the container, it could be that they are still located in the configuration file.
 
 ## CONFIGURATION OPTIONS
 **apple_id**: This is the Apple ID that will be used when downloading files. This option is mandatory
