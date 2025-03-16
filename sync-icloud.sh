@@ -1356,7 +1356,7 @@ convert_downloaded_heic_to_jpeg()
          if [ "${jpeg_path}" ]
          then
             jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
-            jpeg_directory="$(dirname "${jpeg_file/${download_path}/${jpeg_path}}")"
+            jpeg_directory="$(dirname "${jpeg_file}")"
             if [ ! -d "${jpeg_directory}" ]
             then
                mkdir --parents "${jpeg_directory}"
