@@ -1340,7 +1340,7 @@ convert_downloaded_heic_to_jpeg()
 {
    IFS=$'\n'
    log_info "Convert HEIC to JPEG..."
-   for heic_file in $(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | grep ".HEIC" | cut --delimiter " " --fields 9-)
+   for heic_file in $(grep "Downloaded /" /tmp/icloudpd/icloudpd_sync.log | grep -i ".HEIC" | cut --delimiter " " --fields 9-)
    do
       if [ ! -f "${heic_file}" ]
       then
