@@ -154,7 +154,7 @@ initialise_script()
    fi
    if [ "${delete_accompanying}" = true ]
    then
-      log_info " | Delete accompanying files (.JPG/.HEIC.MOV)"
+      log_info " | Delete accompanying files (.JPG/_HEVC.MOV)"
    fi
    if [ "${fake_user_agent}" = true ]
    then

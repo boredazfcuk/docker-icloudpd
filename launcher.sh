@@ -409,6 +409,11 @@ then
    log_error "   | The variable sideways_copy_videos_mode cannot be set to 'move' unless delete_after_download is set to 'true', otherwise all icloud videos will be downloaded every run. Please set the copy mode to 'copy' or delete_after_download to 'true'. Halting"
    sleep infinity
 fi
+if [ "${photo_album}" ] && [ "${photo_library}" ]
+then
+   log_error "   | The variables photo_album and photo_library cannot both be configured at the same time. Please configure photo_album, photo_library or neither. Halting"
+   sleep infinity
+fi
 
 # Display warning when using keep_icloud_recent
 if [ "${keep_icloud_recent_only}" = true ] && [ "${warnings_acknowledged:=false}" = false ]

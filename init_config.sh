@@ -80,8 +80,8 @@
    fi
    if [ "$(grep -c "^download_path=" "${config_file}")" -eq 0 ]
    then
-        user="$(grep "^user=" "${config_file}" | awk -F= '{print $2}')"
-        echo download_path="${download_path:=/home/${user:=user}/iCloud}"
+      user="$(grep "^user=" "${config_file}" | awk -F= '{print $2}')"
+      echo download_path="${download_path:=/home/${user:=user}/iCloud}"
    fi
    if [ "$(grep -c "^fake_user_agent=" "${config_file}")" -eq 0 ]
    then
@@ -329,8 +329,7 @@
    fi
    if [ "$(grep -c "^video_path=" "${config_file}")" -eq 0 ]
    then
-      echo video_path="
-   "
+      echo video_path=
    fi
    if [ "$(grep -c "^webhook_https=" "${config_file}")" -eq 0 ]
    then
@@ -757,8 +756,8 @@ then
 fi
 if [ "${folder_structure}" ]
 then
-  sanitised_folder_structure="${folder_structure//\//\\/}"
-  sed -i "s@^folder_structure=.*@folder_structure=${sanitised_folder_structure}@" "${config_file}"
+   sanitised_folder_structure="${folder_structure//\//\\/}"
+   sed -i "s@^folder_structure=.*@folder_structure=${sanitised_folder_structure}@" "${config_file}"
 fi
 if [ "${force_gid}" ]
 then
@@ -1130,6 +1129,7 @@ fi
 # Update config file
 mv "${config_file}" "${config_file}.tmp"
 sort "${config_file}.tmp" --output="${config_file}"
+sed -i '/^$/d' "${config_file}.tmp"
 chmod --reference="${config_file}.tmp" "${config_file}"
 rm "${config_file}.tmp"
 

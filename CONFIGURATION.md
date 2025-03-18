@@ -1,8 +1,12 @@
-## Environment variables
-Environment variables can, for the time being, be used to configure the Docker container. However, configuring containers by using variables is deprecated and will be removed in future versions.
-When the container is first started, it will write a default configuration file "/config/icloudpd.conf" and the variables will be loaded from there. If you find that some things are still being set, even though you have removed the variables from the container, it could be that they are still located in the configuration file.
+## Docker Environment Variables
+Docker environment variables can, for the time being, be used to configure the container. However, configuring containers by using Docker environment variables is deprecated and will be removed in future versions.
+When the container is first started, it will write a default configuration file "/config/icloudpd.conf" and the configuration items will be loaded from there. If you find that some things are still being set, even though you have removed the variables from the container, it could be that they are still located in the configuration file.
 
-## CONFIGURATION OPTIONS
+Currently, I only reccomend setting one container environment variable, TZ, as the Alpine Linux operating system will use this variable to configure the time zone:
+
+**TZ**: Sets the local timezone and is required to calculate timestamps. Default: 'UTC'. If you are unsure of your timezone, the list can be found here: https://nodatime.org/TimeZones. The value you need to set is listed in the "Zone ID" column of the table.
+
+## CONFIGURATION ITEMS
 **apple_id**: This is the Apple ID that will be used when downloading files. This option is mandatory
 
 **user**: This is name of the user account that you wish to create within the container. This can be anything you choose, but ideally you would set this to match the name of the user on the host system for which you want to download files for. This user will be set as the owner of all downloaded files. Default: 'user'. This option is also used as the trigger for remotly initiated sync. Simply send your user name as a message to the Telegram chat, icoudpd will see it, and start a manual sync.
@@ -14,8 +18,6 @@ When the container is first started, it will write a default configuration file 
 **group_id**: This is the Group ID number of the above group. This can be any number that isn't already in use. Ideally, you should set this to be the same Group ID number as the user's primary group on the host system. Default: '1000'.
 
 **force_gid**: If this configuration option is set it will allow the group to be created with a pre-existing group id. This may be handy if your group id clashes with a system group insude the docker container, however, if may have undesired permissions issues. Please use with caution.
-
-**TZ**: Sets the local timezone and is required to calculate timestamps. Default: 'UTC'. If you are unsure of your timezone, the list can be found here: https://nodatime.org/TimeZones. The value you need to set is listed in the "Zone ID" column of the table.
 
 **download_path**: This is the directory to which files will be downloaded from iCloud. Default: "/home/${user}/iCloud".
 
@@ -114,7 +116,7 @@ adds asset id from iCloud to all file names and does not need de-duplication. De
 
 **video_path**: 
 
-# NEXTCLOUD CONFIGURATION VARIABLES
+# NEXTCLOUD CONFIGURATION ITEMS
 
 **nextcloud_delete**: Set this variable to **true** if you want to remove files from Nextcloud. This setting requires **auto_delete** to also be set to true. When a file is found in the 'Recently Deleted', the **auto_delete** function will remove the local file. If **nextcloud_delete** is also set to **true**, then it will remove that file from the Nextcloud server.
 
@@ -128,7 +130,7 @@ adds asset id from iCloud to all file names and does not need de-duplication. De
 
 **nextcloud_username**: This is the user name of the account that you want to upload the files to.
 
-## NOTIFICATION CONFIGURATION VARIABLES
+## NOTIFICATION CONFIGURATION ITEMS
 
 **notification_type**: This specifies the method that is used to send notifications. These are the options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **openhab**, **Dingtalk**, **Discord**, **IYUU**, **WeCom**, **Gotify**, **Bark**, **msmtp**. When the multifactor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
 
@@ -262,7 +264,7 @@ docker create \
 
 Note: Raspberry Pi users have reported that the container only functions correctly when the containes is created with the `--privileged` parameter.
 
-Once you have created your container. The configurable environment variables will be listed in the configuration file located in `/config/icloudpd.conf`
+Once you have created your container. The configurable environment items will be listed in the configuration file located in `/config/icloudpd.conf`
 
 ## CONFIGURING A PASSWORD
 
