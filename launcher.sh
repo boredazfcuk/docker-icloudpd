@@ -544,6 +544,13 @@ then
          disable_notifications
       fi
    fi
+   if [ "${notification_type}" = "signal" ]
+   then
+      if [ -z "${signal_host}" ] || [ -z "${signal_port}" ] || [ -z "${signal_number}" ] || [ -z "${signal_recipient}" ]
+      then
+         disable_notifications
+      fi
+   fi
 fi
 
 # Check download directories are mounted

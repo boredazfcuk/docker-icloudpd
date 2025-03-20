@@ -399,6 +399,22 @@
    then
       echo msmtp_args="${msmtp_args:=--tls-starttls=off}"
    fi
+   if [ "$(grep -c "^signal_host=" "${config_file}")" -eq 0 ]
+   then
+      echo signal_host="${signal_host}"
+   fi
+   if [ "$(grep -c "^signal_port=" "${config_file}")" -eq 0 ]
+   then
+      echo signal_port="${signal_port}"
+   fi
+   if [ "$(grep -c "^signal_number=" "${config_file}")" -eq 0 ]
+   then
+      echo signal_number="${signal_number}"
+   fi
+   if [ "$(grep -c "^signal_recipient=" "${config_file}")" -eq 0 ]
+   then
+      echo signal_recipient="${signal_recipient}"
+   fi
    if [ "$(grep -c "^agentid=" "${config_file}")" -eq 0 ]
    then
       echo agentid="${agentid}"
