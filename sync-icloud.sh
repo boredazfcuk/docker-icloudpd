@@ -438,6 +438,15 @@ configure_notifications()
       log_debug "   - ${notification_type_tc} port number: ${msmtp_port}"
       log_debug "   - ${notification_type_tc} username: ${msmtp_user}"
       log_debug "   - ${notification_type_tc} password: ${msmtp_pass:0:2}********${msmtp_pass:0-2}"
+   elif [ "${notification_type}" = "signal" ] && [ "${signal_host}" ] && [ "${signal_port}" ] && [ "${signal_number}" ] && [ "${signal_recipient}" ]
+   then
+      notification_url="http://${signal_host}:${signal_port}/v2/send"
+      log_info " | ${notification_type_tc} notifications enabled"
+      log_debug "   - ${notification_type_tc} hostname: ${signal_host}"
+      log_debug "   - ${notification_type_tc} port number: ${signal_port}"
+      log_debug "   - ${notification_type_tc} number: ${signal_number}"
+      log_debug "   - ${notification_type_tc} recipient: ${signal_recipient}"
+      log_debug "   - ${notification_type_tc} notification URL: ${notification_url}"
    else
       log_warning " ! ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
       unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_scheme gotify_server_url bark_device_key bark_server
@@ -1971,6 +1980,18 @@ send_notification()
          mail_text="$(echo -e "${notification_icon} ${notification_message}")"
       fi
       printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --user=$msmtp_user --passwordeval="echo -n $msmtp_pass" --from=$msmtp_from --auth=on --tls=$msmtp_tls "$msmtp_args" -- "$msmtp_to"
+   elif [ "${notification_type}" = "signal" ]
+   then
+      if [ "${notification_files_preview_count}" ]
+      then
+         signal_text="$(echo -e "${notification_icon}") ${notification_title}\n${notification_message//_/\\_}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}"
+      else
+         signal_text="$(echo -e "${notification_icon}") ${notification_title}\n${notification_message}"
+      fi
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+         --header 'Content-Type: application/json' \
+         --data "{\"message\": \"${signal_text}\", \"number\": \"${signal_number}\", \"recipients\": [ \"${signal_recipient}\" ]}")"
+      curl_exit_code="$?"
    fi
    if [ "${notification_type}" ] && [ "${notification_type}" != "msmtp" ]
    then
