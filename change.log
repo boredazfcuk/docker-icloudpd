@@ -1,6 +1,6 @@
 18/03/2025
 
- - Launcher now halts if both photo_album and photo_library are configured.
+ - Launcher now halts if both photo_album and photo_library are configured as these options conflict with each other
 
 20/02/2025
 
