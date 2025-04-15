@@ -142,6 +142,8 @@ adds asset id from iCloud to all file names and does not need de-duplication. De
 
 **pushover_token**: Mandatory if notification_type set to 'Pushover'. This is the application API token. You will need to create an application by logging into your Pushover account and creating an application.
 
+**pushover_priority**: Mandatory if notification_type set to 'Pushover'. This is the priority of the notification. Valid values range from "-2" (lowest) to "1" (high) - priority "2" is not supported, as it requires additional parameters. Values for this variable can be found here: https://pushover.net/api#priority
+
 **pushover_sound**: Mandatory if notification_type set to 'Pushover' this variable can be set to customise the sound of the notification. Values for this variable can be found here: https://pushover.net/api#sounds
 
 **telegram_token**: Mandatory if notification_type set to 'Telegram'. This is the token that was assigned to your account by The Botfather.

@@ -263,6 +263,17 @@ configure_notifications()
       log_info " | ${notification_type_tc} notifications enabled"
       log_debug "   - ${notification_type_tc} user: ${pushover_user:0:2}********${pushover_user:0-2}"
       log_debug "   - ${notification_type_tc} token: ${pushover_token:0:2}********${pushover_token:0-2}"
+      if [ -n "${pushover_priority}" ]
+      then
+         case "${pushover_priority}" in
+            -2|-1|0|1)
+               log_debug "   - ${notification_type_tc} priority: ${pushover_priority}"
+            ;;
+            *)
+               log_debug "   - ${notification_type_tc} priority '${pushover_priority}' is invalid. Using default (0)"
+               unset pushover_priority
+         esac
+      fi
       if [ "${pushover_sound}" ]
       then
          case "${pushover_sound}" in
@@ -1798,10 +1809,6 @@ send_notification()
       curl_exit_code="$?"
    elif [ "${notification_type}" = "pushover" ]
    then
-      if [ "${notification_prority}" = "2" ]
-      then
-         notification_prority=1
-      fi
       if [ "${notification_files_preview_count}" ]
       then
          pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text}")"
@@ -1812,8 +1819,8 @@ send_notification()
          --form-string "user=${pushover_user}" \
          --form-string "token=${pushover_token}" \
          --form-string "title=${notification_title}" \
+         --form-string "priority=${pushover_prority}" \
          --form-string "sound=${pushover_sound}" \
-         --form-string "priority=${notification_prority}" \
          --form-string "message=${pushover_text}")"
       curl_exit_code="$?"
    elif [ "${notification_type}" = "telegram" ]
