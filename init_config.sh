@@ -207,6 +207,10 @@
    then
       echo prowl_api_key="${prowl_api_key}"
    fi
+   if [ "$(grep -c "^pushover_priority=" "${config_file}")" -eq 0 ]
+   then
+      echo pushover_priority="${pushover_priority}"
+   fi
    if [ "$(grep -c "^pushover_sound=" "${config_file}")" -eq 0 ]
    then
       echo pushover_sound="${pushover_sound}"
@@ -866,6 +870,10 @@ fi
 if [ "${prowl_api_key}" ]
 then
    sed -i "s%^prowl_api_key=.*%prowl_api_key=${prowl_api_key}%" "${config_file}"
+fi
+if [ "${pushover_priority}" ]
+then
+   sed -i "s%^pushover_priority=.*%pushover_priority=${pushover_priority}%" "${config_file}"
 fi
 if [ "${pushover_sound}" ]
 then

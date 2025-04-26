@@ -1,3 +1,7 @@
+15/04/2025
+
+- Added support for "pushover_priority" configuration (required when using Pushover notifications). Valid values are "-2" to "1". Priority "2" is intentionally unsupported due to additional API requirements.
+
 18/03/2025
 
  - Launcher now halts if both photo_album and photo_library are configured as these options conflict with each other
