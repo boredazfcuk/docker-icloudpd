@@ -8,7 +8,7 @@ initialise_script()
    local icloud_dot_com dns_counter
    log_info "***** boredazfcuk/icloudpd container v1.0.$(cat /opt/build_version.txt) started *****"
    log_info "***** For support, please go here: https://github.com/boredazfcuk/docker-icloudpd *****"
-   log_info "$(cat /etc/*-release | grep "^NAME" | cut -d= -f2 | sed 's/"//g') $(cat /etc/*-release | grep "VERSION_ID" | cut -d= -f2 | sed 's/"//g')"
+   log_info "$(cat /etc/*-release | grep "^NAME" | cut -d= -f2 | sed 's/"//g') v$(cat /etc/*-release | grep "VERSION_ID" | cut -d= -f2 | sed 's/"//g')"
    log_info "Python version: $(cat /tmp/icloudpd/python_version)"
    log_info "icloud-photos-downloader version: $(cat /tmp/icloudpd/icloudpd_version)"
    lan_ip="$(hostname -i)"
@@ -326,11 +326,11 @@ configure_notifications()
             telegram_polling=false
          fi
       fi
-      if [ "${telegram_silent_file_notifications}" ]
+      if [ "${silent_file_notifications}" ]
       then
-         telegram_silent_file_notifications=true
+         silent_file_notifications=true
       fi
-      log_debug "   - ${notification_type_tc} silent file notifications: ${telegram_silent_file_notifications:=false}"
+      log_debug "   - ${notification_type_tc} silent file notifications: ${silent_file_notifications:=false}"
       clean_notification_title
    elif [ "${notification_type}" = "openhab" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
    then
@@ -828,11 +828,11 @@ check_files()
       fi
       if [ "${icloud_china}" = false ]
       then
-         send_notification "failure" "iCloudPD container failure" "0" "iCloudPD failed check for new files for Apple ID: ${apple_id}"
+         send_notification "failure" "iCloudPD container failure" "1" "iCloudPD failed check for new files for Apple ID: ${apple_id}"
       else
          syn_end_time="$(date '+%H:%M:%S')"
          syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
-         send_notification "failure" "iCloudPD container failure" "0" "检查 iCloud 图库新照片失败，将在 ${syn_next_time} 再次尝试" "" "" "" "检查 ${name} 的 iCloud 图库新照片失败" "将在 ${syn_next_time} 再次尝试"
+         send_notification "failure" "iCloudPD container failure" "1" "检查 iCloud 图库新照片失败，将在 ${syn_next_time} 再次尝试" "" "" "" "检查 ${name} 的 iCloud 图库新照片失败" "将在 ${syn_next_time} 再次尝试"
       fi
    else
       log_info "Check successful"
@@ -861,6 +861,10 @@ downloaded_files_notification()
       if [ "${icloud_china}" = false ]
       then
          new_files_text="Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
+         if [ "${silent_file_notifications}" = true ]
+         then
+            disable_notification=true
+         fi
          send_notification "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "downloaded" "${new_files_preview}"
       else
          # 结束时间、下次同步时间
@@ -887,6 +891,10 @@ deleted_files_notification()
       if [ "${icloud_china}" = false ]
       then
          deleted_files_text="Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
+         if [ "${silent_file_notifications}" = true ]
+         then
+            disable_notification=true
+         fi
          send_notification "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "deleted" "${deleted_files_preview}"
       else
          # 结束时间、下次同步时间
@@ -1741,10 +1749,10 @@ remove_empty_directories()
 
 send_notification()
 {
-   local notification_classification notification_event notification_prority notification_message notification_result notification_files_preview_count notification_files_preview_type notification_files_preview_text
+   local notification_classification notification_event notification_priority notification_message notification_result notification_files_preview_count notification_files_preview_type notification_files_preview_text
    notification_classification="${1}"
    notification_event="${2}"
-   notification_prority="${3}"
+   notification_priority="${3}"
    notification_message="${4}"
    notification_files_preview_count="${5}"
    notification_files_preview_type="${6}"
@@ -1793,14 +1801,14 @@ send_notification()
          --form apikey="${prowl_api_key}" \
          --form application="${notification_title}" \
          --form event="${notification_event}" \
-         --form priority="${notification_prority}" \
+         --form priority="${notification_priority}" \
          --form description="${notification_message}")"
       curl_exit_code="$?"
    elif [ "${notification_type}" = "pushover" ]
    then
-      if [ "${notification_prority}" = "2" ]
+      if [ "${notification_priority}" = "2" ]
       then
-         notification_prority=1
+         notification_priority=1
       fi
       if [ "${notification_files_preview_count}" ]
       then
@@ -1813,7 +1821,7 @@ send_notification()
          --form-string "token=${pushover_token}" \
          --form-string "title=${notification_title}" \
          --form-string "sound=${pushover_sound}" \
-         --form-string "priority=${notification_prority}" \
+         --form-string "priority=${notification_priority}" \
          --form-string "message=${pushover_text}")"
       curl_exit_code="$?"
    elif [ "${notification_type}" = "telegram" ]
@@ -1827,10 +1835,10 @@ send_notification()
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
          --data chat_id="${telegram_chat_id}" \
          --data parse_mode="markdown" \
-         --data disable_notification="${telegram_disable_notification:=false}" \
+         --data disable_notification="${disable_notification:=false}" \
          --data text="${telegram_text}")"
       curl_exit_code="$?"
-      unset telegram_disable_notification
+      unset disable_notification
    elif [ "${notification_type}" = "openhab" ]
    then
       webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
