@@ -235,6 +235,10 @@
    then
       echo sideways_copy_videos_mode="${sideways_copy_mode:=copy}"
    fi
+   if [ "$(grep -c "^silent_file_notifications=" "${config_file}")" -eq 0 ]
+   then
+      echo silent_file_notifications="${silent_file_notifications}"
+   fi
    if [ "$(grep -c "^single_pass=" "${config_file}")" -eq 0 ]
    then
       echo single_pass="${single_pass:=false}"
@@ -302,10 +306,6 @@
    if [ "$(grep -c "^telegram_server=" "${config_file}")" -eq 0 ]
    then
       echo telegram_server="${telegram_server}"
-   fi
-   if [ "$(grep -c "^telegram_silent_file_notifications=" "${config_file}")" -eq 0 ]
-   then
-      echo telegram_silent_file_notifications="${telegram_silent_file_notifications}"
    fi
    if [ "$(grep -c "^telegram_token=" "${config_file}")" -eq 0 ]
    then
@@ -895,6 +895,10 @@ if [ "${sideways_copy_mode}" ]
 then
    sed -i "s%^sideways_copy_videos_mode=.*%sideways_copy_videos_mode=${sideways_copy_mode}%" "${config_file}"
 fi
+if [ "${silent_file_notifications}" ]
+then
+   sed -i "s%^silent_file_notifications=.*%silent_file_notifications=${silent_file_notifications}%" "${config_file}"
+fi
 if [ "${single_pass}" ]
 then
    sed -i "s%^single_pass=.*%single_pass=${single_pass}%" "${config_file}"
@@ -958,10 +962,6 @@ fi
 if [ "${telegram_server}" ]
 then
    sed -i "s%^telegram_server=.*%telegram_server=${telegram_server}%" "${config_file}"
-fi
-if [ "${telegram_silent_file_notifications}" ]
-then
-   sed -i "s%^telegram_silent_file_notifications=.*%telegram_silent_file_notifications=${telegram_silent_file_notifications}%" "${config_file}"
 fi
 if [ "${telegram_token}" ]
 then
