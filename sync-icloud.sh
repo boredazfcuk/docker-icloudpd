@@ -438,7 +438,7 @@ configure_notifications()
          log_debug "   - ${notification_type_tc} password: ${msmtp_pass:0:2}********${msmtp_pass:0-2}"
       fi
    else
-      log_warning " ! ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
+      log_warning " ! ${notification_type_tc} notifications enabled, but configured incorrectly - disabling notifications"
       unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_scheme gotify_server_url bark_device_key bark_server
    fi
 
@@ -1900,12 +1900,12 @@ send_notification()
    then
       if [ "$(date +'%s')" -ge "$(date +'%s' -d "${wecom_token_expiry}")" ]
       then
-         log_warning "${notification_type} token has expired"
+         log_warning "${notification_type_tc} token has expired"
          unset wecom_token
       fi
       if [ -z "${wecom_token}" ]
       then
-         log_warning "Obtaining new ${notification_type} token..."
+         log_warning "Obtaining new ${notification_type_tc} token..."
          if [ "${fake_user_agent}" = true ]
          then
             wecom_token="$(/usr/bin/curl --silent --user-agent "${curl_user_agent}" --get "${wecom_token_url}" | awk -F\" '{print $10}')"
@@ -1914,9 +1914,9 @@ send_notification()
          fi
          wecom_token_expiry="$(date --date='2 hour')"
          notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
-         log_info "${notification_type} token: ${wecom_token}"
-         log_info "${notification_type} token expiry time: $(date -d "${wecom_token_expiry}")"
-         log_info "${notification_type} notification URL: ${notification_url}"
+         log_info "${notification_type_tc} token: ${wecom_token}"
+         log_info "${notification_type_tc} token expiry time: $(date -d "${wecom_token_expiry}")"
+         log_info "${notification_type_tc} notification URL: ${notification_url}"
       fi
       # 结束时间、下次同步时间
       syn_end_time="$(date '+%H:%M:%S')"
@@ -1988,9 +1988,9 @@ send_notification()
    then
       if [ "${notification_result:0:1}" -eq 2 ]
       then
-         log_debug "${notification_type} ${notification_classification} notification sent successfully"
+         log_debug "${notification_type_tc} ${notification_classification} notification sent successfully"
       else
-         log_error "${notification_type} ${notification_classification} notification failed with http status code: ${notification_result} and curl exit code: ${curl_exit_code}"
+         log_error "${notification_type_tc} ${notification_classification} notification failed with http status code: ${notification_result} and curl exit code: ${curl_exit_code}"
          if [ "${notification_result}" = "000" ] && [ "${curl_exit_code}" = "6" ]
          then
             log_error " - HTTP status code '000' and curl exit code '6' means it cannot connect to the server. Please check your network settings"
@@ -2242,7 +2242,7 @@ synchronise_user()
          unset new_files
          if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = true ]
          then
-            log_info "Monitoring ${notification_type} for remote commands prefix: ${user}"
+            log_info "Monitoring ${notification_type_tc} for remote commands prefix: ${user}"
             listen_counter=0
             poll_sleep=30
             while [ "${listen_counter}" -lt "${sleep_time}" ]

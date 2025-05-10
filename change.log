@@ -2,6 +2,7 @@
 
  - Upgraded icloud_photos_downloader to v1.27.5
  - Removed requirement for smtp username and password
+ - Changed some logging stuff
 
 08/05/2025
 
