@@ -326,11 +326,7 @@ configure_notifications()
             telegram_polling=false
          fi
       fi
-      if [ "${silent_file_notifications}" ]
-      then
-         silent_file_notifications=true
-      fi
-      log_debug "   - ${notification_type_tc} silent file notifications: ${silent_file_notifications:=false}"
+      log_debug "   - Silent file notifications: ${silent_file_notifications}"
       clean_notification_title
    elif [ "${notification_type}" = "openhab" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
    then
@@ -431,13 +427,16 @@ configure_notifications()
       log_debug "   - ${notification_type_tc} server: ${bark_server}"
       log_debug "   - ${notification_type_tc} notification URL: http://${bark_server}/push"
       clean_notification_title
-   elif [ "${notification_type}" = "msmtp" ] && [ "${msmtp_host}" ] && [ "${msmtp_port}" ] && [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]
+   elif [ "${notification_type}" = "msmtp" ] && [ "${msmtp_host}" ] && [ "${msmtp_port}" ]
    then
       log_info " | ${notification_type_tc} notifications enabled"
       log_debug "   - ${notification_type_tc} hostname: ${msmtp_host}"
       log_debug "   - ${notification_type_tc} port number: ${msmtp_port}"
-      log_debug "   - ${notification_type_tc} username: ${msmtp_user}"
-      log_debug "   - ${notification_type_tc} password: ${msmtp_pass:0:2}********${msmtp_pass:0-2}"
+      if  [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]
+      fi
+         log_debug "   - ${notification_type_tc} username: ${msmtp_user}"
+         log_debug "   - ${notification_type_tc} password: ${msmtp_pass:0:2}********${msmtp_pass:0-2}"
+      fi
    else
       log_warning " ! ${notification_type} notifications enabled, but configured incorrectly - disabling notifications"
       unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_scheme gotify_server_url bark_device_key bark_server
@@ -1793,7 +1792,7 @@ send_notification()
    fi
    if [ "${notification_type}" ]
    then
-      log_info "Sending ${notification_type} ${notification_classification} notification"
+      log_info "Sending ${notification_type_tc} ${notification_classification} notification"
    fi
    if [ "${notification_type}" = "prowl" ]
    then
@@ -1978,7 +1977,12 @@ send_notification()
       else
          mail_text="$(echo -e "${notification_icon} ${notification_message}")"
       fi
-      printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --user=$msmtp_user --passwordeval="echo -n $msmtp_pass" --from=$msmtp_from --auth=on --tls=$msmtp_tls "$msmtp_args" -- "$msmtp_to"
+      if [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]
+      then
+         printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --user=$msmtp_user --passwordeval="echo -n $msmtp_pass" --from=$msmtp_from --auth=on --tls=$msmtp_tls "$msmtp_args" -- "$msmtp_to"
+      else
+         printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --from=$msmtp_from --auth=on --tls=$msmtp_tls "$msmtp_args" -- "$msmtp_to"
+      fi
    fi
    if [ "${notification_type}" ] && [ "${notification_type}" != "msmtp" ]
    then

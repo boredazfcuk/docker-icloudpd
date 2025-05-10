@@ -1,3 +1,8 @@
+10/05/2025
+
+ - Upgraded icloud_photos_downloader to v1.27.5
+ - Removed requirement for smtp username and password
+
 08/05/2025
 
  - New variable **silent_file_notifications** will send low priority messages for file downloads and file deletions so that notifications are sent, but you don't get alerted with sounds/vibrations.

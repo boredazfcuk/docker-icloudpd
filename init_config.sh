@@ -237,7 +237,7 @@
    fi
    if [ "$(grep -c "^silent_file_notifications=" "${config_file}")" -eq 0 ]
    then
-      echo silent_file_notifications="${silent_file_notifications}"
+      echo silent_file_notifications="${silent_file_notifications:=false}"
    fi
    if [ "$(grep -c "^single_pass=" "${config_file}")" -eq 0 ]
    then
