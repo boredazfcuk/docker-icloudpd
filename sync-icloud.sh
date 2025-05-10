@@ -433,7 +433,7 @@ configure_notifications()
       log_debug "   - ${notification_type_tc} hostname: ${msmtp_host}"
       log_debug "   - ${notification_type_tc} port number: ${msmtp_port}"
       if  [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]
-      fi
+      then
          log_debug "   - ${notification_type_tc} username: ${msmtp_user}"
          log_debug "   - ${notification_type_tc} password: ${msmtp_pass:0:2}********${msmtp_pass:0-2}"
       fi
