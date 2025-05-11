@@ -3,7 +3,7 @@ LABEL maintainer="boredazfcuk"
 
 ENV XDG_DATA_HOME="/config" TZ="UTC" ENV="/etc/profile" config_file="/config/icloudpd.conf"
 
-ARG icloudpd_version="1.27.5"
+ARG icloudpd_version="1.27.1"
 ARG build_dependencies="gcc python3-dev libc-dev libffi-dev cargo openssl-dev"
 ARG app_dependencies="findutils nano nano-syntax py3-pip exiftool coreutils tzdata curl libheif imagemagick shadow jq jpeg bind-tools expect inotify-tools msmtp"
 
@@ -16,7 +16,7 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD latest release" && \
    python -m venv /opt/icloudpd && \
    source /opt/icloudpd/bin/activate && \
    pip3 install --upgrade pip && \
-   pip3 install --no-cache-dir icloudpd && \
+   pip3 install --no-cache-dir icloudpd=="${icloudpd_version}" && \
    deactivate && \
    apk del build
 

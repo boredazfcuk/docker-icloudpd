@@ -88,8 +88,8 @@ initialise_script()
    log_info " | Keep Unicode: ${keep_unicode}"
    log_info " | Live Photo MOV Filename Policy: ${live_photo_mov_filename_policy}"
    log_info " | File Match Policy: ${file_match_policy}"
-   log_info " | Synchronisation interval: ${synchronisation_interval}"
-   log_info " | Synchronisation delay (minutes): ${synchronisation_delay}"
+   log_info " | Download interval: ${download_interval}"
+   log_info " | Download delay (minutes): ${download_delay}"
    log_info " | Set EXIF date/time: ${set_exif_datetime}"
    log_info " | Auto delete: ${auto_delete}"
    log_info " | Delete after download: ${delete_after_download}"
@@ -437,11 +437,17 @@ configure_notifications()
          log_debug "   - ${notification_type_tc} username: ${msmtp_user}"
          log_debug "   - ${notification_type_tc} password: ${msmtp_pass:0:2}********${msmtp_pass:0-2}"
       fi
+   elif [ "${notification_type}" = "signal" ] && [ "${signal_host}" ] && [ "${signal_port}" ] && [ "${signal_number}" ] && [ "${signal_recipient}" ]
+   then
+      log_info " | ${notification_type_tc} notifications enabled"
+      log_debug "   - ${notification_type_tc} hostname: ${signal_host}"
+      log_debug "   - ${notification_type_tc} port number: ${signal_port}"
+      log_debug "   - ${notification_type_tc} number: ${signal_number}"
+      log_debug "   - ${notification_type_tc} recipient: ${signal_recipient}"
    else
       log_warning " ! ${notification_type_tc} notifications enabled, but configured incorrectly - disabling notifications"
       unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_scheme gotify_server_url bark_device_key bark_server
    fi
-
    if [ "${startup_notification}" = true ]
    then
       log_debug " | Startup notification: Enabled"
@@ -786,7 +792,7 @@ display_multifactor_authentication_expiry()
          fi
       fi
       log_warning "${error_message}"
-      if [ "${synchronisation_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]
+      if [ "${download_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]
       then
          if [ "${icloud_china}" = false ]
          then
@@ -830,7 +836,7 @@ check_files()
          send_notification "failure" "iCloudPD container failure" "1" "iCloudPD failed check for new files for Apple ID: ${apple_id}"
       else
          syn_end_time="$(date '+%H:%M:%S')"
-         syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
+         syn_next_time="$(date +%H:%M:%S -d "${download_interval} seconds")"
          send_notification "failure" "iCloudPD container failure" "1" "检查 iCloud 图库新照片失败，将在 ${syn_next_time} 再次尝试" "" "" "" "检查 ${name} 的 iCloud 图库新照片失败" "将在 ${syn_next_time} 再次尝试"
       fi
    else
@@ -868,7 +874,7 @@ downloaded_files_notification()
       else
          # 结束时间、下次同步时间
          syn_end_time="$(date '+%H:%M:%S')"
-         syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
+         syn_next_time="$(date +%H:%M:%S -d "${download_interval} seconds")"
          new_files_text="iCloud 图库同步完成，新增 ${new_files_count} 张照片"
          send_notification "downloaded files" "New files detected" "0" "${new_files_text}" "${new_files_preview_count}" "下载" "${new_files_preview}" "新增 ${new_files_count} 张照片 - ${name}" "下次同步时间 ${syn_next_time}"
       fi
@@ -898,7 +904,7 @@ deleted_files_notification()
       else
          # 结束时间、下次同步时间
          syn_end_time="$(date '+%H:%M:%S')"
-         syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
+         syn_next_time="$(date +%H:%M:%S -d "${download_interval} seconds")"
          deleted_files_text="iCloud 图库同步完成，删除 ${deleted_files_count} 张照片"
          send_notification "deleted files" "Recently deleted files detected" "0" "${deleted_files_text}" "${deleted_files_preview_count}" "删除" "${deleted_files_preview}" "删除 ${deleted_files_count} 张照片 - ${name}" "下次同步时间 ${syn_next_time}"
       fi
@@ -1920,7 +1926,7 @@ send_notification()
       fi
       # 结束时间、下次同步时间
       syn_end_time="$(date '+%H:%M:%S')"
-      syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
+      syn_next_time="$(date +%H:%M:%S -d "${download_interval} seconds")"
       if [ "${notification_files_preview_count}" ]
       then
          log_info "Attempting creating preview count message body"
@@ -1983,6 +1989,18 @@ send_notification()
       else
          printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --from=$msmtp_from --auth=on --tls=$msmtp_tls "$msmtp_args" -- "$msmtp_to"
       fi
+   elif [ "${notification_type}" = "signal" ]
+   then
+      if [ "${notification_files_preview_count}" ]
+      then
+         signal_text="$(echo -e "${notification_icon} ${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text}")"
+      else
+         signal_text="$(echo -e "${notification_icon} ${notification_message}")"
+      fi
+      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "http://${signal_host}:${signal_port}/v2/send" \
+         --header 'Content-Type: application/json' \
+         --data "{\"message\": \"${signal_text}\", \"number\": \"${signal_number}\", \"recipients\": [ \"${signal_recipient}\" ]}")"
+      curl_exit_code="$?"
    fi
    if [ "${notification_type}" ] && [ "${notification_type}" != "msmtp" ]
    then
@@ -2097,15 +2115,16 @@ command_line_builder()
 synchronise_user()
 {
    log_info "Sync user: ${user}"
-   if [ "${synchronisation_delay}" -ne 0 ]
+   if [ "${download_delay}" -ne 0 ]
    then
-      log_info "Delay for ${synchronisation_delay} minutes"
-      sleep "${synchronisation_delay}m"
+      log_info "Delay for ${download_delay} minutes"
+      sleep "${download_delay}m"
    fi
    while true
    do
-      synchronisation_start_time="$(date +'%s')"
-      log_info "Synchronisation starting at $(date +%H:%M:%S -d "@${synchronisation_start_time}")"
+      download_start_time="$(date +'%s')"
+      download_time="$(date +%s -d '+15 minutes')"
+      log_info "Download starting at $(date +%H:%M:%S -d "@${download_start_time}")"
       source <(grep debug_logging "${config_file}")
       chown -R "${user_id}:${group_id}" "/config"
       check_keyring_exists
@@ -2131,7 +2150,6 @@ synchronise_user()
          if [ "${check_files_count}" -gt 0 ]
          then
             log_debug "Starting download of new files for user: ${user}"
-            synchronisation_time="$(date +%s -d '+15 minutes')"
             log_debug "Downloading new files using password stored in keyring file..."
             >/tmp/icloudpd/icloudpd_download_error
             IFS=$'\n'
@@ -2167,7 +2185,7 @@ synchronise_user()
                else
                   # 结束时间、下次同步时间
                   syn_end_time="$(date '+%H:%M:%S')"
-                  syn_next_time="$(date +%H:%M:%S -d "${synchronisation_interval} seconds")"
+                  syn_next_time="$(date +%H:%M:%S -d "${download_interval} seconds")"
                   send_notification "failure" "iCloudPD container failure" "1" "从 iCloud 图库下载新照片失败，将在 ${syn_next_time} 再次尝试" "" "" "" "下载 ${name} 的 iCloud 图库新照片失败" "将在 ${syn_next_time} 再次尝试"
                fi
             else
@@ -2206,10 +2224,10 @@ synchronise_user()
                   remove_empty_directories
                fi
                # set_owner_and_permissions_downloads
-               log_info "Synchronisation complete for ${user}"
+               log_info "Download complete for ${user}"
                if [ "${notification_type}" ] && [ "${remote_sync_complete_notification}" = true ]
                then
-                  send_notification "remotesync" "iCloudPD remote synchronisation complete" "0" "iCloudPD has completed a remote synchronisation request for Apple ID: ${apple_id}"
+                  send_notification "remotesync" "iCloudPD remote download complete" "0" "iCloudPD has completed a remote download request for Apple ID: ${apple_id}"
                   unset remote_sync_complete_notification
                fi
             fi
@@ -2223,20 +2241,20 @@ synchronise_user()
          display_multifactor_authentication_expiry
       fi
       log_debug "iCloud login counter = ${login_counter}"
-      synchronisation_end_time="$(date +'%s')"
-      log_info "Synchronisation ended at $(date +%H:%M:%S -d "@${synchronisation_end_time}")"
-      log_info "Total time taken: $(date +%H:%M:%S -u -d "@$((synchronisation_end_time - synchronisation_start_time))")"
+      download_end_time="$(date +'%s')"
+      log_info "Download ended at $(date +%H:%M:%S -d "@${download_end_time}")"
+      log_info "Total time taken: $(date +%H:%M:%S -u -d "@$((download_end_time - download_start_time))")"
       if [ "${single_pass:=false}" = true ]
       then
          log_debug "Single Pass mode set, exiting"
          exit 0
       else
-         sleep_time="$((synchronisation_interval - synchronisation_end_time + synchronisation_start_time))"
+         sleep_time="$((download_interval - download_end_time + download_start_time))"
          if [ "${sleep_time}" -ge "72000" ]
          then
-            log_info "Next synchronisation at $(date +%c -d "${sleep_time} seconds")"
+            log_info "Next download at $(date +%c -d "${sleep_time} seconds")"
          else
-            log_info "Next synchronisation at $(date +%H:%M:%S -d "${sleep_time} seconds")"
+            log_info "Next download at $(date +%H:%M:%S -d "${sleep_time} seconds")"
          fi
          unset check_exit_code check_files_count download_exit_code
          unset new_files
@@ -2254,7 +2272,7 @@ synchronise_user()
                   telegram_update_id_offset="$(head -1 "${telegram_update_id_offset_file}")"
                   log_debug "Polling Telegram for updates newer than: ${telegram_update_id_offset}"
                   telegram_update_id_offset_inc=$((telegram_update_id_offset + 1))
-                  latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "${telegram_base_url}/getUpdates" | jq .result[])"
+                  latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "${telegram_base_url}/getUpdates" | jq .result[] 2>/dev/null)"
                   if [ "${latest_updates}" ]
                   then
                      latest_update_ids="$(echo "${latest_updates}" | jq -r '.update_id')"
@@ -2282,9 +2300,9 @@ synchronise_user()
                               log_debug "Remote authentication message match: ${check_update_text}"
                               if [ "${icloud_china}" = false ]
                               then
-                                 send_notification "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
+                                 send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
                               else
-                                 send_notification "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD将以Apple ID: ${apple_id}发起身份验证"
+                                 send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD将以Apple ID: ${apple_id}发起身份验证"
                               fi
 			                     rm "/config/${cookie_file}" "/config/${cookie_file}.session"
                               log_debug "Starting remote authentication process"
@@ -2320,10 +2338,10 @@ synchronise_user()
                            log_debug "Remote sync initiated"
                            if [ "${icloud_china}" = false ]
                            then
-                              send_notification "remotesync" "iCloudPD remote synchronisation initiated" "0" "iCloudPD has detected a remote synchronisation request for Apple ID: ${apple_id}"
+                              send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote download request for Apple ID: ${apple_id}"
                               remote_sync_complete_notification=true
                            else
-                              send_notification "remotesync" "iCloudPD remote synchronisation initiated" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
+                              send_notification "remotesync" "iCloudPD remote download initiated" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
                            fi
                               poll_sleep=30
                            break

@@ -1,5 +1,12 @@
 #!/bin/ash
 
+# Move from synchronisation_interval to download_interval and from synchronisation_delay to download_delay
+if [ -f "${config_file}" ]
+then
+   sed -i 's/^synchronisation_interval=/download_interval=/g' "${config_file}"
+   sed -i 's/^synchronisation_delay=/download_delay=/g' "${config_file}"
+fi
+
 # Add missing options to the config file and if a Docker variable exists, use that to set the default value
 {
    if [ "$(grep -c "^albums_with_dates=" "${config_file}")" -eq 0 ]
@@ -235,6 +242,22 @@
    then
       echo sideways_copy_videos_mode="${sideways_copy_mode:=copy}"
    fi
+   if [ "$(grep -c "^signal_host=" "${config_file}")" -eq 0 ]
+   then
+      echo signal_host="${signal_host}"
+   fi
+   if [ "$(grep -c "^signal_port=" "${config_file}")" -eq 0 ]
+   then
+      echo signal_port="${signal_port}"
+   fi
+   if [ "$(grep -c "^signal_number=" "${config_file}")" -eq 0 ]
+   then
+      echo signal_number="${signal_number}"
+   fi
+   if [ "$(grep -c "^signal_recipient=" "${config_file}")" -eq 0 ]
+   then
+      echo signal_recipient="${signal_recipient}"
+   fi
    if [ "$(grep -c "^silent_file_notifications=" "${config_file}")" -eq 0 ]
    then
       echo silent_file_notifications="${silent_file_notifications:=false}"
@@ -271,13 +294,13 @@
    then
       echo startup_notification="${startup_notification:=true}"
    fi
-   if [ "$(grep -c "^synchronisation_delay=" "${config_file}")" -eq 0 ]
+   if [ "$(grep -c "^download_delay=" "${config_file}")" -eq 0 ]
    then
-      echo synchronisation_delay="${synchronisation_delay:=0}"
+      echo download_delay="${download_delay:=0}"
    fi
-   if [ "$(grep -c "^synchronisation_interval=" "${config_file}")" -eq 0 ]
+   if [ "$(grep -c "^download_interval=" "${config_file}")" -eq 0 ]
    then
-      echo synchronisation_interval="${synchronisation_interval:=86400}"
+      echo download_interval="${download_interval:=86400}"
    fi
    if [ "$(grep -c "^synology_ignore_path=" "${config_file}")" -eq 0 ]
    then
@@ -311,9 +334,9 @@
    then
       echo telegram_token="${telegram_token}"
    fi
-   if [ "$(grep -c "^trigger_nextlcoudcli_synchronisation=" "${config_file}")" -eq 0 ]
+   if [ "$(grep -c "^trigger_nextlcoudcli_download=" "${config_file}")" -eq 0 ]
    then
-      echo trigger_nextlcoudcli_synchronisation="${trigger_nextlcoudcli_synchronisation}"
+      echo trigger_nextlcoudcli_download="${trigger_nextlcoudcli_download}"
    fi
    if [ "$(grep -c "^until_found=" "${config_file}")" -eq 0 ]
    then
@@ -608,13 +631,13 @@ if [ -z "$(grep "^startup_notification=" "${config_file}" | awk -F= '{print $2}'
 then
    sed -i "s%^startup_notification=$%startup_notification=true%" "${config_file}"
 fi
-if [ -z "$(grep "^synchronisation_delay=" "${config_file}" | awk -F= '{print $2}')" ]
+if [ -z "$(grep "^download_delay=" "${config_file}" | awk -F= '{print $2}')" ]
 then
-   sed -i "s%^synchronisation_delay=$%synchronisation_delay=0%" "${config_file}"
+   sed -i "s%^download_delay=$%download_delay=0%" "${config_file}"
 fi
-if [ -z "$(grep "^synchronisation_interval=" "${config_file}" | awk -F= '{print $2}')" ]
+if [ -z "$(grep "^download_interval=" "${config_file}" | awk -F= '{print $2}')" ]
 then
-   sed -i "s%^synchronisation_interval=$%synchronisation_interval=86400%" "${config_file}"
+   sed -i "s%^download_interval=$%download_interval=86400%" "${config_file}"
 fi
 if [ -z "$(grep "^synology_ignore_path=" "${config_file}" | awk -F= '{print $2}')" ]
 then
@@ -931,13 +954,13 @@ if [ "${startup_notification}" ]
 then
    sed -i "s%^startup_notification=.*%startup_notification=${startup_notification}%" "${config_file}"
 fi
-if [ "${synchronisation_delay}" ]
+if [ "${download_delay}" ]
 then
-   sed -i "s%^synchronisation_delay=.*%synchronisation_delay=${synchronisation_delay}%" "${config_file}"
+   sed -i "s%^download_delay=.*%download_delay=${download_delay}%" "${config_file}"
 fi
-if [ "${synchronisation_interval}" ]
+if [ "${download_interval}" ]
 then
-   sed -i "s%^synchronisation_interval=.*%synchronisation_interval=${synchronisation_interval}%" "${config_file}"
+   sed -i "s%^download_interval=.*%download_interval=${download_interval}%" "${config_file}"
 fi
 if [ "${synology_ignore_path}" ]
 then
@@ -967,9 +990,9 @@ if [ "${telegram_token}" ]
 then
    sed -i "s%^telegram_token=.*%telegram_token=${telegram_token}%" "${config_file}"
 fi
-if [ "${trigger_nextlcoudcli_synchronisation}" ]
+if [ "${trigger_nextlcoudcli_download}" ]
 then
-   sed -i "s%^trigger_nextlcoudcli_synchronisation=.*%trigger_nextlcoudcli_synchronisation=${trigger_nextlcoudcli_synchronisation}%" "${config_file}"
+   sed -i "s%^trigger_nextlcoudcli_download=.*%trigger_nextlcoudcli_download=${trigger_nextlcoudcli_download}%" "${config_file}"
 fi
 if [ "${until_found}" ]
 then

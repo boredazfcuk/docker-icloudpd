@@ -21,9 +21,9 @@ Currently, I only reccomend setting one container environment variable, TZ, as t
 
 **download_path**: This is the directory to which files will be downloaded from iCloud. Default: "/home/${user}/iCloud".
 
-**synchronisation_interval**: This is the number of seconds between synchronisations. It can be set to the following periods: 21600 (6hrs), 43200 (12hrs), 86400 (24hrs), 129600 (36hrs), 172800 (48hrs) and 604800 (7 days). If this configuration option is not set to one of these values, it will default to 86400 seconds. Be careful if setting a short synchronisation period. Apple have a tendency to throttle connections that are hitting their server too often. I find that every 24hrs is fine. My phone will upload files to the cloud immediately, so if I lose my phone the photos I've taken that day will still be safe in the cloud, and the container will download those photos when it runs in the evening. Setting a value less than 12 hours will display a warning as Apple may throttle you.
+**download_interval**: This is the number of seconds between downloads. It can be set to the following periods: 21600 (6hrs), 43200 (12hrs), 86400 (24hrs), 129600 (36hrs), 172800 (48hrs) and 604800 (7 days). If this configuration option is not set to one of these values, it will default to 86400 seconds. Be careful if setting a short download period. Apple have a tendency to throttle connections that are hitting their server too often. I find that every 24hrs is fine. My phone will upload files to the cloud immediately, so if I lose my phone the photos I've taken that day will still be safe in the cloud, and the container will download those photos when it runs in the evening. Setting a value less than 12 hours will display a warning as Apple may throttle you.
 
-**synchronisation_delay**: This is the number of minutes to delay the first synchronisation. This is so that you can stagger the synchronisations of multiple containers. Default: 0. It has a maximum setting of 60.
+**download_delay**: This is the number of minutes to delay the first download. This is so that you can stagger the downloads of multiple containers. Default: 0. It has a maximum setting of 60.
 
 **notification_days**: When your cookie is nearing expiration, this is the number of days in advance it should notify you. You will receive a single notification, per day, in the days running up to cookie expiration. Default: 7.
 
@@ -103,7 +103,7 @@ Currently, I only reccomend setting one container environment variable, TZ, as t
 
 **sideways_copy_videos_mode**: Seto this to **copy** to have the **sideways_copy_videos** function copy files, leaving the original in place. Set this to **move** to have it move files to the destination directory. If **move** is specified, then **delete_after_download** must be set to **true**. This is to avoid a situation where all video files are moved out of the download folder, then re-downloaded when the next syncronisation occurs. By having **delete_after_download** set to **true** it means that each downloaded video is removed from iCloud after it's downloaded, so it would not be possible for the container to re-download the file after it is moved from the download directory.
 
-**single_pass**: Set this to **true** to exit out after a single pass instead of looping as per the synchronisation_interval. This way, the script can be scheduled to lauch on the host system using cron or another scheduling agent. If this option is used, it will automatically disable the download check. If using this configuration option, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
+**single_pass**: Set this to **true** to exit out after a single pass instead of looping as per the download_interval. This way, the script can be scheduled to lauch on the host system using cron or another scheduling agent. If this option is used, it will automatically disable the download check. If using this configuration option, the restart policy of the container must be set to "no". If it is set to "always" then the container will instantly relaunch after the first run and you will hammer Apple's website.
 
 **keep_unicode**: Set this to **true** to keep unicode chars in file names or set it to **false** to remove all non-ascii chars. Default: false.
 
@@ -132,7 +132,7 @@ adds asset id from iCloud to all file names and does not need de-duplication. De
 
 ## NOTIFICATION CONFIGURATION ITEMS
 
-**notification_type**: This specifies the method that is used to send notifications. These are the options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **openhab**, **Dingtalk**, **Discord**, **IYUU**, **WeCom**, **Gotify**, **Bark**, **msmtp**. When the multifactor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon synchronisation. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
+**notification_type**: This specifies the method that is used to send notifications. These are the options available **Prowl**, **Pushover**, **Telegram**, **Webhook**, **openhab**, **Dingtalk**, **Discord**, **IYUU**, **WeCom**, **Gotify**, **Bark**, **msmtp** and **signal**. When the multifactor authentication cookie is within 7 days (default) of expiry, a notification will be sent upon download. No more than a single notification will be sent within a 24 hour period unless the container is restarted. This does not include the notification that is sent each time the container is started.
 
 **notification_title**: This allows you to change the title which is sent on the notifications. This variable will default to **boredazfcuk/iCloudPD**.
 
@@ -210,7 +210,7 @@ adds asset id from iCloud to all file names and does not need de-duplication. De
 
 **gotify_server_url**: Mandatory if notification_type set to 'Gotify'. This is the server name of your Gotify server e.g. server.domain.tld
 
-**bark_device_key**: Mandatory if notification_type set to 'Bark'. This is the device key associated with your device.
+**bark_device_key**: Mandatory if notification_type set to 'Bark'. This is the device key associated with your device
 
 **bark_server**: Mandatory if notification_type set to 'Bark'. This is the name of your Bark server. Please note that the port should not be included and currently the project only supports http.
 If you use the official Bark server, please fill the field with `api.day.app`.
@@ -228,6 +228,14 @@ If you use the official Bark server, please fill the field with `api.day.app`.
 **msmtp_pass**: Mandatory if notification_type set to `msmtp`. The password for the login user
 
 **msmtp_args**: Optional extra arguments for `msmtp` in case your mail provider has specific requirements. For example, `--tls-starttls=off`.
+
+**signal_host**: Mandatory if notification_type set to `signal`. This is the host that you want the container to connect to. This should be a sepearate Docker container bbernhard/signal-cli-rest-api which has been paired with the Signal app on your phone. Further information can be found here: https://deepwiki.com/bbernhard/signal-cli-rest-api
+
+**signal_number**: Mandatory if notification_type set to `signal`. The phone number of the signal device to send to.
+
+**signal_port**: Mandatory if notification_type set to `signal`. The port that the bbernhard/signal-cli-rest-api container is listening on.
+
+**signal_recipient**: Mandatory if notification_type set to `signal`. The recipient for the message.
 
 ## VOLUME CONFIGURATION
 
@@ -299,7 +307,7 @@ INFO      - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
 INFO     Restarting in 5 minutes..."
 ```
 
-Without this cookie, synchronisation cannot be started.
+Without this cookie, download cannot be started.
 
 As per the error, the container needs to be initialised by using the --Initialise command line option. With the first container still running, connect to it and launch the initialisation process by running the following at the terminal prompt (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --Initialise`
@@ -323,7 +331,7 @@ The process should look similar to this:
 2020-08-06 16:45:58 INFO     Folder structure: {:%Y}
 2020-08-06 16:45:58 INFO     Directory permissions: 750
 2020-08-06 16:45:58 INFO     File permissions: 640
-2020-08-06 16:45:58 INFO     Synchronisation interval: 43200
+2020-08-06 16:45:58 INFO     Download interval: 43200
 2020-08-06 16:45:58 INFO     Time zone: Europe/London
 2020-08-06 16:45:58 INFO     Adding password to keyring...
 Enter iCloud password for email@address.com:
@@ -369,8 +377,8 @@ You can set up email notifications for when the two-step authentication expires.
 ```
 
 # TELEGRAM 2-WAY COMMUNICATIONS
-## Remote Synchronisation
-If you are using Telegram as your notification application, you can now send messages to the chat bot, which the container will read, and then take the appropriate action. If you simply message the chatbot with the user that you have configured in the **user** variable, it will pick that up and force a synchronisation. So if you're down the pub with your mates, take a bunch of pics that you really like, simply message `boredazfcuk` (or whatever you've configured your user variable to be) to the Telegram bot and it will force a synchronisation, downloading your new photos within the next few minutes.
+## Remote Download
+If you are using Telegram as your notification application, you can now send messages to the chat bot, which the container will read, and then take the appropriate action. If you simply message the chatbot with the user that you have configured in the **user** variable, it will pick that up and force a download. So if you're down the pub with your mates, take a bunch of pics that you really like, simply message `boredazfcuk` (or whatever you've configured your user variable to be) to the Telegram bot and it will force a download, downloading your new photos within the next few minutes.
 
 ## Remote Re-authentication
 Apple have recently reduced the re-authentication tim from 90 days to 30 days. This means connecting to your container, re-initialising it and completing multi-factor authentication. If I am out of the house and my cookie expires, I would need to wait until I get home, faff about with the whole process I just described. Now, you can message your container in a similar manner to the remote syncronisation, but adding `auth` to the end of the message, so for example `boredazfcuk auth`. After you have done this, I find it is best to start typing another message starting `boredazfcuk ` (note the space) and then changing the keyboard to number input. The container should pick up this instruction within a minute and it will message you back asking for the MFA code. It will start the re-authentication process and your iDevice will display a popup to `allow` or `deny` the connection. Click `allow` and you will be presented with your multi-factor authentication code. Memorise this code and add it to the end of your message, like `boredazfcuk 123456` and hit send. The container will then use this code to re-initialise your cookie and start downloading your photos again. One word of caution though... Literally every company on the planet tells you never to share this code with anyone. I put this feature in because... well... I trust me. I don't believe in putting blind faith in other though. So neither should you. Feel free to read the source code, so you can make sure it's not doing anything nefarious, by checking it yourself. I understand that not everyone can code though, so if you don't trust it, that's totally OK, probably a good choice on your behalf. To be fair, I'm just a dude with an IT hobby. I couldn't care less about your iCloud account, your contacts, or the pictures of your cat/dog. I just hope this makes you life better in some tiny way.
@@ -413,12 +421,12 @@ To run the script inside the currently running container, issue this command (as
 `docker exec -it icloudpd sync-icloud.sh --Remove-Keyring`
 
 **--Enable-Debugging**
-This command line option will edit the config file so that debugging is enabled. This will automatically be picked up the next time a synchronisation takes place. There should be no need to restart the container
+This command line option will edit the config file so that debugging is enabled. This will automatically be picked up the next time a download takes place. There should be no need to restart the container
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --Enable-Degugging`
 
 **--Disable-Debugging**
-This command line option will edit the config file so that debugging is disabled. This will automatically be picked up the next time a synchronisation takes place. There should be no need to restart the container
+This command line option will edit the config file so that debugging is disabled. This will automatically be picked up the next time a download takes place. There should be no need to restart the container
 To run the script inside the currently running container, issue this command (assuming the container name is 'icloudpd'):
 `docker exec -it icloudpd sync-icloud.sh --Disable-Degugging`
 

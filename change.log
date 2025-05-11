@@ -1,8 +1,15 @@
+11/05/2024
+
+ - Changed Dockerfile so that it attempts to install the named version of iCloud Photos Downloader, rather than just the latest version, assuming that PyPi's working and latest verison is published correctly
+ - Changed syncrhonisation_time so it's set at every scheduled sync, rather than every successful download, in the hopes it will make the expiration notifications sent out more reliably
+ - Changed everything so that it refers to "download" instead of "synchronisation". Synchonisation implies that there is file tracking, or more advanced method of keeping files "in sync" rather than "syncronisation" of the "All Photos" meta-album being by removing photos found in the "Recently Deleted" folder. This seems to be adding confusion as peope are raising issues about files not being deleted hen they are removed, or moved, between albums.
+
 10/05/2025
 
  - Upgraded icloud_photos_downloader to v1.27.5
  - Removed requirement for smtp username and password
  - Changed some logging stuff
+ - Attempt to silence jq errors if getting Telegram updates fails
 
 08/05/2025
 

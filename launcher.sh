@@ -295,32 +295,32 @@ then
    done
 fi
 
-# Check synchronisation interval
-case "${synchronisation_interval}" in
-   21600) synchronisation_interval=21600;; # 6 hours
-   43200) synchronisation_interval=43200;; # 12 hours
-   86400) synchronisation_interval=86400;; # 24 hours
-   129600) synchronisation_interval=129600;; # 36 hours
-   172800) synchronisation_interval=172800;; # 48 hours
-   604800) synchronisation_interval=604800;; # 7 days
-   *) sed 's/synchronisation_interval=.*/synchronisation_interval=86400/' "${config_file}";; # 24 hours
+# Check download interval
+case "${download_interval}" in
+   21600) download_interval=21600;; # 6 hours
+   43200) download_interval=43200;; # 12 hours
+   86400) download_interval=86400;; # 24 hours
+   129600) download_interval=129600;; # 36 hours
+   172800) download_interval=172800;; # 48 hours
+   604800) download_interval=604800;; # 7 days
+   *) sed 's/download_interval=.*/download_interval=86400/' "${config_file}";; # 24 hours
 esac
 # Lower it to 60 if set higher
-if [ "${synchronisation_delay:=61}" -gt 60 ]
+if [ "${download_delay:=61}" -gt 60 ]
 then
-   sed 's/synchronisation_delay=.*/synchronisation_delay=60/' "${config_file}"
+   sed 's/download_delay=.*/download_delay=60/' "${config_file}"
 fi
 
 # Check user not attempting to configure the local user as root as this breaks the "runas" function
 if [ "${group}" = "root" ]
 then
-   log_warning "   | The local group for synchronisation cannot be root, resetting to 'group'"
+   log_warning "   | The local group for download cannot be root, resetting to 'group'"
    sed -i "s%^group=$%group=group%" "${config_file}"
    user_warning_displayed=true
 fi
 if [ "${group_id}" -eq 0 ]
 then
-   log_warning "   | The local group id for synchronisation cannot be 0, resetting to '1000'"
+   log_warning "   | The local group id for download cannot be 0, resetting to '1000'"
    sed -i "s%^group_id=$%group_id=1000%" "${config_file}"
    user_warning_displayed=true
 fi
@@ -382,12 +382,12 @@ then
 fi
 
 # Warn if sync interval is too short
-if [ "${synchronisation_interval}" -lt 43200 ] && [ "${warnings_acknowledged:=false}" = false ]
+if [ "${download_interval}" -lt 43200 ] && [ "${warnings_acknowledged:=false}" = false ]
 then
-   log_warning "   | Setting synchronisation_interval to less than 43200 (12 hours) may cause throttling by Apple"
+   log_warning "   | Setting download_interval to less than 43200 (12 hours) may cause throttling by Apple"
    log_warning "   ! If you run into the following error:"
    log_warning "   ! 'private db access disabled for this account. Please wait a few hours then try again. The remote servers might be trying to throttle requests. (ACCESS_DENIED)'"
-   log_warning "   ! then check your synchronisation_interval is 43200 or greater and switch the container off for 6-12 hours so Apple's throttling expires"
+   log_warning "   ! then check your download_interval is 43200 or greater and switch the container off for 6-12 hours so Apple's throttling expires"
    user_warning_displayed=true
 fi
 
@@ -525,7 +525,7 @@ then
    fi
    if [ "${notification_type}" = "gotify" ]
    then
-      if [ "${gotify_app_token}" ] || [ "${gotify_server_url}" ]
+      if [ -z "${gotify_app_token}" ] || [ -z "${gotify_server_url}" ]
       then
          disable_notifications
       fi
@@ -540,6 +540,13 @@ then
    if [ "${notification_type}" = "msmtp" ]
    then
       if [ -z "${msmtp_host}" ] || [ -z "${msmtp_port}" ] || [ -z "${msmtp_user}" ] || [ -z "${msmtp_pass}" ]
+      then
+         disable_notifications
+      fi
+   fi
+   if [ "${notification_type}" = "signal" ]
+   then
+      if [ -z "${signal_host}" ] || [ -z "${signal_port}" ] || [ -z "${signal_number}" ] || [ -z "${signal_recipient}" ]
       then
          disable_notifications
       fi
