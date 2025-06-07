@@ -1993,7 +1993,7 @@ send_notification()
    then
       if [ "${notification_files_preview_count}" ]
       then
-         signal_text="$(echo -e "${notification_icon} ${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text}")"
+         signal_text="$(echo -e "${notification_icon} ${notification_message}\\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\\n${notification_files_preview_text//$'\n'/'\n'}")"
       else
          signal_text="$(echo -e "${notification_icon} ${notification_message}")"
       fi
