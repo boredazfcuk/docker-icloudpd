@@ -554,7 +554,7 @@ then
 fi
 
 # Check download directories are mounted
-log_info " - Checing download locations are mounted"
+log_info " - Checking download locations are mounted"
 if [ "${download_path}" ]
 then
    if [ "$(cat /proc/mounts | cut -d' ' -f2 | grep -c "${download_path%/}")" -eq 0 ]

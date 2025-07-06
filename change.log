@@ -1,4 +1,9 @@
-11/05/2024
+06/07/2025
+
+ - Corrected a typo in the launcher.sh script
+ - Added a check in the main script to make sure the Telegram polling file is created. Should be performed in the launcher, but I've created a new container for a new Apple ID and ran into the error
+
+11/05/2025
 
  - Changed Dockerfile so that it attempts to install the named version of iCloud Photos Downloader, rather than just the latest version, assuming that PyPi's working and latest verison is published correctly
  - Changed syncrhonisation_time so it's set at every scheduled sync, rather than every successful download, in the hopes it will make the expiration notifications sent out more reliably

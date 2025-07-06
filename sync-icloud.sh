@@ -320,6 +320,10 @@ configure_notifications()
                log_debug "   - Checking api.telegram.org for updates"
             fi
             telegram_update_id_offset_file="/config/telegram_update_id.num"
+            if [ ! -f "${telegram_update_id_offset_file}" ]
+            then
+               echo -n 0 > "${telegram_update_id_offset_file}"
+            fi
             telegram_update_id_offset="$(head -1 ${telegram_update_id_offset_file})"
             log_info "   - Latest update id: ${telegram_update_id_offset}"
          else
