@@ -1997,13 +1997,14 @@ send_notification()
    then
       if [ "${notification_files_preview_count}" ]
       then
-         signal_text="$(echo -e "${notification_icon} ${notification_message}\\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\\n${notification_files_preview_text//$'\n'/'\n'}")"
+         signal_text="$(echo -e "${notification_icon} ${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//$'\n'/'\n'}")"
       else
          signal_text="$(echo -e "${notification_icon} ${notification_message}")"
       fi
+      escaped_signal_text=$(printf "%s" "$signal_text" | sed ':a;N;$!ba;s/\r//g;s/\n/\\n/g')
       notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "http://${signal_host}:${signal_port}/v2/send" \
          --header 'Content-Type: application/json' \
-         --data "{\"message\": \"${signal_text}\", \"number\": \"${signal_number}\", \"recipients\": [ \"${signal_recipient}\" ]}")"
+         --data "{\"message\": \"${escaped_signal_text}\", \"number\": \"${signal_number}\", \"recipients\": [ \"${signal_recipient}\" ]}")"
       curl_exit_code="$?"
    fi
    if [ "${notification_type}" ] && [ "${notification_type}" != "msmtp" ]
