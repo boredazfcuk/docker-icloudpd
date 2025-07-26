@@ -1533,7 +1533,7 @@ convert_all_heic_files()
 {
    IFS=$'\n'
    log_info "Convert all HEICs to JPEG, if required..."
-   for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null); do
+   for heic_file in $(find "${download_path}" -type f -iname "*.HEIC" 2>/dev/null); do
       log_debug "HEIC file found: ${heic_file}"
       if [ "${heic_file##*.}" = 'HEIC' ]
       then
@@ -1573,7 +1573,7 @@ remove_all_jpeg_files()
    log_warning "Remove all JPGs that have accompanying HEIC files. This could result in data loss if HEIC file name matches the JPG file name, but content does not"
    log_info "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
-   for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null)
+   for heic_file in $(find "${download_path}" -type f -iname "*.HEIC" 2>/dev/null)
    do
       if [ "${heic_file##*.}" = 'HEIC' ]
       then
@@ -1601,7 +1601,7 @@ force_convert_all_heic_files()
    log_warning "Force convert all HEICs to JPEG. This could result in data loss if JPG files have been edited on disk"
    log_info "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
-   for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null); do
+   for heic_file in $(find "${download_path}" -type f -iname "*.HEIC" 2>/dev/null); do
       if [ "${heic_file##*.}" = 'HEIC' ]
       then
          file_extension='JPG'
@@ -1641,7 +1641,7 @@ force_convert_all_mnt_heic_files()
    log_warning "Force convert all HEICs in /mnt directory to JPEG. This could result in data loss if JPG files have been edited on disk"
    log_info "Waiting for 2mins before progressing. Please stop the container now, if this is not what you want to do..."
    sleep 120
-   for heic_file in $(find "/mnt" -type f -iname *.HEIC 2>/dev/null)
+   for heic_file in $(find "/mnt" -type f -iname "*.HEIC" 2>/dev/null)
    do
       if [ "${heic_file##*.}" = 'HEIC' ]
       then
@@ -1671,7 +1671,7 @@ correct_jpeg_timestamps()
 {
    IFS=$'\n'
    log_info "Check and correct converted HEIC timestamps..."
-   for heic_file in $(find "${download_path}" -type f -iname *.HEIC 2>/dev/null)
+   for heic_file in $(find "${download_path}" -type f -iname "*.HEIC" 2>/dev/null)
    do
       if [ "${heic_file##*.}" = 'HEIC' ]
       then

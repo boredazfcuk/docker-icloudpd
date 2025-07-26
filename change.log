@@ -1,3 +1,11 @@
+26/07/2025
+
+ - Merged PR from derjoerg which fixes Signal JSON escaping
+
+14/07/2025
+
+ - Think I found a bug. I pinched the code to convert a directory full of HEIC files into JPEGs, made some mods, and then connected to the containers and pasted the code to the command line. The `find` command was broken as it needed double quotes around the *.HEIC. Found this error in 6 other places so have now quoted them all.
+ 
 06/07/2025
 
  - Corrected a typo in the launcher.sh script
