@@ -1,3 +1,7 @@
+12/08/2025
+
+ - Upgraded icloud_photos_downloader to v1.29.4 from upstream
+
 06/07/2025
 
  - Corrected a typo in the launcher.sh script
@@ -19,7 +23,7 @@
 08/05/2025
 
  - New variable **silent_file_notifications** will send low priority messages for file downloads and file deletions so that notifications are sent, but you don't get alerted with sounds/vibrations.
- 
+
 18/03/2025
 
  - Launcher now halts if both photo_album and photo_library are configured as these options conflict with each other
@@ -38,18 +42,18 @@
 
 17/02/2025
 
- - Setting the umask via /etc/passwd didn't work as expected. Now configuring via /etc/profile as it should be consistent whether using interactive or non-interactive shells. 
+ - Setting the umask via /etc/passwd didn't work as expected. Now configuring via /etc/profile as it should be consistent whether using interactive or non-interactive shells.
 
 16/02/2025
 
  - Now setting umask based on file permissions. This should result in files being created with correct permissions, if they are created with a non-default umask (022), rather than relying on the functions to correct permissions being run.
  - Change the variable name save_ifs to OLDIFS. Think I like that more.
- 
+
 13/02/2025
 
- - Changed the launcher to check that notifications are configured correctly pre-launch. 
+ - Changed the launcher to check that notifications are configured correctly pre-launch.
  - Fixed Nextcloud URL log display which was missing a / character between the webroot and desination directory
- 
+
 05/02/2025
 
  - Changed the Telegram bot check so that it only occurs once, during the launch script. Once it successfully verifies the bot, it updates a new variable in the config file and will never check again. For some reason I see it failling to verify my own bot occasionally. I think the check fails randomly for some reason. I've no need to do it each time though as the update number is tracked via file in /config so it should be able to work even if verification fails.
@@ -96,7 +100,7 @@
  - Changed the command builder to use an array
  - Change the logging to not display the keep_icloud_recent_days variable if it is not set
  - Added an extra variable, keep_icloud_recent_only which has to be switched on to enable keep_icloud_recent_days. This is a dangerous feature and enabling it can just blow away entire icloud accounts. Also added two minute warning so it can be cancelled before any damage is done.
- 
+
 07/01/2025
 
  - Updated parameter name **keep_recent_days** to **keep_icloud_recent_days**.
@@ -115,7 +119,7 @@
 
  - Messed about with the Telegram polling times so that when re-authenticating, the polling frequency increases so it's more responsive. Polling every 60s makes re-authentication take about 3mins. Should now be loads quicker.
  - Also noticed that additional sleeps in the Telegram polling sequence would mean the sync time slips by 2 seconds every 60. I've not checked logs to confirm, so this is only a suspicion. Have changed it anyway so that it should now be more accurate and slippage should only be by the amount of time it takes to process all the commands... so hopefully can be measured in miliseconds.
- 
+
 29/12/2024
 
  - Bump icloud-photos-downloader to v1.25.1 and pushed to GitHub.
@@ -132,15 +136,15 @@
 15/12/2024
 
  - Still seems like there is a bug in the JPG file conversion code. Doesn't seem to create the subdirectories it needs. Likely only ever worked if folder_structure was set to none.
- 
+
 13/12/2024
 
  - Imagemagick changed the "convert" command to "magick convert". I'm sure they must have a reason for it, but it seems a little daft... and annoying.
- 
+
 09/12/2024
 
  - Well that was weird. I just re-built the "upload library to nextcloud" function using the newly reworked "create directories" and "upload files" functions as a template and the function worked first time in testing. Ther'es gotta be something wrong with it, surely?
- 
+
 08/12/2024
 
  - A bunch more Nextcloud stuff done over the weekend. All functions now reworked except for the one that uploads the entire library. Not as much space saved as I'd liked. The upload function was actually pretty well written, plus I broke them into separate functions for creating directories and uploading files. I also found a potential issue regarding case sensitivity and the HEIC conversion tool, so added a bunch of code to handle that. Hopefully I'll get some time to finish the last function tomorrow/Tuesday.
@@ -162,7 +166,7 @@
 23/11/2024
 
  - Well, seems like remote auth was royally fucked with the switch from ash to bash due to the regex matching. Think it's fixed. Pretty sure there were PRs surrounding the photo_album and photo_lirary features that used the same regex based matches. they could be broke, but it's late, so I'm going to bed. I'm also a bit drunk so I'll probably forget to check if its broken tomorrow.
- 
+
 22/11/2024
 
  - Bump to iCloud Photos Downloader v1.24.4
@@ -176,7 +180,7 @@
 
  - Removed all the "Change: " prefixes in this file. I originally planned to have different stuff, and there probably are a few still in here, but they serve no value.
  - Changed the search for "True" and "False" in the config file replacements so that they are now case insensitive. TRUE will also now be changed to true. As FaLSe will be changed to false.
- 
+
 13/10/2024
 
  - Issue reported with a "] if statement preventing launch. Odd, as greppimg the main script for it returned a second result which must have been there for many, mant releases.
@@ -189,7 +193,7 @@
 17/09/2024
 
  - Added PR from @Teknicallity which fixes a rare condition which would lead to an empty download_path variable and some other logging output changes.
- 
+
 16/09/2024
 
  - Rebase to Alpine Linux 3.20.3
@@ -212,7 +216,7 @@
 01/09/2024
 
  - Bump to iCloud Photos Downloader v1.23.2
- - Telegram remote authentication is working perfectly now... only related issue is that it's spamming the logs. Need to figure out how to quieten it down. Task for another day, I think. I've done so many MFA re-authentications today, it won't be long before Apple block me again. 
+ - Telegram remote authentication is working perfectly now... only related issue is that it's spamming the logs. Need to figure out how to quieten it down. Task for another day, I think. I've done so many MFA re-authentications today, it won't be long before Apple block me again.
  - Bump to iCloud Photos Downloader v.123.3
  - Fixed an odd bug that when the container is waiting for authentication to complete, the cookie was being removed. Think this behaviour has changed somwhere down the line. Previously I think the file was being overwritten, no I think it removes the file at the start of the process. This resulted in a grep command not being able to find the file. Now, set the grep command to silence errors and just echo a value indicating non-detection instead.
  - A buncu of remote authentication tweaks. It's looking a lot nicer now. No debug info printed and logging nicely too.
@@ -220,7 +224,7 @@
 31/08/2024
 
  - Fake user agent to fix IYUU notifications in China.
- 
+
 30/08/2024
 
  - Latest version of icloudpd changed the way that the phone numbers were output (specifically the ***** *****) part, so the remote auth feature would not fire out the Telegram notification with the number on.
@@ -230,11 +234,11 @@
  - Reworked Telegram notifications so that they have a base URL instead of notification URL, this is to remove duplicated lines of code surrounding notifications and polling.
  - Amended health check to instpect the same cookie expiry value as the main script.
  - Changed log output so that next synchronisation dates which are more than 20 hours in the futuer display the locale's data and time.
- 
+
 24/08/2024
 
  - Now possible to configure Telegram to use HTTP instead of HTTPS by setting **telegram_http=true**
- 
+
 23/08/2024
 
  - Amended some error logs.
@@ -247,25 +251,25 @@
 31/07/2024
 
  - Might have figured out the Telgram remote authentication expect scripts bollocks.
- 
+
 23/07/2024
 
  - Possible bug with jpeg_path veriable. Have added some stuff to check and set permissions.
- 
+
 21/07/2024
 
  - Got rid of the config_dir variable and hardcoded /config. Some systems dont' seem to be honoring it, even though it's specified in the container.
  - Bumped to v1.22.0
  - icloud-photos-downloader version output text has changed. Updated command so it's correctly displayed.
- 
+
 10/07/2024
 
  - Bug with Alternative size.
- 
+
 09/07/2024
 
  - Missed one of the new photo sizes. Alternative. Duh.
- 
+
 08/07/2024
 
  - Reworked user/group creation. As the config file is now user to specify the user/group and not variables, it would default to creating a user:1000 and group:1000 for the user and group. Then a user could come along and change say the username, but it would fail to change this due to the UID already being is use. Script has been changed to overwrite the /etc/passwd and /etc/group files with minimal ones (only a root user and only root, tty and shadow for groups). It will then create the new user. This should allow much better user switching within the container.
@@ -352,7 +356,7 @@
 25/05/2024
 
  - Bumped to v1.17.7 and relocated python venv from /opt/icloudpd_latest to /opt/icloudpd as I'm no longer installing two versions into the container. Also... noticed Alpine is now at version 3.20
- 
+
 24/05/2024
 
  - Bumped to v1.17.6
@@ -360,10 +364,10 @@
 16/05/2024
 
  - Amended the log output for when an error is detected to instruct the end user to gather a debug log before posting the issue to GitHub. Too many muppets posting a single line of error message and expecting me to know what they've messed up to break it in that way.
- 
+
 09/05/2024
 
- - Added a check to see if the download path is writable. A lot of users have reported seeing the error: "Invalid value for '-d' / '--directory': Path '/download_path' is not readable" and although some users it appears to be due to SMB file mounts, I suspect it is the age old issue that their permissions are just inadequate... like SMB permissions don't just have file permissions, they have user permissions via the share itself, and it's likely just that. I now check that the download directory is writable. If not, then I attempt to set the permissions as root for the configured user, then re-test. If it fails, I just bail and kick out an error. 
+ - Added a check to see if the download path is writable. A lot of users have reported seeing the error: "Invalid value for '-d' / '--directory': Path '/download_path' is not readable" and although some users it appears to be due to SMB file mounts, I suspect it is the age old issue that their permissions are just inadequate... like SMB permissions don't just have file permissions, they have user permissions via the share itself, and it's likely just that. I now check that the download directory is writable. If not, then I attempt to set the permissions as root for the configured user, then re-test. If it fails, I just bail and kick out an error.
 
 05/05/2024
 
@@ -389,12 +393,12 @@
 31/03/2024
 
  - reauth.sh script now checks for auth_china variable and configures authentication domain.
- 
+
 27/03/2024
 
  - Telgram messaging can now re-authenticate your icloud.com account.
  - Added reauth.sh script so that re-initialising the cookie is easier.
- 
+
 20/01/2024
 
  - Gotify can now be configured for HTTP or HTTPS connections.
@@ -437,7 +441,7 @@
 19/10/2023
 
  - Added a new Nextcloud URL encode function. If a user is downloading to Photo Albums, or Shared Libraries, or even just has files with special characters (like spaces) in them, then the Nextcloud URL needs to be encoded.
- 
+
 18/10/2023
 
  - Trailing slashes on $download_path messes up Nextcloud uploads. Added a bit into the upload function which should account for this.
@@ -487,7 +491,7 @@
 20/08/2023
 
  - Added a bit to create some extra temporary files as some people are having issues with them.
- 
+
 14/08/2023
 
  - Added Nextcloud connectivity check. My Nextcloud container was paused during a large offsite backup, so Nextcloud connectivity borked. This meant fails failed to upload and will not longer be retried. I can fix by running the function to upload the entire library, it's just a bit of a ballache, so I've added a connectivity check which will wait for the Nextcloud server to come back online. It will send a notification on the first failure, then again after an hour.
@@ -496,7 +500,7 @@
 02/08/2023
 
  - Amended the code so that it now checks for, and removes empty folders from the Nextcloud server after it's removed stuff from Recently Deleted. Works on the test uns I've done. Not nuked my photo store, which is good.
- - Also amended the code which parses the download logs for downloaded/deleted files. I used to extract column 5 to know what files to process. This doesn't work for file paths with spaces in them. I've now amended it so that it cuts from column 9 upwards, which should give me the whole file path, including spaces. Haven't tested anything yet. Wish me luck. Wow. It worked first time! Tested downloads, deletes, uploads to Nextcloud, deletes from Nextcloud. Life is good. 
+ - Also amended the code which parses the download logs for downloaded/deleted files. I used to extract column 5 to know what files to process. This doesn't work for file paths with spaces in them. I've now amended it so that it cuts from column 9 upwards, which should give me the whole file path, including spaces. Haven't tested anything yet. Wish me luck. Wow. It worked first time! Tested downloads, deletes, uploads to Nextcloud, deletes from Nextcloud. Life is good.
  - Written a function which allows uploading of the entire library to Nextcoud in one go... Invoke with sync-cloud.sh --upload-library-to-nextcloud.
  - Amended the command line parameters so that ones that are multiple word, have spaces separated by hyphens like the command above.
  - Removed a few more checks to see if variables are present, over an acual value of true/false.
@@ -593,7 +597,7 @@
 
 10/04/2023
 
- - So many changes, I've forgotten most of them... Um... now I use Python virtual environments to install mutliple versions of icloud-photos-downloader... It incorporates v1.12.0, which is used for downloading photos globally. It also uses a modified version of v1.7.3 which allows authentication against the China servers. Also rebased the image to use Alpine 3.17.3. 
+ - So many changes, I've forgotten most of them... Um... now I use Python virtual environments to install mutliple versions of icloud-photos-downloader... It incorporates v1.12.0, which is used for downloading photos globally. It also uses a modified version of v1.7.3 which allows authentication against the China servers. Also rebased the image to use Alpine 3.17.3.
 
 03/04/2023
 
@@ -618,7 +622,7 @@
 
 29/03/2023
 
- - Altered the way the log file creation works so that it can add missing/future variables and sort it into alphabetical order. 
+ - Altered the way the log file creation works so that it can add missing/future variables and sort it into alphabetical order.
 
 28/03/2023
 
@@ -815,7 +819,7 @@
 
 25/11/2021
 
- - Added variable icloud_china so that photos are downloaded from icloud.com.cn instead of icloud.com 
+ - Added variable icloud_china so that photos are downloaded from icloud.com.cn instead of icloud.com
  - Removed readme information about obsolete variable interavtive_only. The readme is nearing it's maximum size on Dockerhub, so this helps keep tthe number of characters down.
 
 21/11/2021

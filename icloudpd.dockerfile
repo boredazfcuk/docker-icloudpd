@@ -3,7 +3,7 @@ LABEL maintainer="boredazfcuk"
 
 ENV XDG_DATA_HOME="/config" TZ="UTC" ENV="/etc/profile" config_file="/config/icloudpd.conf"
 
-ARG icloudpd_version="1.27.1"
+ARG icloudpd_version="1.29.4"
 ARG build_dependencies="gcc python3-dev libc-dev libffi-dev cargo openssl-dev"
 ARG app_dependencies="findutils nano nano-syntax py3-pip exiftool coreutils tzdata curl libheif imagemagick shadow jq jpeg bind-tools expect inotify-tools msmtp"
 
@@ -27,7 +27,7 @@ COPY CONFIGURATION.md /opt
 COPY profile /etc/profile
 
 HEALTHCHECK --start-period=10s --interval=1m --timeout=10s CMD /usr/local/bin/healthcheck.sh
-  
+
 VOLUME "/config"
 
 CMD /usr/local/bin/launcher.sh
