@@ -1197,7 +1197,7 @@ nextcloud_upload()
          if [ -f "${full_filename%.*}.${file_extension}" ]
          then
             log_info_n "Uploading ${full_filename} to ${nextcloud_destination%.*}.${file_extension}"
-            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_destination%.HEIC}.JPG")"
+            curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_destination%.*}.${file_extension}")"
             if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]
             then
                echo "Success"
