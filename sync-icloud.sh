@@ -1338,7 +1338,7 @@ nextcloud_upload_library()
       log_info_n "Uploading ${full_filename} to ${nextcloud_destination}"
       if curl --silent --output /dev/null --fail --head --user "${nextcloud_username}:${nextcloud_password}" "${nextcloud_destination}"
       then
-         echo "File already exsits"
+         echo "File already exists"
       else
          curl_response="$(curl --silent --show-error --location --user "${nextcloud_username}:${nextcloud_password}" --write-out "%{http_code}" --upload-file "${full_filename}" "${nextcloud_destination}")"
          if [ "${curl_response}" -ge 200 ] && [ "${curl_response}" -le 299 ]

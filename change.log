@@ -1,7 +1,12 @@
+17/08/2025
+
+ - Typo "File exsits"
+ - Bump to icloud-photos-downloader 1.29.4
+
 16/08/2025
 
  - Found a bug which was resulting in .JPG/.PNG files being uploaded to Nextcloud as .JPG.JPG and .PNG.JPG
- 
+
 26/07/2025
 
  - Merged PR from derjoerg which fixes Signal JSON escaping
