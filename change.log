@@ -1,7 +1,8 @@
 20/8/2025
 
  - Bump to icloud-photos-downloader 1.31.0
- - Add `--keep-unicode-in-filenames` to new files ceck launch command
+ - Add `--keep-unicode-in-filenames` to new files check launch command
+ - The --keep-unicode-in-filenames broke stuff. 
 
 19/8/2025
 
