@@ -2,7 +2,7 @@
 
  - Bump to icloud-photos-downloader 1.31.0
  - Add `--keep-unicode-in-filenames` to new files check launch command
- - The --keep-unicode-in-filenames broke stuff. 
+ - The --keep-unicode-in-filenames addition broke stuff. Turns out it needs a boolean parameter, instead of just beeing true if present and false if not.
 
 19/8/2025
 
