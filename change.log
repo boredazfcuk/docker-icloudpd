@@ -1,10 +1,14 @@
-20/8/2025
+02/09/2025
+
+ - Bump to icloud-photos-downloader 1.32.2
+
+20/08/2025
 
  - Bump to icloud-photos-downloader 1.31.0
  - Add `--keep-unicode-in-filenames` to new files check launch command
  - The --keep-unicode-in-filenames addition broke stuff. Turns out it needs a boolean parameter, instead of just beeing true if present and false if not.
 
-19/8/2025
+19/08/2025
 
  - Bump to icloud-photos-downloader 1.30.0
 
