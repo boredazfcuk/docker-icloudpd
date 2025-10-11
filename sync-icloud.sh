@@ -818,9 +818,9 @@ check_files()
    fi
    log_info "Check for new files using password stored in keyring file"
    log_info "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
-   log_debug "Launch command: /opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --keep-unicode-in-filenames true --only-print-filenames"
+   log_debug "Launch command: /opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --keep-unicode-in-filenames --only-print-filenames"
    >/tmp/icloudpd/icloudpd_check_error
-   run_as "(/opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --keep-unicode-in-filenames true --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log"
+   run_as "(/opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --keep-unicode-in-filenames --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log"
    check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
    if [ "${check_exit_code}" -ne 0 ] || [ -s /tmp/icloudpd/icloudpd_check_error ]
    then
@@ -2065,7 +2065,7 @@ command_line_builder()
    fi
    if [ "${keep_unicode}" != false ]
    then
-      command_line="${command_line} --keep-unicode-in-filenames ${keep_unicode}"
+      command_line="${command_line} --keep-unicode-in-filenames"
    fi
    if [ "${live_photo_mov_filename_policy}" != "suffix" ]
    then
