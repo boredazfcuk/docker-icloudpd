@@ -270,6 +270,14 @@ fi
    then
       echo skip_album="${skip_album}"
    fi
+   if [ "$(grep -c "^skip_created_afer=" "${config_file}")" -eq 0 ]
+   then
+      echo skip_created_afer="${skip_created_afer}"
+   fi
+   if [ "$(grep -c "^skip_created_before=" "${config_file}")" -eq 0 ]
+   then
+      echo skip_created_before="${skip_created_before}"
+   fi
    if [ "$(grep -c "^skip_library=" "${config_file}")" -eq 0 ]
    then
       echo skip_library="${skip_library}"
@@ -929,6 +937,14 @@ fi
 if [ "${skip_album}" ]
 then
    sed -i "s%^skip_album=.*%skip_album=\"${skip_album}\"%" "${config_file}"
+fi
+if [ "${skip_created_after}" ]
+then
+   sed -i "s%^skip_created_after=.*%skip_created_after=${skip_created_after}%" "${config_file}"
+fi
+if [ "${skip_created_before}" ]
+then
+   sed -i "s%^skip_created_before=.*%skip_created_before=${skip_created_before}%" "${config_file}"
 fi
 if [ "${skip_library}" ]
 then

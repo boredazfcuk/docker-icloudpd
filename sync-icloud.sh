@@ -2115,6 +2115,14 @@ command_line_builder()
    then
       command_line="${command_line} --recent ${recent_only}"
    fi
+   if [ "${skip_created_after}" ]
+   then
+      command_line="${command_line} ----skip-created-after ${skip_created_after}"
+   fi
+   if [ "${skip_created_before}" ]
+   then
+      command_line="${command_line} ----skip-created-before ${skip_created_before}"
+   fi
 }
 
 synchronise_user()
