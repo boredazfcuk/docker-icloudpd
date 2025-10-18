@@ -953,16 +953,18 @@ download_albums()
    fi
    IFS=","
    log_debug "Starting albums download..."
+   # Clear log file for the download list to append to
+   echo "" > /tmp/icloudpd/icloudpd_sync.log
    for album in ${albums_to_download}
    do
       log_info "Downloading album: ${album}"
       if [ "${albums_with_dates}" = true ]
       then
          log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
       else
          log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
       fi
       if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]
       then
@@ -1011,6 +1013,8 @@ download_libraries()
    else
       libraries_to_download="${photo_library}"
    fi
+   # Clear log file for the download list to append to
+   echo -n "" > /tmp/icloudpd/icloudpd_sync.log
    IFS=","
    for library in ${libraries_to_download}
    do
@@ -1018,10 +1022,10 @@ download_libraries()
       if [ "${libraries_with_dates}" = true ]
       then
          log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure ${library}/${folder_structure} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}/${folder_structure}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}/${folder_structure}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
       else
          log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure ${library} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
-         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
+         run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
       fi
       if [ "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" -ne 0 ]
       then
