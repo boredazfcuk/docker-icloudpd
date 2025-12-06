@@ -1,6 +1,7 @@
 06/12/2025
 
  - Removed quotes from "$msmtp_args" to allow multiple extra args
+ - Made added variable for $msmtp_auth to allow authentication to be disabled which allows sending via open relay
 
 02/09/2025
 

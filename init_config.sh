@@ -398,6 +398,10 @@ fi
    then
       echo wecom_secret="${wecom_secret}"
    fi
+   if [ "$(grep -c "^msmtp_auth=" "${config_file}")" -eq 0 ]
+   then
+      echo msmtp_auth="${msmtp_auth:=on}"
+   fi
    if [ "$(grep -c "^msmtp_host=" "${config_file}")" -eq 0 ]
    then
       echo msmtp_host="${msmtp_host}"
@@ -682,6 +686,10 @@ fi
 if [ -z "$(grep "^webhook_insecure=" "${config_file}" | awk -F= '{print $2}')" ]
 then
    sed -i "s%^webhook_insecure=$%webhook_insecure=false%" "${config_file}"
+fi
+if [ -z "$(grep "^msmtp_auth=" "${config_file}" | awk -F= '{print $2}')" ]
+then
+   sed -i "s%^msmtp_auth=$%msmtp_auth=on%" "${config_file}"
 fi
 if [ -z "$(grep "^msmtp_tls=" "${config_file}" | awk -F= '{print $2}')" ]
 then
@@ -1061,6 +1069,10 @@ fi
 if [ "${wecom_secret}" ]
 then
    sed -i "s%^wecom_secret=.*%wecom_secret=${wecom_secret}%" "${config_file}"
+fi
+if [ "${msmtp_auth}" ]
+then
+   sed -i "s%^msmtp_auth=.*%msmtp_auth=${msmtp_auth}%" "${config_file}"
 fi
 if [ "${msmtp_host}" ]
 then
