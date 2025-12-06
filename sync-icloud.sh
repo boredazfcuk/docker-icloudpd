@@ -1993,9 +1993,9 @@ send_notification()
       fi
       if [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]
       then
-         printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --user=$msmtp_user --passwordeval="echo -n $msmtp_pass" --from=$msmtp_from --auth=on --tls=$msmtp_tls "$msmtp_args" -- "$msmtp_to"
+         printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --user=$msmtp_user --passwordeval="echo -n $msmtp_pass" --from=$msmtp_from --auth=on --tls=$msmtp_tls $msmtp_args -- "$msmtp_to"
       else
-         printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --from=$msmtp_from --auth=on --tls=$msmtp_tls "$msmtp_args" -- "$msmtp_to"
+         printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --from=$msmtp_from --auth=on --tls=$msmtp_tls $msmtp_args -- "$msmtp_to"
       fi
    elif [ "${notification_type}" = "signal" ]
    then

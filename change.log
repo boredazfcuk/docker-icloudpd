@@ -1,3 +1,7 @@
+06/12/2025
+
+ - Removed quotes from "$msmtp_args" to allow multiple extra args
+
 02/09/2025
 
  - Bump to icloud-photos-downloader 1.32.2
