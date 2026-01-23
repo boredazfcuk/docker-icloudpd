@@ -1,7 +1,13 @@
+23/01/2025
+
+ - Bump to Alpine Linux 3.23.2
+
 06/12/2025
 
  - Removed quotes from "$msmtp_args" to allow multiple extra args
  - Made added variable for $msmtp_auth to allow authentication to be disabled which allows sending via open relay
+ - Bump to Alpine Linux 3.23.0
+ - Fix log output of Telegram variables
 
 02/09/2025
 

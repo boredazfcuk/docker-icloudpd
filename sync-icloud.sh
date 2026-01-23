@@ -300,11 +300,11 @@ configure_notifications()
       if [ "${telegram_server}" ]
       then
          log_debug "   - ${notification_type_tc} base URL: ${telegram_protocol}://${telegram_server}/bot${telegram_token:0:2}********${telegram_token:0-2}"
+         log_debug "   - ${notification_type_tc} notification URL: ${telegram_protocol}://${telegram_server}y/bot${telegram_token:0:2}********${telegram_token:0-2}/sendMessage"
       else
          log_debug "   - ${notification_type_tc} base URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}"
-
+         log_debug "   - ${notification_type_tc} notification URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}/sendMessage"
       fi
-      log_debug "   - ${notification_type_tc} notification URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}/sendMessage"
       if [ "${script_launch_parameters}" ]
       then
          telegram_polling="false"
