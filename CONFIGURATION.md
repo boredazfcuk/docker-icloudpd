@@ -362,7 +362,7 @@ Dockerfile has a health check which will change the status of the container to '
 Every 30 days, the cookie will expire and need to be re-authenticated. This can be done by running the re-authentication script:
 
 ```
-docker container exec -it reauth.sh
+docker exec -it icloudpd reauth.sh
 ```
 
 It will then launch the re-authentication process, presenting you with an MFA code on your iDevice and asking for this new code on the command line. e.g:
