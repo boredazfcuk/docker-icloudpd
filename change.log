@@ -1,3 +1,10 @@
+08/02/2026
+
+ - Just some cosmetic stuff. Found a way of getting the correct "play" emoji in Telegram and changed the delete icon to the wastebin emoji
+ - Fixed check that user is not set to root, due to it breaking run_as function. Seems this code must have been lost when config stuff got moved to separate script, as only the stuff to catch a group/group_id of root/0 existed.
+ - Fixed a bug that may have been affecting the creation of the local user account. When creating the config file, it was setting the defaults with a variable expansion like ${var:=false}, in addition to writing the value to the icloudpd.conf file, it actually sets the variable in memory. This could have led to unpredictability when creating the default user, as it was pulling "user=" from the config and using it to set the $user variable. If that value was empty (as it would be when creating the config file), it was then setting $user to be "user". I think that this means in some cases, the user configured via Docker variables was being thrown out, and replaced with just "user". It possible this was happening with user_id/group/group_id and could be the reason for quite a few permission issues seen recently.
+ - Major overhaul of the init_config.sh script. Never really liked it. Far too many greps and seds occuring. I meat there were 3 write operations occuring. One to create any missing settings. A second to write in the default values for missing settings. Plus a 3rd to pull values from Docker variables to place into the file. All had a performance cost. Have now built a loop which is fed from an array and it only writes once. Far cleaner.
+
 23/01/2025
 
  - Bump to Alpine Linux 3.23.2

@@ -142,6 +142,7 @@ disable_notifications()
 
 ##### Start Script #####
 log_info "Initialising container..."
+export config_file="/config/icloudpd.conf"
 
 # Create the temporary directory
 if [ ! -d "/tmp/icloudpd" ]
@@ -312,6 +313,18 @@ then
 fi
 
 # Check user not attempting to configure the local user as root as this breaks the "runas" function
+if [ "${user}" = "root" ]
+then
+   log_warning "   | The local user for download cannot be root, resetting to 'user'"
+   sed -i "s%^user=$%user=user%" "${config_file}"
+   user_warning_displayed=true
+fi
+if [ "${user_id}" -eq 0 ]
+then
+   log_warning "   | The local user id for download cannot be 0, resetting to '1000'"
+   sed -i "s%^user_id=$%user_id=1000%" "${config_file}"
+   user_warning_displayed=true
+fi
 if [ "${group}" = "root" ]
 then
    log_warning "   | The local group for download cannot be root, resetting to 'group'"

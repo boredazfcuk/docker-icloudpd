@@ -411,8 +411,8 @@ configure_notifications()
       log_debug "   - ${notification_type_tc} notification URL: ${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token:0:2}********${wecom_token:0-2}"
    elif [ "${notification_type}" = "gotify" ] && [ "${gotify_app_token}" ] && [ "${gotify_server_url}" ]
    then
-   if [ "${gotify_https}" = true ]
-   then
+      if [ "${gotify_https}" = true ]
+      then
          gotify_scheme="https"
       else
          gotify_scheme="http"
@@ -1775,32 +1775,38 @@ send_notification()
 
    if [ "${notification_classification}" = "startup" ]
    then
-      notification_icon="\xE2\x96\xB6"
+      # notification_icon="\xE2\x96\xB6"
+      notification_icon="▶️"
       # 启动成功通知封面/Image for Startup success
       thumb_media_id="$media_id_startup"
    elif [ "${notification_classification}" = "remotesync" ]
    then
-      notification_icon="\xE2\x96\xB6"
+      # notification_icon="\xE2\x96\xB6"
+      notification_icon="▶️"
       # 启动成功通知封面/Image for Startup success
       thumb_media_id="$media_id_startup"
    elif [ "${notification_classification}" = "downloaded files" ]
    then
-      notification_icon="\xE2\x8F\xAC"
+      # notification_icon="\xE2\x8F\xAC"
+      notification_icon="⏬"
       # 下载通知封面/Image for downloaded files
       thumb_media_id="$media_id_download"
    elif [ "${notification_classification}" = "cookie expiration" ]
    then
-      notification_icon="\xF0\x9F\x9A\xA9"
+      # notification_icon="\xF0\x9F\x9A\xA9"
+      notification_icon="🚩"
       # cookie即将过期通知封面/Image for cookie expiration
       thumb_media_id="$media_id_expiration"
    elif [ "${notification_classification}" = "deleted files" ]
    then
-      notification_icon="\xE2\x9D\x8C"
+      # notification_icon="\xE2\x9D\x8C"
+      notification_icon="🗑️"
       # 删除文件通知封面/Image for deleted files
       thumb_media_id="$media_id_delete"
    elif [ "${notification_classification}" = "failure" ] || [ "${notification_classification}" = "cookie expired" ]
    then
-      notification_icon="\xF0\x9F\x9A\xA8"
+      # notification_icon="\xF0\x9F\x9A\xA8"
+      notification_icon="🚨"
       # 同步失败、cookiey已过期通知封面/Image for cookie expired or failure
       thumb_media_id="$media_id_warning"
    fi
@@ -1808,209 +1814,195 @@ send_notification()
    then
       log_info "Sending ${notification_type_tc} ${notification_classification} notification"
    fi
-   if [ "${notification_type}" = "prowl" ]
-   then
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
-         --form apikey="${prowl_api_key}" \
-         --form application="${notification_title}" \
-         --form event="${notification_event}" \
-         --form priority="${notification_priority}" \
-         --form description="${notification_message}")"
-      curl_exit_code="$?"
-   elif [ "${notification_type}" = "pushover" ]
-   then
-      if [ "${notification_priority}" = "2" ]
-      then
-         notification_priority=1
-      fi
-      if [ "${notification_files_preview_count}" ]
-      then
-         pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text}")"
-      else
-         pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}")"
-      fi
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
-         --form-string "user=${pushover_user}" \
-         --form-string "token=${pushover_token}" \
-         --form-string "title=${notification_title}" \
-         --form-string "sound=${pushover_sound}" \
-         --form-string "priority=${notification_priority}" \
-         --form-string "message=${pushover_text}")"
-      curl_exit_code="$?"
-   elif [ "${notification_type}" = "telegram" ]
-   then
-      if [ "${notification_files_preview_count}" ]
-      then
-         telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message//_/\\_}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
-      else
-         telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message//_/\\_}")"
-      fi
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-         --data chat_id="${telegram_chat_id}" \
-         --data parse_mode="markdown" \
-         --data disable_notification="${disable_notification:=false}" \
-         --data text="${telegram_text}")"
-      curl_exit_code="$?"
-      unset disable_notification
-   elif [ "${notification_type}" = "openhab" ]
-   then
-      webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
-      notification_result="$(curl -X 'PUT' --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
-         --header 'content-type: text/plain' \
-         --data "${webhook_payload}")"
-      curl_exit_code="$?"
-   elif [ "${notification_type}" = "webhook" ]
-   then
-      webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
-      if [ "${webhook_insecure}" = true ]
-      then
-         notification_result="$(curl --silent --insecure --output /dev/null --write-out "%{http_code}" "${notification_url}" \
-            --header 'content-type: application/json' \
-            --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
-      else
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
-            --header 'content-type: application/json' \
-            --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
-      fi
-      curl_exit_code="$?"
-   elif [ "${notification_type}" = "discord" ]
-   then
-      if [ "${notification_files_preview_count}" ]
-      then
-         discord_text="${notification_message}\\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\\n${notification_files_preview_text//$'\n'/'\n'}"
-      else
-         discord_text="$(echo -e "${notification_message}")"
-      fi
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-         --header 'content-type: application/json' \
-         --data "{ \"username\" : \"${notification_title}\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_event}\" } , \"color\" : 2061822 , \"description\": \"${discord_text}\" } ] }")"
-      curl_exit_code="$?"
-   elif [ "${notification_type}" = "dingtalk" ]
-   then
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-         --header 'Content-Type: application/json' \
-         --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${notification_message}'}}")"
-      curl_exit_code="$?"
-   elif [ "${notification_type}" = "iyuu" ]
-   then
-      if [ "${notification_files_preview_count}" ]
-      then
-         iyuu_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
-      else
-         iyuu_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
-      fi
-      if [ "${fake_user_agent}" = true ]
-      then
-         notification_result="$(curl --silent --user-agent "${curl_user_agent}" --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-            --data text="${notification_title}" \
-            --data desp="${iyuu_text}")"
-      else
+   case "${notification_type}" in
+      "prowl")
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
+               --form apikey="${prowl_api_key}" \
+               --form application="${notification_title}" \
+               --form event="${notification_event}" \
+               --form priority="${notification_priority}" \
+               --form description="${notification_message}")"
+         curl_exit_code="$?"
+         ;;
+      "pushover")
+         if [ "${notification_priority}" = "2" ]; then
+               notification_priority=1
+         fi
+         if [ "${notification_files_preview_count}" ]; then
+               pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text}")"
+         else
+               pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}")"
+         fi
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
+               --form-string "user=${pushover_user}" \
+               --form-string "token=${pushover_token}" \
+               --form-string "title=${notification_title}" \
+               --form-string "sound=${pushover_sound}" \
+               --form-string "priority=${notification_priority}" \
+               --form-string "message=${pushover_text}")"
+         curl_exit_code="$?"
+         ;;
+      "telegram")
+         if [ "${notification_files_preview_count}" ]; then
+               telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message//_/\\_}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
+         else
+               telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message//_/\\_}")"
+         fi
          notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-            --data text="${notification_title}" \
-            --data desp="${iyuu_text}")"
-      fi
-      curl_exit_code="$?"
-   elif [ "${notification_type}" = "wecom" ]
-   then
-      if [ "$(date +'%s')" -ge "$(date +'%s' -d "${wecom_token_expiry}")" ]
-      then
-         log_warning "${notification_type_tc} token has expired"
-         unset wecom_token
-      fi
-      if [ -z "${wecom_token}" ]
-      then
-         log_warning "Obtaining new ${notification_type_tc} token..."
-         if [ "${fake_user_agent}" = true ]
-         then
-            wecom_token="$(/usr/bin/curl --silent --user-agent "${curl_user_agent}" --get "${wecom_token_url}" | awk -F\" '{print $10}')"
+               --data chat_id="${telegram_chat_id}" \
+               --data parse_mode="markdown" \
+               --data disable_notification="${disable_notification:=false}" \
+               --data text="${telegram_text}")"
+         curl_exit_code="$?"
+         unset disable_notification
+         ;;
+      "openhab")
+         webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
+         notification_result="$(curl -X 'PUT' --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
+               --header 'content-type: text/plain' \
+               --data "${webhook_payload}")"
+         curl_exit_code="$?"
+         ;;
+      "webhook")
+         webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
+         if [ "${webhook_insecure}" = true ]; then
+               notification_result="$(curl --silent --insecure --output /dev/null --write-out "%{http_code}" "${notification_url}" \
+                  --header 'content-type: application/json' \
+                  --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
          else
-            wecom_token="$(/usr/bin/curl --silent --get "${wecom_token_url}" | awk -F\" '{print $10}')"
+               notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
+                  --header 'content-type: application/json' \
+                  --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
          fi
-         wecom_token_expiry="$(date --date='2 hour')"
-         notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
-         log_info "${notification_type_tc} token: ${wecom_token}"
-         log_info "${notification_type_tc} token expiry time: $(date -d "${wecom_token_expiry}")"
-         log_info "${notification_type_tc} notification URL: ${notification_url}"
-      fi
-      # 结束时间、下次同步时间
-      syn_end_time="$(date '+%H:%M:%S')"
-      syn_next_time="$(date +%H:%M:%S -d "${download_interval} seconds")"
-      if [ "${notification_files_preview_count}" ]
-      then
-         log_info "Attempting creating preview count message body"
-         if [ "${icloud_china}" = false ]
-         then
-            wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
+         curl_exit_code="$?"
+         ;;
+      "discord")
+         if [ "${notification_files_preview_count}" ]; then
+               discord_text="${notification_message}\\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\\n${notification_files_preview_text//$'\n'/'\n'}"
          else
-            notification_files_preview_text="${notification_files_preview_text//$'\n'/'<br/>'}"
-            wecom_text="$(echo -e "<font style="line-height:1.5"><center><b><big><big>同步日志</big></big></b></font></center><center><b>${notification_message}</b></center><center>···················  <small>最近 ${notification_files_preview_count} 条${notification_files_preview_type}记录如下</small>  ····················</center><code><small>${notification_files_preview_text}</small></code><center>···················  <small>下次同步时间为 ${syn_next_time}</small>  ··················</center>")"
+               discord_text="$(echo -e "${notification_message}")"
          fi
-      else
-         log_info "Attempting creating message body"
-         if [ "${icloud_china}" = false ]
-         then
-            wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+               --header 'content-type: application/json' \
+               --data "{ \"username\" : \"${notification_title}\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_event}\" } , \"color\" : 2061822 , \"description\": \"${discord_text}\" } ] }")"
+         curl_exit_code="$?"
+         ;;
+      "dingtalk")
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+               --header 'Content-Type: application/json' \
+               --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${notification_message}'}}")"
+         curl_exit_code="$?"
+         ;;
+      "iyuu")
+         if [ "${notification_files_preview_count}" ]; then
+               iyuu_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
          else
-            wecom_text="$(echo -e "${notification_message}")"
+               iyuu_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
          fi
-      fi
-      log_info "Attempting send..."
-      if [ "${fake_user_agent}" = true ]
-      then
-         notification_result="$(curl --silent --user-agent "${curl_user_agent}" --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
-      else
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
-      fi
-      curl_exit_code="$?"
-      log_info "Send result: ${notification_result}"
-   elif [ "${notification_type}" = "gotify" ]
-   then
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
-         -F "title=${notification_title}" \
-         -F "message=${notification_message}")"
-      curl_exit_code="$?"
-   elif [ "${notification_type}" = "bark" ]
-   then
-      if [ "${notification_files_preview_count}" ]
-      then
-	      notification_files_preview_text="$(echo "${notification_files_preview_text}" | tr '\n' ',')"
-         bark_text="$(echo -e "${notification_icon} ${notification_message} Most recent ${notification_files_preview_count} ${notification_files_preview_type} files: ${notification_files_preview_text}")"
-      else
-         bark_text="$(echo -e "${notification_icon} ${notification_message}")"
-      fi
-      notification_result="$(curl --location --silent --output /dev/null --write-out "%{http_code}" "http://${bark_server}/push" \
-         -H 'Content-Type: application/json; charset=utf-8' \
-         -d "{ \"device_key\": \"${bark_device_key}\", \"title\": \"${notification_title}\", \"body\": \"${bark_text}\", \"category\": \"category\" }")"
-      curl_exit_code="$?"
-   elif [ "${notification_type}" = "msmtp" ]
-   then
-      if [ "${notification_files_preview_count}" ]
-      then
-	      notification_files_preview_text="$(echo "${notification_files_preview_text}" | tr '\n' ',')"
-         mail_text="$(echo -e "${notification_icon} ${notification_message} Most recent ${notification_files_preview_count} ${notification_files_preview_type} files: ${notification_files_preview_text}")"
-      else
-         mail_text="$(echo -e "${notification_icon} ${notification_message}")"
-      fi
-      if [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]
-      then
-         printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --user=$msmtp_user --passwordeval="echo -n $msmtp_pass" --from=$msmtp_from --auth=$msmtp_auth --tls=$msmtp_tls $msmtp_args -- "$msmtp_to"
-      else
-         printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --from=$msmtp_from --auth=$msmtp_auth --tls=$msmtp_tls $msmtp_args -- "$msmtp_to"
-      fi
-   elif [ "${notification_type}" = "signal" ]
-   then
-      if [ "${notification_files_preview_count}" ]
-      then
-         signal_text="$(echo -e "${notification_icon} ${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//$'\n'/'\n'}")"
-      else
-         signal_text="$(echo -e "${notification_icon} ${notification_message}")"
-      fi
-      escaped_signal_text=$(printf "%s" "$signal_text" | sed ':a;N;$!ba;s/\r//g;s/\n/\\n/g')
-      notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "http://${signal_host}:${signal_port}/v2/send" \
-         --header 'Content-Type: application/json' \
-         --data "{\"message\": \"${escaped_signal_text}\", \"number\": \"${signal_number}\", \"recipients\": [ \"${signal_recipient}\" ]}")"
-      curl_exit_code="$?"
-   fi
+         if [ "${fake_user_agent}" = true ]; then
+               notification_result="$(curl --silent --user-agent "${curl_user_agent}" --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+                  --data text="${notification_title}" \
+                  --data desp="${iyuu_text}")"
+         else
+               notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+                  --data text="${notification_title}" \
+                  --data desp="${iyuu_text}")"
+         fi
+         curl_exit_code="$?"
+         ;;
+      "wecom")
+         if [ "$(date +'%s')" -ge "$(date +'%s' -d "${wecom_token_expiry}")" ]; then
+               log_warning "${notification_type_tc} token has expired"
+               unset wecom_token
+         fi
+         if [ -z "${wecom_token}" ]; then
+               log_warning "Obtaining new ${notification_type_tc} token..."
+               if [ "${fake_user_agent}" = true ]; then
+                  wecom_token="$(/usr/bin/curl --silent --user-agent "${curl_user_agent}" --get "${wecom_token_url}" | awk -F\" '{print $10}')"
+               else
+                  wecom_token="$(/usr/bin/curl --silent --get "${wecom_token_url}" | awk -F\" '{print $10}')"
+               fi
+               wecom_token_expiry="$(date --date='2 hour')"
+               notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
+               log_info "${notification_type_tc} token: ${wecom_token}"
+               log_info "${notification_type_tc} token expiry time: $(date -d "${wecom_token_expiry}")"
+               log_info "${notification_type_tc} notification URL: ${notification_url}"
+         fi
+         syn_end_time="$(date '+%H:%M:%S')"
+         syn_next_time="$(date +%H:%M:%S -d "${download_interval} seconds")"
+         if [ "${notification_files_preview_count}" ]; then
+               log_info "Attempting creating preview count message body"
+               if [ "${icloud_china}" = false ]; then
+                  wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
+               else
+                  notification_files_preview_text="${notification_files_preview_text//$'\n'/'<br/>'}"
+                  wecom_text="$(echo -e "<font style=\"line-height:1.5\"><center><b><big><big>同步日志</big></big></b></font></center><center><b>${notification_message}</b></center><center>···················  <small>最近 ${notification_files_preview_count} 条${notification_files_preview_type}记录如下</small>  ····················</center><code><small>${notification_files_preview_text}</small></code><center>···················  <small>下次同步时间为 ${syn_next_time}</small>  ··················</center>")"
+               fi
+         else
+               log_info "Attempting creating message body"
+               if [ "${icloud_china}" = false ]; then
+                  wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
+               else
+                  wecom_text="$(echo -e "${notification_message}")"
+               fi
+         fi
+         log_info "Attempting send..."
+         if [ "${fake_user_agent}" = true ]; then
+               notification_result="$(curl --silent --user-agent "${curl_user_agent}" --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
+         else
+               notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
+         fi
+         curl_exit_code="$?"
+         log_info "Send result: ${notification_result}"
+         ;;
+      "gotify")
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
+               -F "title=${notification_title}" \
+               -F "message=${notification_message}")"
+         curl_exit_code="$?"
+         ;;
+      "bark")
+         if [ "${notification_files_preview_count}" ]; then
+               notification_files_preview_text="$(echo "${notification_files_preview_text}" | tr '\n' ',')"
+               bark_text="$(echo -e "${notification_icon} ${notification_message} Most recent ${notification_files_preview_count} ${notification_files_preview_type} files: ${notification_files_preview_text}")"
+         else
+               bark_text="$(echo -e "${notification_icon} ${notification_message}")"
+         fi
+         notification_result="$(curl --location --silent --output /dev/null --write-out "%{http_code}" "http://${bark_server}/push" \
+               -H 'Content-Type: application/json; charset=utf-8' \
+               -d "{ \"device_key\": \"${bark_device_key}\", \"title\": \"${notification_title}\", \"body\": \"${bark_text}\", \"category\": \"category\" }")"
+         curl_exit_code="$?"
+         ;;
+      "msmtp")
+         if [ "${notification_files_preview_count}" ]; then
+               notification_files_preview_text="$(echo "${notification_files_preview_text}" | tr '\n' ',')"
+               mail_text="$(echo -e "${notification_icon} ${notification_message} Most recent ${notification_files_preview_count} ${notification_files_preview_type} files: ${notification_files_preview_text}")"
+         else
+               mail_text="$(echo -e "${notification_icon} ${notification_message}")"
+         fi
+         if [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]; then
+               printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --user=$msmtp_user --passwordeval="echo -n $msmtp_pass" --from=$msmtp_from --auth=$msmtp_auth --tls=$msmtp_tls $msmtp_args -- "$msmtp_to"
+         else
+               printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --from=$msmtp_from --auth=$msmtp_auth --tls=$msmtp_tls $msmtp_args -- "$msmtp_to"
+         fi
+         ;;
+      "signal")
+         if [ "${notification_files_preview_count}" ]; then
+               signal_text="$(echo -e "${notification_icon} ${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//$'\n'/'\n'}")"
+         else
+               signal_text="$(echo -e "${notification_icon} ${notification_message}")"
+         fi
+         escaped_signal_text=$(printf "%s" "$signal_text" | sed ':a;N;$!ba;s/\r//g;s/\n/\\n/g')
+         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "http://${signal_host}:${signal_port}/v2/send" \
+               --header 'Content-Type: application/json' \
+               --data "{\"message\": \"${escaped_signal_text}\", \"number\": \"${signal_number}\", \"recipients\": [ \"${signal_recipient}\" ]}")"
+         curl_exit_code="$?"
+         ;;
+      *)
+         log_warning "Unknown notification type: ${notification_type}"
+         curl_exit_code=1
+         ;;
+   esac
    if [ "${notification_type}" ] && [ "${notification_type}" != "msmtp" ]
    then
       if [ "${notification_result:0:1}" -eq 2 ]
