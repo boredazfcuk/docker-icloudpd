@@ -22,13 +22,15 @@ match_max 100000
 proc log_error {message} {
     set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
     send_user "${DATE} ERROR    $message\n"
-    exec /usr/local/bin/sendmessage.sh failure fail
+    # Create sentinel file for monitoring
+    catch {exec touch /tmp/icloudpd/expect_error_flag}
+    catch {exec /usr/local/bin/sendmessage.sh failure fail}
 }
 
 expect {
     # Activates when account has no trusted numbers
     "Please enter two-factor authentication code: " {
-        exec /usr/local/bin/sendmessage.sh mfacode question
+        catch {exec /usr/local/bin/sendmessage.sh mfacode question}
         send_user "\nWaiting for MFA code...\n"
 
         # Wait for the MFA code input file to change
@@ -52,7 +54,7 @@ expect {
             "The script can now be run without user interaction until 2FA expires" {
                 set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
                 send_user "${DATE} INFO     Authentication successful\n"
-                exec /usr/local/bin/sendmessage.sh success success
+                catch {exec /usr/local/bin/sendmessage.sh success success}
             }
             timeout {
                 log_error "Timeout while waiting for the authentication response"
@@ -61,7 +63,7 @@ expect {
         }
     }
     "Please enter two-factor authentication code or device index " {
-        exec /usr/local/bin/sendmessage.sh smschoice question
+        catch {exec /usr/local/bin/sendmessage.sh smschoice question}
         set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
         send_user "${DATE} INFO     Waiting for SMS choice/MFA code...\n"
 
@@ -87,11 +89,11 @@ expect {
             "The script can now be run without user interaction until 2FA expires" {
                 set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
                 send_user "${DATE} INFO     Authentication successful\n"
-                exec /usr/local/bin/sendmessage.sh success success
+                catch {exec /usr/local/bin/sendmessage.sh success success}
             }
             # Catches when index number received instead
             "Please enter two-factor authentication code that you received over SMS: " {
-                exec /usr/local/bin/sendmessage.sh mfacode question
+                catch {exec /usr/local/bin/sendmessage.sh mfacode question}
                 set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
                 send_user "${DATE} INFO     Waiting for MFA code...\n"
 
@@ -117,7 +119,7 @@ expect {
                     "The script can now be run without user interaction until 2FA expires" {
                         set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
                         send_user "${DATE} INFO     Authentication successful\n"
-                        exec /usr/local/bin/sendmessage.sh success success
+                        catch {exec /usr/local/bin/sendmessage.sh success success}
                     }
                     timeout {
                         log_error "Timeout while waiting for the authentication response after MFA code submission"

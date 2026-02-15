@@ -2282,6 +2282,13 @@ synchronise_user()
             poll_sleep=30
             while [ "${listen_counter}" -lt "${sleep_time}" ]
             do
+               # --- Check for Expect error ---
+               if [ -f "/tmp/icloudpd/expect_error_flag" ]
+               then
+                  log_debug "Expect script failed, error flag detected. Exiting loop."
+                  rm "/tmp/icloudpd/expect_error_flag"
+                  break
+               fi
                if [ "${telegram_polling}" = true ]
                then
                   unset latest_updates latest_update_ids break_while
