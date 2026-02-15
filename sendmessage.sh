@@ -68,7 +68,21 @@ telegram_http="$(grep "^telegram_http=" ${config_file} | awk -F= '{print $2}')"
 telegram_server="$(grep "^telegram_server=" ${config_file} | awk -F= '{print $2}')"
 telegram_token="$(grep "^telegram_token=" ${config_file} | awk -F= '{print $2}')"
 notification_title="$(grep "^notification_title=" ${config_file} | awk -F= '{print $2}')"
-notification_icon="\xE2\x96\xB6"
+
+INFO="ℹ"
+SUCCESS="✅"
+QUESTION="❓"
+FAIL="❌"
+
+if [ "${2}" = "info" ]
+  notification_icon="${INFO}"
+elif [ "${2}" = "success" ]
+  notification_icon="${SUCCESS}"
+elif [ "${2}" = "question" ]
+  notification_icon="${QUESTION}"
+else
+   notification_icon="${FAIL}"
+fi
 
 if [ "${telegram_http}" = true ]
 then

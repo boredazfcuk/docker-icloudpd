@@ -1,3 +1,8 @@
+13/02/2026
+
+ - Error logging in the Expect script
+ - Some changes to the if/then/elif/else statements which capture user parameters
+ 
 08/02/2026
 
  - Just some cosmetic stuff. Found a way of getting the correct "play" emoji in Telegram and changed the delete icon to the wastebin emoji

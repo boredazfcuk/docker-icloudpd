@@ -449,7 +449,16 @@ configure_notifications()
       log_debug "   - ${notification_type_tc} number: ${signal_number}"
       log_debug "   - ${notification_type_tc} recipient: ${signal_recipient}"
    else
-      log_warning " ! ${notification_type_tc} notifications enabled, but configured incorrectly - disabling notifications"
+      case ${notification_type} in
+         prowl|pushover|telegram|openhab|webhook|discord|dingtalk|iyuu|wecom|gotify|bark|msmtp|signal)
+            log_warning " ! ${notification_type_tc} notifications enabled, but configured incorrectly - disabling notifications"
+            log_warning " ! Notification type (${notification_type}) is valid, so please check other mandatory variables"
+            ;;
+         *)
+            log_warning " ! ${notification_type} is not a valid notification type - disabling notifications."
+            log_warning " ! Valid types are: <prowl|pushover|telegram|openhab|webhook|discord|dingtalk|iyuu|wecom|gotify|bark|msmtp|signal>"
+            ;;
+      esac
       unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_scheme gotify_server_url bark_device_key bark_server
    fi
    if [ "${startup_notification}" = true ]
@@ -2232,7 +2241,6 @@ synchronise_user()
                then
                   remove_empty_directories
                fi
-               # set_owner_and_permissions_downloads
                log_info "Download complete for ${user}"
                if [ "${notification_type}" ] && [ "${remote_sync_complete_notification}" = true ]
                then
@@ -2400,144 +2408,75 @@ disable_debug_logging()
    log_info "Debug logging disabled"
 }
 
+run_if_true()
+{
+    flag="$1"
+    message="$2"
+    func="$3"
+
+    [ "${flag}" = true ] || return 0
+    log_info "${message}"
+    $func
+    log_info "${message} complete"
+    exit 0
+}
+
+run_action()
+{
+    log_info "$1"
+    "$2"
+    log_info "$3"
+    exit 0
+}
+
 ##### Script #####
 script_launch_parameters="${1}"
 if [ "${2}" ]
 then
    log_warning "Only a single command line parameter is supported at this time. Only processing: ${script_launch_parameters}"
 fi
-case  "$(echo "${script_launch_parameters}" | tr '[:upper:]' '[:lower:]')" in
-   "--initialise"|"--initialize"|"--init")
-      initialise_container=true
-    ;;
-   "--remove-keyring")
-      delete_password=true
-    ;;
-   "--convert-all-heics")
-      convert_all_heics=true
-   ;;
-   "--remove-all-jpgs")
-      remove_all_jpgs=true
-   ;;
-   "--force-convert-all-heics")
-      force_convert_all_heics=true
-   ;;
-   "--force-convert-all-mnt-heics")
-      force_convert_all_mnt_heics=true
-   ;;
-   "--correct-jpeg-time-stamps")
-      correct_jpeg_time_stamps=true
-   ;;
-   "--enable-debugging")
-      enable_debugging=true
-   ;;
-   "--disable-debugging")
-      disable_debugging=true
-   ;;
-   "--upload-library-to-nextcloud")
-      nextcloud_upload_library=true
-   ;;
-   "--sideways-copy-all-videos")
-      sideways_copy_all_videos=true
-   ;;
-   "--help")
-      "$(which more)" "/opt/CONFIGURATION.md"
-      exit 0
-   ;;
-   "--list-albums")
-      list_albums=true
-   ;;
-   "--list-libraries")
-      list_libraries=true
-   ;;
-   *)
-   ;;
+parameter="$(echo "${script_launch_parameters}" | tr '[:upper:]' '[:lower:]')"
+case $parameter in
+    "--initialise"|"--initialize"|"--init") action="initialise_container" ;;
+    "--remove-keyring") action="delete_password" ;;
+    "--convert-all-heics") action="convert_all_heics" ;;
+    "--remove-all-jpgs") action="remove_all_jpgs" ;;
+    "--force-convert-all-heics") action="force_convert_all_heics" ;;
+    "--force-convert-all-mnt-heics") action="force_convert_all_mnt_heics" ;;
+    "--correct-jpeg-time-stamps") action="correct_jpeg_time_stamps" ;;
+    "--enable-debugging") action="enable_debugging" ;;
+    "--disable-debugging") action="disable_debugging" ;;
+    "--upload-library-to-nextcloud") action="nextcloud_upload_library" ;;
+    "--sideways-copy-all-videos") action="sideways_copy_all_videos" ;;
+    "--list-albums") action="list_albums" ;;
+    "--list-libraries") action="list_libraries" ;;
+    "--help") "$(which more)" "/opt/CONFIGURATION.md"; exit 0; ;;
+    *) action="" ;;
 esac
 
 initialise_script
 sanitise_launch_parameters
-if [ "${delete_password:=false}" = true ]
-then
-   log_info "Deleting password from keyring"
-   delete_password
-   log_info "Password deletion complete"
-   exit 0
+if [ "${action}" = "delete_password" ]; then
+    log_info "Deleting password from keyring"
+    delete_password
+    log_info "Password deletion complete"
+    exit 0
 fi
 configure_password
-if [ "${initialise_container:=false}" = true ]
-then
-   log_info "Starting container initialisation"
-   generate_cookie
-   log_info "Container initialisation complete"
-   exit 0
-elif [ "${enable_debugging:=false}" = true ]
-then
-   log_info "Enabling debug logging"
-   enable_debug_logging
-   exit 0
-elif [ "${disable_debugging:=false}" = true ]
-then
-   log_info "Disabling debug logging"
-   disable_debug_logging
-   exit 0
-elif [ "${convert_all_heics:=false}" = true ]
-then
-   log_info "Converting all HEICs to JPG"
-   convert_all_heic_files
-   # set_owner_and_permissions_downloads
-   log_info "HEIC to JPG conversion complete"
-   exit 0
-elif [ "${remove_all_jpgs:=false}" = true ]
-then
-   log_info "Forcing removal of JPG files if accompanying HEIC exists"
-   remove_all_jpeg_files
-   # set_owner_and_permissions_downloads
-   log_info "Forced removal of JPG files if accompanying HEIC exists complete"
-   exit 0
-elif [ "${force_convert_all_heics:=false}" = true ]
-then
-   log_info "Forcing HEIC to JPG conversion"
-   force_convert_all_heic_files
-   # set_owner_and_permissions_downloads
-   log_info "Forced HEIC to JPG conversion complete"
-   exit 0
-elif [ "${force_convert_all_mnt_heics:=false}" = true ]
-then
-   log_info "Forcing HEIC to JPG conversion of all files in mount path"
-   force_convert_all_mnt_heic_files
-   # set_owner_and_permissions_downloads
-   log_info "Forced HEIC to JPG conversion of all files in mount path complete"
-   exit 0
-elif [ "${correct_jpeg_time_stamps:=false}" = true ]
-then
-   log_info "Correcting timestamps for JPEG files in ${download_path}"
-   correct_jpeg_timestamps
-   log_info "JPEG timestamp correction complete"
-   exit 0
-elif [ "${nextcloud_upload_library:=false}" = true ]
-then
-   log_info "Uploading library to Nextcloud"
-   nextcloud_upload_library
-   log_info "Uploading library to Nextcloud complete"
-   exit 0
-
-elif [ "${sideways_copy_all_videos:=false}" = true ]
-then
-   log_info "Copying all videos sideways"
-   sideways_copy_all_videos
-   log_info "Sideways copying of all videos complete"
-   exit 0
-elif [ "${list_albums:=false}" = true ]
-then
-   list_albums
-   exit 0
-elif [ "${list_libraries:=false}" = true ]
-then
-   list_libraries
-   exit 0
-fi
+case ${action} in
+    initialise_container) run_action "Starting container initialisation" generate_cookie "Container initialisation complete" ;;
+    enable_debugging) run_action "Enabling debug logging" enable_debug_logging "" ;;
+    disable_debugging) run_action "Disabling debug logging" disable_debug_logging "" ;;
+    convert_all_heics) run_action "Converting all HEICs to JPG" convert_all_heic_files "HEIC to JPG conversion complete" ;;
+    remove_all_jpgs) run_action "Forcing removal of JPG files if accompanying HEIC exists" remove_all_jpeg_files "Forced removal of JPG files complete" ;;
+    force_convert_all_heics) run_action "Forcing HEIC to JPG conversion" force_convert_all_heic_files "Forced HEIC to JPG conversion complete" ;;
+    force_convert_all_mnt_heics) run_action "Forcing HEIC to JPG conversion of all files in mount path" force_convert_all_mnt_heic_files "Forced HEIC to JPG conversion of all files in mount path complete" ;;
+    correct_jpeg_time_stamps) run_action "Correcting timestamps for JPEG files in ${download_path}" correct_jpeg_timestamps "JPEG timestamp correction complete" ;;
+    nextcloud_upload_library) run_action "Uploading library to Nextcloud" nextcloud_upload_library "Uploading library to Nextcloud complete" ;;
+    sideways_copy_all_videos) run_action "Copying all videos sideways" sideways_copy_all_videos "Sideways copying of all videos complete" ;;
+    list_albums|list_libraries) "${action}"; exit 0 ;;
+esac
 check_mount
-# set_owner_and_permissions_config
 command_line_builder
 check_keyring_exists
 synchronise_user
