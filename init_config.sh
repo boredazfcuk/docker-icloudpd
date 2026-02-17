@@ -152,7 +152,7 @@ write_variable silent_file_notifications false
 write_variable single_pass false
 write_variable skip_album
 write_variable skip_check false
-write_variable skip_created_afer
+write_variable skip_created_after
 write_variable skip_created_before
 write_variable skip_download false
 write_variable skip_library

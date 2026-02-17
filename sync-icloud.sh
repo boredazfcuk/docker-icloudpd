@@ -2122,11 +2122,11 @@ command_line_builder()
    fi
    if [ "${skip_created_after}" ]
    then
-      command_line="${command_line} ----skip-created-after ${skip_created_after}"
+      command_line="${command_line} --skip-created-after ${skip_created_after}"
    fi
    if [ "${skip_created_before}" ]
    then
-      command_line="${command_line} ----skip-created-before ${skip_created_before}"
+      command_line="${command_line} --skip-created-before ${skip_created_before}"
    fi
 }
 
