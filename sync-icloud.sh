@@ -569,7 +569,7 @@ configure_password()
    fi
    if [ ! -f "/config/python_keyring/keyring_pass.cfg" ]
    then
-      if [ "${initialise_container}" ]
+      if [ "${action}" = "initialise_container" ]
       then
          log_debug "Adding password to keyring file: /config/python_keyring/keyring_pass.cfg"
          run_as "/opt/icloudpd/bin/icloud --username ${apple_id} --domain ${auth_domain}"
