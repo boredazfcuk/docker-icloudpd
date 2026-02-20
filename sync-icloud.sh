@@ -827,10 +827,31 @@ check_files()
    fi
    log_info "Check for new files using password stored in keyring file"
    log_info "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
-   log_debug "Launch command: /opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --keep-unicode-in-filenames --only-print-filenames"
    >/tmp/icloudpd/icloudpd_check_error
-   run_as "(/opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --keep-unicode-in-filenames --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log"
-   check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
+   if [ "${photo_library}" ]
+   then
+      local libraries_to_check
+      libraries_to_check="$(resolve_library_list)"
+      check_exit_code=0
+      IFS=","
+      for library in ${libraries_to_check}
+      do
+         log_debug "Checking library: ${library}"
+         log_debug "Launch command: /opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --keep-unicode-in-filenames --only-print-filenames --library ${library}"
+         run_as "(/opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --keep-unicode-in-filenames --only-print-filenames --library \"${library}\" 2>>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee -a /tmp/icloudpd/icloudpd_check.log"
+         local library_exit_code
+         library_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
+         if [ "${library_exit_code}" -ne 0 ]
+         then
+            check_exit_code="${library_exit_code}"
+         fi
+      done
+      IFS="${OLDIFS}"
+   else
+      log_debug "Launch command: /opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --keep-unicode-in-filenames --only-print-filenames"
+      run_as "(/opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --keep-unicode-in-filenames --only-print-filenames 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log"
+      check_exit_code="$(cat /tmp/icloudpd/icloudpd_check_exit_code)"
+   fi
    if [ "${check_exit_code}" -ne 0 ] || [ -s /tmp/icloudpd/icloudpd_check_error ]
    then
       log_error "Failed check for new files files"
@@ -986,42 +1007,40 @@ download_albums()
    IFS="${OLDIFS}"
 }
 
-download_libraries()
+resolve_library_list()
 {
-   local all_libraries libraries_to_download
+   local all_libraries resolved_list
    if [ "${photo_library}" = "all libraries" ]
    then
       log_debug "Fetching libraries list..."
       all_libraries="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
-      log_debug "Building list of libraries to download..."
+      log_debug "Building list of libraries..."
       IFS=$'\n'
       for library in ${all_libraries}
       do
-         if [ "${skip_library}" ]
+         if [ "${skip_library}" ] && [ "${skip_library}" = "${library}" ]
          then
-            if [ ! "${skip_library}" = "${library}" ]
-            then
-               log_debug " - ${library}"
-               if [ -z "${libraries_to_download}" ]
-               then
-                  libraries_to_download="${library}"
-               else
-                  libraries_to_download="${libraries_to_download},${library}"
-               fi
-            fi
+            continue
+         fi
+         log_debug " - ${library}"
+         if [ -z "${resolved_list}" ]
+         then
+            resolved_list="${library}"
          else
-            log_debug " - ${library}"
-            if [ -z "${libraries_to_download}" ]
-            then
-               libraries_to_download="${library}"
-            else
-               libraries_to_download="${libraries_to_download},${library}"
-            fi
+            resolved_list="${resolved_list},${library}"
          fi
       done
+      IFS="${OLDIFS}"
    else
-      libraries_to_download="${photo_library}"
+      resolved_list="${photo_library}"
    fi
+   echo "${resolved_list}"
+}
+
+download_libraries()
+{
+   local libraries_to_download
+   libraries_to_download="$(resolve_library_list)"
    # Clear log file for the download list to append to
    echo -n "" > /tmp/icloudpd/icloudpd_sync.log
    IFS=","
