@@ -1,0 +1,59 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - build_version.txt
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read build version
+        id: version
+        run: |
+          BUILD_VERSION=$(cat build_version.txt | tr -d '[:space:]')
+          echo "version_tag=1.0.${BUILD_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: icloudpd.dockerfile
+          platforms: linux/386,linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6
+          push: true
+          tags: |
+            boredazfcuk/icloudpd:latest
+            boredazfcuk/icloudpd:${{ steps.version.outputs.version_tag }}
+            ghcr.io/boredazfcuk/icloudpd:latest
+            ghcr.io/boredazfcuk/icloudpd:${{ steps.version.outputs.version_tag }}
