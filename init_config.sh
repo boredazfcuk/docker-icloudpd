@@ -42,6 +42,11 @@ fi
 # Read config
 config_content="$(cat "${config_file}")"
 
+# Save original permissions for restoration after rewrite
+if [ -f "${config_file}" ]; then
+   original_perms="$(stat -c '%a' "${config_file}")"
+fi
+
 # Create temp file
 temp_file="${config_file}.tmp"
 true > "${temp_file}"
@@ -248,4 +253,7 @@ sed -i 's/=False/=false/gI' "${temp_file}"
 chowner="$(grep -m1 "^user_id=" "${temp_file}" | cut -d= -f2-)"
 chgrper="$(grep -m1 "^group_id=" "${temp_file}" | cut -d= -f2-)"
 chown "${chowner}":"${chgrper}" "${temp_file}"
+if [ -n "${original_perms:-}" ]; then
+   chmod "${original_perms}" "${temp_file}"
+fi
 mv  "${temp_file}" "${config_file}"
