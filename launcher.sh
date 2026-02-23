@@ -424,8 +424,7 @@ then
 fi
 if [ "${photo_album}" ] && [ "${photo_library}" ]
 then
-   log_error "   | The variables photo_album and photo_library cannot both be configured at the same time. Please configure photo_album, photo_library or neither. Halting"
-   sleep infinity
+   log_info "   | Both photo_album and photo_library are configured. Albums will be downloaded from the specified library/libraries"
 fi
 
 # Display warning when using keep_icloud_recent
