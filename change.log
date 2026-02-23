@@ -1,3 +1,9 @@
+23/02/2026
+
+ - Merged a PR from pewter77 which preserves permissions on the config file in case they have had custom permissions set
+ - Merged a PR from mmenanno so that "download_albums" is library aware and correctly handles errors
+ - Amended the delete_password function so that it uses the run_action helper function
+
 22/02/2026
 
  - Missed a variable change with the "Some changes to the if/then/elif/else statements which capture user parameters" made on the 13th. Incorporated a PR from mmenanno on GitHub which fixes it

@@ -579,7 +579,7 @@ configure_password()
          log_error " - Syntax: docker exec -it <container name> sync-icloud.sh --Initialise"
          log_error " - Example: docker exec -it icloudpd sync-icloud.sh --Initialise"
          log_error "Waiting for keyring file to be created..."
-         local counter
+         local counteraction
          counter="${counter:=0}"
          while [ ! -f "/config/python_keyring/keyring_pass.cfg" ]
          do
@@ -2499,7 +2499,7 @@ synchronise_user()
 
 sanitise_launch_parameters()
 {
-   if [ "${script_launch_parameters}" ]
+   if [ -n "${script_launch_parameters}" ]
    then
       case "$(echo "${script_launch_parameters}" | tr '[:upper:]' '[:lower:]')" in
          "--initialise"|"--initialize"|"--init"|"--remove-keyring"|"--convert-all-heics"|"--remove-all-jpgs"|"--force-convert-all-heics"|"--force-convert-all-mnt-heics"|"--correct-jpeg-time-stamps"|"--upload-library-to-nextcloud"|"--sideways-copy-all-videos"|"--list-albums"|"--list-libraries"|"--enable-debugging"|"--disable-debugging")
@@ -2575,11 +2575,9 @@ esac
 
 initialise_script
 sanitise_launch_parameters
-if [ "${action}" = "delete_password" ]; then
-    log_info "Deleting password from keyring"
-    delete_password
-    log_info "Password deletion complete"
-    exit 0
+if [ "${action}" = "delete_password" ]
+then
+   run_action "Deleting password from keyring" delete_password "Password deletion complete"
 fi
 configure_password
 case ${action} in
