@@ -1,6 +1,7 @@
 27/02/2026
 
  - Coding has gone to shit recently. Lots of silly mistakes. Message up the sendmessage script and didn't notice for a good while. Have now implemented a shellcheck failsafe to prevent building containers with borked scripts
+ - Reverted back to my original expect script. I just can't be bothered faffing about trying to get the AI "improvements" working. It looked briliant code wise, and it sounded so convincing with it's minor tweaks to make things more reliable, but none of it worked. I just wasn't trapping errors corectly, capturing correct output. Just a bag of shite really.
 23/02/2026
 
  - Merged a PR from pewter77 which preserves permissions on the config file in case they have had custom permissions set

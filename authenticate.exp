@@ -17,125 +17,78 @@ set timeout -1
 spawn -noecho /usr/local/bin/reauth.sh
 log_user 0
 match_max 100000
-
-# Error logging function
-proc log_error {message} {
-    set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
-    send_user "${DATE} ERROR    $message\n"
-    # Create sentinel file for monitoring
-    catch {exec touch /tmp/icloudpd/expect_error_flag}
-    catch {exec /usr/local/bin/sendmessage.sh failure fail}
-}
-
 expect {
     # Activates when account has no trusted numbers
     "Please enter two-factor authentication code: " {
-        catch {exec /usr/local/bin/sendmessage.sh mfacode question}
+        exec /usr/local/bin/sendmessage.sh mfacode question
         send_user "\nWaiting for MFA code...\n"
-
-        # Wait for the MFA code input file to change
-        set result [exec /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/expect_input.txt]
-        if {[string length $result] == 0} {
-            log_error "Timeout: No input file change detected in /tmp/icloudpd/expect_input.txt"
-            exit 1
-        }
-
+        exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/expect_input.txt
         set MFACODE [exec cat /tmp/icloudpd/expect_input.txt]
         set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
         send_user "${DATE} INFO     MFA code received: ${MFACODE}\n"
         send -- "${MFACODE}\r"
-
-        # Check if MFA code verification is successful or not
+        # Catches success/failure for received MFA code
         expect {
             "Failed to verify two-factor authentication code" {
-                log_error "Authentication failed after MFA code submission"
-                exit 1
+                set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
+                send_user "${DATE} ERROR    Authentication failed\n"
+                exec /usr/local/bin/sendmessage.sh failure fail
             }
             "The script can now be run without user interaction until 2FA expires" {
                 set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
                 send_user "${DATE} INFO     Authentication successful\n"
-                catch {exec /usr/local/bin/sendmessage.sh success success}
-            }
-            timeout {
-                log_error "Timeout while waiting for the authentication response"
-                exit 1
+                exec /usr/local/bin/sendmessage.sh success success
             }
         }
     }
     "Please enter two-factor authentication code or device index " {
-        catch {exec /usr/local/bin/sendmessage.sh smschoice question}
+        exec /usr/local/bin/sendmessage.sh smschoice question
         set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
         send_user "${DATE} INFO     Waiting for SMS choice/MFA code...\n"
-
-        # Wait for SMS choice or MFA code to be provided
-        set result [exec /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/expect_input.txt]
-        if {[string length $result] == 0} {
-            log_error "Timeout: No input file change detected in /tmp/icloudpd/expect_input.txt"
-            exit 1
-        }
-
+        exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/expect_input.txt
         set MESSAGE [exec cat /tmp/icloudpd/expect_input.txt]
         set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
         send_user "${DATE} INFO     SMS choice/MFA code received: ${MESSAGE}\n"
         send -- "${MESSAGE}\r"
-
         expect {
             # Catches failure when MFA code is sent immediately
             "Failed to verify two-factor authentication code" {
-                log_error "Authentication failed after SMS choice or MFA code submission"
-                exit 1
+                set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
+                send_user "${DATE} ERROR    Authentication failed\n"
+                exec /usr/local/bin/sendmessage.sh failure fail
             }
             # Catches success when MFA code is sent immediately
             "The script can now be run without user interaction until 2FA expires" {
                 set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
                 send_user "${DATE} INFO     Authentication successful\n"
-                catch {exec /usr/local/bin/sendmessage.sh success success}
+                exec /usr/local/bin/sendmessage.sh success success
             }
             # Catches when index number received instead
             "Please enter two-factor authentication code that you received over SMS: " {
-                catch {exec /usr/local/bin/sendmessage.sh mfacode question}
+                exec /usr/local/bin/sendmessage.sh mfacode question
                 set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
                 send_user "${DATE} INFO     Waiting for MFA code...\n"
-
-                # Wait for MFA code input
-                set result [exec /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/expect_input.txt]
-                if {[string length $result] == 0} {
-                    log_error "Timeout: No input file change detected in /tmp/icloudpd/expect_input.txt"
-                    exit 1
-                }
-
+                exec >@stdout 2>@stderr /usr/bin/inotifywait -qq -t 600 -e close_write /tmp/icloudpd/expect_input.txt
                 set MFACODE [exec cat /tmp/icloudpd/expect_input.txt]
                 set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
                 send_user "${DATE} INFO     MFA code received: ${MFACODE}\n"
                 send -- "${MFACODE}\r"
-
                 expect {
                     # Catches failure for received MFA code
                     "Failed to verify two-factor authentication code" {
-                        log_error "Authentication failed after MFA code submission"
-                        exit 1
+                        set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
+                        send_user "${DATE} ERROR    Authentication failed\n"
+                        exec /usr/local/bin/sendmessage.sh failure fail
                     }
                     # Catches success for received MFA code
                     "The script can now be run without user interaction until 2FA expires" {
                         set DATE [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}]
                         send_user "${DATE} INFO     Authentication successful\n"
-                        catch {exec /usr/local/bin/sendmessage.sh success success}
-                    }
-                    timeout {
-                        log_error "Timeout while waiting for the authentication response after MFA code submission"
-                        exit 1
+                        exec /usr/local/bin/sendmessage.sh success success
                     }
                 }
             }
-            timeout {
-                log_error "Timeout while waiting for the SMS or MFA code input"
-                exit 1
-            }
         }
-    }
-    timeout {
-        log_error "Timeout while waiting for the expected prompt from reauth.sh"
-        exit 1
     }
 }
 expect eof

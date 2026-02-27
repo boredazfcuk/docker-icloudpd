@@ -2401,7 +2401,7 @@ synchronise_user()
                   rm "/tmp/icloudpd/expect_error_flag"
                   break
                fi
-               if [ "${telegram_polling}" = true ]
+               if [ "${telegram_polling}" = "true" ]
                then
                   unset latest_updates latest_update_ids break_while
                   update_count=0
@@ -2434,7 +2434,7 @@ synchronise_user()
                            elif  [ "${check_update_text_lc}" = "${user_lc} auth" ]
                            then
                               log_debug "Remote authentication message match: ${check_update_text}"
-                              if [ "${icloud_china}" = false ]
+                              if [ "${icloud_china}" = "false" ]
                               then
                                  send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
                               else
@@ -2447,7 +2447,7 @@ synchronise_user()
                            elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [0-9][0-9][0-9][0-9][0-9][0-9]$" >/dev/null; echo $?)" -eq 0 ]
                            then
                               mfa_code="$(echo "${check_update_text}" | awk '{print $2}')"
-                              echo "${mfa_code}" > /tmp/icloudpd/expect_input.txt
+                              printf "%s\n" "${mfa_code}" >> /tmp/icloudpd/expect_input.txt
                               listen_counter=$((listen_counter+2))
                               # additional sleeps mean sync time slips each time time a sync or auth is performed
                               # adding same amount of time to listen counter should prevent this from occurring
@@ -2457,7 +2457,7 @@ synchronise_user()
                            elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [a-z]$" >/dev/null; echo $?)" -eq 0 ]
                            then
                               sms_choice="$(echo "${check_update_text}" | awk '{print $2}')"
-                              echo "${sms_choice}" > /tmp/icloudpd/expect_input.txt
+                              printf "%s\n" "${sms_choice}" >> /tmp/icloudpd/expect_input.txt
                               listen_counter=$((listen_counter+2))
                               # Same again
                               sleep 2
@@ -2469,10 +2469,10 @@ synchronise_user()
                            fi
                         done
                         echo -n "${latest_update}" > "${telegram_update_id_offset_file}"
-                        if [ "${break_while}" ]
+                        if [ -n "${break_while}" ]
                         then
                            log_debug "Remote sync initiated"
-                           if [ "${icloud_china}" = false ]
+                           if [ "${icloud_china}" = "false" ]
                            then
                               send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote download request for Apple ID: ${apple_id}"
                               remote_sync_complete_notification=true
@@ -2533,7 +2533,7 @@ run_if_true()
     message="$2"
     func="$3"
 
-    [ "${flag}" = true ] || return 0
+    [ "${flag}" = "true" ] || return 0
     log_info "${message}"
     $func
     log_info "${message} complete"
