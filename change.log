@@ -1,3 +1,6 @@
+27/02/2026
+
+ - Coding has gone to shit recently. Lots of silly mistakes. Message up the sendmessage script and didn't notice for a good while. Have now implemented a shellcheck failsafe to prevent building containers with borked scripts
 23/02/2026
 
  - Merged a PR from pewter77 which preserves permissions on the config file in case they have had custom permissions set

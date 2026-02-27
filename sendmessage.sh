@@ -75,16 +75,19 @@ QUESTION="❓"
 FAIL="❌"
 
 if [ "${2}" = "info" ]
+then
   notification_icon="${INFO}"
 elif [ "${2}" = "success" ]
+then
   notification_icon="${SUCCESS}"
 elif [ "${2}" = "question" ]
+then
   notification_icon="${QUESTION}"
 else
    notification_icon="${FAIL}"
 fi
 
-if [ "${telegram_http}" = true ]
+if [ "${telegram_http}" = "true" ]
 then
    telegram_protocol="http"
 else
