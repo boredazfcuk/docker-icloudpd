@@ -147,7 +147,7 @@ export config_file="/config/icloudpd.conf"
 # Create the temporary directory
 if [ ! -d "/tmp/icloudpd" ]
 then
-   log_info " - Creating temporary directory"
+   log_info " - Creating temporary directory: /tmp/icloudpd"
    if ! mkdir --parents "/tmp/icloudpd"
    then
       log_error "Failed to create temporary directory"
@@ -242,6 +242,22 @@ then
    fi
 fi
 
+# Check the keyring directory exists and create it if it does not
+if [ ! -d "/config/python_keyring" ]
+then
+   log_info "   | Keyring directory does not exist"
+   log_info "   | Creating /config/python_keyring and configuring permssions"
+   
+   if ! mkdir --parents "/config/python_keyring"
+   then 
+      log_error "   | Failed to create download directory: '/config/python_keyring'"
+      log_error "   ! Cannot continue. Halting"
+      sleep infinity
+   else
+      chown "${user_id}:${group_id}" "/config/python_keyring"
+   fi
+fi
+
 # Check the config file exists and create it if it does not
 if [ ! -f "${config_file}" ]
 then
@@ -307,7 +323,7 @@ case "${download_interval}" in
    *) sed 's/download_interval=.*/download_interval=86400/' "${config_file}";; # 24 hours
 esac
 # Lower it to 60 if set higher
-if [ "${download_delay:=61}" -gt 60 ]
+if [ "${download_delay:-61}" -gt 60 ]
 then
    sed 's/download_delay=.*/download_delay=60/' "${config_file}"
 fi
@@ -363,7 +379,7 @@ then
 fi
 
 # Initialise jpeg_path
-if [ "${jpeg_path}" ] && [ ! -d "${jpeg_path}" ]
+if [ -n "${jpeg_path}" ] && [ ! -d "${jpeg_path}" ]
 then
    log_info "   | JPEG directory does not exist"
    log_info "   | Creating ${jpeg_path}"
@@ -379,7 +395,7 @@ then
 fi
 
 # Initialise videos_path
-if [ "${video_path}" ] && [ ! -d "${video_path}" ]
+if [ -n "${video_path}" ] && [ ! -d "${video_path}" ]
 then
    log_info "   | Video directory does not exist"
    log_info "   | Creating ${video_path}"
@@ -395,7 +411,7 @@ then
 fi
 
 # Warn if sync interval is too short
-if [ "${download_interval}" -lt 43200 ] && [ "${warnings_acknowledged:=false}" = false ]
+if [ "${download_interval}" -lt 43200 ] && [ "${warnings_acknowledged:-false}" = "false" ]
 then
    log_warning "   | Setting download_interval to less than 43200 (12 hours) may cause throttling by Apple"
    log_warning "   ! If you run into the following error:"
@@ -405,30 +421,30 @@ then
 fi
 
 # Warn if set_exif_datetime is enabled
-if [ "${set_exif_datetime}" = true ]
+if [ "${set_exif_datetime}" = "true" ]
 then
    log_warning "   | Configuring set_exif_datetime=true changes the files that are downloaded, so they will be downloaded a second time. Enabling this setting results in a lot of duplicate photos"
    user_warning_displayed=true
 fi
 
 # Halt on conflicting settings
-if [ "${auto_delete}" != false ] && [ "${delete_after_download}" != false ]
+if [ "${auto_delete}" != "false" ] && [ "${delete_after_download}" != "false" ]
 then
    log_error "   | The variables auto_delete and delete_after_download cannot both be configured at the same time. Please choose one or the other. Halting"
    sleep infinity
 fi
-if [ "${sideways_copy_videos_mode}" = "move" ] && [ "${delete_after_download}" = false ]
+if [ "${sideways_copy_videos_mode}" = "move" ] && [ "${delete_after_download}" = "false" ]
 then
    log_error "   | The variable sideways_copy_videos_mode cannot be set to 'move' unless delete_after_download is set to 'true', otherwise all icloud videos will be downloaded every run. Please set the copy mode to 'copy' or delete_after_download to 'true'. Halting"
    sleep infinity
 fi
-if [ "${photo_album}" ] && [ "${photo_library}" ]
+if [ -n "${photo_album}" ] && [ -n "${photo_library}" ]
 then
    log_info "   | Both photo_album and photo_library are configured. Albums will be downloaded from the specified library/libraries"
 fi
 
 # Display warning when using keep_icloud_recent
-if [ "${keep_icloud_recent_only}" = true ] && [ "${warnings_acknowledged:=false}" = false ]
+if [ "${keep_icloud_recent_only}" = "true" ] && [ "${warnings_acknowledged:-false}" = "false" ]
 then
    log_warning "   | The 'Keep iCloud recent' feature deletes all files from iCloud which are older than this amount of days. Setting this to 0 will delete everthing"
    log_warning "     Please use this with caution. I am not responsible for any data loss. Continuing in 2 minutes"
@@ -436,7 +452,7 @@ then
 fi
 
 # Display warning when deleting accompanying files
-if [ "${delete_accompanying}" = true ] && [ "${warnings_acknowledged:=false}" = false ]
+if [ "${delete_accompanying}" = "true" ] && [ "${warnings_acknowledged:-false}" = "false" ]
 then
    log_info "   | Delete accompanying files (.JPG/.HEIC.MOV)"
    log_warning "   ! This feature deletes files from your local disk. Please use with caution. I am not responsible for any data loss"
@@ -446,9 +462,9 @@ then
 fi
 
 # Check China website and authentication sites are not mismatched
-if [ "${icloud_china}" = true ]
+if [ "${icloud_china}" = "true" ]
 then
-   if [ "${auth_china}" != true ]
+   if [ "${auth_china}" != "true" ]
    then
        log_warning "   | You have the icloud_china variable set to true but auth_china set to false. Are you sure this is correct?"
        user_warning_displayed=true
@@ -456,7 +472,7 @@ then
 fi
 
 # Check all Nextcloud variables are present if Nextcloud uploading
-if [ "${nextcloud_upload}" = true ]
+if [ "${nextcloud_upload}" = "true" ]
 then
    if [ -z "${nextcloud_url}" ] && [ -Z "${nextcloud_username}" ] && [ -z "${nextcloud_password}" ]
    then
@@ -466,9 +482,9 @@ then
 fi
 
 # Skip delay when warnings are presented
-if [ "${user_warning_displayed:=false}" = true ]
+if [ "${user_warning_displayed:-false}" = "true" ]
 then
-   if [ "${warnings_acknowledged:=false}" = true ]
+   if [ "${warnings_acknowledged:-false}" = "true" ]
    then
       log_debug "   | Configuration warnings acknowledged"
    else
@@ -478,7 +494,7 @@ then
 fi
 
 # Check notifications
-if [ "${notification_type}" ]
+if [ -n "${notification_type}" ]
 then
    log_info " - Check $(echo "${notification_type}" | cut -c1 | tr '[:lower:]' '[:upper:]')$(echo "${notification_type}" | cut -c2-) notifications configuration"
    if [ "${notification_type}" = "prowl" ] && [ -z "${prowl_api_key}" ]
@@ -567,7 +583,7 @@ fi
 
 # Check download directories are mounted
 log_info " - Checking download locations are mounted"
-if [ "${download_path}" ]
+if [ -n "${download_path}" ]
 then
    if [ "$(cat /proc/mounts | cut -d' ' -f2 | grep -c "${download_path%/}")" -eq 0 ]
    then
@@ -578,7 +594,7 @@ then
       log_debug "   | Download directory is mounted: ${download_path%/}"
    fi
 fi
-if [ "${jpeg_path}" ]
+if [ -n "${jpeg_path}" ]
 then
    if [ "$(cat /proc/mounts | cut -d' ' -f2 | grep -c "${jpeg_path%/}")" -eq 0 ]
    then
@@ -589,7 +605,7 @@ then
       log_debug "   | JPEG download directory is mounted: ${jpeg_path%/}"
    fi
 fi
-if [ "${video_path}" ]
+if [ -n "${video_path}" ]
 then
    if [ "$(cat /proc/mounts | cut -d' ' -f2 | grep -c "${video_path%/}")" -eq 0 ]
    then
@@ -610,11 +626,11 @@ set_user_mask
 # Check/Set permissions
 set_owner_and_permissions_config
 set_owner_and_permissions_downloads
-if [ "${jpeg_path}" ] && [ -d "${jpeg_path}" ]
+if [ -n "${jpeg_path}" ] && [ -d "${jpeg_path}" ]
 then
    set_owner_and_permissions_jpegs
 fi
-if [ "${video_path}" ] && [ -d "${video_path}" ]
+if [ -n "${video_path}" ] && [ -d "${video_path}" ]
 then
    set_owner_and_permissions_videos
 fi
@@ -654,7 +670,7 @@ then
 fi
 
 # Check route to icloud web site
-if [ "${icloud_china:=false}" = true ]
+if [ "${icloud_china:-false}" = "true" ]
 then
    icloud_domain="icloud.com.cn"
 else
@@ -674,15 +690,15 @@ fi
 if [ "${notification_type}" = "telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ] && [ "${telegram_polling}" = true ]
 then
    log_info " - Checking Telegram bot initialised"
-   if [ "${telegram_bot_initialised}" = false ]
+   if [ "${telegram_bot_initialised}" = "false" ]
    then
-      if [ "${telegram_http}" = true ]
+      if [ "${telegram_http}" = "true" ]
       then
          telegram_protocol="http"
       else
          telegram_protocol="https"
       fi
-      if [ "${telegram_server}" ]
+      if [ -n "${telegram_server}" ]
       then
          telegram_base_url="${telegram_protocol}://${telegram_server}/bot${telegram_token}"
       else
@@ -695,7 +711,7 @@ then
       fi
       sleep "$((RANDOM % 15))"
       bot_check="$(curl --silent -X POST "${telegram_base_url}/getUpdates" | jq -r .ok)"
-      if [ "${bot_check}" = true ]
+      if [ "${bot_check}" = "true" ]
       then
          sed -i "s%^telegram_bot_initialised=false$%telegram_bot_initialised=true%" "${config_file}"
       else
