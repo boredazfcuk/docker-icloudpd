@@ -27,7 +27,7 @@ initialise_script()
    cookie_file="$(echo -n "${apple_id//[^a-z0-9_]/}")"
    cookie_file_censored="$(echo -n "${apple_id_censored//[^a-z0-9_*]/}")"
    log_info "   - Cookie path: /config/${cookie_file_censored}"
-   if [ "${debug_logging}" = true ]
+   if [ "${debug_logging}" = "true" ]
    then
       log_info " | Debug logging: Enabled"
       log_level="debug"
@@ -37,7 +37,7 @@ initialise_script()
    fi
    log_debug " | Running user id: $(id --user)"
    log_debug " | Running group id: $(id --group)"
-   if [ "${debug_logging}" = true ]
+   if [ "${debug_logging}" = "true" ]
    then
       log_debug " | Local user: ${user:0:2}********:${user_id}"
       log_debug " | Local group: ${group:0:2}********:${group_id}"
@@ -47,7 +47,7 @@ initialise_script()
    fi
    log_debug " | Force GID: ${force_gid}"
 
-   if [ "${icloud_china:=false}" = true ]
+   if [ "${icloud_china:-false}" = "true" ]
    then
       icloud_domain="icloud.com.cn"
    else
@@ -71,9 +71,9 @@ initialise_script()
       fi
    done
    log_debug " | IP address for ${icloud_domain}: ${icloud_dot_com}"
-   if [ "${icloud_china}" = true ]
+   if [ "${icloud_china}" = "true" ]
    then
-      if [ "${auth_china}" = true ]
+      if [ "${auth_china}" = "true" ]
       then
          auth_domain="cn"
       fi
@@ -93,7 +93,7 @@ initialise_script()
    log_info " | Set EXIF date/time: ${set_exif_datetime}"
    log_info " | Auto delete: ${auto_delete}"
    log_info " | Delete after download: ${delete_after_download}"
-   if [ "${keep_icloud_recent_only}" = true ]
+   if [ "${keep_icloud_recent_only}" = "true" ]
    then
       log_info " | Keep iCloud recent : Enabled"
       log_info " | Keep iCloud recent days: ${keep_icloud_recent_days}"
@@ -102,68 +102,68 @@ initialise_script()
    log_info " | Photo size: ${photo_size}"
    log_info " | Align RAW: ${align_raw}"
    log_info " | Single pass mode: ${single_pass}"
-   if [ "${single_pass}" = true ]
+   if [ "${single_pass}" = "true" ]
    then
       log_debug " | Single pass mode enabled. Disabling download check"
       skip_check=true
    fi
    log_info " | Skip download check: ${skip_check}"
    log_info " | Skip live photos: ${skip_live_photos}"
-   if [ "${recent_only}" ]
+   if [ -n "${recent_only}" ]
    then
       log_info " | Number of most recently added photos to download: ${recent_only}"
    else
       log_info " | Number of most recently added photos to download: Download All Photos"
    fi
-   if [ "${photo_album}" ]
+   if [ -n "${photo_album}" ]
    then
       log_info " | Downloading photos from album(s): ${photo_album}"
-   elif [ "${photo_library}" ]
+   elif [ -n "${photo_library}" ]
    then
       log_info " | Downloading photos from library: ${photo_library}"
    else
       log_info " | Downloading photos from: Download All Photos"
    fi
-   if [ "${until_found}" ]
+   if [ -n "${until_found}" ]
    then
       log_info " | Stop downloading when prexisiting files count is: ${until_found}"
    else
       log_info " | Stop downloading when prexisiting files count is: Download All Photos"
    fi
-   if [ "${skip_live_photos}" = false ]
+   if [ "${skip_live_photos}" = "false" ]
    then
       log_info " | Live photo size: ${live_photo_size}"
    fi
    log_info " | Skip videos: ${skip_videos}"
    log_info " | Convert HEIC to JPEG: ${convert_heic_to_jpeg}"
-   if [ "${convert_heic_to_jpeg}" = true ]
+   if [ "${convert_heic_to_jpeg}" = "true" ]
    then
       log_debug " | JPEG conversion quality: ${jpeg_quality}"
    fi
-   if [ "${jpeg_path}" ]
+   if [ -n "${jpeg_path}" ]
    then
       log_info " | Converted JPEGs path: ${jpeg_path}"
    fi
-   if [ "${sideways_copy_videos}" = true ]
+   if [ "${sideways_copy_videos}" = "true" ]
    then
       log_debug " | Sideways copy videos mode: ${sideways_copy_videos_mode}"
    fi
-   if [ "${video_path}" ]
+   if [ -n "${video_path}" ]
    then
       log_info " | Sideways copied videos path: ${video_path}"
    fi
-   if [ "${delete_accompanying}" = true ]
+   if [ "${delete_accompanying}" = "true" ]
    then
       log_info " | Delete accompanying files (.JPG/_HEVC.MOV)"
    fi
-   if [ "${fake_user_agent}" = true ]
+   if [ "${fake_user_agent}" = "true" ]
    then
       log_info " | User agent impersonation for curl: Enabled"
       curl_user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 Edge/122.0.0.0"
    else
       log_debug " | User agent impersonation for curl: Disabled"
    fi
-   if [ "${nextcloud_upload}" = true ]
+   if [ "${nextcloud_upload}" = "true" ]
    then
       log_info " | Nextcloud upload: Enabled"
       nextcloud_url_scheme="${nextcloud_url%//*}//"
@@ -179,7 +179,7 @@ initialise_script()
    else
       log_debug " | Nextcloud upload: Disabled"
    fi
-   if [ "${synology_ignore_path}" = true ]
+   if [ "${synology_ignore_path}" = "true" ]
    then
       log_info " | Ignore Synology extended attribute directories: Enabled"
       ignore_path="*/@eaDir*"
@@ -189,7 +189,7 @@ initialise_script()
    fi
    log_info "Finished loading configuration file"
 
-   if [ "${notification_type}" ]
+   if [ -n "${notification_type}" ]
    then
       configure_notifications
    fi
@@ -220,7 +220,7 @@ log_error()
 
 log_debug()
 {
-   if [ "${debug_logging}" = true ]
+   if [ "${debug_logging}" = "true" ]
    then
       echo "$(date '+%Y-%m-%d %H:%M:%S') DEBUG    ${1}"
    fi
@@ -238,7 +238,7 @@ run_as()
 
 clean_notification_title()
 {
-   if [ "${notification_title}" ]
+   if [ -n "${notification_title}" ]
    then
       notification_title="${notification_title//[^a-zA-Z0-9_ ]/}"
       log_debug " | Cleaned notification title: ${notification_title}"
@@ -251,19 +251,19 @@ configure_notifications()
 {
    log_info "Configuring notifications"
    notification_type_tc="$(echo ${notification_type} | cut -c 1 | tr '[:lower:]' '[:upper:]')$(echo ${notification_type} | cut -c2-)"
-   if [ "${notification_type}" = "prowl" ] && [ "${prowl_api_key}" ]
+   if [ "${notification_type}" = "prowl" ] && [ -n "${prowl_api_key}" ]
    then
       log_info " | ${notification_type_tc} notifications enabled"
       log_debug "   - ${notification_type_tc} api key: ${prowl_api_key:0:2}********${prowl_api_key:0-2}"
       notification_url="https://api.prowlapp.com/publicapi/add"
       log_debug "   - ${notification_type_tc} notification URL: ${notification_url}"
       clean_notification_title
-   elif [ "${notification_type}" = "pushover" ] && [ "${pushover_user}" ] && [ "${pushover_token}" ]
+   elif [ "${notification_type}" = "pushover" ] && [ -n "${pushover_user}" ] && [ -n "${pushover_token}" ]
    then
       log_info " | ${notification_type_tc} notifications enabled"
       log_debug "   - ${notification_type_tc} user: ${pushover_user:0:2}********${pushover_user:0-2}"
       log_debug "   - ${notification_type_tc} token: ${pushover_token:0:2}********${pushover_token:0-2}"
-      if [ "${pushover_sound}" ]
+      if [ -n "${pushover_sound}" ]
       then
          case "${pushover_sound}" in
             pushover|bike|bugle|cashregister|classical|cosmic|falling|gamelan|incoming|intermission|magic|mechanical|pianobar|siren|spacealarm|tugboat|alien|climb|persistent|echo|updown|vibrate|none)
@@ -277,15 +277,15 @@ configure_notifications()
       notification_url="https://api.pushover.net/1/messages.json"
       log_debug "   - ${notification_type_tc} notification URL: ${notification_url}"
       clean_notification_title
-   elif [ "${notification_type}" = "telegram" ] && [ "${telegram_token}" ] && [ "${telegram_chat_id}" ]
+   elif [ "${notification_type}" = "telegram" ] && [ -n "${telegram_token}" ] && [ -n "${telegram_chat_id}" ]
    then
-      if [ "${telegram_http}" = true ]
+      if [ "${telegram_http}" = "true" ]
       then
          telegram_protocol="http"
       else
          telegram_protocol="https"
       fi
-      if [ "${telegram_server}" ]
+      if [ -n "${telegram_server}" ]
       then
          telegram_base_url="${telegram_protocol}://${telegram_server}/bot${telegram_token}"
       else
@@ -297,7 +297,7 @@ configure_notifications()
       log_debug "   - ${notification_type_tc} chat id: ${telegram_chat_id:0:2}********${telegram_chat_id:0-2}"
       log_debug "   - ${notification_type_tc} polling: ${telegram_polling}"
       log_debug "   - ${notification_type_tc} uses HTTP: ${telegram_http}"
-      if [ "${telegram_server}" ]
+      if [ -n "${telegram_server}" ]
       then
          log_debug "   - ${notification_type_tc} base URL: ${telegram_protocol}://${telegram_server}/bot${telegram_token:0:2}********${telegram_token:0-2}"
          log_debug "   - ${notification_type_tc} notification URL: ${telegram_protocol}://${telegram_server}y/bot${telegram_token:0:2}********${telegram_token:0-2}/sendMessage"
@@ -305,15 +305,15 @@ configure_notifications()
          log_debug "   - ${notification_type_tc} base URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}"
          log_debug "   - ${notification_type_tc} notification URL: ${telegram_protocol}://api.telegram.org/bot${telegram_token:0:2}********${telegram_token:0-2}/sendMessage"
       fi
-      if [ "${script_launch_parameters}" ]
+      if [ -n "${script_launch_parameters}" ]
       then
          telegram_polling="false"
       fi
-      if [ "${telegram_polling}" = true ]
+      if [ "${telegram_polling}" = "true" ]
       then
-         if [ "${telegram_bot_initialised}" = true ]
+         if [ "${telegram_bot_initialised}" = "true" ]
          then
-            if [ "${telegram_server}" ]
+            if [ -n "${telegram_server}" ]
             then
                log_debug "   - Checking ${telegram_server} for updates"
             else
@@ -332,9 +332,9 @@ configure_notifications()
       fi
       log_debug "   - Silent file notifications: ${silent_file_notifications}"
       clean_notification_title
-   elif [ "${notification_type}" = "openhab" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
+   elif [ "${notification_type}" = "openhab" ] && [ -n "${webhook_server}" ] && [ -n "${webhook_id}" ]
    then
-      if [ "${webhook_https}" = true ]
+      if [ "${webhook_https}" = "true" ]
       then
          webhook_scheme="https"
       else
@@ -347,9 +347,9 @@ configure_notifications()
       log_debug "   - ${notification_type_tc} path: ${webhook_path:=/rest/items/}"
       log_debug "   - ${notification_type_tc} ID: ${webhook_id:0:2}********${webhook_id:0-2}"
       log_debug "   - ${notification_type_tc} notification URL: ${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id:0:2}********${webhook_id:0-2}"
-   elif [ "${notification_type}" = "webhook" ] && [ "${webhook_server}" ] && [ "${webhook_id}" ]
+   elif [ "${notification_type}" = "webhook" ] && [ -n "${webhook_server}" ] && [ -n "${webhook_id}" ]
    then
-      if [ "${webhook_https}" = true ]
+      if [ "${webhook_https}" = "true" ]
       then
          webhook_scheme="https"
       else
@@ -363,12 +363,12 @@ configure_notifications()
       log_debug "   - ${notification_type_tc} ID: ${webhook_id:0:2}********${webhook_id:0-2}"
       log_debug "   - ${notification_type_tc} notification URL: ${webhook_scheme}://${webhook_server}:${webhook_port}${webhook_path}${webhook_id:0:2}********${webhook_id:0-2}"
       log_debug "   - ${notification_type_tc} body keyword: ${webhook_body:=data}"
-      if [ "${webhook_insecure}" ] &&  [ "${debug_logging}" = true ]
+      if [ -n "${webhook_insecure}" ] &&  [ "${debug_logging}" = "true" ]
       then
          log_debug "   - ${notification_type_tc} insecure certificates allowed"
       fi
       clean_notification_title
-   elif [ "${notification_type}" = "discord" ] && [ "${discord_id}" ] && [ "${discord_token}" ]
+   elif [ "${notification_type}" = "discord" ] && [ -n "${discord_id}" ] && [ -n "${discord_token}" ]
    then
       log_info " | ${notification_type_tc} notifications enabled"
       notification_url="https://discord.com/api/webhooks/${discord_id}/${discord_token}"
@@ -376,28 +376,28 @@ configure_notifications()
       log_debug "   - ${notification_type_tc} Discord token: ${discord_token:0:2}********${discord_token:0-2}"
       log_debug "   - ${notification_type_tc} notification URL: https://discord.com/api/webhooks/${discord_id:0:2}********${discord_id:0-2}/${discord_token:0:2}********${discord_token:0-2}"
       clean_notification_title
-   elif [ "${notification_type}" = "dingtalk" ] && [ "${dingtalk_token}" ]
+   elif [ "${notification_type}" = "dingtalk" ] && [ -n "${dingtalk_token}" ]
    then
       notification_url="https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token}"
       log_info " | ${notification_type_tc} notifications enabled"
       log_debug "   - ${notification_type_tc} token: ${dingtalk_token:0:2}********${dingtalk_token:0-2}"
       log_debug "   - ${notification_type_tc} notification URL: https://oapi.dingtalk.com/robot/send?access_token=${dingtalk_token:0:2}********${dingtalk_token:0-2}"
-   elif [ "${notification_type}" = "iyuu" ] && [ "${iyuu_token}" ]
+   elif [ "${notification_type}" = "iyuu" ] && [ -n "${iyuu_token}" ]
    then
       notification_url="http://iyuu.cn/${iyuu_token}.send?"
       log_info " | ${notification_type_tc} notifications enabled"
       log_debug "   - ${notification_type_tc} token: ${iyuu_token}"
       log_debug "   - ${notification_type_tc} notification URL: http://iyuu.cn/${iyuu_token:0:2}********${iyuu_token:0-2}.send?"
-   elif [ "${notification_type}" = "wecom" ] && [ "${wecom_id}" ] && [ "${wecom_secret}" ]
+   elif [ "${notification_type}" = "wecom" ] && [ -n "${wecom_id}" ] && [ -n "${wecom_secret}" ]
    then
       wecom_base_url="https://qyapi.weixin.qq.com"
-      if [ "${wecom_proxy}" ]
+      if [ -n "${wecom_proxy}" ]
       then
          wecom_base_url="${wecom_proxy}"
          log_debug "   - ${notification_type_tc} notifications proxy enabled : ${wecom_proxy}"
       fi
       wecom_token_url="${wecom_base_url}/cgi-bin/gettoken?corpid=${wecom_id}&corpsecret=${wecom_secret}"
-      if [ "${fake_user_agent}" = true ]
+      if [ "${fake_user_agent}" = "true" ]
       then
          wecom_token="$(/usr/bin/curl --silent --user-agent "${curl_user_agent}" --get "${wecom_token_url}" | awk -F\" '{print $10}')"
       else
@@ -409,9 +409,9 @@ configure_notifications()
       log_debug "   - ${notification_type_tc} token: ${wecom_token:0:2}********${wecom_token:0-2}"
       log_debug "   - ${notification_type_tc} token expiry time: $(date -d "${wecom_token_expiry}")"
       log_debug "   - ${notification_type_tc} notification URL: ${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token:0:2}********${wecom_token:0-2}"
-   elif [ "${notification_type}" = "gotify" ] && [ "${gotify_app_token}" ] && [ "${gotify_server_url}" ]
+   elif [ "${notification_type}" = "gotify" ] && [ -n "${gotify_app_token}" ] && [ -n "${gotify_server_url}" ]
    then
-      if [ "${gotify_https}" = true ]
+      if [ "${gotify_https}" = "true" ]
       then
          gotify_scheme="https"
       else
@@ -423,7 +423,7 @@ configure_notifications()
       log_debug "   - ${notification_type_tc} server URL: ${gotify_scheme}://${gotify_server_url}"
       log_debug "   - ${notification_type_tc} notification URL: ${gotify_scheme}://${gotify_server_url}/message?token=${gotify_app_token:0:2}********${gotify_app_token:0-2}"
       clean_notification_title
-   elif [ "${notification_type}" = "bark" ] && [ "${bark_device_key}" ] && [ "${bark_server}" ]
+   elif [ "${notification_type}" = "bark" ] && [ -n "${bark_device_key}" ] && [ -n "${bark_server}" ]
    then
       log_info " | ${notification_type_tc} notifications enabled"
       notification_url="http://${bark_server}/push"
@@ -431,17 +431,17 @@ configure_notifications()
       log_debug "   - ${notification_type_tc} server: ${bark_server}"
       log_debug "   - ${notification_type_tc} notification URL: http://${bark_server}/push"
       clean_notification_title
-   elif [ "${notification_type}" = "msmtp" ] && [ "${msmtp_host}" ] && [ "${msmtp_port}" ]
+   elif [ "${notification_type}" = "msmtp" ] && [ -n "${msmtp_host}" ] && [ -n "${msmtp_port}" ]
    then
       log_info " | ${notification_type_tc} notifications enabled"
       log_debug "   - ${notification_type_tc} hostname: ${msmtp_host}"
       log_debug "   - ${notification_type_tc} port number: ${msmtp_port}"
-      if  [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]
+      if  [ -n "${msmtp_user}" ] && [ -n "${msmtp_pass}" ]
       then
          log_debug "   - ${notification_type_tc} username: ${msmtp_user}"
          log_debug "   - ${notification_type_tc} password: ${msmtp_pass:0:2}********${msmtp_pass:0-2}"
       fi
-   elif [ "${notification_type}" = "signal" ] && [ "${signal_host}" ] && [ "${signal_port}" ] && [ "${signal_number}" ] && [ "${signal_recipient}" ]
+   elif [ "${notification_type}" = "signal" ] && [ -n "${signal_host}" ] && [ -n "${signal_port}" ] && [ -n "${signal_number}" ] && [ -n "${signal_recipient}" ]
    then
       log_info " | ${notification_type_tc} notifications enabled"
       log_debug "   - ${notification_type_tc} hostname: ${signal_host}"
@@ -461,21 +461,21 @@ configure_notifications()
       esac
       unset notification_type prowl_api_key pushover_user pushover_token telegram_token telegram_chat_id webhook_scheme webhook_server webhook_port webhook_id dingtalk_token discord_id discord_token iyuu_token wecom_id wecom_secret gotify_app_token gotify_scheme gotify_server_url bark_device_key bark_server
    fi
-   if [ "${startup_notification}" = true ]
+   if [ "${startup_notification}" = "true" ]
    then
       log_debug " | Startup notification: Enabled"
    else
       log_debug " | Startup notification: Disabled"
    fi
 
-   if [ "${download_notifications}" = true ]
+   if [ "${download_notifications}" = "true" ]
    then
       log_debug " | Download notifications: Enabled"
    else
       log_debug " | Download notifications: Disabled"
       unset download_notifications
    fi
-   if [ "${delete_notifications}" = true ]
+   if [ "${delete_notifications}" = "true" ]
    then
       log_debug " | Delete notifications: Enabled"
    else
@@ -484,9 +484,9 @@ configure_notifications()
    fi
    log_info "Configuring of notifications complete"
 
-   if [ "${startup_notification}" = true ]
+   if [ "${startup_notification}" = "true" ]
    then
-      if [ "${icloud_china}" = false ]
+      if [ "${icloud_china}" = "false" ]
       then
          send_notification "startup" "iCloudPD container started" "0" "iCloudPD container starting for Apple ID: ${apple_id}"
       else
@@ -505,7 +505,7 @@ list_libraries()
       check_web_cookie
    fi
    IFS=$'\n'
-   if [ "${skip_download}" = false ]
+   if [ "${skip_download}" = "false" ]
    then
       shared_libraries="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --domain ${auth_domain} --directory /dev/null --list-libraries | sed '1d'")"
    fi
@@ -527,7 +527,7 @@ list_albums()
       check_web_cookie
    fi
    IFS=$'\n'
-   if [ "${skip_download}" = false ]
+   if [ "${skip_download}" = "false" ]
    then
       photo_albums="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
    fi
@@ -626,7 +626,7 @@ generate_cookie()
          log_error " - Was the correct password entered?"
          log_error " - Was the multi-factor authentication code mistyped?"
          log_error " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
-         if [ "${icloud_china}" = true ]
+         if [ "${icloud_china}" = "true" ]
          then
             log_error " - Are you based in China? You will need to set the icloud_china variable"
          fi
@@ -789,7 +789,7 @@ display_multifactor_authentication_expiry()
       if [ "${days_remaining}" -eq 1 ]
       then
          cookie_status="cookie expired"
-         if [ "${icloud_china}" = false ]
+         if [ "${icloud_china}" = "false" ]
          then
             error_message="Final day before multi-factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
          else
@@ -797,7 +797,7 @@ display_multifactor_authentication_expiry()
          fi
       else
          cookie_status="cookie expiration"
-         if [ "${icloud_china}" = false ]
+         if [ "${icloud_china}" = "false" ]
          then
             error_message="Only ${days_remaining} days until multi-factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
          else
@@ -807,7 +807,7 @@ display_multifactor_authentication_expiry()
       log_warning "${error_message}"
       if [ "${download_time:=$(date +%s -d '+15 minutes')}" -gt "${next_notification_time:=$(date +%s)}" ]
       then
-         if [ "${icloud_china}" = false ]
+         if [ "${icloud_china}" = "false" ]
          then
             send_notification "${cookie_status}" "Multi-factor Authentication Cookie Expiration" "2" "${error_message}"
          else
@@ -828,7 +828,7 @@ check_files()
    log_info "Check for new files using password stored in keyring file"
    log_info "Generating list of files in iCloud. This may take a long time if you have a large photo collection. Please be patient. Nothing is being downloaded at this time"
    >/tmp/icloudpd/icloudpd_check_error
-   if [ "${photo_album}" ] && [ "${photo_album}" != "all albums" ] && [ "${photo_library}" ]
+   if [ -n "${photo_album}" ] && [ "${photo_album}" != "all albums" ] && [ -n "${photo_library}" ]
    then
       local libraries_to_check album_arg
       libraries_to_check="$(resolve_library_list)"
@@ -856,12 +856,12 @@ check_files()
          done
       done
       IFS="${OLDIFS}"
-      if [ "${any_library_succeeded}" = false ] && [ "${check_exit_code}" -eq 0 ]
+      if [ "${any_library_succeeded}" = "false" ] && [ "${check_exit_code}" -eq 0 ]
       then
          check_exit_code=1
          echo "Album(s) not found in any library" >> /tmp/icloudpd/icloudpd_check_error
       fi
-   elif [ "${photo_library}" ]
+   elif [ -n "${photo_library}" ]
    then
       local libraries_to_check
       libraries_to_check="$(resolve_library_list)"
@@ -880,7 +880,7 @@ check_files()
          fi
       done
       IFS="${OLDIFS}"
-   elif [ "${photo_album}" ] && [ "${photo_album}" != "all albums" ]
+   elif [ -n "${photo_album}" ] && [ "${photo_album}" != "all albums" ]
    then
       log_debug "Launch command: /opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --keep-unicode-in-filenames --only-print-filenames --album ${photo_album}"
       run_as "(/opt/icloudpd/bin/icloudpd --directory ${download_path} --cookie-directory /config --username ${apple_id} --domain ${auth_domain} --folder-structure ${folder_structure} --keep-unicode-in-filenames --only-print-filenames --album \"${photo_album}\" 2>/tmp/icloudpd/icloudpd_check_error; echo $? >/tmp/icloudpd/icloudpd_check_exit_code) | tee /tmp/icloudpd/icloudpd_check.log"
@@ -896,14 +896,14 @@ check_files()
       log_error " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
       log_error "Error debugging info:"
       log_error "$(cat /tmp/icloudpd/icloudpd_check_error)"
-      if [ "${debug_logging}" != true ]
+      if [ "${debug_logging}" != "true" ]
       then
          log_error "Please set debug_logging=true in your icloudpd.conf file then reproduce the error"
          log_error "***** Once you have captured this log file, please post it along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
       else
          log_error "***** Please post the above debug log, along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
       fi
-      if [ "${icloud_china}" = false ]
+      if [ "${icloud_china}" = "false" ]
       then
          send_notification "failure" "iCloudPD container failure" "1" "iCloudPD failed check for new files for Apple ID: ${apple_id}"
       else
@@ -935,10 +935,10 @@ downloaded_files_notification()
       log_info "New files downloaded: ${new_files_count}"
       new_files_preview="$(echo "${new_files}" | cut --delimiter " " --fields 9- | sed -e "s%${download_path}/%%g" | head -10)"
       new_files_preview_count="$(echo "${new_files_preview}" | wc -l)"
-      if [ "${icloud_china}" = false ]
+      if [ "${icloud_china}" = "false" ]
       then
          new_files_text="Files downloaded for Apple ID ${apple_id}: ${new_files_count}"
-         if [ "${silent_file_notifications}" = true ]
+         if [ "${silent_file_notifications}" = "true" ]
          then
             disable_notification=true
          fi
@@ -965,10 +965,10 @@ deleted_files_notification()
       log_info "Number of files deleted: ${deleted_files_count}"
       deleted_files_preview="$(echo "${deleted_files}" | cut --delimiter " " --fields 9- | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"
       deleted_files_preview_count="$(echo "${deleted_files_preview}" | wc -l)"
-      if [ "${icloud_china}" = false ]
+      if [ "${icloud_china}" = "false" ]
       then
          deleted_files_text="Files deleted for Apple ID ${apple_id}: ${deleted_files_count}"
-         if [ "${silent_file_notifications}" = true ]
+         if [ "${silent_file_notifications}" = "true" ]
          then
             disable_notification=true
          fi
@@ -995,7 +995,7 @@ resolve_library_list()
       IFS=$'\n'
       for library in ${all_libraries}
       do
-         if [ "${skip_library}" ] && [ "${skip_library}" = "${library}" ]
+         if [ -n "${skip_library}" ] && [ "${skip_library}" = "${library}" ]
          then
             continue
          fi
@@ -1024,7 +1024,7 @@ download_albums()
       IFS=$'\n'
       for album in ${all_albums}
       do
-         if [ "${skip_album}" ]
+         if [ -n "${skip_album}" ]
          then
             if [ ! "${skip_album}" = "${album}" ]
             then
@@ -1054,14 +1054,14 @@ download_albums()
    # Clear log file for the download list to append to
    echo "" > /tmp/icloudpd/icloudpd_sync.log
    local libraries_to_download
-   if [ "${photo_library}" ]
+   if [ -n "${photo_library}" ]
    then
       libraries_to_download="$(resolve_library_list)"
    fi
    for album in ${albums_to_download}
    do
       log_info "Downloading album: ${album}"
-      if [ "${photo_library}" ]
+      if [ -n "${photo_library}" ]
       then
          local album_found download_failed
          album_found=false
@@ -1070,7 +1070,7 @@ download_albums()
          for library in ${libraries_to_download}
          do
             log_info "Downloading album '${album}' from library: ${library}"
-            if [ "${albums_with_dates}" = true ]
+            if [ "${albums_with_dates}" = "true" ]
             then
                log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${library}/${album}/${folder_structure}\" --album \"${album}\" --library \"${library}\" 2>/tmp/icloudpd/icloudpd_download_error"
                run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${library}/${album}/${folder_structure}\" --album \"${album}\" --library \"${library}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
@@ -1091,13 +1091,13 @@ download_albums()
                album_found=true
             fi
          done
-         if [ "${download_failed}" = true ]
+         if [ "${download_failed}" = "true" ]
          then
             IFS="${OLDIFS}"
             sleep 10
             break
          fi
-         if [ "${album_found}" = false ]
+         if [ "${album_found}" = "false" ]
          then
             log_error "Album '${album}' not found in any library"
             echo 1 > /tmp/icloudpd/icloudpd_download_exit_code
@@ -1110,7 +1110,7 @@ download_albums()
          echo 0 > /tmp/icloudpd/icloudpd_download_exit_code
          >/tmp/icloudpd/icloudpd_download_error
       else
-         if [ "${albums_with_dates}" = true ]
+         if [ "${albums_with_dates}" = "true" ]
          then
             log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error"
             run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure \"${album}/${folder_structure}\" --album \"${album}\" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
@@ -1140,7 +1140,7 @@ download_libraries()
    for library in ${libraries_to_download}
    do
       log_info "Downloading library: ${library}"
-      if [ "${libraries_with_dates}" = true ]
+      if [ "${libraries_with_dates}" = "true" ]
       then
          log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} --folder-structure ${library}/${folder_structure} --library ${library} 2>/tmp/icloudpd/icloudpd_download_error"
          run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level "${log_level}" --folder-structure "${library}/${folder_structure}" --library "${library}" 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee -a /tmp/icloudpd/icloudpd_sync.log"
@@ -1162,7 +1162,7 @@ download_libraries()
 download_photos()
 {
    log_debug "iCloudPD launch command: /opt/icloudpd/bin/icloudpd --log-level ${log_level} ${command_line} 2>/tmp/icloudpd/icloudpd_download_error"
-   if [ "${skip_download}" = false ]
+   if [ "${skip_download}" = "false" ]
    then
       run_as "(/opt/icloudpd/bin/icloudpd ${command_line} --log-level ${log_level} 2>/tmp/icloudpd/icloudpd_download_error; echo $? >/tmp/icloudpd/icloudpd_download_exit_code) | tee /tmp/icloudpd/icloudpd_sync.log"
    else
@@ -1282,7 +1282,7 @@ nextcloud_sync()
 
    if [ "${deleted_files_count:=0}" -gt 0 ]
    then
-      if [ "${nextcloud_delete}" = true ]
+      if [ "${nextcloud_delete}" = "true" ]
       then
          check_nextcloud_connectivity
          nextcloud_delete
@@ -1495,7 +1495,7 @@ convert_downloaded_heic_to_jpeg()
             file_extension='jpg'
          fi
          jpeg_file="${heic_file%.*}.${file_extension}"
-         if [ "${jpeg_path}" ]
+         if [ -n "${jpeg_path}" ]
          then
             jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
             jpeg_directory="$(dirname "${jpeg_file}")"
@@ -1562,7 +1562,7 @@ sideways_copy_all_videos()
    log_debug " - Sideways copying all videos with copy mode: ${sideways_copy_videos_mode}"
    for video in ${video_list}
    do
-      if [ "${sideways_copy_videos_mode}" = "move" ] && [ "${delete_after_download}" = true ]
+      if [ "${sideways_copy_videos_mode}" = "move" ] && [ "${delete_after_download}" = "true" ]
       then
          log_debug "   | Moving ${video} to ${video_path}/${video}"
          mv --update=none --preserve "${video}" "${video_path}/${video}"
@@ -1619,7 +1619,7 @@ sideways_copy_videos()
    log_debug " - Sideways copying videos with copy mode: ${sideways_copy_videos_mode}"
    for video in ${video_list}
    do
-      if [ "${sideways_copy_videos_mode}" = "move" ] && [ "${delete_after_download}" = true ]
+      if [ "${sideways_copy_videos_mode}" = "move" ] && [ "${delete_after_download}" = "true" ]
       then
          log_debug "   | Moving ${video} to ${video_path}/${video}"
          mv --update=none --preserve "${video}" "${video_path}/${video}"
@@ -1667,7 +1667,7 @@ convert_all_heic_files()
          file_extension='jpg'
       fi
       jpeg_file="${heic_file%.*}.${file_extension}"
-      if [ "${jpeg_path}" ]
+      if [ -n "${jpeg_path}" ]
       then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
          jpeg_directory="$(dirname "${jpeg_file}")"
@@ -1707,7 +1707,7 @@ remove_all_jpeg_files()
          file_extension='jpg'
       fi
       jpeg_file="${heic_file%.*}.${file_extension}"
-      if [ "${jpeg_path}" ]
+      if [ -n "${jpeg_path}" ]
       then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
       fi
@@ -1734,7 +1734,7 @@ force_convert_all_heic_files()
          file_extension='jpg'
       fi
       jpeg_file="${heic_file%.*}.${file_extension}"
-      if [ "${jpeg_path}" ]
+      if [ -n "${jpeg_path}" ]
       then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
          jpeg_directory="$(dirname "${jpeg_file}")"
@@ -1775,7 +1775,7 @@ force_convert_all_mnt_heic_files()
          file_extension='jpg'
       fi
       jpeg_file="${heic_file%.*}.${file_extension}"
-      if [ "${jpeg_path}" ]
+      if [ -n "${jpeg_path}" ]
       then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
       fi
@@ -1805,7 +1805,7 @@ correct_jpeg_timestamps()
          file_extension='jpg'
       fi
       jpeg_file="${heic_file%.*}.${file_extension}"
-      if [ "${jpeg_path}" ]
+      if [ -n "${jpeg_path}" ]
       then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
       fi
@@ -1844,7 +1844,7 @@ remove_recently_deleted_accompanying_files()
          file_extension='jpg'
       fi
       jpeg_file="${heic_file%.*}.${file_extension}"
-      if [ "${jpeg_path}" ]
+      if [ -n "${jpeg_path}" ]
       then
          jpeg_file="${jpeg_file/${download_path}/${jpeg_path}}"
       fi
@@ -1873,7 +1873,7 @@ remove_empty_directories()
    log_info "Deleting empty directories from ${download_path}..."
    find "${download_path}" -type d -empty -delete
    log_info "Deleting empty directories complete"
-   if [ "${jpeg_path}" ]
+   if [ -n "${jpeg_path}" ]
    then
       log_debug "Deleting empty directories from ${jpeg_path}..."
       find "${jpeg_path}" -type d -empty -delete
@@ -1931,200 +1931,201 @@ send_notification()
       # 同步失败、cookiey已过期通知封面/Image for cookie expired or failure
       thumb_media_id="$media_id_warning"
    fi
-   if [ "${notification_type}" ]
+   if [ -n "${notification_type}" ]
    then
       log_info "Sending ${notification_type_tc} ${notification_classification} notification"
+
+      case "${notification_type}" in
+         "prowl")
+            notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
+                  --form apikey="${prowl_api_key}" \
+                  --form application="${notification_title}" \
+                  --form event="${notification_event}" \
+                  --form priority="${notification_priority}" \
+                  --form description="${notification_message}")"
+            curl_exit_code="$?"
+            ;;
+         "pushover")
+            if [ "${notification_priority}" = "2" ]; then
+                  notification_priority=1
+            fi
+            if [ -n "${notification_files_preview_count}" ]; then
+                  pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text}")"
+            else
+                  pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}")"
+            fi
+            notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
+                  --form-string "user=${pushover_user}" \
+                  --form-string "token=${pushover_token}" \
+                  --form-string "title=${notification_title}" \
+                  --form-string "sound=${pushover_sound}" \
+                  --form-string "priority=${notification_priority}" \
+                  --form-string "message=${pushover_text}")"
+            curl_exit_code="$?"
+            ;;
+         "telegram")
+            if [ -n "${notification_files_preview_count}" ]; then
+                  telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message//_/\\_}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
+            else
+                  telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message//_/\\_}")"
+            fi
+            notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+                  --data chat_id="${telegram_chat_id}" \
+                  --data parse_mode="markdown" \
+                  --data disable_notification="${disable_notification:=false}" \
+                  --data text="${telegram_text}")"
+            curl_exit_code="$?"
+            unset disable_notification
+            ;;
+         "openhab")
+            webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
+            notification_result="$(curl -X 'PUT' --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
+                  --header 'content-type: text/plain' \
+                  --data "${webhook_payload}")"
+            curl_exit_code="$?"
+            ;;
+         "webhook")
+            webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
+            if [ "${webhook_insecure}" = "true" ]; then
+                  notification_result="$(curl --silent --insecure --output /dev/null --write-out "%{http_code}" "${notification_url}" \
+                     --header 'content-type: application/json' \
+                     --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
+            else
+                  notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
+                     --header 'content-type: application/json' \
+                     --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
+            fi
+            curl_exit_code="$?"
+            ;;
+         "discord")
+            if [ -n "${notification_files_preview_count}" ]; then
+                  discord_text="${notification_message}\\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\\n${notification_files_preview_text//$'\n'/'\n'}"
+            else
+                  discord_text="$(echo -e "${notification_message}")"
+            fi
+            notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+                  --header 'content-type: application/json' \
+                  --data "{ \"username\" : \"${notification_title}\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_event}\" } , \"color\" : 2061822 , \"description\": \"${discord_text}\" } ] }")"
+            curl_exit_code="$?"
+            ;;
+         "dingtalk")
+            notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+                  --header 'Content-Type: application/json' \
+                  --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${notification_message}'}}")"
+            curl_exit_code="$?"
+            ;;
+         "iyuu")
+            if [ -n "${notification_files_preview_count}" ]; then
+                  iyuu_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
+            else
+                  iyuu_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
+            fi
+            if [ "${fake_user_agent}" = "true" ]; then
+                  notification_result="$(curl --silent --user-agent "${curl_user_agent}" --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+                     --data text="${notification_title}" \
+                     --data desp="${iyuu_text}")"
+            else
+                  notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
+                     --data text="${notification_title}" \
+                     --data desp="${iyuu_text}")"
+            fi
+            curl_exit_code="$?"
+            ;;
+         "wecom")
+            if [ "$(date +'%s')" -ge "$(date +'%s' -d "${wecom_token_expiry}")" ]; then
+                  log_warning "${notification_type_tc} token has expired"
+                  unset wecom_token
+            fi
+            if [ -z "${wecom_token}" ]; then
+                  log_warning "Obtaining new ${notification_type_tc} token..."
+                  if [ "${fake_user_agent}" = "true" ]; then
+                     wecom_token="$(/usr/bin/curl --silent --user-agent "${curl_user_agent}" --get "${wecom_token_url}" | awk -F\" '{print $10}')"
+                  else
+                     wecom_token="$(/usr/bin/curl --silent --get "${wecom_token_url}" | awk -F\" '{print $10}')"
+                  fi
+                  wecom_token_expiry="$(date --date='2 hour')"
+                  notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
+                  log_info "${notification_type_tc} token: ${wecom_token}"
+                  log_info "${notification_type_tc} token expiry time: $(date -d "${wecom_token_expiry}")"
+                  log_info "${notification_type_tc} notification URL: ${notification_url}"
+            fi
+            syn_end_time="$(date '+%H:%M:%S')"
+            syn_next_time="$(date +%H:%M:%S -d "${download_interval} seconds")"
+            if [ -n "${notification_files_preview_count}" ]; then
+                  log_info "Attempting creating preview count message body"
+                  if [ "${icloud_china}" = "false" ]; then
+                     wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
+                  else
+                     notification_files_preview_text="${notification_files_preview_text//$'\n'/'<br/>'}"
+                     wecom_text="$(echo -e "<font style=\"line-height:1.5\"><center><b><big><big>同步日志</big></big></b></font></center><center><b>${notification_message}</b></center><center>···················  <small>最近 ${notification_files_preview_count} 条${notification_files_preview_type}记录如下</small>  ····················</center><code><small>${notification_files_preview_text}</small></code><center>···················  <small>下次同步时间为 ${syn_next_time}</small>  ··················</center>")"
+                  fi
+            else
+                  log_info "Attempting creating message body"
+                  if [ "${icloud_china}" = "false" ]; then
+                     wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
+                  else
+                     wecom_text="$(echo -e "${notification_message}")"
+                  fi
+            fi
+            log_info "Attempting send..."
+            if [ "${fake_user_agent}" = "true" ]; then
+                  notification_result="$(curl --silent --user-agent "${curl_user_agent}" --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
+            else
+                  notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
+            fi
+            curl_exit_code="$?"
+            log_info "Send result: ${notification_result}"
+            ;;
+         "gotify")
+            notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
+                  -F "title=${notification_title}" \
+                  -F "message=${notification_message}")"
+            curl_exit_code="$?"
+            ;;
+         "bark")
+            if [ -n "${notification_files_preview_count}" ]; then
+                  notification_files_preview_text="$(echo "${notification_files_preview_text}" | tr '\n' ',')"
+                  bark_text="$(echo -e "${notification_icon} ${notification_message} Most recent ${notification_files_preview_count} ${notification_files_preview_type} files: ${notification_files_preview_text}")"
+            else
+                  bark_text="$(echo -e "${notification_icon} ${notification_message}")"
+            fi
+            notification_result="$(curl --location --silent --output /dev/null --write-out "%{http_code}" "http://${bark_server}/push" \
+                  -H 'Content-Type: application/json; charset=utf-8' \
+                  -d "{ \"device_key\": \"${bark_device_key}\", \"title\": \"${notification_title}\", \"body\": \"${bark_text}\", \"category\": \"category\" }")"
+            curl_exit_code="$?"
+            ;;
+         "msmtp")
+            if [ -n "${notification_files_preview_count}" ]; then
+                  notification_files_preview_text="$(echo "${notification_files_preview_text}" | tr '\n' ',')"
+                  mail_text="$(echo -e "${notification_icon} ${notification_message} Most recent ${notification_files_preview_count} ${notification_files_preview_type} files: ${notification_files_preview_text}")"
+            else
+                  mail_text="$(echo -e "${notification_icon} ${notification_message}")"
+            fi
+            if [ -n "${msmtp_user}" ] && [ -n "${msmtp_pass}" ]; then
+                  printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --user=$msmtp_user --passwordeval="echo -n $msmtp_pass" --from=$msmtp_from --auth=$msmtp_auth --tls=$msmtp_tls $msmtp_args -- "$msmtp_to"
+            else
+                  printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --from=$msmtp_from --auth=$msmtp_auth --tls=$msmtp_tls $msmtp_args -- "$msmtp_to"
+            fi
+            ;;
+         "signal")
+            if [ -n "${notification_files_preview_count}" ]; then
+                  signal_text="$(echo -e "${notification_icon} ${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//$'\n'/'\n'}")"
+            else
+                  signal_text="$(echo -e "${notification_icon} ${notification_message}")"
+            fi
+            escaped_signal_text=$(printf "%s" "$signal_text" | sed ':a;N;$!ba;s/\r//g;s/\n/\\n/g')
+            notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "http://${signal_host}:${signal_port}/v2/send" \
+                  --header 'Content-Type: application/json' \
+                  --data "{\"message\": \"${escaped_signal_text}\", \"number\": \"${signal_number}\", \"recipients\": [ \"${signal_recipient}\" ]}")"
+            curl_exit_code="$?"
+            ;;
+         *)
+            log_warning "Unknown notification type: ${notification_type}"
+            curl_exit_code=1
+            ;;
+      esac
    fi
-   case "${notification_type}" in
-      "prowl")
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
-               --form apikey="${prowl_api_key}" \
-               --form application="${notification_title}" \
-               --form event="${notification_event}" \
-               --form priority="${notification_priority}" \
-               --form description="${notification_message}")"
-         curl_exit_code="$?"
-         ;;
-      "pushover")
-         if [ "${notification_priority}" = "2" ]; then
-               notification_priority=1
-         fi
-         if [ "${notification_files_preview_count}" ]; then
-               pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text}")"
-         else
-               pushover_text="$(echo -e "${notification_icon} ${notification_event}\n${notification_message}")"
-         fi
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
-               --form-string "user=${pushover_user}" \
-               --form-string "token=${pushover_token}" \
-               --form-string "title=${notification_title}" \
-               --form-string "sound=${pushover_sound}" \
-               --form-string "priority=${notification_priority}" \
-               --form-string "message=${pushover_text}")"
-         curl_exit_code="$?"
-         ;;
-      "telegram")
-         if [ "${notification_files_preview_count}" ]; then
-               telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message//_/\\_}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
-         else
-               telegram_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message//_/\\_}")"
-         fi
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-               --data chat_id="${telegram_chat_id}" \
-               --data parse_mode="markdown" \
-               --data disable_notification="${disable_notification:=false}" \
-               --data text="${telegram_text}")"
-         curl_exit_code="$?"
-         unset disable_notification
-         ;;
-      "openhab")
-         webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
-         notification_result="$(curl -X 'PUT' --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
-               --header 'content-type: text/plain' \
-               --data "${webhook_payload}")"
-         curl_exit_code="$?"
-         ;;
-      "webhook")
-         webhook_payload="$(echo -e "${notification_title} - ${notification_message}")"
-         if [ "${webhook_insecure}" = true ]; then
-               notification_result="$(curl --silent --insecure --output /dev/null --write-out "%{http_code}" "${notification_url}" \
-                  --header 'content-type: application/json' \
-                  --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
-         else
-               notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}" \
-                  --header 'content-type: application/json' \
-                  --data "{ \"${webhook_body}\" : \"${webhook_payload}\" }")"
-         fi
-         curl_exit_code="$?"
-         ;;
-      "discord")
-         if [ "${notification_files_preview_count}" ]; then
-               discord_text="${notification_message}\\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\\n${notification_files_preview_text//$'\n'/'\n'}"
-         else
-               discord_text="$(echo -e "${notification_message}")"
-         fi
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-               --header 'content-type: application/json' \
-               --data "{ \"username\" : \"${notification_title}\" , \"avatar_url\" : \"https://raw.githubusercontent.com/Womabre/-unraid-docker-templates/master/images/photos_icon_large.png\" , \"embeds\" : [ { \"author\" : { \"name\" : \"${notification_event}\" } , \"color\" : 2061822 , \"description\": \"${discord_text}\" } ] }")"
-         curl_exit_code="$?"
-         ;;
-      "dingtalk")
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-               --header 'Content-Type: application/json' \
-               --data "{'msgtype': 'markdown','markdown': {'title':'${notification_title}','text':'## ${notification_title}\n${notification_message}'}}")"
-         curl_exit_code="$?"
-         ;;
-      "iyuu")
-         if [ "${notification_files_preview_count}" ]; then
-               iyuu_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
-         else
-               iyuu_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
-         fi
-         if [ "${fake_user_agent}" = true ]; then
-               notification_result="$(curl --silent --user-agent "${curl_user_agent}" --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-                  --data text="${notification_title}" \
-                  --data desp="${iyuu_text}")"
-         else
-               notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "${notification_url}" \
-                  --data text="${notification_title}" \
-                  --data desp="${iyuu_text}")"
-         fi
-         curl_exit_code="$?"
-         ;;
-      "wecom")
-         if [ "$(date +'%s')" -ge "$(date +'%s' -d "${wecom_token_expiry}")" ]; then
-               log_warning "${notification_type_tc} token has expired"
-               unset wecom_token
-         fi
-         if [ -z "${wecom_token}" ]; then
-               log_warning "Obtaining new ${notification_type_tc} token..."
-               if [ "${fake_user_agent}" = true ]; then
-                  wecom_token="$(/usr/bin/curl --silent --user-agent "${curl_user_agent}" --get "${wecom_token_url}" | awk -F\" '{print $10}')"
-               else
-                  wecom_token="$(/usr/bin/curl --silent --get "${wecom_token_url}" | awk -F\" '{print $10}')"
-               fi
-               wecom_token_expiry="$(date --date='2 hour')"
-               notification_url="${wecom_base_url}/cgi-bin/message/send?access_token=${wecom_token}"
-               log_info "${notification_type_tc} token: ${wecom_token}"
-               log_info "${notification_type_tc} token expiry time: $(date -d "${wecom_token_expiry}")"
-               log_info "${notification_type_tc} notification URL: ${notification_url}"
-         fi
-         syn_end_time="$(date '+%H:%M:%S')"
-         syn_next_time="$(date +%H:%M:%S -d "${download_interval} seconds")"
-         if [ "${notification_files_preview_count}" ]; then
-               log_info "Attempting creating preview count message body"
-               if [ "${icloud_china}" = false ]; then
-                  wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//_/\\_}")"
-               else
-                  notification_files_preview_text="${notification_files_preview_text//$'\n'/'<br/>'}"
-                  wecom_text="$(echo -e "<font style=\"line-height:1.5\"><center><b><big><big>同步日志</big></big></b></font></center><center><b>${notification_message}</b></center><center>···················  <small>最近 ${notification_files_preview_count} 条${notification_files_preview_type}记录如下</small>  ····················</center><code><small>${notification_files_preview_text}</small></code><center>···················  <small>下次同步时间为 ${syn_next_time}</small>  ··················</center>")"
-               fi
-         else
-               log_info "Attempting creating message body"
-               if [ "${icloud_china}" = false ]; then
-                  wecom_text="$(echo -e "${notification_icon} *${notification_title}*\n${notification_message}")"
-               else
-                  wecom_text="$(echo -e "${notification_message}")"
-               fi
-         fi
-         log_info "Attempting send..."
-         if [ "${fake_user_agent}" = true ]; then
-               notification_result="$(curl --silent --user-agent "${curl_user_agent}" --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
-         else
-               notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --data-ascii "{\"touser\":\"${touser}\",\"msgtype\":\"mpnews\",\"agentid\":\"${agentid}\",\"mpnews\":{\"articles\":[{\"title\":\"${notification_wecom_title}\",\"thumb_media_id\":\"${thumb_media_id}\",\"author\":\"${syn_end_time}\",\"content_source_url\":\"${content_source_url}\",\"content\":\"${wecom_text}\",\"digest\":\"${notification_wecom_digest}\"}]},\"safe\":\"0\",\"enable_id_trans\":\"0\",\"enable_duplicate_check\":\"0\",\"duplicate_check_interval\":\"1800\"}" --url "${notification_url}")"
-         fi
-         curl_exit_code="$?"
-         log_info "Send result: ${notification_result}"
-         ;;
-      "gotify")
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" "${notification_url}"  \
-               -F "title=${notification_title}" \
-               -F "message=${notification_message}")"
-         curl_exit_code="$?"
-         ;;
-      "bark")
-         if [ "${notification_files_preview_count}" ]; then
-               notification_files_preview_text="$(echo "${notification_files_preview_text}" | tr '\n' ',')"
-               bark_text="$(echo -e "${notification_icon} ${notification_message} Most recent ${notification_files_preview_count} ${notification_files_preview_type} files: ${notification_files_preview_text}")"
-         else
-               bark_text="$(echo -e "${notification_icon} ${notification_message}")"
-         fi
-         notification_result="$(curl --location --silent --output /dev/null --write-out "%{http_code}" "http://${bark_server}/push" \
-               -H 'Content-Type: application/json; charset=utf-8' \
-               -d "{ \"device_key\": \"${bark_device_key}\", \"title\": \"${notification_title}\", \"body\": \"${bark_text}\", \"category\": \"category\" }")"
-         curl_exit_code="$?"
-         ;;
-      "msmtp")
-         if [ "${notification_files_preview_count}" ]; then
-               notification_files_preview_text="$(echo "${notification_files_preview_text}" | tr '\n' ',')"
-               mail_text="$(echo -e "${notification_icon} ${notification_message} Most recent ${notification_files_preview_count} ${notification_files_preview_type} files: ${notification_files_preview_text}")"
-         else
-               mail_text="$(echo -e "${notification_icon} ${notification_message}")"
-         fi
-         if [ "${msmtp_user}" ] && [ "${msmtp_pass}" ]; then
-               printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --user=$msmtp_user --passwordeval="echo -n $msmtp_pass" --from=$msmtp_from --auth=$msmtp_auth --tls=$msmtp_tls $msmtp_args -- "$msmtp_to"
-         else
-               printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --from=$msmtp_from --auth=$msmtp_auth --tls=$msmtp_tls $msmtp_args -- "$msmtp_to"
-         fi
-         ;;
-      "signal")
-         if [ "${notification_files_preview_count}" ]; then
-               signal_text="$(echo -e "${notification_icon} ${notification_message}\nMost recent ${notification_files_preview_count} ${notification_files_preview_type} files:\n${notification_files_preview_text//$'\n'/'\n'}")"
-         else
-               signal_text="$(echo -e "${notification_icon} ${notification_message}")"
-         fi
-         escaped_signal_text=$(printf "%s" "$signal_text" | sed ':a;N;$!ba;s/\r//g;s/\n/\\n/g')
-         notification_result="$(curl --silent --output /dev/null --write-out "%{http_code}" --request POST "http://${signal_host}:${signal_port}/v2/send" \
-               --header 'Content-Type: application/json' \
-               --data "{\"message\": \"${escaped_signal_text}\", \"number\": \"${signal_number}\", \"recipients\": [ \"${signal_recipient}\" ]}")"
-         curl_exit_code="$?"
-         ;;
-      *)
-         log_warning "Unknown notification type: ${notification_type}"
-         curl_exit_code=1
-         ;;
-   esac
-   if [ "${notification_type}" ] && [ "${notification_type}" != "msmtp" ]
+   if [ -n "${notification_type}" ] && [ "${notification_type}" != "msmtp" ]
    then
       if [ "${notification_result:0:1}" -eq 2 ]
       then
@@ -2135,7 +2136,7 @@ send_notification()
          then
             log_error " - HTTP status code '000' and curl exit code '6' means it cannot connect to the server. Please check your network settings"
          else
-            if [ "${debug_logging}" != true ]
+            if [ "${debug_logging}" != "true" ]
             then
                log_error "Please set debug_logging=true in your icloudpd.conf file then reproduce the error"
                log_error "***** Once you have captured this log file, please post it along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
@@ -2157,7 +2158,7 @@ command_line_builder()
    then
       command_line="${command_line} --size ${photo_size}"
    else
-      if [ "${photo_size}" ]
+      if [ -n "${photo_size}" ]
       then
          SAVE_IFS="$IFS"
          IFS=","
@@ -2176,11 +2177,11 @@ command_line_builder()
          log_warning "Photo size is not specified, original will be downloaded by default"
       fi
    fi
-   if [ "${set_exif_datetime}" != false ]
+   if [ "${set_exif_datetime}" != "false" ]
    then
       command_line="${command_line} --set-exif-datetime"
    fi
-   if [ "${keep_unicode}" != false ]
+   if [ "${keep_unicode}" != "false" ]
    then
       command_line="${command_line} --keep-unicode-in-filenames"
    fi
@@ -2196,18 +2197,18 @@ command_line_builder()
    then
       command_line="${command_line} --file-match-policy ${file_match_policy}"
    fi
-   if [ "${auto_delete}" != false ]
+   if [ "${auto_delete}" != "false" ]
    then
       command_line="${command_line} --auto-delete"
-   elif [ "${delete_after_download}" != false ]
+   elif [ "${delete_after_download}" != "false" ]
    then
       command_line="${command_line} --delete-after-download"
    fi
-   if [ "${keep_icloud_recent_only}" = true ] && [ "${keep_icloud_recent_days}" ]
+   if [ "${keep_icloud_recent_only}" = "true" ] && [ -n "${keep_icloud_recent_days}" ]
    then
       command_line="${command_line} --keep-icloud-recent-days ${keep_icloud_recent_days}"
    fi
-   if [ "${skip_live_photos}" = false ]
+   if [ "${skip_live_photos}" = "false" ]
    then
       if [ "${live_photo_size}" != "original" ]
       then
@@ -2216,7 +2217,7 @@ command_line_builder()
    else
       command_line="${command_line} --skip-live-photos"
    fi
-   if [ "${skip_videos}" != false ]
+   if [ "${skip_videos}" != "false" ]
    then
       command_line="${command_line} --skip-videos"
    fi
@@ -2224,19 +2225,19 @@ command_line_builder()
    then
       command_line="${command_line} --folder-structure ${folder_structure}"
    fi
-   if [ "${until_found}" ]
+   if [ -n "${until_found}" ]
    then
       command_line="${command_line} --until-found ${until_found}"
    fi
-   if [ "${recent_only}" ]
+   if [ -n "${recent_only}" ]
    then
       command_line="${command_line} --recent ${recent_only}"
    fi
-   if [ "${skip_created_after}" ]
+   if [ -n "${skip_created_after}" ]
    then
       command_line="${command_line} --skip-created-after ${skip_created_after}"
    fi
-   if [ "${skip_created_before}" ]
+   if [ -n "${skip_created_before}" ]
    then
       command_line="${command_line} --skip-created-before ${skip_created_before}"
    fi
@@ -2262,13 +2263,13 @@ synchronise_user()
       then
          log_debug "Check MFA Cookie"
          valid_mfa_cookie=false
-         while [ "${valid_mfa_cookie}" = false ]
+         while [ "${valid_mfa_cookie}" = "false" ]
          do
             check_multifactor_authentication_cookie
          done
       fi
       check_mount
-      if [ "${skip_check}" = false ]
+      if [ "${skip_check}" = "false" ]
       then
          check_files
       else
@@ -2283,11 +2284,11 @@ synchronise_user()
             log_debug "Downloading new files using password stored in keyring file..."
             >/tmp/icloudpd/icloudpd_download_error
             IFS=$'\n'
-            if [ "${photo_album}" ]
+            if [ -n "${photo_album}" ]
             then
                log_debug "Starting Photo Album download"
                download_albums
-            elif [ "${photo_library}" ]
+            elif [ -n "${photo_library}" ]
             then
                log_debug "Starting Photo Library download"
                download_libraries
@@ -2302,14 +2303,14 @@ synchronise_user()
                log_error " - Can you log into ${icloud_domain} without receiving pop-up notifications?"
                log_error "Error debugging info:"
                log_error "$(cat /tmp/icloudpd/icloudpd_download_error)"
-               if [ "${debug_logging}" != true ]
+               if [ "${debug_logging}" != "true" ]
                then
                   log_error "Please set debug_logging=true in your icloudpd.conf file then reproduce the error"
                   log_error "***** Once you have captured this log file, please post it along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
                else
                   log_error "***** Please post the above debug log, along with a description of your problem, here: https://github.com/boredazfcuk/docker-icloudpd/issues *****"
                fi
-               if [ "${icloud_china}" = false ]
+               if [ "${icloud_china}" = "false" ]
                then
                   send_notification "failure" "iCloudPD container failure" "1" "iCloudPD failed to download new files for Apple ID: ${apple_id}"
                else
@@ -2319,42 +2320,42 @@ synchronise_user()
                   send_notification "failure" "iCloudPD container failure" "1" "从 iCloud 图库下载新照片失败，将在 ${syn_next_time} 再次尝试" "" "" "" "下载 ${name} 的 iCloud 图库新照片失败" "将在 ${syn_next_time} 再次尝试"
                fi
             else
-               if [ "${download_notifications}" ]
+               if [ -n "${download_notifications}" ]
                then
                   downloaded_files_notification
                fi
-               if [ "${synology_photos_app_fix}" = true ]
+               if [ "${synology_photos_app_fix}" = "true" ]
                then
                   synology_photos_app_fix
                fi
-               if [ "${convert_heic_to_jpeg}" != false ]
+               if [ "${convert_heic_to_jpeg}" != "false" ]
                then
                   log_info "Convert HEIC files to JPEG"
                   convert_downloaded_heic_to_jpeg
                fi
-               if [ "${sideways_copy_videos}" = true ]
+               if [ "${sideways_copy_videos}" = "true" ]
                then
                   log_info "Copy videos sideways to: ${video_path}"
                   sideways_copy_videos
                fi
-               if [ "${nextcloud_upload}" = true ]
+               if [ "${nextcloud_upload}" = "true" ]
                then
                   nextcloud_sync
                fi
-               if [ "${delete_notifications}" ]
+               if [ -n "${delete_notifications}" ]
                then
                   deleted_files_notification
                fi
-               if [ "${delete_accompanying}" = true ] && [ "${folder_structure}" != "none" ] && [ "${set_exif_datetime}" = false ]
+               if [ "${delete_accompanying}" = "true" ] && [ "${folder_structure}" != "none" ] && [ "${set_exif_datetime}" = "false" ]
                then
                   remove_recently_deleted_accompanying_files
                fi
-               if [ "${delete_empty_directories}" = true ] && [ "${folder_structure}" != "none" ]
+               if [ "${delete_empty_directories}" = "true" ] && [ "${folder_structure}" != "none" ]
                then
                   remove_empty_directories
                fi
                log_info "Download complete for ${user}"
-               if [ "${notification_type}" ] && [ "${remote_sync_complete_notification}" = true ]
+               if [ -n "${notification_type}" ] && [ "${remote_sync_complete_notification}" = "true" ]
                then
                   send_notification "remotesync" "iCloudPD remote download complete" "0" "iCloudPD has completed a remote download request for Apple ID: ${apple_id}"
                   unset remote_sync_complete_notification
@@ -2373,7 +2374,7 @@ synchronise_user()
       download_end_time="$(date +'%s')"
       log_info "Download ended at $(date +%H:%M:%S -d "@${download_end_time}")"
       log_info "Total time taken: $(date +%H:%M:%S -u -d "@$((download_end_time - download_start_time))")"
-      if [ "${single_pass:=false}" = true ]
+      if [ "${single_pass:-false}" = "true" ]
       then
          log_debug "Single Pass mode set, exiting"
          exit 0
@@ -2387,7 +2388,7 @@ synchronise_user()
          fi
          unset check_exit_code check_files_count download_exit_code
          unset new_files
-         if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = true ]
+         if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = "true" ]
          then
             log_info "Monitoring ${notification_type_tc} for remote commands prefix: ${user}"
             listen_counter=0
@@ -2409,11 +2410,11 @@ synchronise_user()
                   log_debug "Polling Telegram for updates newer than: ${telegram_update_id_offset}"
                   telegram_update_id_offset_inc=$((telegram_update_id_offset + 1))
                   latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "${telegram_base_url}/getUpdates" | jq .result[] 2>/dev/null)"
-                  if [ "${latest_updates}" ]
+                  if [ -n "${latest_updates}" ]
                   then
                      latest_update_ids="$(echo "${latest_updates}" | jq -r '.update_id')"
                   fi
-                  if [ "${latest_update_ids}" ]
+                  if [ -n "${latest_update_ids}" ]
                   then
                      update_count="$(echo "${latest_update_ids}" | wc --lines)"
                      log_debug "Updates to process: ${update_count}"
@@ -2550,7 +2551,7 @@ run_action()
 
 ##### Script #####
 script_launch_parameters="${1}"
-if [ "${2}" ]
+if [ -n "${2}" ]
 then
    log_warning "Only a single command line parameter is supported at this time. Only processing: ${script_launch_parameters}"
 fi

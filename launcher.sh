@@ -144,6 +144,13 @@ disable_notifications()
 log_info "Initialising container..."
 export config_file="/config/icloudpd.conf"
 
+minimum_space_remaining='1024'
+drive_space_remaining="$(df | grep /config | awk '{print $4}')"
+if [ "${drive_space_remaining}" -lt "${minimum_space_remaining}" ]
+then
+   log_error "Less that 1MB free on config volume. Cannot continue"
+fi
+
 # Create the temporary directory
 if [ ! -d "/tmp/icloudpd" ]
 then
@@ -299,6 +306,13 @@ fi
 # Load variables from config file
 log_info " - Checking ${config_file} for errors"
 source "${config_file}"
+
+minimum_space_remaining='1048576'
+drive_space_remaining="$(df | grep "${download_path}" | awk '{print $4}')"
+if [ "${drive_space_remaining}" -lt "${minimum_space_remaining}" ]
+then
+   log_error "Less that 1GB free on download path volume. Cannot continue"
+fi
 
 # Check Apple ID set
 if [ -z "${apple_id}" ]

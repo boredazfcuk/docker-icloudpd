@@ -1,3 +1,11 @@
+07/03/2026
+
+ - Added a check to make sure the /config volume has more than 1MB on it so that it can store the cookies it downloads and 1GB on the download_path volume, coz it's prob gonna fill up real quick with only that amount available
+
+02/03/2026
+
+ - Added a bunch of -n to if statements to validate that the variables are non-zero, so not configured but empty. Should guard against weird stuff and also prevent some stuff from launching when it's not actualy set.
+ 
 28/02/2026
 
  - The logic to create the python keyring directory wasn't early enough in the script which was causing the run_as command which checks the permissions to fail.
