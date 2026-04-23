@@ -1,7 +1,6 @@
 # syntax=docker/dockerfile:1
 
 # Stage 1 — compile
-# Clones the upstream repo, applies PR-1325, builds a wheel, then discards all build tooling.
 FROM alpine:latest AS builder
 
 ARG icloudpd_branch="master"

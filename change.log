@@ -1,6 +1,6 @@
 23/04/2026
 
- - Got Claude to re-create the build docker file to build form source and include patch. Untested. Figure other people will give it a go and let me know.
+ - Got Claude to re-create the build docker file to build form source and include patch. Untested. Figure other people will give it a go and let me know. Worked on my local build, didn't work in the GitHub action workflow. hmmm.
  
 07/03/2026
 
