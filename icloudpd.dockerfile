@@ -50,15 +50,11 @@ RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD from pre-built wheel
     /opt/icloudpd/bin/pip install --no-cache-dir /tmp/wheels/*.whl && \
     rm -rf /tmp/wheels
 
-# Symlink the venv binaries so scripts can call icloudpd / icloud directly
-RUN ln -sf /opt/icloudpd/bin/icloudpd /usr/local/bin/icloudpd && \
-    ln -sf /opt/icloudpd/bin/icloud /usr/local/bin/icloud
-
 COPY build_version.txt /opt
 COPY --chmod=0755 *.sh /usr/local/bin/
-COPY authenticate.exp  /opt/authenticate.exp
-COPY CONFIGURATION.md  /opt
-COPY profile           /etc/profile
+COPY authenticate.exp /opt/authenticate.exp
+COPY CONFIGURATION.md /opt
+COPY profile /etc/profile
 
 HEALTHCHECK --start-period=10s --interval=1m --timeout=10s \
     CMD /usr/local/bin/healthcheck.sh
