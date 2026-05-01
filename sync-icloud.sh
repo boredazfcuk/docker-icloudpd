@@ -2435,20 +2435,27 @@ synchronise_user()
                            elif  [ "${check_update_text_lc}" = "${user_lc} auth" ]
                            then
                               log_debug "Remote authentication message match: ${check_update_text}"
-                              if [ "${icloud_china}" = "false" ]
+                              if [ "$(ps -ef | grep -c "[/]usr/bin/expect /opt/authenticate.exp")" -eq 0 ]
                               then
-                                 send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
+                                 if [ "${icloud_china}" = "false" ]
+                                 then
+                                    send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
+                                 else
+                                    send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD将以Apple ID: ${apple_id}发起身份验证"
+                                 fi
+                                 rm -f "/config/${cookie_file}" "/config/${cookie_file}.session"
+                                 : > /tmp/icloudpd/expect_input.txt
+                                 rm -f /tmp/icloudpd/expect_error_flag
+                                 log_debug "Starting remote authentication process"
+                                 /usr/bin/expect /opt/authenticate.exp &
+                                 poll_sleep=3
                               else
-                                 send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD将以Apple ID: ${apple_id}发起身份验证"
+                                 log_debug "Remote authentication already in progress, ignoring duplicate request"
                               fi
-			                     rm "/config/${cookie_file}" "/config/${cookie_file}.session"
-                              log_debug "Starting remote authentication process"
-                              /usr/bin/expect /opt/authenticate.exp &
-                              poll_sleep=3
                            elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [0-9][0-9][0-9][0-9][0-9][0-9]$" >/dev/null; echo $?)" -eq 0 ]
                            then
                               mfa_code="$(echo "${check_update_text}" | awk '{print $2}')"
-                              printf "%s\n" "${mfa_code}" >> /tmp/icloudpd/expect_input.txt
+                              printf "%s\n" "${mfa_code}" > /tmp/icloudpd/expect_input.txt
                               listen_counter=$((listen_counter+2))
                               # additional sleeps mean sync time slips each time time a sync or auth is performed
                               # adding same amount of time to listen counter should prevent this from occurring
@@ -2458,7 +2465,7 @@ synchronise_user()
                            elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [a-z]$" >/dev/null; echo $?)" -eq 0 ]
                            then
                               sms_choice="$(echo "${check_update_text}" | awk '{print $2}')"
-                              printf "%s\n" "${sms_choice}" >> /tmp/icloudpd/expect_input.txt
+                              printf "%s\n" "${sms_choice}" > /tmp/icloudpd/expect_input.txt
                               listen_counter=$((listen_counter+2))
                               # Same again
                               sleep 2
