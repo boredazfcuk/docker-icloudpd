@@ -16,12 +16,12 @@ RUN git clone --depth 1 --branch "${icloudpd_branch}" \
       https://github.com/icloud-photos-downloader/icloud_photos_downloader.git \
       /src/icloudpd
 
-# Apply PR-1325
+# Apply PR-1335 (push notification trigger + SMS trustedPhoneNumbers parsing fix)
 WORKDIR /src/icloudpd
 RUN git config --global user.email "docker-build@localhost" && \
     git config --global user.name "Docker Build" && \
-    git fetch origin pull/1325/head:pr-1325 && \
-    git cherry-pick pr-1325
+    git fetch origin pull/1335/head:pr-1335 && \
+    git cherry-pick pr-1335
 
 # Install directly into the venv that will be copied to the final stage.
 RUN python3 -m venv /opt/icloudpd && \
@@ -55,7 +55,7 @@ RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** Build started for boredazfcuk's
 COPY --from=builder /opt/icloudpd /opt/icloudpd
 
 # Symlink the venv binaries so scripts can call icloudpd / icloud directly
-RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | Link iCloudPD binaries (with PR-1325 patch)" && \
+RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | Link iCloudPD binaries (with PR-1335 patch)" && \
     ln -sf /opt/icloudpd/bin/icloudpd /usr/local/bin/icloudpd && \
     ln -sf /opt/icloudpd/bin/icloud    /usr/local/bin/icloud
 
