@@ -28,7 +28,6 @@ RUN python3 -m venv /opt/icloudpd && \
     /opt/icloudpd/bin/pip install --upgrade pip && \
     /opt/icloudpd/bin/pip install --no-cache-dir .
 
-
 # =============================================================================
 # Stage 2 — final image
 # =============================================================================

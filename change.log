@@ -1,3 +1,8 @@
+04/05/2026
+
+ - Merged PR-941 from seeyabye. This version fixes the Apple modal MFA codes and also works for SMS codes.
+ - Set the Expect script to truncate the expect_input.txt file after reading. Noticed that thre was a multi-line variable being created as the main script was appending. Truncate is being used as I'm sure I used to overwrite the file previoulsy and is used to lead to inotify issues.
+
 23/04/2026
 
  - Got Claude to re-create the build docker file to build form source and include patch. Untested. Figure other people will give it a go and let me know. Worked on my local build, didn't work in the GitHub action workflow. hmmm.
