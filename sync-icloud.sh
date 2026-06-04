@@ -2111,9 +2111,9 @@ send_notification()
                   mail_from="\"${mail_from_name}\" <${msmtp_from}>"
             fi
             if [ -n "${msmtp_user}" ] && [ -n "${msmtp_pass}" ]; then
-                  printf "From: %s\nSubject: %s\n\n%s" "${mail_from}" "${notification_message}" "${mail_text}" | msmtp --host="${msmtp_host}" --port="${msmtp_port}" --user="${msmtp_user}" --passwordeval="echo -n ${msmtp_pass}" --from="${msmtp_from}" --auth="${msmtp_auth}" --tls="${msmtp_tls}" $msmtp_args -- "$msmtp_to"
+                  printf "From: %s\nTo: %s\nSubject: %s\n\n%s" "${mail_from}" "${msmtp_to}" "${notification_message}" "${mail_text}" | msmtp --host="${msmtp_host}" --port="${msmtp_port}" --user="${msmtp_user}" --passwordeval="echo -n ${msmtp_pass}" --from="${msmtp_from}" --auth="${msmtp_auth}" --tls="${msmtp_tls}" $msmtp_args -- "$msmtp_to"
             else
-                  printf "From: %s\nSubject: %s\n\n%s" "${mail_from}" "${notification_message}" "${mail_text}" | msmtp --host="${msmtp_host}" --port="${msmtp_port}" --from="${msmtp_from}" --auth="${msmtp_auth}" --tls="${msmtp_tls}" $msmtp_args -- "$msmtp_to"
+                  printf "From: %s\nTo: %s\nSubject: %s\n\n%s" "${mail_from}" "${msmtp_to}" "${notification_message}" "${mail_text}" | msmtp --host="${msmtp_host}" --port="${msmtp_port}" --from="${msmtp_from}" --auth="${msmtp_auth}" --tls="${msmtp_tls}" $msmtp_args -- "$msmtp_to"
             fi
             ;;
          "signal")
