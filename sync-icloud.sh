@@ -97,6 +97,7 @@ initialise_script()
    then
       log_info " | Keep iCloud recent : Enabled"
       log_info " | Keep iCloud recent days: ${keep_icloud_recent_days}"
+      log_info " | XMP sidecar: ${xmp_sidecar}"
    fi
    log_info " | Delete empty directories: ${delete_empty_directories}"
    log_info " | Photo size: ${photo_size}"
@@ -2207,6 +2208,10 @@ command_line_builder()
    if [ "${keep_icloud_recent_only}" = "true" ] && [ -n "${keep_icloud_recent_days}" ]
    then
       command_line="${command_line} --keep-icloud-recent-days ${keep_icloud_recent_days}"
+   fi
+   if [ "${xmp_sidecar}" != "false" ]
+   then
+      command_line="${command_line} --xmp-sidecar"
    fi
    if [ "${skip_live_photos}" = "false" ]
    then
