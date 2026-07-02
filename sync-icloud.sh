@@ -97,8 +97,8 @@ initialise_script()
    then
       log_info " | Keep iCloud recent : Enabled"
       log_info " | Keep iCloud recent days: ${keep_icloud_recent_days}"
-      log_info " | XMP sidecar: ${xmp_sidecar}"
    fi
+   log_info " | XMP sidecar: ${xmp_sidecar}"
    log_info " | Delete empty directories: ${delete_empty_directories}"
    log_info " | Photo size: ${photo_size}"
    log_info " | Align RAW: ${align_raw}"
