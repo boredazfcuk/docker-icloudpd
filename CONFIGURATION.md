@@ -116,7 +116,7 @@ adds asset id from iCloud to all file names and does not need de-duplication. De
 
 **video_path**: 
 
-**xmp_sidecar**: Set this to **true** to write an XMP sidecar file (`<filename>.xmp`) alongside each downloaded asset, containing metadata from iCloud not otherwise available locally — including Apple's screenshot classification, keywords, and GPS data. Enabling this on a library that's already fully downloaded will backfill sidecars for existing files on the next sync, not just new downloads — icloudpd evaluates every asset on every sync regardless of whether it re-downloads the media file, and sidecar generation is safe to re-run (it won't overwrite a sidecar it didn't create itself). For live photos, only the still image gets a sidecar; the paired video file does not. Default: false.
+**xmp_sidecar**: Set this to **true** to write a *.xmp sidecar file alongside each downloaded asset. Each sidecar contains metadata from iCloud not otherwise available locally (e.g. screenshot classification). For live photos, only the still image gets a sidecar. Default: false.
 
 # NEXTCLOUD CONFIGURATION ITEMS
 
