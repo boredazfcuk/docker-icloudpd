@@ -187,6 +187,7 @@ write_variable webhook_server
 write_variable wecom_id
 write_variable wecom_proxy
 write_variable wecom_secret
+write_variable xmp_sidecar false
 
 # Set case sensitive variables to lowercase
 notification_type_temp="$(grep -m1 "^notification_type=" "${temp_file}" | cut -d= -f2-)"
