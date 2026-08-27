@@ -1,3 +1,7 @@
+27/08/2026
+
+ - Upgrade installed Alpine and Python packages during image builds so available security fixes are included, and remove pip from the runtime image.
+
 04/05/2026
 
  - Merged PR-941 from seeyabye. This version fixes the Apple modal MFA codes and also works for SMS codes.

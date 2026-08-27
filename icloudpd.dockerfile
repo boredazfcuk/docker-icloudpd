@@ -4,10 +4,12 @@ LABEL maintainer="boredazfcuk"
 ENV XDG_DATA_HOME="/config" TZ="UTC" ENV="/etc/profile" config_file="/config/icloudpd.conf"
 
 ARG icloudpd_version="1.32.3"
-ARG build_dependencies="gcc python3-dev libc-dev libffi-dev cargo openssl-dev"
-ARG app_dependencies="findutils nano nano-syntax py3-pip exiftool coreutils tzdata curl libheif imagemagick shadow jq jpeg bind-tools expect inotify-tools msmtp"
+ARG build_dependencies="gcc python3-dev py3-pip libc-dev libffi-dev cargo openssl-dev"
+ARG app_dependencies="findutils nano nano-syntax python3 exiftool coreutils tzdata curl libheif imagemagick shadow jq jpeg bind-tools expect inotify-tools msmtp"
 
 RUN echo "$(date '+%d/%m/%Y - %H:%M:%S') | ***** Build started for boredazfcuk's docker-icloudpd *****" && \
+echo "$(date '+%d/%m/%Y - %H:%M:%S') | Upgrade Alpine packages" && \
+   apk upgrade --no-progress --no-cache && \
 echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install requirements" && \
    apk add --no-progress --no-cache --virtual build ${build_dependencies} && \
    apk add --no-progress --no-cache ${app_dependencies} && \
@@ -17,6 +19,8 @@ echo "$(date '+%d/%m/%Y - %H:%M:%S') | Install iCloudPD latest release" && \
    source /opt/icloudpd/bin/activate && \
    pip3 install --upgrade pip && \
    pip3 install --no-cache-dir icloudpd=="${icloudpd_version}" && \
+   pip3 install --no-cache-dir msgpack==1.2.2 setuptools==84.0.0 && \
+   pip3 uninstall --yes pip && \
    deactivate && \
    apk del build
 
