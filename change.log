@@ -1,3 +1,9 @@
+30/08/2026
+
+ - Fixed the remote authentication SMS option being rejected. The message match was already case insensitive, but the device index letter was pulled back out of the original message rather than the lowercased one, so a phone keyboard auto-capitalising it to "A" got sent to iCloudPD, which only accepts "a". Same for the MFA code. Also trimmed and collapsed the whitespace, so a stray trailing space no longer makes the container ignore a perfectly good command.
+ - The multi-factor authentication cookie expiry notification told you to reinitialise but never said how. It now includes the actual instruction - the "<user name> auth" reply if you are on Telegram with polling switched on, or "docker exec -it <container name> reauth.sh" if you are not.
+ - Mentioned the auth, device letter and MFA code messages in the telegram_polling section of CONFIGURATION.md. Only the synchronise message was documented there.
+
 04/05/2026
 
  - Merged PR-941 from seeyabye. This version fixes the Apple modal MFA codes and also works for SMS codes.
