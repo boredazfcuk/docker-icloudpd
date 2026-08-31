@@ -2425,7 +2425,7 @@ synchronise_user()
                            log_debug "Processing update: ${latest_update}"
                            check_update="$(echo "${latest_updates}" | jq ". | select(.update_id == ${latest_update}).message")"
                            check_update_text="$(echo "${check_update}" | jq -r .text)"
-                           check_update_text_lc="$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]')"
+                           check_update_text_lc="$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]' | awk '{$1=$1; print}')"
                            log_debug "New message received: ${check_update_text}"
                            user_lc="$(echo "${user}" | tr '[:upper:]' '[:lower:]')"
                            if [ "${check_update_text_lc}" = "${user_lc}" ]
@@ -2447,7 +2447,7 @@ synchronise_user()
                               poll_sleep=3
                            elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [0-9][0-9][0-9][0-9][0-9][0-9]$" >/dev/null; echo $?)" -eq 0 ]
                            then
-                              mfa_code="$(echo "${check_update_text}" | awk '{print $2}')"
+                              mfa_code="$(echo "${check_update_text_lc}" | awk '{print $2}')"
                               printf "%s\n" "${mfa_code}" >> /tmp/icloudpd/expect_input.txt
                               listen_counter=$((listen_counter+2))
                               # additional sleeps mean sync time slips each time time a sync or auth is performed
@@ -2457,7 +2457,7 @@ synchronise_user()
                               poll_sleep=30
                            elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [a-z]$" >/dev/null; echo $?)" -eq 0 ]
                            then
-                              sms_choice="$(echo "${check_update_text}" | awk '{print $2}')"
+                              sms_choice="$(echo "${check_update_text_lc}" | awk '{print $2}')"
                               printf "%s\n" "${sms_choice}" >> /tmp/icloudpd/expect_input.txt
                               listen_counter=$((listen_counter+2))
                               # Same again
