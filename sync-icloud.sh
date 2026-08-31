@@ -781,27 +781,43 @@ check_multifactor_authentication_cookie()
 
 display_multifactor_authentication_expiry()
 {
-   local error_message
+   local error_message reauth_message
    log_info "Multi-factor authentication cookie expires: ${mfa_expire_date/ / @ }"
    log_info "Days remaining until expiration: ${days_remaining}"
    if [ "${days_remaining}" -le "${notification_days}" ]
    then
+      if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = "true" ] && [ -n "${user}" ]
+      then
+         if [ "${icloud_china}" = "false" ]
+         then
+            reauth_message="To re-authenticate now, reply to this chat with: ${user} auth"
+         else
+            reauth_message="如需立即重新验证，请在此对话中回复：${user} auth"
+         fi
+      else
+         if [ "${icloud_china}" = "false" ]
+         then
+            reauth_message="To re-authenticate now, run: docker exec -it <container name> reauth.sh"
+         else
+            reauth_message="如需立即重新验证，请运行：docker exec -it <容器名称> reauth.sh"
+         fi
+      fi
       if [ "${days_remaining}" -eq 1 ]
       then
          cookie_status="cookie expired"
          if [ "${icloud_china}" = "false" ]
          then
-            error_message="Final day before multi-factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
+            error_message="Final day before multi-factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder. ${reauth_message}"
          else
-            error_message="今天是 ${name} 的 Apple ID 两步验证 cookie 到期前的最后一天 - 请立即重新初始化，这是最后的提醒"
+            error_message="今天是 ${name} 的 Apple ID 两步验证 cookie 到期前的最后一天 - 请立即重新初始化，这是最后的提醒。${reauth_message}"
          fi
       else
          cookie_status="cookie expiration"
          if [ "${icloud_china}" = "false" ]
          then
-            error_message="Only ${days_remaining} days until multi-factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
+            error_message="Only ${days_remaining} days until multi-factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise. ${reauth_message}"
          else
-            error_message="${days_remaining} 天后 ${name} 的 Apple ID 两步验证将到期 - 请立即重新初始化"
+            error_message="${days_remaining} 天后 ${name} 的 Apple ID 两步验证将到期 - 请立即重新初始化。${reauth_message}"
          fi
       fi
       log_warning "${error_message}"
