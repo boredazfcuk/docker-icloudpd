@@ -2317,6 +2317,118 @@ command_line_builder()
    fi
 }
 
+wait_for_next_download()
+{
+   local sleep_time
+   sleep_time="${1}"
+   if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = "true" ]
+   then
+      log_info "Monitoring ${notification_type_tc} for remote commands prefix: ${user}"
+      listen_counter=0
+      poll_sleep=30
+      while [ "${listen_counter}" -lt "${sleep_time}" ]
+      do
+         # --- Check for Expect error ---
+         if [ -f "/tmp/icloudpd/expect_error_flag" ]
+         then
+            log_debug "Expect script failed, error flag detected. Exiting loop."
+            rm "/tmp/icloudpd/expect_error_flag"
+            break
+         fi
+         if [ "${telegram_polling}" = "true" ]
+         then
+            unset latest_updates latest_update_ids break_while
+            update_count=0
+            telegram_update_id_offset="$(head -1 "${telegram_update_id_offset_file}")"
+            log_debug "Polling Telegram for updates newer than: ${telegram_update_id_offset}"
+            telegram_update_id_offset_inc=$((telegram_update_id_offset + 1))
+            latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "${telegram_base_url}/getUpdates" | jq .result[] 2>/dev/null)"
+            if [ -n "${latest_updates}" ]
+            then
+               latest_update_ids="$(echo "${latest_updates}" | jq -r '.update_id')"
+            fi
+            if [ -n "${latest_update_ids}" ]
+            then
+               update_count="$(echo "${latest_update_ids}" | wc --lines)"
+               log_debug "Updates to process: ${update_count}"
+               if [ "${update_count}" -gt 0 ]
+               then
+                  for latest_update in ${latest_update_ids}
+                  do
+                     log_debug "Processing update: ${latest_update}"
+                     check_update="$(echo "${latest_updates}" | jq ". | select(.update_id == ${latest_update}).message")"
+                     check_update_text="$(echo "${check_update}" | jq -r .text)"
+                     check_update_text_lc="$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]' | awk '{$1=$1; print}')"
+                     log_debug "New message received: ${check_update_text}"
+                     user_lc="$(echo "${user}" | tr '[:upper:]' '[:lower:]')"
+                     if [ "${check_update_text_lc}" = "${user_lc}" ]
+                     then
+                        break_while=true
+                        log_debug "Remote sync message match: ${check_update_text}"
+                     elif  [ "${check_update_text_lc}" = "${user_lc} auth" ]
+                     then
+                        log_debug "Remote authentication message match: ${check_update_text}"
+                        if [ "${icloud_china}" = "false" ]
+                        then
+                           send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
+                        else
+                           send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD将以Apple ID: ${apple_id}发起身份验证"
+                        fi
+			                     rm "/config/${cookie_file}" "/config/${cookie_file}.session"
+                        log_debug "Starting remote authentication process"
+                        /usr/bin/expect /opt/authenticate.exp &
+                        poll_sleep=3
+                     elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [0-9][0-9][0-9][0-9][0-9][0-9]$" >/dev/null; echo $?)" -eq 0 ]
+                     then
+                        mfa_code="$(echo "${check_update_text_lc}" | awk '{print $2}')"
+                        printf "%s\n" "${mfa_code}" >> /tmp/icloudpd/expect_input.txt
+                        listen_counter=$((listen_counter+2))
+                        # additional sleeps mean sync time slips each time time a sync or auth is performed
+                        # adding same amount of time to listen counter should prevent this from occurring
+                        sleep 2
+                        unset mfa_code
+                        poll_sleep=30
+                     elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [a-z]$" >/dev/null; echo $?)" -eq 0 ]
+                     then
+                        sms_choice="$(echo "${check_update_text_lc}" | awk '{print $2}')"
+                        printf "%s\n" "${sms_choice}" >> /tmp/icloudpd/expect_input.txt
+                        listen_counter=$((listen_counter+2))
+                        # Same again
+                        sleep 2
+                        unset sms_choice
+                        poll_sleep=3
+                     else
+                        log_debug "Ignoring message: ${check_update_text}"
+                        poll_sleep=30
+                     fi
+                  done
+                  echo -n "${latest_update}" > "${telegram_update_id_offset_file}"
+                  if [ -n "${break_while}" ]
+                  then
+                     log_debug "Remote sync initiated"
+                     if [ "${icloud_china}" = "false" ]
+                     then
+                        send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote download request for Apple ID: ${apple_id}"
+                        remote_sync_complete_notification=true
+                     else
+                        send_notification "remotesync" "iCloudPD remote download initiated" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
+                     fi
+                        poll_sleep=30
+                     break
+                  fi
+               fi
+            fi
+         fi
+         listen_counter=$((listen_counter+poll_sleep))
+         # additional sleeps mean sync time slips each time time a sync or auth is performed
+         # adding same amount of time to listen counter should prevent this from occurring
+         sleep "${poll_sleep}"
+      done
+   else
+      sleep "${sleep_time}"
+   fi
+}
+
 synchronise_user()
 {
    log_info "Sync user: ${user}"
@@ -2462,112 +2574,7 @@ synchronise_user()
          fi
          unset check_exit_code check_files_count download_exit_code
          unset new_files
-         if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = "true" ]
-         then
-            log_info "Monitoring ${notification_type_tc} for remote commands prefix: ${user}"
-            listen_counter=0
-            poll_sleep=30
-            while [ "${listen_counter}" -lt "${sleep_time}" ]
-            do
-               # --- Check for Expect error ---
-               if [ -f "/tmp/icloudpd/expect_error_flag" ]
-               then
-                  log_debug "Expect script failed, error flag detected. Exiting loop."
-                  rm "/tmp/icloudpd/expect_error_flag"
-                  break
-               fi
-               if [ "${telegram_polling}" = "true" ]
-               then
-                  unset latest_updates latest_update_ids break_while
-                  update_count=0
-                  telegram_update_id_offset="$(head -1 "${telegram_update_id_offset_file}")"
-                  log_debug "Polling Telegram for updates newer than: ${telegram_update_id_offset}"
-                  telegram_update_id_offset_inc=$((telegram_update_id_offset + 1))
-                  latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "${telegram_base_url}/getUpdates" | jq .result[] 2>/dev/null)"
-                  if [ -n "${latest_updates}" ]
-                  then
-                     latest_update_ids="$(echo "${latest_updates}" | jq -r '.update_id')"
-                  fi
-                  if [ -n "${latest_update_ids}" ]
-                  then
-                     update_count="$(echo "${latest_update_ids}" | wc --lines)"
-                     log_debug "Updates to process: ${update_count}"
-                     if [ "${update_count}" -gt 0 ]
-                     then
-                        for latest_update in ${latest_update_ids}
-                        do
-                           log_debug "Processing update: ${latest_update}"
-                           check_update="$(echo "${latest_updates}" | jq ". | select(.update_id == ${latest_update}).message")"
-                           check_update_text="$(echo "${check_update}" | jq -r .text)"
-                           check_update_text_lc="$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]' | awk '{$1=$1; print}')"
-                           log_debug "New message received: ${check_update_text}"
-                           user_lc="$(echo "${user}" | tr '[:upper:]' '[:lower:]')"
-                           if [ "${check_update_text_lc}" = "${user_lc}" ]
-                           then
-                              break_while=true
-                              log_debug "Remote sync message match: ${check_update_text}"
-                           elif  [ "${check_update_text_lc}" = "${user_lc} auth" ]
-                           then
-                              log_debug "Remote authentication message match: ${check_update_text}"
-                              if [ "${icloud_china}" = "false" ]
-                              then
-                                 send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
-                              else
-                                 send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD将以Apple ID: ${apple_id}发起身份验证"
-                              fi
-			                     rm "/config/${cookie_file}" "/config/${cookie_file}.session"
-                              log_debug "Starting remote authentication process"
-                              /usr/bin/expect /opt/authenticate.exp &
-                              poll_sleep=3
-                           elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [0-9][0-9][0-9][0-9][0-9][0-9]$" >/dev/null; echo $?)" -eq 0 ]
-                           then
-                              mfa_code="$(echo "${check_update_text_lc}" | awk '{print $2}')"
-                              printf "%s\n" "${mfa_code}" >> /tmp/icloudpd/expect_input.txt
-                              listen_counter=$((listen_counter+2))
-                              # additional sleeps mean sync time slips each time time a sync or auth is performed
-                              # adding same amount of time to listen counter should prevent this from occurring
-                              sleep 2
-                              unset mfa_code
-                              poll_sleep=30
-                           elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [a-z]$" >/dev/null; echo $?)" -eq 0 ]
-                           then
-                              sms_choice="$(echo "${check_update_text_lc}" | awk '{print $2}')"
-                              printf "%s\n" "${sms_choice}" >> /tmp/icloudpd/expect_input.txt
-                              listen_counter=$((listen_counter+2))
-                              # Same again
-                              sleep 2
-                              unset sms_choice
-                              poll_sleep=3
-                           else
-                              log_debug "Ignoring message: ${check_update_text}"
-                              poll_sleep=30
-                           fi
-                        done
-                        echo -n "${latest_update}" > "${telegram_update_id_offset_file}"
-                        if [ -n "${break_while}" ]
-                        then
-                           log_debug "Remote sync initiated"
-                           if [ "${icloud_china}" = "false" ]
-                           then
-                              send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote download request for Apple ID: ${apple_id}"
-                              remote_sync_complete_notification=true
-                           else
-                              send_notification "remotesync" "iCloudPD remote download initiated" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
-                           fi
-                              poll_sleep=30
-                           break
-                        fi
-                     fi
-                  fi
-               fi
-               listen_counter=$((listen_counter+poll_sleep))
-               # additional sleeps mean sync time slips each time time a sync or auth is performed
-               # adding same amount of time to listen counter should prevent this from occurring
-               sleep "${poll_sleep}"
-            done
-         else
-            sleep "${sleep_time}"
-         fi
+         wait_for_next_download "${sleep_time}"
       fi
    done
 }
