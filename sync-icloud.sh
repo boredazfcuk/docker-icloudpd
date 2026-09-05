@@ -501,6 +501,11 @@ list_libraries()
    if [ "${authentication_type}" = "MFA" ]
    then
       check_multifactor_authentication_cookie
+      if [ -n "${authentication_required}" ]
+      then
+         log_error "Cannot continue: authentication is required. $(reauth_instructions)"
+         exit 1
+      fi
    else
       check_web_cookie
    fi
@@ -523,6 +528,11 @@ list_albums()
    if [ "${authentication_type}" = "MFA" ]
    then
       check_multifactor_authentication_cookie
+      if [ -n "${authentication_required}" ]
+      then
+         log_error "Cannot continue: authentication is required. $(reauth_instructions)"
+         exit 1
+      fi
    else
       check_web_cookie
    fi
@@ -744,12 +754,22 @@ check_multifactor_authentication_cookie()
       log_debug "Multi-factor authentication cookie exists"
    else
       log_error "Multi-factor authentication cookie does not exist"
+      if [ "${wait_for_reauthentication}" = "true" ]
+      then
+         require_reauthentication "Multi-factor authentication cookie does not exist for Apple ID: ${apple_id}"
+         return
+      fi
       wait_for_cookie DisplayMessage
       log_debug "Multi-factor authentication cookie file exists, checking validity..."
    fi
    if [ "$(grep -c "X-APPLE-DS-WEB-SESSION-TOKEN" "/config/${cookie_file}")" -eq 1 ] && [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}")" -eq 0 ]
    then
       log_debug "Multi-factor authentication cookie exists, but not authenticated. Waiting for authentication to complete..."
+      if [ "${wait_for_reauthentication}" = "true" ]
+      then
+         require_reauthentication "Multi-factor authentication has not been completed for Apple ID: ${apple_id}"
+         return
+      fi
       wait_for_authentication
       log_debug "Multi-factor authentication authentication complete, checking expiry date..."
    fi
@@ -762,8 +782,14 @@ check_multifactor_authentication_cookie()
       if [ "${days_remaining}" -gt 0 ]
       then
          valid_mfa_cookie=true
+         clear_reauthentication_hold
          log_debug "Valid multi-factor authentication cookie found. Days until expiration: ${days_remaining}"
       else
+         if [ "${wait_for_reauthentication}" = "true" ]
+         then
+            require_reauthentication "Multi-factor authentication cookie for Apple ID: ${apple_id} expired at: ${mfa_expire_date}"
+            return
+         fi
          rm -f "/config/${cookie_file}"
          log_error "Cookie expired at: ${mfa_expire_date}"
          log_error "Expired cookie file has been removed. Restarting container in 5 minutes"
@@ -771,6 +797,11 @@ check_multifactor_authentication_cookie()
          exit 1
       fi
    else
+      if [ "${wait_for_reauthentication}" = "true" ]
+      then
+         require_reauthentication "Cookie for Apple ID: ${apple_id} is not multi-factor authentication capable. The authentication type may have changed"
+         return
+      fi
       rm -f "/config/${cookie_file}"
       log_error "Cookie is not multi-factor authentication capable, authentication type may have changed"
       log_error "Invalid cookie file has been removed. Restarting container in 5 minutes"
@@ -2449,7 +2480,7 @@ synchronise_user()
       then
          log_debug "Check MFA Cookie"
          valid_mfa_cookie=false
-         while [ "${valid_mfa_cookie}" = "false" ]
+         while [ "${valid_mfa_cookie}" = "false" ] && [ -z "${authentication_required}" ]
          do
             check_multifactor_authentication_cookie
          done
