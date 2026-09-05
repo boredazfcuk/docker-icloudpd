@@ -779,6 +779,26 @@ check_multifactor_authentication_cookie()
    fi
 }
 
+reauth_instructions()
+{
+   if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = "true" ] && [ -n "${user}" ]
+   then
+      if [ "${icloud_china}" = "false" ]
+      then
+         echo "To re-authenticate now, reply to this chat with: ${user} auth"
+      else
+         echo "如需立即重新验证，请在此对话中回复：${user} auth"
+      fi
+   else
+      if [ "${icloud_china}" = "false" ]
+      then
+         echo "To re-authenticate now, run: docker exec -it <container name> reauth.sh"
+      else
+         echo "如需立即重新验证，请运行：docker exec -it <容器名称> reauth.sh"
+      fi
+   fi
+}
+
 display_multifactor_authentication_expiry()
 {
    local error_message reauth_message
@@ -786,22 +806,7 @@ display_multifactor_authentication_expiry()
    log_info "Days remaining until expiration: ${days_remaining}"
    if [ "${days_remaining}" -le "${notification_days}" ]
    then
-      if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = "true" ] && [ -n "${user}" ]
-      then
-         if [ "${icloud_china}" = "false" ]
-         then
-            reauth_message="To re-authenticate now, reply to this chat with: ${user} auth"
-         else
-            reauth_message="如需立即重新验证，请在此对话中回复：${user} auth"
-         fi
-      else
-         if [ "${icloud_china}" = "false" ]
-         then
-            reauth_message="To re-authenticate now, run: docker exec -it <container name> reauth.sh"
-         else
-            reauth_message="如需立即重新验证，请运行：docker exec -it <容器名称> reauth.sh"
-         fi
-      fi
+      reauth_message="$(reauth_instructions)"
       if [ "${days_remaining}" -eq 1 ]
       then
          cookie_status="cookie expired"
