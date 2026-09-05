@@ -2405,7 +2405,7 @@ wait_for_next_download()
                         else
                            send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD将以Apple ID: ${apple_id}发起身份验证"
                         fi
-			                     rm "/config/${cookie_file}" "/config/${cookie_file}.session"
+			                     rm -f "/config/${cookie_file}" "/config/${cookie_file}.session"
                         log_debug "Starting remote authentication process"
                         /usr/bin/expect /opt/authenticate.exp &
                         poll_sleep=3
@@ -2472,6 +2472,7 @@ synchronise_user()
    do
       download_start_time="$(date +'%s')"
       download_time="$(date +%s -d '+15 minutes')"
+      unset authentication_required
       log_info "Download starting at $(date +%H:%M:%S -d "@${download_start_time}")"
       source <(grep debug_logging "${config_file}")
       chown -R "${user_id}:${group_id}" "/config"
@@ -2484,6 +2485,21 @@ synchronise_user()
          do
             check_multifactor_authentication_cookie
          done
+      fi
+      if [ -n "${authentication_required}" ]
+      then
+         reauthentication_reminder
+         unset remote_sync_complete_notification
+         if [ "${single_pass:-false}" = "true" ]
+         then
+            log_error "Single Pass mode set and authentication is required, exiting"
+            exit 1
+         fi
+         download_end_time="$(date +'%s')"
+         sleep_time="$((download_interval - download_end_time + download_start_time))"
+         log_info "Next authentication check at $(date +%H:%M:%S -d "${sleep_time} seconds")"
+         wait_for_next_download "${sleep_time}"
+         continue
       fi
       check_mount
       if [ "${skip_check}" = "false" ]
