@@ -128,5 +128,54 @@ assert_equals "clear_reauthentication_hold: silent when not holding" \
 
 rm -f "${reauth_marker_file}" "${notifications_sent}"
 
+##### reauthentication_reminder #####
+
+eval "$(extract_function reauthentication_reminder)"
+
+log_warning() { :; }
+send_notification() { printf '%s|%s\n' "${1}" "${4}" >> "${notifications_sent}"; }
+
+notifications_sent="/tmp/icloudpd_test_notifications"
+: > "${notifications_sent}"
+apple_id="someone@example.com"
+icloud_china="false"
+notification_type="telegram"
+telegram_polling="true"
+user="Josh"
+download_interval=86400
+unset reauth_notification_interval next_reauth_notification_time
+authentication_required="Cookie expired at: yesterday"
+
+reauthentication_reminder
+assert_equals "reauthentication_reminder: sends on the first pass" \
+   "$(wc -l < "${notifications_sent}" | tr -d ' ')" \
+   "1"
+assert_equals "reauthentication_reminder: classified as cookie expired" \
+   "$(cut -d'|' -f1 < "${notifications_sent}")" \
+   "cookie expired"
+assert_equals "reauthentication_reminder: message carries reason and instructions" \
+   "$(cut -d'|' -f2 < "${notifications_sent}")" \
+   "Authentication required for Apple ID: someone@example.com - Cookie expired at: yesterday. Downloads are paused until this is resolved. To re-authenticate now, reply to this chat with: Josh auth"
+
+reauthentication_reminder
+assert_equals "reauthentication_reminder: throttled on the next pass" \
+   "$(wc -l < "${notifications_sent}" | tr -d ' ')" \
+   "1"
+
+next_reauth_notification_time=1
+reauthentication_reminder
+assert_equals "reauthentication_reminder: sends again once the interval has passed" \
+   "$(wc -l < "${notifications_sent}" | tr -d ' ')" \
+   "2"
+
+reauth_notification_interval=3600
+next_reauth_notification_time=1
+reauthentication_reminder
+assert_equals "reauthentication_reminder: override sets the next time an hour out" \
+   "$(( next_reauth_notification_time - $(date +%s) > 3500 && next_reauth_notification_time - $(date +%s) <= 3600 ))" \
+   "1"
+
+rm -f "${notifications_sent}"
+
 printf '\n%s test(s), %s failure(s)\n' "${tests_run}" "${tests_failed}"
 [ "${tests_failed}" -eq 0 ]

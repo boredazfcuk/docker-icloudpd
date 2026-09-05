@@ -828,6 +828,30 @@ clear_reauthentication_hold()
    unset authentication_required next_reauth_notification_time
 }
 
+reauthentication_reminder()
+{
+   local reminder_interval reminder_message
+   reminder_interval="${reauth_notification_interval:-${download_interval}}"
+   if [ "${icloud_china}" = "false" ]
+   then
+      reminder_message="Authentication required for Apple ID: ${apple_id} - ${authentication_required}. Downloads are paused until this is resolved. $(reauth_instructions)"
+   else
+      reminder_message="${name} 的 Apple ID 需要重新验证 - ${authentication_required}。下载已暂停。$(reauth_instructions)"
+   fi
+   log_warning "${reminder_message}"
+   if [ "$(date +%s)" -ge "${next_reauth_notification_time:=0}" ]
+   then
+      if [ "${icloud_china}" = "false" ]
+      then
+         send_notification "cookie expired" "iCloudPD authentication required" "1" "${reminder_message}"
+      else
+         send_notification "cookie expired" "iCloudPD authentication required" "1" "${reminder_message}" "" "" "" "${name} 的 iCloud 需要重新验证" "${reminder_message}"
+      fi
+      next_reauth_notification_time="$(date +%s -d "+${reminder_interval} seconds")"
+      log_debug "Next re-authentication reminder not before: $(date +%c -d "@${next_reauth_notification_time}")"
+   fi
+}
+
 display_multifactor_authentication_expiry()
 {
    local error_message reauth_message
