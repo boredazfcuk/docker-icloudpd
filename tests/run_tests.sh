@@ -69,5 +69,64 @@ assert_equals "reauth_instructions: china variant names the reply" \
 
 rm -f /tmp/icloudpd_test_out
 
+##### require_reauthentication / clear_reauthentication_hold #####
+
+eval "$(extract_function require_reauthentication)"
+eval "$(extract_function clear_reauthentication_hold)"
+
+log_error() { :; }
+log_info() { :; }
+log_debug() { :; }
+send_notification() { echo "notified:${1}" >> "${notifications_sent}"; }
+
+reauth_marker_file="/tmp/icloudpd_test_marker"
+notifications_sent="/tmp/icloudpd_test_notifications"
+rm -f "${reauth_marker_file}" "${notifications_sent}"
+: > "${notifications_sent}"
+
+# The default path must survive: an earlier version assigned it inside a
+# command substitution, so the assignment was lost in the subshell.
+(
+   unset reauth_marker_file
+   require_reauthentication "Default path check" >/dev/null 2>&1
+   printf '%s' "${reauth_marker_file}"
+) > /tmp/icloudpd_test_default
+assert_equals "require_reauthentication: defaults the marker path in this shell" \
+   "$(cat /tmp/icloudpd_test_default)" \
+   "/tmp/icloudpd/awaiting_reauthentication"
+rm -f /tmp/icloudpd_test_default /tmp/icloudpd/awaiting_reauthentication
+
+require_reauthentication "Cookie expired at: yesterday"
+assert_equals "require_reauthentication: writes the marker" \
+   "$(cat "${reauth_marker_file}")" \
+   "Cookie expired at: yesterday"
+assert_equals "require_reauthentication: sets the state variable" \
+   "${authentication_required}" \
+   "Cookie expired at: yesterday"
+
+require_reauthentication "Cookie expired at: yesterday"
+assert_equals "require_reauthentication: is idempotent" \
+   "$(wc -l < "${reauth_marker_file}" | tr -d ' ')" \
+   "1"
+
+clear_reauthentication_hold
+assert_equals "clear_reauthentication_hold: removes the marker" \
+   "$([ -f "${reauth_marker_file}" ] && echo present || echo absent)" \
+   "absent"
+assert_equals "clear_reauthentication_hold: clears the state variable" \
+   "${authentication_required:-empty}" \
+   "empty"
+assert_equals "clear_reauthentication_hold: notifies once on recovery" \
+   "$(cat "${notifications_sent}")" \
+   "notified:startup"
+
+: > "${notifications_sent}"
+clear_reauthentication_hold
+assert_equals "clear_reauthentication_hold: silent when not holding" \
+   "$(cat "${notifications_sent}")" \
+   ""
+
+rm -f "${reauth_marker_file}" "${notifications_sent}"
+
 printf '\n%s test(s), %s failure(s)\n' "${tests_run}" "${tests_failed}"
 [ "${tests_failed}" -eq 0 ]

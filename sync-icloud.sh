@@ -799,6 +799,35 @@ reauth_instructions()
    fi
 }
 
+require_reauthentication()
+{
+   local reason
+   reason="${1}"
+   authentication_required="${reason}"
+   : "${reauth_marker_file:=/tmp/icloudpd/awaiting_reauthentication}"
+   mkdir -p "$(dirname "${reauth_marker_file}")"
+   printf '%s\n' "${reason}" > "${reauth_marker_file}"
+   log_error "${reason}"
+   log_error " - Downloads are paused. The container will stay running and remind you until re-authentication is complete"
+   log_error " - $(reauth_instructions)"
+}
+
+clear_reauthentication_hold()
+{
+   if [ -f "${reauth_marker_file:=/tmp/icloudpd/awaiting_reauthentication}" ]
+   then
+      rm -f "${reauth_marker_file}"
+      log_info "Re-authentication complete. Resuming synchronisation"
+      if [ "${icloud_china}" = "false" ]
+      then
+         send_notification "startup" "iCloudPD authentication restored" "0" "Re-authentication complete for Apple ID: ${apple_id}. Synchronisation has resumed"
+      else
+         send_notification "startup" "iCloudPD authentication restored" "0" "${name} 的 Apple ID 重新验证成功，同步已恢复" "" "" "" "${name} 的 iCloud 图库同步已恢复" "Apple ID: ${apple_id}"
+      fi
+   fi
+   unset authentication_required next_reauth_notification_time
+}
+
 display_multifactor_authentication_expiry()
 {
    local error_message reauth_message
