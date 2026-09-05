@@ -145,6 +145,7 @@ write_variable prowl_api_key
 write_variable pushover_sound
 write_variable pushover_token
 write_variable pushover_user
+write_variable reauth_notification_interval
 write_variable recent_only
 write_variable set_exif_datetime false
 write_variable sideways_copy_videos false
@@ -178,6 +179,7 @@ write_variable until_found
 write_variable user user
 write_variable user_id 1000
 write_variable video_path
+write_variable wait_for_reauthentication false
 write_variable webhook_https false
 write_variable webhook_id
 write_variable webhook_insecure

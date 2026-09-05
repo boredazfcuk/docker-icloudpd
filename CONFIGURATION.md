@@ -27,6 +27,10 @@ Currently, I only reccomend setting one container environment variable, TZ, as t
 
 **notification_days**: When your cookie is nearing expiration, this is the number of days in advance it should notify you. You will receive a single notification, per day, in the days running up to cookie expiration. Default: 7.
 
+**wait_for_reauthentication**: Set this to **true** and the container will stay running when it needs to be re-authenticated, instead of exiting and being restarted by Docker over and over. Downloads are paused, and a reminder is sent through your configured notification method once per **download_interval** until you re-authenticate. If you use Telegram with **telegram_polling** enabled, this also means the container is listening for your "&lt;user name&gt; auth" reply while it is waiting - with the default behaviour it is not, because it never gets that far. While the container is waiting, the health check reports healthy, so autoheal will leave it alone. Default: false.
+
+**reauth_notification_interval**: The number of seconds between re-authentication reminders. Only used when **wait_for_reauthentication** is set. Default: the value of **download_interval**.
+
 **authentication_type**: This is the type of authentication that is enabled on your iCloud account. Valid values are 'MFA' if you have multifactor authentication enabled or 'Web' if you do not. If 'Web' is specified, then cookie generation is not required. Default: 'MFA'.
 
 **directory_permissions**: This specifies the permissions to set on the directories in your download destination. Default: 750.
@@ -356,7 +360,7 @@ This will then place a multifactor authentication cookie into the /config folder
 
 After this, the container should start downloading your photos.
 
-Dockerfile has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within a set number of days (notification_days) and also if the download fails.
+Dockerfile has a health check which will change the status of the container to 'unhealthy' if the cookie is due to expire within a set number of days (notification_days) and also if the download fails. Unless **wait_for_reauthentication** is set, in which case the container reports healthy while it waits for you to re-authenticate.
 
 ## MULTIFACTOR RE-AUTHENTICATION
 Every 30 days, the cookie will expire and need to be re-authenticated. This can be done by running the re-authentication script:
@@ -452,7 +456,7 @@ To run the script inside the currently running container, issue this command (as
 
 ## HEALTH CHECK
 
-I have built in a health check for this container. If the script detects a download error the container will be marked as unhealthy. You can then configure this container: https://hub.docker.com/r/willfarrell/autoheal/ to monitor iCloudPD and restart the unhealthy container. Please note, if your MFA cookie expires, the container will be marked as unhealthy, and will be restarted by the authoheal container every five minutes or so... This can lead to a lot of notifications if it happens while you're asleep!
+I have built in a health check for this container. If the script detects a download error the container will be marked as unhealthy. You can then configure this container: https://hub.docker.com/r/willfarrell/autoheal/ to monitor iCloudPD and restart the unhealthy container. Please note, if your MFA cookie expires, the container will be marked as unhealthy, and will be restarted by the authoheal container every five minutes or so... This can lead to a lot of notifications if it happens while you're asleep! Setting **wait_for_reauthentication=true** avoids this: the container stays up, reports healthy, and reminds you once per download_interval instead.
 
 ## TROUBLESHOOTING
 
