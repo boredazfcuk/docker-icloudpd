@@ -994,3 +994,15 @@ Raise these in the pull request rather than deciding them unilaterally.
 Lead with the Telegram point, not the restart loop. "Your remote authentication feature cannot be used to recover from the failure it exists to recover from, because the container never reaches the polling loop once the cookie has expired" is a specific, checkable claim about his code. "The container restarts a lot" is a complaint.
 
 Then: the flag is off by default, `build_version.txt` is untouched so no build is triggered on merge, ShellCheck gains no new findings, and Steps 3-7 above are the evidence.
+
+---
+
+## Execution record
+
+Executed 2026-09-05 on branch `feature/wait-for-reauthentication`, eight commits, plan as written except where noted.
+
+- **Task 2 carried a bug that the unit tests could not see.** `require_reauthentication` assigned the marker path inside a command substitution — `mkdir -p "$(dirname "${reauth_marker_file:=...}")"` — so the assignment happened in a subshell and the parent was left with an empty path. The marker would never have been written for any real caller; the unit tests missed it because they set `reauth_marker_file` themselves. Found by the integration run below, fixed with `: "${reauth_marker_file:=...}"` on its own line, and covered by a new regression test that calls the function with the variable unset. Squashed into the Task 2 commit.
+- **Task 4's dedent is six spaces, not three** — the block sat at nine spaces inside two nested blocks. The faithfulness check is unaffected, since it normalises leading whitespace.
+- **ShellCheck ends one finding above baseline**: `SC2154 wait_for_reauthentication is referenced but not assigned`, which is the same finding every one of the other 66 config variables produces. No new codes.
+- **Task 9 could not be run here.** No Docker daemon was reachable from this session, so the image was never built. In its place, an integration script drove the real functions against a real `/config` and a hand-built cookie: 15 checks covering the hold, the kept cookie, the marker, the reminder text, `healthcheck.sh` returning 0 with its reason, throttling on the second pass, recovery, and — with the flag off — the old path still exiting and still deleting the cookie. All passed. The Docker steps in Task 9 remain to be run on a machine that has one, particularly step 7, which is the only end-to-end proof of the Telegram claim.
+- The pull request body is written to `PR_BODY_wait_for_reauthentication.md` in the working tree, untracked, matching the convention of the previous branch.
