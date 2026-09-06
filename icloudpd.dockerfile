@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.23.4
 LABEL maintainer="boredazfcuk"
 
 ENV XDG_DATA_HOME="/config" TZ="UTC" ENV="/etc/profile" config_file="/config/icloudpd.conf"
