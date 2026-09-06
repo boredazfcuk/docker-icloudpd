@@ -786,27 +786,43 @@ check_multifactor_authentication_cookie()
 
 display_multifactor_authentication_expiry()
 {
-   local error_message
+   local error_message reauth_message
    log_info "Multi-factor authentication cookie expires: ${mfa_expire_date/ / @ }"
    log_info "Days remaining until expiration: ${days_remaining}"
    if [ "${days_remaining}" -le "${notification_days}" ]
    then
+      if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = "true" ] && [ -n "${user}" ]
+      then
+         if [ "${icloud_china}" = "false" ]
+         then
+            reauth_message="To re-authenticate now, reply to this chat with: ${user} auth"
+         else
+            reauth_message="如需立即重新验证，请在此对话中回复：${user} auth"
+         fi
+      else
+         if [ "${icloud_china}" = "false" ]
+         then
+            reauth_message="To re-authenticate now, run: docker exec -it <container name> reauth.sh"
+         else
+            reauth_message="如需立即重新验证，请运行：docker exec -it <容器名称> reauth.sh"
+         fi
+      fi
       if [ "${days_remaining}" -eq 1 ]
       then
          cookie_status="cookie expired"
          if [ "${icloud_china}" = "false" ]
          then
-            error_message="Final day before multi-factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder"
+            error_message="Final day before multi-factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise now. This is your last reminder. ${reauth_message}"
          else
-            error_message="今天是 ${name} 的 Apple ID 两步验证 cookie 到期前的最后一天 - 请立即重新初始化，这是最后的提醒"
+            error_message="今天是 ${name} 的 Apple ID 两步验证 cookie 到期前的最后一天 - 请立即重新初始化，这是最后的提醒。${reauth_message}"
          fi
       else
          cookie_status="cookie expiration"
          if [ "${icloud_china}" = "false" ]
          then
-            error_message="Only ${days_remaining} days until multi-factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise"
+            error_message="Only ${days_remaining} days until multi-factor authentication cookie expires for Apple ID: ${apple_id} - Please reinitialise. ${reauth_message}"
          else
-            error_message="${days_remaining} 天后 ${name} 的 Apple ID 两步验证将到期 - 请立即重新初始化"
+            error_message="${days_remaining} 天后 ${name} 的 Apple ID 两步验证将到期 - 请立即重新初始化。${reauth_message}"
          fi
       fi
       log_warning "${error_message}"
@@ -2439,7 +2455,7 @@ synchronise_user()
                            log_debug "Processing update: ${latest_update}"
                            check_update="$(echo "${latest_updates}" | jq ". | select(.update_id == ${latest_update}).message")"
                            check_update_text="$(echo "${check_update}" | jq -r .text)"
-                           check_update_text_lc="$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]')"
+                           check_update_text_lc="$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]' | awk '{$1=$1; print}')"
                            log_debug "New message received: ${check_update_text}"
                            user_lc="$(echo "${user}" | tr '[:upper:]' '[:lower:]')"
                            if [ "${check_update_text_lc}" = "${user_lc}" ]
@@ -2461,7 +2477,7 @@ synchronise_user()
                               poll_sleep=3
                            elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [0-9][0-9][0-9][0-9][0-9][0-9]$" >/dev/null; echo $?)" -eq 0 ]
                            then
-                              mfa_code="$(echo "${check_update_text}" | awk '{print $2}')"
+                              mfa_code="$(echo "${check_update_text_lc}" | awk '{print $2}')"
                               printf "%s\n" "${mfa_code}" >> /tmp/icloudpd/expect_input.txt
                               listen_counter=$((listen_counter+2))
                               # additional sleeps mean sync time slips each time time a sync or auth is performed
@@ -2471,7 +2487,7 @@ synchronise_user()
                               poll_sleep=30
                            elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [a-z]$" >/dev/null; echo $?)" -eq 0 ]
                            then
-                              sms_choice="$(echo "${check_update_text}" | awk '{print $2}')"
+                              sms_choice="$(echo "${check_update_text_lc}" | awk '{print $2}')"
                               printf "%s\n" "${sms_choice}" >> /tmp/icloudpd/expect_input.txt
                               listen_counter=$((listen_counter+2))
                               # Same again

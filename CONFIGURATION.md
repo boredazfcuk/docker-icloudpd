@@ -154,7 +154,7 @@ adds asset id from iCloud to all file names and does not need de-duplication. De
 
 **telegram_silent_file_notifications**: Optional if notification_type set to 'Telegram'. Set this to **true** for the file download notifications to be sent silently. Default = false
 
-**telegram_polling**: Optional if notification_type set to 'Telegram'. Set this to true to enable Telegram polling. This will check the Telegram chat for messages every 60 seconds. If the latest message is the user name, it will synchronise immediately
+**telegram_polling**: Optional if notification_type set to 'Telegram'. Set this to true to enable Telegram polling. This will check the Telegram chat for messages every 60 seconds. If the latest message is the user name, it will synchronise immediately. Sending the user name followed by `auth` starts the re-authentication process, after which the container will ask you for either a trusted device letter or a 6-digit code, which you also send prefixed with the user name. All of these are case insensitive and any extra spaces are ignored, so `boredazfcuk auth` and `Boredazfcuk Auth` do the same thing
 
 **telegram_server**: Optional if notification_type set to 'Telegram'. If Telegram is blocked in your country and you need to use a proxy server to access it, put the fully qualified domain name of the server here. e.g. proxy.server.com
 
