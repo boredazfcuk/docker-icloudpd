@@ -116,6 +116,8 @@ adds asset id from iCloud to all file names and does not need de-duplication. De
 
 **video_path**: 
 
+**xmp_sidecar**: Set this to **true** to write a *.xmp sidecar file alongside each downloaded asset. Each sidecar contains metadata from iCloud not otherwise available locally (e.g. screenshot classification). For live photos, only the still image gets a sidecar. Default: false.
+
 # NEXTCLOUD CONFIGURATION ITEMS
 
 **nextcloud_delete**: Set this variable to **true** if you want to remove files from Nextcloud. This setting requires **auto_delete** to also be set to true. When a file is found in the 'Recently Deleted', the **auto_delete** function will remove the local file. If **nextcloud_delete** is also set to **true**, then it will remove that file from the Nextcloud server.
