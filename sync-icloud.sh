@@ -506,6 +506,11 @@ list_libraries()
    if [ "${authentication_type}" = "MFA" ]
    then
       check_multifactor_authentication_cookie
+      if [ -n "${authentication_required}" ]
+      then
+         log_error "Cannot continue: authentication is required. $(reauth_instructions)"
+         exit 1
+      fi
    else
       check_web_cookie
    fi
@@ -528,6 +533,11 @@ list_albums()
    if [ "${authentication_type}" = "MFA" ]
    then
       check_multifactor_authentication_cookie
+      if [ -n "${authentication_required}" ]
+      then
+         log_error "Cannot continue: authentication is required. $(reauth_instructions)"
+         exit 1
+      fi
    else
       check_web_cookie
    fi
@@ -749,12 +759,22 @@ check_multifactor_authentication_cookie()
       log_debug "Multi-factor authentication cookie exists"
    else
       log_error "Multi-factor authentication cookie does not exist"
+      if [ "${wait_for_reauthentication}" = "true" ]
+      then
+         require_reauthentication "Multi-factor authentication cookie does not exist for Apple ID: ${apple_id}"
+         return
+      fi
       wait_for_cookie DisplayMessage
       log_debug "Multi-factor authentication cookie file exists, checking validity..."
    fi
    if [ "$(grep -c "X-APPLE-DS-WEB-SESSION-TOKEN" "/config/${cookie_file}")" -eq 1 ] && [ "$(grep -c "X-APPLE-WEBAUTH-HSA-TRUST" "/config/${cookie_file}")" -eq 0 ]
    then
       log_debug "Multi-factor authentication cookie exists, but not authenticated. Waiting for authentication to complete..."
+      if [ "${wait_for_reauthentication}" = "true" ]
+      then
+         require_reauthentication "Multi-factor authentication has not been completed for Apple ID: ${apple_id}"
+         return
+      fi
       wait_for_authentication
       log_debug "Multi-factor authentication authentication complete, checking expiry date..."
    fi
@@ -767,8 +787,14 @@ check_multifactor_authentication_cookie()
       if [ "${days_remaining}" -gt 0 ]
       then
          valid_mfa_cookie=true
+         clear_reauthentication_hold
          log_debug "Valid multi-factor authentication cookie found. Days until expiration: ${days_remaining}"
       else
+         if [ "${wait_for_reauthentication}" = "true" ]
+         then
+            require_reauthentication "Multi-factor authentication cookie for Apple ID: ${apple_id} expired at: ${mfa_expire_date}"
+            return
+         fi
          rm -f "/config/${cookie_file}"
          log_error "Cookie expired at: ${mfa_expire_date}"
          log_error "Expired cookie file has been removed. Restarting container in 5 minutes"
@@ -776,11 +802,89 @@ check_multifactor_authentication_cookie()
          exit 1
       fi
    else
+      if [ "${wait_for_reauthentication}" = "true" ]
+      then
+         require_reauthentication "Cookie for Apple ID: ${apple_id} is not multi-factor authentication capable. The authentication type may have changed"
+         return
+      fi
       rm -f "/config/${cookie_file}"
       log_error "Cookie is not multi-factor authentication capable, authentication type may have changed"
       log_error "Invalid cookie file has been removed. Restarting container in 5 minutes"
       sleep 300
       exit 1
+   fi
+}
+
+reauth_instructions()
+{
+   if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = "true" ] && [ -n "${user}" ]
+   then
+      if [ "${icloud_china}" = "false" ]
+      then
+         echo "To re-authenticate now, reply to this chat with: ${user} auth"
+      else
+         echo "如需立即重新验证，请在此对话中回复：${user} auth"
+      fi
+   else
+      if [ "${icloud_china}" = "false" ]
+      then
+         echo "To re-authenticate now, run: docker exec -it <container name> reauth.sh"
+      else
+         echo "如需立即重新验证，请运行：docker exec -it <容器名称> reauth.sh"
+      fi
+   fi
+}
+
+require_reauthentication()
+{
+   local reason
+   reason="${1}"
+   authentication_required="${reason}"
+   : "${reauth_marker_file:=/tmp/icloudpd/awaiting_reauthentication}"
+   mkdir -p "$(dirname "${reauth_marker_file}")"
+   printf '%s\n' "${reason}" > "${reauth_marker_file}"
+   log_error "${reason}"
+   log_error " - Downloads are paused. The container will stay running and remind you until re-authentication is complete"
+   log_error " - $(reauth_instructions)"
+}
+
+clear_reauthentication_hold()
+{
+   if [ -f "${reauth_marker_file:=/tmp/icloudpd/awaiting_reauthentication}" ]
+   then
+      rm -f "${reauth_marker_file}"
+      log_info "Re-authentication complete. Resuming synchronisation"
+      if [ "${icloud_china}" = "false" ]
+      then
+         send_notification "startup" "iCloudPD authentication restored" "0" "Re-authentication complete for Apple ID: ${apple_id}. Synchronisation has resumed"
+      else
+         send_notification "startup" "iCloudPD authentication restored" "0" "${name} 的 Apple ID 重新验证成功，同步已恢复" "" "" "" "${name} 的 iCloud 图库同步已恢复" "Apple ID: ${apple_id}"
+      fi
+   fi
+   unset authentication_required next_reauth_notification_time
+}
+
+reauthentication_reminder()
+{
+   local reminder_interval reminder_message
+   reminder_interval="${reauth_notification_interval:-${download_interval}}"
+   if [ "${icloud_china}" = "false" ]
+   then
+      reminder_message="Authentication required for Apple ID: ${apple_id} - ${authentication_required}. Downloads are paused until this is resolved. $(reauth_instructions)"
+   else
+      reminder_message="${name} 的 Apple ID 需要重新验证 - ${authentication_required}。下载已暂停。$(reauth_instructions)"
+   fi
+   log_warning "${reminder_message}"
+   if [ "$(date +%s)" -ge "${next_reauth_notification_time:=0}" ]
+   then
+      if [ "${icloud_china}" = "false" ]
+      then
+         send_notification "cookie expired" "iCloudPD authentication required" "1" "${reminder_message}"
+      else
+         send_notification "cookie expired" "iCloudPD authentication required" "1" "${reminder_message}" "" "" "" "${name} 的 iCloud 需要重新验证" "${reminder_message}"
+      fi
+      next_reauth_notification_time="$(date +%s -d "+${reminder_interval} seconds")"
+      log_debug "Next re-authentication reminder not before: $(date +%c -d "@${next_reauth_notification_time}")"
    fi
 }
 
@@ -791,22 +895,7 @@ display_multifactor_authentication_expiry()
    log_info "Days remaining until expiration: ${days_remaining}"
    if [ "${days_remaining}" -le "${notification_days}" ]
    then
-      if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = "true" ] && [ -n "${user}" ]
-      then
-         if [ "${icloud_china}" = "false" ]
-         then
-            reauth_message="To re-authenticate now, reply to this chat with: ${user} auth"
-         else
-            reauth_message="如需立即重新验证，请在此对话中回复：${user} auth"
-         fi
-      else
-         if [ "${icloud_china}" = "false" ]
-         then
-            reauth_message="To re-authenticate now, run: docker exec -it <container name> reauth.sh"
-         else
-            reauth_message="如需立即重新验证，请运行：docker exec -it <容器名称> reauth.sh"
-         fi
-      fi
+      reauth_message="$(reauth_instructions)"
       if [ "${days_remaining}" -eq 1 ]
       then
          cookie_status="cookie expired"
@@ -2273,6 +2362,118 @@ command_line_builder()
    fi
 }
 
+wait_for_next_download()
+{
+   local sleep_time
+   sleep_time="${1}"
+   if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = "true" ]
+   then
+      log_info "Monitoring ${notification_type_tc} for remote commands prefix: ${user}"
+      listen_counter=0
+      poll_sleep=30
+      while [ "${listen_counter}" -lt "${sleep_time}" ]
+      do
+         # --- Check for Expect error ---
+         if [ -f "/tmp/icloudpd/expect_error_flag" ]
+         then
+            log_debug "Expect script failed, error flag detected. Exiting loop."
+            rm "/tmp/icloudpd/expect_error_flag"
+            break
+         fi
+         if [ "${telegram_polling}" = "true" ]
+         then
+            unset latest_updates latest_update_ids break_while
+            update_count=0
+            telegram_update_id_offset="$(head -1 "${telegram_update_id_offset_file}")"
+            log_debug "Polling Telegram for updates newer than: ${telegram_update_id_offset}"
+            telegram_update_id_offset_inc=$((telegram_update_id_offset + 1))
+            latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "${telegram_base_url}/getUpdates" | jq .result[] 2>/dev/null)"
+            if [ -n "${latest_updates}" ]
+            then
+               latest_update_ids="$(echo "${latest_updates}" | jq -r '.update_id')"
+            fi
+            if [ -n "${latest_update_ids}" ]
+            then
+               update_count="$(echo "${latest_update_ids}" | wc --lines)"
+               log_debug "Updates to process: ${update_count}"
+               if [ "${update_count}" -gt 0 ]
+               then
+                  for latest_update in ${latest_update_ids}
+                  do
+                     log_debug "Processing update: ${latest_update}"
+                     check_update="$(echo "${latest_updates}" | jq ". | select(.update_id == ${latest_update}).message")"
+                     check_update_text="$(echo "${check_update}" | jq -r .text)"
+                     check_update_text_lc="$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]' | awk '{$1=$1; print}')"
+                     log_debug "New message received: ${check_update_text}"
+                     user_lc="$(echo "${user}" | tr '[:upper:]' '[:lower:]')"
+                     if [ "${check_update_text_lc}" = "${user_lc}" ]
+                     then
+                        break_while=true
+                        log_debug "Remote sync message match: ${check_update_text}"
+                     elif  [ "${check_update_text_lc}" = "${user_lc} auth" ]
+                     then
+                        log_debug "Remote authentication message match: ${check_update_text}"
+                        if [ "${icloud_china}" = "false" ]
+                        then
+                           send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
+                        else
+                           send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD将以Apple ID: ${apple_id}发起身份验证"
+                        fi
+			                     rm -f "/config/${cookie_file}" "/config/${cookie_file}.session"
+                        log_debug "Starting remote authentication process"
+                        /usr/bin/expect /opt/authenticate.exp &
+                        poll_sleep=3
+                     elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [0-9][0-9][0-9][0-9][0-9][0-9]$" >/dev/null; echo $?)" -eq 0 ]
+                     then
+                        mfa_code="$(echo "${check_update_text_lc}" | awk '{print $2}')"
+                        printf "%s\n" "${mfa_code}" >> /tmp/icloudpd/expect_input.txt
+                        listen_counter=$((listen_counter+2))
+                        # additional sleeps mean sync time slips each time time a sync or auth is performed
+                        # adding same amount of time to listen counter should prevent this from occurring
+                        sleep 2
+                        unset mfa_code
+                        poll_sleep=30
+                     elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [a-z]$" >/dev/null; echo $?)" -eq 0 ]
+                     then
+                        sms_choice="$(echo "${check_update_text_lc}" | awk '{print $2}')"
+                        printf "%s\n" "${sms_choice}" >> /tmp/icloudpd/expect_input.txt
+                        listen_counter=$((listen_counter+2))
+                        # Same again
+                        sleep 2
+                        unset sms_choice
+                        poll_sleep=3
+                     else
+                        log_debug "Ignoring message: ${check_update_text}"
+                        poll_sleep=30
+                     fi
+                  done
+                  echo -n "${latest_update}" > "${telegram_update_id_offset_file}"
+                  if [ -n "${break_while}" ]
+                  then
+                     log_debug "Remote sync initiated"
+                     if [ "${icloud_china}" = "false" ]
+                     then
+                        send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote download request for Apple ID: ${apple_id}"
+                        remote_sync_complete_notification=true
+                     else
+                        send_notification "remotesync" "iCloudPD remote download initiated" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
+                     fi
+                        poll_sleep=30
+                     break
+                  fi
+               fi
+            fi
+         fi
+         listen_counter=$((listen_counter+poll_sleep))
+         # additional sleeps mean sync time slips each time time a sync or auth is performed
+         # adding same amount of time to listen counter should prevent this from occurring
+         sleep "${poll_sleep}"
+      done
+   else
+      sleep "${sleep_time}"
+   fi
+}
+
 synchronise_user()
 {
    log_info "Sync user: ${user}"
@@ -2285,6 +2486,7 @@ synchronise_user()
    do
       download_start_time="$(date +'%s')"
       download_time="$(date +%s -d '+15 minutes')"
+      unset authentication_required
       log_info "Download starting at $(date +%H:%M:%S -d "@${download_start_time}")"
       source <(grep debug_logging "${config_file}")
       chown -R "${user_id}:${group_id}" "/config"
@@ -2293,10 +2495,25 @@ synchronise_user()
       then
          log_debug "Check MFA Cookie"
          valid_mfa_cookie=false
-         while [ "${valid_mfa_cookie}" = "false" ]
+         while [ "${valid_mfa_cookie}" = "false" ] && [ -z "${authentication_required}" ]
          do
             check_multifactor_authentication_cookie
          done
+      fi
+      if [ -n "${authentication_required}" ]
+      then
+         reauthentication_reminder
+         unset remote_sync_complete_notification
+         if [ "${single_pass:-false}" = "true" ]
+         then
+            log_error "Single Pass mode set and authentication is required, exiting"
+            exit 1
+         fi
+         download_end_time="$(date +'%s')"
+         sleep_time="$((download_interval - download_end_time + download_start_time))"
+         log_info "Next authentication check at $(date +%H:%M:%S -d "${sleep_time} seconds")"
+         wait_for_next_download "${sleep_time}"
+         continue
       fi
       check_mount
       if [ "${skip_check}" = "false" ]
@@ -2418,112 +2635,7 @@ synchronise_user()
          fi
          unset check_exit_code check_files_count download_exit_code
          unset new_files
-         if [ "${notification_type}" = "telegram" ] && [ "${telegram_polling}" = "true" ]
-         then
-            log_info "Monitoring ${notification_type_tc} for remote commands prefix: ${user}"
-            listen_counter=0
-            poll_sleep=30
-            while [ "${listen_counter}" -lt "${sleep_time}" ]
-            do
-               # --- Check for Expect error ---
-               if [ -f "/tmp/icloudpd/expect_error_flag" ]
-               then
-                  log_debug "Expect script failed, error flag detected. Exiting loop."
-                  rm "/tmp/icloudpd/expect_error_flag"
-                  break
-               fi
-               if [ "${telegram_polling}" = "true" ]
-               then
-                  unset latest_updates latest_update_ids break_while
-                  update_count=0
-                  telegram_update_id_offset="$(head -1 "${telegram_update_id_offset_file}")"
-                  log_debug "Polling Telegram for updates newer than: ${telegram_update_id_offset}"
-                  telegram_update_id_offset_inc=$((telegram_update_id_offset + 1))
-                  latest_updates="$(curl --request POST --silent --data "allowed_updates=message" --data "offset=${telegram_update_id_offset_inc}" "${telegram_base_url}/getUpdates" | jq .result[] 2>/dev/null)"
-                  if [ -n "${latest_updates}" ]
-                  then
-                     latest_update_ids="$(echo "${latest_updates}" | jq -r '.update_id')"
-                  fi
-                  if [ -n "${latest_update_ids}" ]
-                  then
-                     update_count="$(echo "${latest_update_ids}" | wc --lines)"
-                     log_debug "Updates to process: ${update_count}"
-                     if [ "${update_count}" -gt 0 ]
-                     then
-                        for latest_update in ${latest_update_ids}
-                        do
-                           log_debug "Processing update: ${latest_update}"
-                           check_update="$(echo "${latest_updates}" | jq ". | select(.update_id == ${latest_update}).message")"
-                           check_update_text="$(echo "${check_update}" | jq -r .text)"
-                           check_update_text_lc="$(echo "${check_update_text}" | tr '[:upper:]' '[:lower:]' | awk '{$1=$1; print}')"
-                           log_debug "New message received: ${check_update_text}"
-                           user_lc="$(echo "${user}" | tr '[:upper:]' '[:lower:]')"
-                           if [ "${check_update_text_lc}" = "${user_lc}" ]
-                           then
-                              break_while=true
-                              log_debug "Remote sync message match: ${check_update_text}"
-                           elif  [ "${check_update_text_lc}" = "${user_lc} auth" ]
-                           then
-                              log_debug "Remote authentication message match: ${check_update_text}"
-                              if [ "${icloud_china}" = "false" ]
-                              then
-                                 send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote authentication request for Apple ID: ${apple_id}"
-                              else
-                                 send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD将以Apple ID: ${apple_id}发起身份验证"
-                              fi
-			                     rm "/config/${cookie_file}" "/config/${cookie_file}.session"
-                              log_debug "Starting remote authentication process"
-                              /usr/bin/expect /opt/authenticate.exp &
-                              poll_sleep=3
-                           elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [0-9][0-9][0-9][0-9][0-9][0-9]$" >/dev/null; echo $?)" -eq 0 ]
-                           then
-                              mfa_code="$(echo "${check_update_text_lc}" | awk '{print $2}')"
-                              printf "%s\n" "${mfa_code}" >> /tmp/icloudpd/expect_input.txt
-                              listen_counter=$((listen_counter+2))
-                              # additional sleeps mean sync time slips each time time a sync or auth is performed
-                              # adding same amount of time to listen counter should prevent this from occurring
-                              sleep 2
-                              unset mfa_code
-                              poll_sleep=30
-                           elif [ "$(expr match "${check_update_text_lc}" "^${user_lc} [a-z]$" >/dev/null; echo $?)" -eq 0 ]
-                           then
-                              sms_choice="$(echo "${check_update_text_lc}" | awk '{print $2}')"
-                              printf "%s\n" "${sms_choice}" >> /tmp/icloudpd/expect_input.txt
-                              listen_counter=$((listen_counter+2))
-                              # Same again
-                              sleep 2
-                              unset sms_choice
-                              poll_sleep=3
-                           else
-                              log_debug "Ignoring message: ${check_update_text}"
-                              poll_sleep=30
-                           fi
-                        done
-                        echo -n "${latest_update}" > "${telegram_update_id_offset_file}"
-                        if [ -n "${break_while}" ]
-                        then
-                           log_debug "Remote sync initiated"
-                           if [ "${icloud_china}" = "false" ]
-                           then
-                              send_notification "remotesync" "iCloudPD remote download initiated" "0" "iCloudPD has detected a remote download request for Apple ID: ${apple_id}"
-                              remote_sync_complete_notification=true
-                           else
-                              send_notification "remotesync" "iCloudPD remote download initiated" "0" "启动成功，开始同步当前 Apple ID 中的照片" "" "" "" "开始同步 ${name} 的 iCloud 图库" "Apple ID: ${apple_id}"
-                           fi
-                              poll_sleep=30
-                           break
-                        fi
-                     fi
-                  fi
-               fi
-               listen_counter=$((listen_counter+poll_sleep))
-               # additional sleeps mean sync time slips each time time a sync or auth is performed
-               # adding same amount of time to listen counter should prevent this from occurring
-               sleep "${poll_sleep}"
-            done
-         else
-            sleep "${sleep_time}"
-         fi
+         wait_for_next_download "${sleep_time}"
       fi
    done
 }

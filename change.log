@@ -1,3 +1,9 @@
+05/09/2026
+
+ - Added wait_for_reauthentication. When it's set, an expired or missing cookie no longer kills the container and leaves Docker to restart it every half hour. It stays up, pauses downloads, and reminds you through whatever notification method you've configured, once per download_interval. The cadence can be overridden with reauth_notification_interval
+ - Side effect worth knowing about: while it's waiting, the health check reports healthy, so autoheal won't restart it. Nothing a restart can do would fix a missing MFA code anyway
+ - The Telegram polling loop now runs while the container is unauthenticated, so "<user> auth" actually works during an outage. Previously the container never reached the polling loop once the cookie had expired, which is the one time you'd want it
+
 30/08/2026
 
  - Fixed the remote authentication SMS option being rejected. The message match was already case insensitive, but the device index letter was pulled back out of the original message rather than the lowercased one, so a phone keyboard auto-capitalising it to "A" got sent to iCloudPD, which only accepts "a". Same for the MFA code. Also trimmed and collapsed the whitespace, so a stray trailing space no longer makes the container ignore a perfectly good command.

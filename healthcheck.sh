@@ -2,6 +2,12 @@
 
 source "/config/icloudpd.conf"
 
+if [ -f "/tmp/icloudpd/awaiting_reauthentication" ]
+then
+   echo "Awaiting re-authentication: $(cat /tmp/icloudpd/awaiting_reauthentication)"
+   exit 0
+fi
+
 if [ -f "/tmp/icloudpd/icloudpd_check_exit_code" ] || [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]
 then
    if [ -f "/tmp/icloudpd/icloudpd_download_exit_code" ]
