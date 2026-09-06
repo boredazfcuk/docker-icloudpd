@@ -233,7 +233,7 @@ run_as()
    then
       su "${user}" -s /bin/ash -c "${1}"
    else
-      /bin/ash -c "${command_to_run}"
+      /bin/ash -c "${1}"
    fi
 }
 
