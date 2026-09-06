@@ -124,6 +124,7 @@ write_variable media_id_warning
 write_variable msmtp_args --tls-starttls=off
 write_variable msmtp_auth on
 write_variable msmtp_from
+write_variable msmtp_from_name
 write_variable msmtp_host
 write_variable msmtp_pass
 write_variable msmtp_port

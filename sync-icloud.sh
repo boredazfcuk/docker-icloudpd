@@ -436,6 +436,10 @@ configure_notifications()
       log_info " | ${notification_type_tc} notifications enabled"
       log_debug "   - ${notification_type_tc} hostname: ${msmtp_host}"
       log_debug "   - ${notification_type_tc} port number: ${msmtp_port}"
+      if [ -n "${msmtp_from_name}" ]
+      then
+         log_debug "   - ${notification_type_tc} from name: ${msmtp_from_name}"
+      fi
       if  [ -n "${msmtp_user}" ] && [ -n "${msmtp_pass}" ]
       then
          log_debug "   - ${notification_type_tc} username: ${msmtp_user}"
@@ -2101,10 +2105,15 @@ send_notification()
             else
                   mail_text="$(echo -e "${notification_icon} ${notification_message}")"
             fi
+            mail_from="${msmtp_from}"
+            if [ -n "${msmtp_from_name}" ]; then
+                  mail_from_name="$(printf "%s" "${msmtp_from_name}" | tr '\r\n' '  ' | sed 's/\\/\\\\/g; s/"/\\"/g')"
+                  mail_from="\"${mail_from_name}\" <${msmtp_from}>"
+            fi
             if [ -n "${msmtp_user}" ] && [ -n "${msmtp_pass}" ]; then
-                  printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --user=$msmtp_user --passwordeval="echo -n $msmtp_pass" --from=$msmtp_from --auth=$msmtp_auth --tls=$msmtp_tls $msmtp_args -- "$msmtp_to"
+                  printf "From: %s\nTo: %s\nSubject: %s\n\n%s" "${mail_from}" "${msmtp_to}" "${notification_message}" "${mail_text}" | msmtp --host="${msmtp_host}" --port="${msmtp_port}" --user="${msmtp_user}" --passwordeval="echo -n ${msmtp_pass}" --from="${msmtp_from}" --auth="${msmtp_auth}" --tls="${msmtp_tls}" $msmtp_args -- "$msmtp_to"
             else
-                  printf "Subject: $notification_message\n\n$mail_text" | msmtp --host=$msmtp_host --port=$msmtp_port --from=$msmtp_from --auth=$msmtp_auth --tls=$msmtp_tls $msmtp_args -- "$msmtp_to"
+                  printf "From: %s\nTo: %s\nSubject: %s\n\n%s" "${mail_from}" "${msmtp_to}" "${notification_message}" "${mail_text}" | msmtp --host="${msmtp_host}" --port="${msmtp_port}" --from="${msmtp_from}" --auth="${msmtp_auth}" --tls="${msmtp_tls}" $msmtp_args -- "$msmtp_to"
             fi
             ;;
          "signal")

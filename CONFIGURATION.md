@@ -225,6 +225,8 @@ If you use the official Bark server, please fill the field with `api.day.app`.
 
 **msmtp_from**: Mandatory if notification_type set to `msmtp`. The sender's email address
 
+**msmtp_from_name**: Optional if notification_type set to `msmtp`. The display name shown for the sender. For example, `iCloudPD`.
+
 **msmtp_user**: Mandatory if notification_type set to `msmtp`. The login username for your SMTP provider
 
 **msmtp_pass**: Mandatory if notification_type set to `msmtp`. The password for the login user
