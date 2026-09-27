@@ -1,3 +1,7 @@
+27/09/2026
+
+ - Added delete_notifications_minimum. A deletion notification is only sent once a download run deletes at least that many files, so routine clean-ups, like a handful of screenshots, no longer notify on every run. The default is 1, so nothing changes unless you set it.
+
 05/09/2026
 
  - Added wait_for_reauthentication. When it's set, an expired or missing cookie no longer kills the container and leaves Docker to restart it every half hour. It stays up, pauses downloads, and reminds you through whatever notification method you've configured, once per download_interval. The cadence can be overridden with reauth_notification_interval

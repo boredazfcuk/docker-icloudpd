@@ -483,6 +483,7 @@ configure_notifications()
    if [ "${delete_notifications}" = "true" ]
    then
       log_debug " | Delete notifications: Enabled"
+      log_debug " | Delete notifications minimum: ${delete_notifications_minimum}"
    else
       log_debug " | Delete notifications: Disabled"
       unset delete_notifications
@@ -1070,7 +1071,7 @@ deleted_files_notification()
    local deleted_files deleted_files_count deleted_files_preview deleted_files_text
    deleted_files="$(grep "Deleted /" /tmp/icloudpd/icloudpd_sync.log)"
    deleted_files_count="$(grep -c "Deleted /" /tmp/icloudpd/icloudpd_sync.log)"
-   if [ "${deleted_files_count:=0}" -gt 0 ]
+   if [ "${deleted_files_count:=0}" -gt 0 ] && [ "${deleted_files_count}" -ge "${delete_notifications_minimum:-1}" ]
    then
       log_info "Number of files deleted: ${deleted_files_count}"
       deleted_files_preview="$(echo "${deleted_files}" | cut --delimiter " " --fields 9- | sed -e "s%${download_path}/%%g" -e "s%!$%%g" | tail -10)"

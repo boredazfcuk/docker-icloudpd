@@ -88,6 +88,7 @@ write_variable delete_accompanying false
 write_variable delete_after_download false
 write_variable delete_empty_directories false
 write_variable delete_notifications true
+write_variable delete_notifications_minimum 1
 write_variable dingtalk_token
 write_variable directory_permissions 750
 write_variable discord_id

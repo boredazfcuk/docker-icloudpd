@@ -49,6 +49,8 @@ Currently, I only reccomend setting one container environment variable, TZ, as t
 
 **delete_notifications**: Specifies whether notifications with a short summary should be sent for file deletions. Default: true.
 
+**delete_notifications_minimum**: The minimum number of files a download run must delete before a deletion notification is sent. Runs that delete fewer files still delete them, but without a notification. Useful when routine clean-ups, like screenshots, would otherwise notify on every run. Default: 1.
+
 **startup_notification**: Specifies whether the startup notification should be sent. Default: true.
 
 **delete_accompanying**: Tells the script to delete files which accompany the HEIC files that are downloaded. These are the JPG files which are created if you have HEIC to JPG conversion enabled. They are also the \_HEVC.MOV files which make up part of a live photo. This feature deletes files from your disk. I'm not responsible for any data loss.
