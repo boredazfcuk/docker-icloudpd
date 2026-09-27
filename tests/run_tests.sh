@@ -177,5 +177,45 @@ assert_equals "reauthentication_reminder: override sets the next time an hour ou
 
 rm -f "${notifications_sent}"
 
+##### deleted_files_notification #####
+
+eval "$(extract_function deleted_files_notification)"
+
+send_notification() { printf '%s|%s\n' "${1}" "${4}" >> "${notifications_sent}"; }
+
+notifications_sent="/tmp/icloudpd_test_notifications"
+OLDIFS="${IFS}"
+apple_id="someone@example.com"
+icloud_china="false"
+download_path="/home/user/iCloud"
+mkdir -p /tmp/icloudpd
+for image in 1 2 3
+do
+   echo "2026-09-27 17:24:38 INFO     Deleted /home/user/iCloud/2026/IMG_000${image}.PNG"
+done > /tmp/icloudpd/icloudpd_sync.log
+
+: > "${notifications_sent}"
+unset delete_notifications_minimum
+deleted_files_notification
+assert_equals "deleted_files_notification: notifies on any deletion by default" \
+   "$(cat "${notifications_sent}")" \
+   "deleted files|Files deleted for Apple ID someone@example.com: 3"
+
+: > "${notifications_sent}"
+delete_notifications_minimum=10
+deleted_files_notification
+assert_equals "deleted_files_notification: silent below the minimum" \
+   "$(cat "${notifications_sent}")" \
+   ""
+
+: > "${notifications_sent}"
+delete_notifications_minimum=3
+deleted_files_notification
+assert_equals "deleted_files_notification: notifies at the minimum" \
+   "$(wc -l < "${notifications_sent}" | tr -d ' ')" \
+   "1"
+
+rm -f "${notifications_sent}" /tmp/icloudpd/icloudpd_sync.log
+
 printf '\n%s test(s), %s failure(s)\n' "${tests_run}" "${tests_failed}"
 [ "${tests_failed}" -eq 0 ]
