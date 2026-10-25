@@ -50,7 +50,7 @@ create_group()
 
 create_user()
 {
-   if [ "$(grep -c "^${user}:x:${user_id}:${group_id}" "/etc/passwd")" -eq 0 ]
+   if [ "$(grep -c "^${user}:x:${user_id}:${group_id}:" "/etc/passwd")" -eq 0 ]
    then
       log_debug "   | Creating minimal /etc/passwd file"
       echo "root:x:0:0:root:/root:/bin/ash" >/etc/passwd
