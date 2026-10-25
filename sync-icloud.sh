@@ -45,7 +45,6 @@ initialise_script()
       log_info " | Local user: ${user}:${user_id}"
       log_info " | Local group: ${group}:${group_id}"
    fi
-   log_debug " | Force GID: ${force_gid}"
 
    if [ "${icloud_china:-false}" = "true" ]
    then

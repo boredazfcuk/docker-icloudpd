@@ -100,7 +100,6 @@ write_variable fake_user_agent
 write_variable file_match_policy name-size-dedup-with-suffix
 write_variable file_permissions 640
 write_variable folder_structure '{:%Y/%m/%d}'
-write_variable force_gid false
 write_variable gotify_app_token
 write_variable gotify_https
 write_variable gotify_server_url
