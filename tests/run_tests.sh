@@ -177,5 +177,66 @@ assert_equals "reauthentication_reminder: override sets the next time an hour ou
 
 rm -f "${notifications_sent}"
 
+##### download exit code and completion check #####
+
+# download_photos runs the real binary path, so stand a fake iCloudPD in its place. It prints
+# FAKE_OUTPUT to stdout and exits with FAKE_EXIT, like the release binary does.
+# Needs root (run_as uses su), which the docker run in the header gives you.
+eval "$(extract_function run_as)"
+eval "$(extract_function sync_log_next_line)"
+eval "$(extract_function flag_incomplete_download)"
+eval "$(extract_function download_photos)"
+log_debug() { :; }
+user="root"; command_line=""; log_level="info"; skip_download="false"
+mkdir -p /tmp/icloudpd /opt/icloudpd/bin
+printf '#!/bin/ash\nprintf "%%b\\n" "${FAKE_OUTPUT}"\nexit "${FAKE_EXIT}"\n' > /opt/icloudpd/bin/icloudpd
+chmod 755 /opt/icloudpd/bin/icloudpd
+completed="2026-10-12 16:02:40 INFO     All photos and videos have been downloaded"
+not_indexed="2026-10-14 15:39:59 INFO     Apple iCloud Photo Library has not finished indexing yet"
+
+export FAKE_OUTPUT="${completed}" FAKE_EXIT=0
+download_photos >/dev/null
+assert_equals "download_photos: finished run is a success" \
+   "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" "0"
+assert_equals "download_photos: finished run leaves no error" \
+   "$(wc -c < /tmp/icloudpd/icloudpd_download_error | tr -d ' ')" "0"
+
+export FAKE_OUTPUT="${completed}" FAKE_EXIT=1
+download_photos >/dev/null
+assert_equals "download_photos: records iCloudPD's own exit code" \
+   "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" "1"
+
+export FAKE_OUTPUT="${not_indexed}" FAKE_EXIT=0
+download_photos >/dev/null
+assert_equals "download_photos: exit 0 without the completion message is a failure" \
+   "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" "1"
+assert_equals "download_photos: failure names the last message" \
+   "$(cat /tmp/icloudpd/icloudpd_download_error)" \
+   "iCloudPD exited without finishing the download. Last message: ${not_indexed}"
+
+export FAKE_OUTPUT="2026-10-12 16:02:40 INFO     All photos have been downloaded" FAKE_EXIT=0
+download_photos >/dev/null
+assert_equals "download_photos: skip_videos wording counts as finished" \
+   "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" "0"
+
+# Libraries and albums append every run to one sync log, so an earlier run's completion message
+# must not count for a later run.
+printf '%s\n' "${completed}" > /tmp/icloudpd/icloudpd_sync.log
+sync_log_start="$(sync_log_next_line)"
+printf '%s\n' "${not_indexed}" >> /tmp/icloudpd/icloudpd_sync.log
+echo 0 > /tmp/icloudpd/icloudpd_download_exit_code
+> /tmp/icloudpd/icloudpd_download_error
+flag_incomplete_download "${sync_log_start}"
+assert_equals "flag_incomplete_download: only looks at this run's output" \
+   "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" "1"
+
+skip_download="true"
+download_photos >/dev/null
+assert_equals "download_photos: skip_download is not flagged" \
+   "$(cat /tmp/icloudpd/icloudpd_download_exit_code)" "0"
+
+unset FAKE_OUTPUT FAKE_EXIT
+rm -f /opt/icloudpd/bin/icloudpd /tmp/icloudpd/icloudpd_sync.log /tmp/icloudpd/icloudpd_download_exit_code /tmp/icloudpd/icloudpd_download_error
+
 printf '\n%s test(s), %s failure(s)\n' "${tests_run}" "${tests_failed}"
 [ "${tests_failed}" -eq 0 ]

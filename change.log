@@ -1,3 +1,9 @@
+15/10/2026
+
+ - Fixed failed downloads being reported as successful, so no failure notification was ever sent. Every iCloudPD launch wrote `echo $?` inside a double-quoted run_as string, so the script expanded `$?` itself before iCloudPD had run, and the saved exit code was always 0. It's now escaped, so the inner shell records iCloudPD's real exit code
+ - The iCloudPD release binary also exits 0 on errors it handles, such as "Apple iCloud Photo Library has not finished indexing yet" or a 421 authentication error (icloud_photos_downloader issue #1372). A download whose output doesn't end with "All photos and videos have been downloaded" (or the photos/videos variant) is now treated as failed, with the last message iCloudPD printed as the error. That covers it whatever exit code iCloudPD returns
+ - Added tests for both to tests/run_tests.sh
+
 05/09/2026
 
  - Added wait_for_reauthentication. When it's set, an expired or missing cookie no longer kills the container and leaves Docker to restart it every half hour. It stays up, pauses downloads, and reminds you through whatever notification method you've configured, once per download_interval. The cadence can be overridden with reauth_notification_interval
