@@ -238,5 +238,46 @@ assert_equals "download_photos: skip_download is not flagged" \
 unset FAKE_OUTPUT FAKE_EXIT
 rm -f /opt/icloudpd/bin/icloudpd /tmp/icloudpd/icloudpd_sync.log /tmp/icloudpd/icloudpd_download_exit_code /tmp/icloudpd/icloudpd_download_error
 
+##### album_names_from_list #####
+
+eval "$(extract_function album_names_from_list)"
+
+newline='
+'
+
+# What iCloudPD 1.32.x prints for --list-albums at the default log level
+list_output="2026-11-03 05:30:28 INFO     Processing user: user@example.com
+2026-11-03 05:30:28 DEBUG    Authenticating...
+Albums:
+All Photos
+Christmas 2022
+Recently Deleted"
+assert_equals "album_names_from_list: log lines before the header are not albums" \
+   "$(printf '%s\n' "${list_output}" | album_names_from_list)" \
+   "All Photos${newline}Christmas 2022${newline}Recently Deleted"
+
+list_output="2026-11-03 05:30:28 INFO     Processing user: user@example.com
+Albums:
+Favorites"
+assert_equals "album_names_from_list: a single log line before the header still works" \
+   "$(printf '%s\n' "${list_output}" | album_names_from_list)" \
+   "Favorites"
+
+list_output="2026-11-03 05:30:28 INFO     Processing user: user@example.com
+Albums:
+2026-11-03 05:30:30 DEBUG    Fetching album list
+Favorites
+2024-07-04 Beach Day"
+assert_equals "album_names_from_list: log lines after the header are dropped, dated album names are kept" \
+   "$(printf '%s\n' "${list_output}" | album_names_from_list)" \
+   "Favorites${newline}2024-07-04 Beach Day"
+
+list_output="2026-11-03 05:30:28 INFO     Processing user: user@example.com
+2026-11-03 05:30:28 DEBUG    Authenticating...
+2026-11-03 05:30:29 ERROR    Authentication required for Account. (421)"
+assert_equals "album_names_from_list: no header means no albums" \
+   "$(printf '%s\n' "${list_output}" | album_names_from_list)" \
+   ""
+
 printf '\n%s test(s), %s failure(s)\n' "${tests_run}" "${tests_failed}"
 [ "${tests_failed}" -eq 0 ]

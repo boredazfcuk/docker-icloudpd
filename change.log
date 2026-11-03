@@ -1,3 +1,8 @@
+03/11/2026
+
+ - Fixed photo_album="all albums" downloading nothing (issue #932). iCloudPD writes its log lines to stdout, so the --list-albums output starts with "Processing user" and "Authenticating..." lines before the "Albums:" header. `sed '1d'` only removed the first, so "Authenticating..." was taken as the first album. Since the 15/10/2026 exit code fix, that album's failure stops the loop, so no real album is ever reached. The album list now keeps only what follows the header and drops any log-formatted line, in both download_albums and --List-Albums
+ - Added tests for it to tests/run_tests.sh
+
 15/10/2026
 
  - Fixed failed downloads being reported as successful, so no failure notification was ever sent. Every iCloudPD launch wrote `echo $?` inside a double-quoted run_as string, so the script expanded `$?` itself before iCloudPD had run, and the saved exit code was always 0. It's now escaped, so the inner shell records iCloudPD's real exit code
