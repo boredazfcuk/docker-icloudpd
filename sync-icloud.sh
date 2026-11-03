@@ -545,6 +545,14 @@ list_libraries()
    IFS="${OLDIFS}"
 }
 
+album_names_from_list()
+{
+   # iCloudPD writes its log lines to stdout as well, so --list-albums output starts with lines such as
+   # "INFO     Processing user: ..." and "DEBUG    Authenticating..." before the "Albums:" header.
+   # Keep only what follows the header, and drop any log line printed while the albums are fetched.
+   sed '1,/^Albums:$/d' | grep -vE '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} (DEBUG|INFO|WARNING|ERROR|CRITICAL) '
+}
+
 list_albums()
 {
    local photo_albums
@@ -562,7 +570,7 @@ list_albums()
    IFS=$'\n'
    if [ "${skip_download}" = "false" ]
    then
-      photo_albums="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
+      photo_albums="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --domain ${auth_domain} --directory /dev/null --list-albums" | album_names_from_list)"
    fi
    log_info "Photo albums:"
    for photo_album in ${photo_albums}
@@ -1147,7 +1155,7 @@ download_albums()
    local all_albums albums_to_download
    if [ "${photo_album}" = "all albums" ]
    then
-      all_albums="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --domain ${auth_domain} --directory /dev/null --list-albums | sed '1d' | sed '/^Albums:$/d'")"
+      all_albums="$(run_as "/opt/icloudpd/bin/icloudpd --username ${apple_id} --cookie-directory /config --domain ${auth_domain} --directory /dev/null --list-albums" | album_names_from_list)"
       log_debug "Buildling list of albums to download..."
       IFS=$'\n'
       for album in ${all_albums}
