@@ -96,6 +96,7 @@ write_variable download_delay 0
 write_variable download_interval 86400
 write_variable download_notifications true
 write_variable download_path
+write_variable exclude_filename
 write_variable fake_user_agent
 write_variable file_match_policy name-size-dedup-with-suffix
 write_variable file_permissions 640
@@ -109,6 +110,7 @@ write_variable icloud_china false
 write_variable iyuu_token
 write_variable jpeg_path
 write_variable jpeg_quality 90
+write_variable live_photo_directory
 write_variable keep_icloud_recent_days
 write_variable keep_icloud_recent_only
 write_variable keep_unicode false
@@ -154,6 +156,7 @@ write_variable signal_host
 write_variable signal_number
 write_variable signal_port
 write_variable signal_recipient
+write_variable screenshot_directory
 write_variable silent_file_notifications false
 write_variable single_pass false
 write_variable skip_album
@@ -163,6 +166,7 @@ write_variable skip_created_before
 write_variable skip_download false
 write_variable skip_library
 write_variable skip_live_photos false
+write_variable skip_screenshots false
 write_variable skip_videos false
 write_variable startup_notification true
 write_variable synology_ignore_path false
@@ -173,11 +177,13 @@ write_variable telegram_http
 write_variable telegram_polling true
 write_variable telegram_server
 write_variable telegram_token
+write_variable temp_suffix .part
 write_variable touser
 write_variable trigger_nextlcoudcli_download
 write_variable until_found
 write_variable user user
 write_variable user_id 1000
+write_variable video_directory
 write_variable video_path
 write_variable wait_for_reauthentication false
 write_variable webhook_https false
@@ -190,6 +196,7 @@ write_variable wecom_id
 write_variable wecom_proxy
 write_variable wecom_secret
 write_variable xmp_sidecar false
+write_variable xmp_sidecar_only false
 
 # Set case sensitive variables to lowercase
 notification_type_temp="$(grep -m1 "^notification_type=" "${temp_file}" | cut -d= -f2-)"

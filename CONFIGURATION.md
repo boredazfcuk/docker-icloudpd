@@ -69,7 +69,19 @@ Currently, I only reccomend setting one container environment variable, TZ, as t
 
 **live_photo_size**: Live photo file size to download. Can be set to **original**, **medium** or **thumb**. If skip_live_photos is set, this setting is redundant. Default: original.
 
+**live_photo_directory**: Download the video part of Live Photos to this directory instead of alongside each photo. The configured folder structure is applied inside this directory. Leave unset to keep Live Photo videos next to their photos. Cannot be combined with **skip_live_photos**.
+
 **skip_videos**: If this is set, it will skip downloading videos. Default: false.
+
+**skip_screenshots**: Set this to **true** to skip screenshots. Default: false.
+
+**screenshot_directory**: Download screenshots to this directory instead of **download_path**. The configured folder structure is applied inside this directory. Leave unset to use **download_path**. Cannot be combined with **skip_screenshots**.
+
+**video_directory**: Download videos (excluding the video part of Live Photos) to this directory instead of **download_path**. The configured folder structure is applied inside this directory. Leave unset to use **download_path**. Cannot be combined with **skip_videos**.
+
+**exclude_filename**: Comma-separated filename patterns to exclude from downloads. Matching is case-insensitive; for example, **exclude_filename=IMG_12*.JPG,*.HEIC**. Leave unset to include all filenames.
+
+**temp_suffix**: Suffix used for in-progress download files. It must start with a dot and must not end in a media or XMP extension. Default: **.part**. Files left with a previous suffix after changing this setting are not resumed or removed automatically.
 
 **recent_only**: Set this to an integer number to only download this many recently added photos. Default: download all photos.
 
@@ -119,6 +131,10 @@ adds asset id from iCloud to all file names and does not need de-duplication. De
 **video_path**: 
 
 **xmp_sidecar**: Set this to **true** to write a *.xmp sidecar file alongside each downloaded asset. Each sidecar contains metadata from iCloud not otherwise available locally (e.g. screenshot classification). For live photos, only the still image gets a sidecar. Default: false.
+
+**xmp_sidecar_only**: Set this to **true** to create XMP sidecars without downloading the photos or videos. The wrapper skips its new-media pre-check and performs a full XMP-only pass each configured sync interval, because that pre-check looks for media files this mode does not create. This cannot be combined with **auto_delete**, **delete_after_download**, **keep_icloud_recent_only** when its day count is set, or **until_found**. Default: false.
+
+Keep separate output directories inside **download_path** if you use Nextcloud uploads or other container post-processing; those features scan **download_path**. Mount any configured output paths so downloaded files persist outside the container.
 
 # NEXTCLOUD CONFIGURATION ITEMS
 

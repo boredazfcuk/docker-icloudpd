@@ -31,6 +31,93 @@ assert_equals()
    fi
 }
 
+assert_contains()
+{
+   tests_run=$((tests_run + 1))
+   case "${2}" in
+      *"${3}"*) printf 'ok   %s\n' "${1}" ;;
+      *)
+         tests_failed=$((tests_failed + 1))
+         printf 'FAIL %s\n     expected to contain: %s\n     actual:              %s\n' "${1}" "${3}" "${2}"
+         ;;
+   esac
+}
+
+##### command_line_builder ######
+
+eval "$(extract_function shell_quote)"
+eval "$(extract_function command_line_builder)"
+quoted_apostrophe="$(shell_quote "Owner's photos")"
+assert_equals "shell_quote: preserves apostrophes" \
+   "$(eval "printf '%s' ${quoted_apostrophe}")" \
+   "Owner's photos"
+log_error() { printf '%s\n' "${1}"; }
+log_warning() { :; }
+log_debug() { :; }
+download_path="/downloads"
+auth_domain="com"
+apple_id="person@example.com"
+photo_size="original"
+set_exif_datetime="false"
+keep_unicode="false"
+live_photo_mov_filename_policy="suffix"
+align_raw="as-is"
+file_match_policy="name-size-dedup-with-suffix"
+auto_delete="false"
+delete_after_download="false"
+keep_icloud_recent_only="false"
+keep_icloud_recent_days=""
+xmp_sidecar="false"
+xmp_sidecar_only="false"
+skip_live_photos="false"
+live_photo_size="original"
+skip_videos="false"
+skip_screenshots="false"
+exclude_filename='IMG_12*.JPG,My photo.JPG'
+temp_suffix='.download'
+live_photo_directory='/downloads/Live Photos'
+screenshot_directory='/downloads/Screenshots'
+video_directory='/downloads/Videos'
+folder_structure='{:%Y/%m/%d}'
+photo_album=""
+photo_library=""
+until_found=""
+recent_only=""
+skip_created_after=""
+skip_created_before=""
+command_line_builder
+assert_contains "command_line_builder: preserves filename glob patterns" \
+   "${command_line}" "--exclude-filename 'IMG_12*.JPG'"
+assert_contains "command_line_builder: accepts multiple filename patterns" \
+   "${command_line}" "--exclude-filename 'My photo.JPG'"
+assert_contains "command_line_builder: quotes temporary suffix" \
+   "${command_line}" "--temp-suffix '.download'"
+assert_contains "command_line_builder: quotes Live Photo output path" \
+   "${command_line}" "--live-photo-directory '/downloads/Live Photos'"
+assert_contains "command_line_builder: quotes screenshot output path" \
+   "${command_line}" "--screenshot-directory '/downloads/Screenshots'"
+assert_contains "command_line_builder: quotes video output path" \
+   "${command_line}" "--video-directory '/downloads/Videos'"
+
+screenshot_directory=""
+skip_screenshots="true"
+command_line_builder
+assert_contains "command_line_builder: passes screenshot filtering" \
+   "${command_line}" "--skip-screenshots"
+
+xmp_sidecar_only="true"
+skip_screenshots="false"
+exclude_filename=""
+temp_suffix=".part"
+command_line_builder
+assert_contains "command_line_builder: enables XMP-only mode" \
+   "${command_line}" "--xmp-sidecar-only"
+xmp_sidecar_only="false"
+skip_screenshots="false"
+live_photo_directory=""
+screenshot_directory=""
+video_directory=""
+
 ##### reauth_instructions #####
 
 eval "$(extract_function reauth_instructions)"

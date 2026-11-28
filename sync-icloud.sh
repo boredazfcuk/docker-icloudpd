@@ -2290,10 +2290,40 @@ send_notification()
    fi
 }
 
+shell_quote()
+{
+   printf "'%s'" "$(printf '%s' "${1}" | sed "s/'/'\\\\''/g")"
+}
+
 command_line_builder()
 {
-   local size
+   local size exclude_pattern saved_ifs had_globbing
    command_line="--directory ${download_path} --cookie-directory /config --domain ${auth_domain} --username ${apple_id} --no-progress-bar"
+   if [ -n "${live_photo_directory}" ] && [ "${skip_live_photos}" != "false" ]
+   then
+      log_error "live_photo_directory cannot be used with skip_live_photos"
+      exit 1
+   fi
+   if [ -n "${screenshot_directory}" ] && [ "${skip_screenshots}" != "false" ]
+   then
+      log_error "screenshot_directory cannot be used with skip_screenshots"
+      exit 1
+   fi
+   if [ -n "${video_directory}" ] && [ "${skip_videos}" != "false" ]
+   then
+      log_error "video_directory cannot be used with skip_videos"
+      exit 1
+   fi
+   if [ "${xmp_sidecar_only}" != "false" ] && {
+      [ "${auto_delete}" != "false" ] ||
+      [ "${delete_after_download}" != "false" ] ||
+      { [ "${keep_icloud_recent_only}" = "true" ] && [ -n "${keep_icloud_recent_days}" ]; } ||
+      [ -n "${until_found}" ]
+   }
+   then
+      log_error "xmp_sidecar_only cannot be combined with auto_delete, delete_after_download, keep_icloud_recent_only or until_found"
+      exit 1
+   fi
    if [ "${photo_size}" = "original" ] || [ "${photo_size}" = "medium" ] || [ "${photo_size}" = "thumb" ] || [ "${photo_size}" = "adjusted" ] || [ "${photo_size}" = "alternative" ]
    then
       command_line="${command_line} --size ${photo_size}"
@@ -2352,6 +2382,10 @@ command_line_builder()
    then
       command_line="${command_line} --xmp-sidecar"
    fi
+   if [ "${xmp_sidecar_only}" != "false" ]
+   then
+      command_line="${command_line} --xmp-sidecar-only"
+   fi
    if [ "${skip_live_photos}" = "false" ]
    then
       if [ "${live_photo_size}" != "original" ]
@@ -2364,6 +2398,47 @@ command_line_builder()
    if [ "${skip_videos}" != "false" ]
    then
       command_line="${command_line} --skip-videos"
+   fi
+   if [ "${skip_screenshots}" != "false" ]
+   then
+      command_line="${command_line} --skip-screenshots"
+   fi
+   if [ -n "${exclude_filename}" ]
+   then
+      saved_ifs="${IFS}"
+      case "$-" in
+         *f*) had_globbing=true ;;
+         *) had_globbing=false; set -f ;;
+      esac
+      IFS=','
+      for exclude_pattern in ${exclude_filename}
+      do
+         if [ -n "${exclude_pattern}" ]
+         then
+            command_line="${command_line} --exclude-filename $(shell_quote "${exclude_pattern}")"
+         fi
+      done
+      IFS="${saved_ifs}"
+      if [ "${had_globbing}" = "false" ]
+      then
+         set +f
+      fi
+   fi
+   if [ -n "${temp_suffix}" ] && [ "${temp_suffix}" != ".part" ]
+   then
+      command_line="${command_line} --temp-suffix $(shell_quote "${temp_suffix}")"
+   fi
+   if [ -n "${live_photo_directory}" ]
+   then
+      command_line="${command_line} --live-photo-directory $(shell_quote "${live_photo_directory}")"
+   fi
+   if [ -n "${screenshot_directory}" ]
+   then
+      command_line="${command_line} --screenshot-directory $(shell_quote "${screenshot_directory}")"
+   fi
+   if [ -n "${video_directory}" ]
+   then
+      command_line="${command_line} --video-directory $(shell_quote "${video_directory}")"
    fi
    if [ -z "${photo_album}" ] && [ -z "${photo_library}" ]
    then
@@ -2541,10 +2616,14 @@ synchronise_user()
          continue
       fi
       check_mount
-      if [ "${skip_check}" = "false" ]
+      if [ "${skip_check}" = "false" ] && [ "${xmp_sidecar_only}" = "false" ]
       then
          check_files
       else
+         if [ "${xmp_sidecar_only}" != "false" ] && [ "${skip_check}" = "false" ]
+         then
+            log_info "XMP-only mode: skipping the new-file check"
+         fi
          check_exit_code=0
          check_files_count=1
       fi

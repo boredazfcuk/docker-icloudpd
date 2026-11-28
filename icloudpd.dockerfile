@@ -1,9 +1,9 @@
-FROM alpine:3.23.4
+FROM alpine:latest
 LABEL maintainer="boredazfcuk"
 
 ENV XDG_DATA_HOME="/config" TZ="UTC" ENV="/etc/profile" config_file="/config/icloudpd.conf"
 
-ARG icloudpd_version="1.32.3"
+ARG icloudpd_version="1.35.0"
 ARG build_dependencies="gcc python3-dev libc-dev libffi-dev cargo openssl-dev"
 ARG app_dependencies="findutils nano nano-syntax py3-pip exiftool coreutils tzdata curl libheif imagemagick shadow jq jpeg bind-tools expect inotify-tools msmtp"
 
